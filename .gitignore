@@ -1,0 +1,14 @@
+.vercel
+.DS_Store
+
+# ── Not published yet: legacy Flutter app & samples contain hard-coded secrets
+# (OpenRouter keys in white_super_app/lib/**, Meta access token in AdsSample/*.js,
+# Firebase keys in firebase_options.dart). Rotate & move them to env before
+# removing these lines.
+/white_super_app/
+/AdsSample/
+/FACEBOOK_APP_SETUP.md
+/STAGING_DEPLOYMENT.md
+/vercel.json
+/vercel-staging.json
+/.github/workflows/deploy.yml

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "white-analytics-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "white-analytics", "dev", "--port", "3100"],
+      "port": 3100
+    }
+  ]
+}

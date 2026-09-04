@@ -1,0 +1,930 @@
+// WHITE Analytics — Prisma schema
+// See docs/plans/2026-08-19-nextjs-analytics-dashboard-design.md §5
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum ClientMemberRole {
+  MANAGER
+  VIEWER
+}
+
+enum ConnectionProvider {
+  META
+  GOOGLE
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+}
+
+enum SeoDimension {
+  QUERY
+  PAGE
+  COUNTRY
+  DEVICE
+}
+
+enum AuditStrategy {
+  MOBILE
+  DESKTOP
+}
+
+enum IssueSeverity {
+  ERROR
+  WARNING
+  NOTICE
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum ModuleKey {
+  SOCIAL
+  SEO
+  ADS
+}
+
+// Publishing (Hootsuite-style)
+enum PostStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  REJECTED
+}
+
+enum MediaKind {
+  IMAGE
+  VIDEO
+}
+
+// SEO suite (Semrush-style)
+enum DeviceType {
+  DESKTOP
+  MOBILE
+}
+
+enum KeywordIntent {
+  INFORMATIONAL
+  NAVIGATIONAL
+  COMMERCIAL
+  TRANSACTIONAL
+}
+
+enum AuditCadence {
+  NONE
+  WEEKLY
+  DAILY
+}
+
+// ─────────────────────────────────────────────────────────────
+// Users, clients, membership
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole @default(MEMBER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships    ClientMember[]
+  createdClients Client[]       @relation("ClientCreatedBy")
+  reports        Report[]
+  mediaAssets    MediaAsset[]   @relation("MediaUploadedBy")
+  createdPosts   ContentPost[]  @relation("PostCreatedBy")
+  approvedPosts  ContentPost[]  @relation("PostApprovedBy")
+  postComments   PostComment[]
+  postActivities PostActivity[]
+  notifications  Notification[]
+}
+
+model Client {
+  id           String      @id @default(cuid())
+  name         String
+  slug         String      @unique
+  description  String      @default("")
+  logoUrl      String?
+  websiteUrl   String?
+  industry     String?
+  currency     String      @default("IDR")
+  timezone     String      @default("Asia/Jakarta")
+  // Public share dashboard
+  shareEnabled Boolean     @default(false)
+  sharePinHash String?
+  shareModules ModuleKey[] @default([SOCIAL, SEO, ADS])
+  createdById  String?
+  createdBy    User?       @relation("ClientCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  members         ClientMember[]
+  connections     Connection[]
+  socialAccounts  SocialAccount[]
+  seoProperties   SeoProperty[]
+  adAccounts      AdAccount[]
+  reports         Report[]
+  aiInsights      AiInsight[]
+  syncJobs        SyncJob[]
+  mediaAssets     MediaAsset[]
+  contentPosts    ContentPost[]
+  keywordResearch KeywordResearch[]
+  notifications   Notification[]
+
+  @@index([createdById])
+}
+
+model ClientMember {
+  userId    String
+  clientId  String
+  role      ClientMemberRole @default(VIEWER)
+  createdAt DateTime         @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([userId, clientId])
+  @@index([clientId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// External connections (tokens encrypted at rest)
+// ─────────────────────────────────────────────────────────────
+
+model Connection {
+  id              String             @id @default(cuid())
+  clientId        String
+  provider        ConnectionProvider
+  accountId       String
+  displayName     String
+  accessTokenEnc  String
+  refreshTokenEnc String?
+  expiresAt       DateTime?
+  scopes          String[]           @default([])
+  meta            Json?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  socialAccounts SocialAccount[]
+  seoProperties  SeoProperty[]
+  adAccounts     AdAccount[]
+
+  @@unique([clientId, provider, accountId])
+  @@index([clientId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Social
+// ─────────────────────────────────────────────────────────────
+
+model SocialAccount {
+  id           String         @id @default(cuid())
+  clientId     String
+  platform     SocialPlatform
+  externalId   String
+  username     String
+  displayName  String
+  avatarUrl    String?
+  biography    String?
+  isCompetitor Boolean        @default(false)
+  connectionId String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  client     Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  connection Connection?      @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  snapshots  SocialSnapshot[]
+  posts      SocialPost[]
+  targets    PostTarget[]
+
+  @@unique([clientId, platform, externalId])
+  @@index([clientId, platform])
+}
+
+model SocialSnapshot {
+  id              String   @id @default(cuid())
+  socialAccountId String
+  date            DateTime @db.Date
+  followers       Int
+  following       Int?
+  mediaCount      Int      @default(0)
+  reach           Int?
+  impressions     Int?
+  profileViews    Int?
+  websiteClicks   Int?
+
+  account SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([socialAccountId, date])
+  @@index([socialAccountId, date])
+}
+
+model SocialPost {
+  id              String   @id @default(cuid())
+  socialAccountId String
+  externalId      String
+  caption         String   @default("")
+  mediaType       String   @default("IMAGE") // IMAGE | VIDEO | CAROUSEL_ALBUM
+  productType     String? // FEED | REELS | STORY
+  permalink       String?
+  mediaUrl        String?
+  thumbnailUrl    String?
+  publishedAt     DateTime
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  shares          Int      @default(0)
+  saves           Int      @default(0)
+  views           Int      @default(0)
+  reach           Int      @default(0)
+  impressions     Int      @default(0)
+  syncedAt        DateTime @default(now())
+
+  account SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([socialAccountId, externalId])
+  @@index([socialAccountId, publishedAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// SEO
+// ─────────────────────────────────────────────────────────────
+
+model SeoProperty {
+  id            String       @id @default(cuid())
+  clientId      String
+  siteUrl       String // GSC property, e.g. https://example.com/ or sc-domain:example.com
+  ga4PropertyId String?
+  connectionId  String?
+  // SEO suite: default market for research/rank tracking + scheduled audits
+  locationCode  Int          @default(2360) // DataForSEO location code (2360 = Indonesia)
+  languageCode  String       @default("id")
+  auditCadence  AuditCadence @default(NONE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  client            Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  connection        Connection?          @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  daily             SeoDailyMetric[]
+  dimensions        SeoDimensionMetric[]
+  ga4Daily          Ga4DailyMetric[]
+  audits            SeoAudit[]
+  crawls            SeoCrawl[]
+  trackedKeywords   TrackedKeyword[]
+  backlinks         Backlink[]
+  backlinkSnapshots BacklinkSnapshot[]
+  competitorDomains CompetitorDomain[]
+  domainSnapshots   DomainSnapshot[]
+
+  @@unique([clientId, siteUrl])
+  @@index([clientId])
+}
+
+model SeoDailyMetric {
+  id          String   @id @default(cuid())
+  propertyId  String
+  date        DateTime @db.Date
+  clicks      Int
+  impressions Int
+  ctr         Float
+  position    Float
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@index([propertyId, date])
+}
+
+model SeoDimensionMetric {
+  id          String       @id @default(cuid())
+  propertyId  String
+  date        DateTime     @db.Date
+  dimension   SeoDimension
+  key         String
+  clicks      Int
+  impressions Int
+  ctr         Float
+  position    Float
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date, dimension, key])
+  @@index([propertyId, dimension, date])
+}
+
+model Ga4DailyMetric {
+  id               String   @id @default(cuid())
+  propertyId       String
+  date             DateTime @db.Date
+  sessions         Int
+  organicSessions  Int
+  users            Int
+  engagedSessions  Int
+  conversions      Int
+  avgEngagementSec Float
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@index([propertyId, date])
+}
+
+model SeoAudit {
+  id            String        @id @default(cuid())
+  propertyId    String
+  url           String
+  strategy      AuditStrategy
+  runAt         DateTime      @default(now())
+  performance   Int
+  seo           Int
+  accessibility Int
+  bestPractices Int
+  lcpMs         Float?
+  inpMs         Float?
+  cls           Float?
+  fcpMs         Float?
+  ttfbMs        Float?
+  tbtMs         Float?
+  speedIndexMs  Float?
+  raw           Json?
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, runAt])
+}
+
+model SeoCrawl {
+  id           String    @id @default(cuid())
+  propertyId   String
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  status       JobStatus @default(PENDING)
+  pagesCrawled Int       @default(0)
+  maxPages     Int       @default(50)
+  error        String?
+
+  property SeoProperty    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  pages    SeoCrawlPage[]
+  issues   SeoIssue[]
+
+  @@index([propertyId, startedAt])
+}
+
+model SeoCrawlPage {
+  id               String  @id @default(cuid())
+  crawlId          String
+  url              String
+  statusCode       Int
+  title            String?
+  metaDescription  String?
+  h1Count          Int     @default(0)
+  wordCount        Int     @default(0)
+  canonical        String?
+  indexable        Boolean @default(true)
+  imagesTotal      Int     @default(0)
+  imagesMissingAlt Int     @default(0)
+  internalLinks    Int     @default(0)
+  externalLinks    Int     @default(0)
+  loadMs           Int?
+  hasJsonLd        Boolean @default(false)
+  hasHreflang      Boolean @default(false)
+
+  crawl SeoCrawl @relation(fields: [crawlId], references: [id], onDelete: Cascade)
+
+  @@index([crawlId])
+}
+
+model SeoIssue {
+  id       String        @id @default(cuid())
+  crawlId  String
+  severity IssueSeverity
+  code     String
+  message  String
+  url      String
+
+  crawl SeoCrawl @relation(fields: [crawlId], references: [id], onDelete: Cascade)
+
+  @@index([crawlId, severity])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Meta Ads
+// ─────────────────────────────────────────────────────────────
+
+model AdAccount {
+  id           String    @id @default(cuid())
+  clientId     String
+  externalId   String // act_123
+  name         String
+  currency     String    @default("IDR")
+  connectionId String?
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  client       Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  connection   Connection?      @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  campaigns    AdCampaign[]
+  insights     AdDailyInsight[]
+  demographics AdDemographic[]
+
+  @@unique([clientId, externalId])
+  @@index([clientId])
+}
+
+model AdCampaign {
+  id          String    @id @default(cuid())
+  adAccountId String
+  externalId  String
+  name        String
+  objective   String    @default("OUTCOME_TRAFFIC")
+  status      String    @default("ACTIVE") // ACTIVE | PAUSED | ARCHIVED
+  dailyBudget Float?
+  startTime   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  adAccount AdAccount        @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+  adSets    AdSet[]
+  insights  AdDailyInsight[]
+
+  @@unique([adAccountId, externalId])
+  @@index([adAccountId])
+}
+
+model AdSet {
+  id          String   @id @default(cuid())
+  campaignId  String
+  externalId  String
+  name        String
+  status      String   @default("ACTIVE")
+  dailyBudget Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  campaign AdCampaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  ads      Ad[]
+  insights AdDailyInsight[]
+
+  @@unique([campaignId, externalId])
+  @@index([campaignId])
+}
+
+model Ad {
+  id           String   @id @default(cuid())
+  adSetId      String
+  externalId   String
+  name         String
+  status       String   @default("ACTIVE")
+  thumbnailUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  adSet    AdSet            @relation(fields: [adSetId], references: [id], onDelete: Cascade)
+  insights AdDailyInsight[]
+
+  @@unique([adSetId, externalId])
+  @@index([adSetId])
+}
+
+/// One row per (account, date, level). Level is implied by which ids are set:
+/// account-level (all null), campaign, adset, or ad. Upsert key includes ids
+/// so re-importing the same CSV never duplicates.
+model AdDailyInsight {
+  id            String   @id @default(cuid())
+  adAccountId   String
+  date          DateTime @db.Date
+  campaignId    String?
+  adSetId       String?
+  adId          String?
+  spend         Float    @default(0)
+  impressions   Int      @default(0)
+  reach         Int      @default(0)
+  clicks        Int      @default(0)
+  linkClicks    Int      @default(0)
+  results       Int      @default(0)
+  resultType    String? // e.g. link_click, lead, purchase, messaging_conversation_started
+  purchaseValue Float? // for ROAS when available
+
+  adAccount AdAccount   @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+  campaign  AdCampaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  adSet     AdSet?      @relation(fields: [adSetId], references: [id], onDelete: Cascade)
+  ad        Ad?         @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@unique([adAccountId, date, campaignId, adSetId, adId])
+  @@index([adAccountId, date])
+  @@index([campaignId, date])
+  @@index([adId, date])
+}
+
+model AdDemographic {
+  id          String   @id @default(cuid())
+  adAccountId String
+  dateFrom    DateTime @db.Date
+  dateTo      DateTime @db.Date
+  campaignId  String?
+  age         String // 18-24, 25-34, ...
+  gender      String // male | female | unknown
+  spend       Float    @default(0)
+  impressions Int      @default(0)
+  reach       Int      @default(0)
+  results     Int      @default(0)
+
+  adAccount AdAccount @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([adAccountId, dateFrom, dateTo, campaignId, age, gender])
+  @@index([adAccountId, dateFrom])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Reports, AI insights, sync jobs
+// ─────────────────────────────────────────────────────────────
+
+model Report {
+  id          String      @id @default(cuid())
+  clientId    String
+  title       String
+  dateFrom    DateTime    @db.Date
+  dateTo      DateTime    @db.Date
+  compare     Boolean     @default(true)
+  modules     ModuleKey[] @default([SOCIAL, SEO, ADS])
+  language    String      @default("id")
+  aiSummary   String?
+  pdfPath     String?
+  createdById String?
+  createdAt   DateTime    @default(now())
+
+  client    Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy User?  @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([clientId, createdAt])
+}
+
+model AiInsight {
+  id        String   @id @default(cuid())
+  clientId  String
+  module    String // SOCIAL | SEO | ADS | OVERVIEW
+  dateFrom  DateTime @db.Date
+  dateTo    DateTime @db.Date
+  language  String   @default("id")
+  model     String
+  content   String
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, module, dateFrom, dateTo])
+}
+
+model SyncJob {
+  id         String    @id @default(cuid())
+  clientId   String?
+  kind       String // SOCIAL_SNAPSHOT | SEO_GSC | SEO_GA4 | SEO_AUDIT | ADS_INSIGHTS | ADS_CSV_IMPORT
+  status     JobStatus @default(PENDING)
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  message    String?
+  error      String?
+
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, startedAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Publishing — composer, calendar, approvals (features/publishing)
+// ─────────────────────────────────────────────────────────────
+
+/// Uploaded image/video in the client's media library. `url` is served by
+/// /api/media/[...key] (src/lib/storage.ts) or is an external https URL.
+model MediaAsset {
+  id           String    @id @default(cuid())
+  clientId     String
+  kind         MediaKind
+  url          String
+  thumbnailUrl String?
+  filename     String
+  mimeType     String
+  sizeBytes    Int       @default(0)
+  width        Int?
+  height       Int?
+  durationSec  Float?
+  altText      String?
+  tags         String[]  @default([])
+  uploadedById String?
+  createdAt    DateTime  @default(now())
+
+  client     Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  uploadedBy User?       @relation("MediaUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  usages     PostMedia[]
+
+  @@index([clientId, createdAt])
+}
+
+/// A post authored in the app (distinct from SocialPost, which is synced history).
+/// `status` is the overall lifecycle; each PostTarget carries its own publish result.
+/// `scheduledAt` is UTC — display in Client.timezone.
+model ContentPost {
+  id           String     @id @default(cuid())
+  clientId     String
+  title        String     @default("")
+  body         String     @default("")
+  status       PostStatus @default(DRAFT)
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  linkUrl      String?
+  firstComment String?
+  labels       String[]   @default([])
+  utm          Json?
+  reviewNote   String?
+  createdById  String?
+  approvedById String?
+  approvedAt   DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  client     Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy  User?          @relation("PostCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedBy User?          @relation("PostApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  targets    PostTarget[]
+  media      PostMedia[]
+  comments   PostComment[]
+  activities PostActivity[]
+
+  @@index([clientId, status, scheduledAt])
+  @@index([clientId, scheduledAt])
+}
+
+/// One destination account per post (own SocialAccounts only, never competitors).
+model PostTarget {
+  id              String     @id @default(cuid())
+  postId          String
+  socialAccountId String
+  bodyOverride    String?
+  status          PostStatus @default(DRAFT)
+  externalId      String?
+  permalink       String?
+  error           String?
+  attempts        Int        @default(0)
+  publishedAt     DateTime?
+
+  post    ContentPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  account SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, socialAccountId])
+  @@index([status])
+}
+
+model PostMedia {
+  postId  String
+  assetId String
+  order   Int    @default(0)
+
+  post  ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  asset MediaAsset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([postId, assetId])
+  @@index([postId, order])
+}
+
+/// Internal review thread on a post (not published anywhere).
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String?
+  body      String
+  createdAt DateTime @default(now())
+
+  post ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
+}
+
+/// Audit trail: CREATED | EDITED | SUBMITTED | APPROVED | REJECTED | SCHEDULED |
+/// RESCHEDULED | PUBLISHED | FAILED | RETRIED | CANCELLED
+model PostActivity {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String?
+  type      String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  post ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// SEO suite — research, rank tracking, backlinks, competitors (features/seo-suite)
+// ─────────────────────────────────────────────────────────────
+
+/// Keyword under daily rank tracking. Research metrics (volume/difficulty/cpc/intent)
+/// are cached here when known.
+model TrackedKeyword {
+  id           String         @id @default(cuid())
+  propertyId   String
+  keyword      String
+  locationCode Int            @default(2360)
+  languageCode String         @default("id")
+  device       DeviceType     @default(MOBILE)
+  tags         String[]       @default([])
+  targetUrl    String?
+  volume       Int?
+  difficulty   Int?
+  cpc          Float?
+  intent       KeywordIntent?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  property SeoProperty    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ranks    RankSnapshot[]
+
+  @@unique([propertyId, keyword, locationCode, device])
+  @@index([propertyId])
+}
+
+/// Daily SERP position. `position` null = not found in top 100.
+model RankSnapshot {
+  id           String   @id @default(cuid())
+  keywordId    String
+  date         DateTime @db.Date
+  position     Int?
+  url          String?
+  serpFeatures String[] @default([])
+  /// top-10 [{domain, position}] for share-of-voice / competitor views
+  topResults   Json?
+
+  keyword TrackedKeyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([keywordId, date])
+  @@index([keywordId, date])
+}
+
+/// Cached keyword-research run (seed → ideas). Results: KeywordIdea[] from the provider.
+model KeywordResearch {
+  id           String   @id @default(cuid())
+  clientId     String
+  seed         String
+  locationCode Int      @default(2360)
+  languageCode String   @default("id")
+  provider     String
+  results      Json
+  fetchedAt    DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, fetchedAt])
+  @@index([clientId, seed, locationCode, languageCode])
+}
+
+model BacklinkSnapshot {
+  id               String   @id @default(cuid())
+  propertyId       String
+  date             DateTime @db.Date
+  backlinks        Int
+  referringDomains Int
+  dofollow         Int      @default(0)
+  nofollow         Int      @default(0)
+  newBacklinks     Int      @default(0)
+  lostBacklinks    Int      @default(0)
+  domainRank       Int?
+  toxicShare       Float?
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@index([propertyId, date])
+}
+
+model Backlink {
+  id           String   @id @default(cuid())
+  propertyId   String
+  sourceUrl    String
+  sourceDomain String
+  targetUrl    String
+  anchor       String   @default("")
+  dofollow     Boolean  @default(true)
+  domainRank   Int?
+  spamScore    Int?
+  firstSeen    DateTime @db.Date
+  lastSeen     DateTime @db.Date
+  isLost       Boolean  @default(false)
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, sourceUrl, targetUrl])
+  @@index([propertyId, isLost, lastSeen])
+  @@index([propertyId, sourceDomain])
+}
+
+/// Competitor domains to benchmark against (own domain is derived from siteUrl).
+model CompetitorDomain {
+  id         String   @id @default(cuid())
+  propertyId String
+  domain     String
+  createdAt  DateTime @default(now())
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, domain])
+}
+
+/// Domain overview snapshot for own domain or a competitor (one row per domain per day).
+model DomainSnapshot {
+  id               String   @id @default(cuid())
+  propertyId       String
+  domain           String
+  date             DateTime @db.Date
+  organicKeywords  Int
+  organicTraffic   Int
+  organicCost      Float?
+  top3             Int      @default(0)
+  top10            Int      @default(0)
+  top100           Int      @default(0)
+  backlinks        Int?
+  referringDomains Int?
+  domainRank       Int?
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, domain, date])
+  @@index([propertyId, domain, date])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Notifications (cross-cutting) — written via src/lib/notify.ts
+// ─────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  clientId  String?
+  type      String
+  title     String
+  body      String    @default("")
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Workspace setup — app-level integration credentials (src/lib/integrations.ts)
+// ─────────────────────────────────────────────────────────────
+
+/// One row per provider (META | GOOGLE | DATAFORSEO | OPENROUTER). Secrets are
+/// AES-GCM encrypted; values are hydrated into process.env at boot and on save,
+/// so provider adapters keep reading env. `meta` holds non-secret state such as
+/// the Meta App Review checklist.
+model IntegrationSetting {
+  provider    String    @id
+  publicId    String?
+  secretEnc   String?
+  meta        Json?
+  verifiedAt  DateTime?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+/// Small key/value store for workspace-level flags (e.g. `setup` → { completedAt }).
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

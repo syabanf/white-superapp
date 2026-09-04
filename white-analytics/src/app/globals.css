@@ -1,0 +1,394 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────────────────────
+   WHITE Analytics — design tokens
+   Tone: withwhite.id — plain white canvas, royal blue, tight bold
+   type, mono micro-labels, pill actions, technical crop marks.
+   Chart palettes are validated (see docs/plans design doc).
+   ───────────────────────────────────────────────────────────── */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-surface-high: var(--surface-high);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-serious: var(--status-serious);
+  --color-status-critical: var(--status-critical);
+  --color-grid: var(--grid);
+  --color-axis: var(--axis);
+  --color-brand-instagram: var(--brand-instagram);
+  --color-brand-facebook: var(--brand-facebook);
+  --color-brand-tiktok: var(--brand-tiktok);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.7);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.3);
+  --radius-2xl: calc(var(--radius) * 1.7);
+  --radius-3xl: calc(var(--radius) * 2.1);
+  --radius-4xl: calc(var(--radius) * 2.5);
+}
+
+:root {
+  color-scheme: light;
+
+  /* ── Surfaces: plain white; structure comes from hairline borders ── */
+  --canvas: #ffffff;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --surface-high: #f7f7f5;
+
+  /* ── Brand: royal blue ── */
+  --brand: #1b4de4;
+  --brand-ink: #123aae;
+  --primary: #1b4de4;
+  --primary-foreground: #ffffff;
+  --secondary: #ececE8;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f0f0ec;
+  --muted-foreground: #5f6470;
+  --accent: #edf1fe;
+  --accent-foreground: #123aae;
+  --destructive: #d03b3b;
+  --border: #e2e2dd;
+  --input: #e2e2dd;
+  --ring: #1b4de4;
+  --radius: 0.875rem;
+
+  /* ── Motion ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 260ms;
+  --lift-shadow: 0 1px 2px rgba(10, 10, 10, 0.04), 0 10px 28px -12px rgba(10, 10, 10, 0.18);
+
+  /* ── Sidebar ── */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #1b4de4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f5fe;
+  --sidebar-accent-foreground: #123aae;
+  --sidebar-border: #e9e9e4;
+  --sidebar-ring: #1b4de4;
+
+  /* ── Chart chrome ── */
+  --grid: #ececE8;
+  --axis: #cfcfc8;
+
+  /* ── Categorical slots (validated light on #ffffff) ── */
+  --chart-1: #1b4de4;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
+  --chart-7: #4a3aa7;
+  --chart-8: #e34948;
+  --chart-emphasis-muted: #c9c9c2;
+
+  /* ── Sequential ramp, brand hue, light→dark ── */
+  --seq-100: #e4eafc;
+  --seq-150: #c7d3f8;
+  --seq-200: #aabdf5;
+  --seq-250: #8ea7f2;
+  --seq-300: #7190ee;
+  --seq-350: #547aeb;
+  --seq-400: #3863e7;
+  --seq-450: #1b4de4;
+  --seq-500: #1946d0;
+  --seq-550: #163fbb;
+  --seq-600: #1438a7;
+  --seq-650: #123193;
+  --seq-700: #0f2a7e;
+
+  --div-mid: #efefea;
+
+  /* ── Status (reserved; always with icon + label) ── */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  /* ── Delta text ── */
+  --positive: #006300;
+  --negative: #b91c1c;
+
+  /* ── Platform identity (marks only, never chart series) ── */
+  --brand-instagram: #e1306c;
+  --brand-facebook: #1877f2;
+  --brand-tiktok: #ff0050;
+}
+
+.dark {
+  color-scheme: dark;
+  --lift-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.7);
+
+  --canvas: #0b0c0e;
+  --background: #0b0c0e;
+  --foreground: #f2f2f0;
+  --card: #131417;
+  --card-foreground: #f2f2f0;
+  --popover: #17181c;
+  --popover-foreground: #f2f2f0;
+  --surface-high: #1b1d22;
+
+  --brand: #5b84ff;
+  --brand-ink: #a9c0ff;
+  --primary: #2e5be8;
+  --primary-foreground: #ffffff;
+  --secondary: #1b1d22;
+  --secondary-foreground: #f2f2f0;
+  --muted: #1b1d22;
+  --muted-foreground: #9a9da8;
+  --accent: #1a2138;
+  --accent-foreground: #a9c0ff;
+  --destructive: #e66767;
+  --border: #24262c;
+  --input: #24262c;
+  --ring: #5b84ff;
+
+  --sidebar: #131417;
+  --sidebar-foreground: #f2f2f0;
+  --sidebar-primary: #5b84ff;
+  --sidebar-primary-foreground: #0b0c0e;
+  --sidebar-accent: #1a2138;
+  --sidebar-accent-foreground: #a9c0ff;
+  --sidebar-border: #24262c;
+  --sidebar-ring: #5b84ff;
+
+  --grid: #212329;
+  --axis: #34373f;
+
+  /* Categorical slots (validated dark on #131417) */
+  --chart-1: #5b84ff;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
+  --chart-7: #9085e9;
+  --chart-8: #e66767;
+  --chart-emphasis-muted: #43464f;
+
+  /* Sequential flips anchor in dark: more = brighter */
+  --seq-100: #16203f;
+  --seq-150: #1b2a54;
+  --seq-200: #20356a;
+  --seq-250: #26417f;
+  --seq-300: #2c4d95;
+  --seq-350: #3459ab;
+  --seq-400: #3d66c1;
+  --seq-450: #4a74d6;
+  --seq-500: #5a84e8;
+  --seq-550: #6e94f0;
+  --seq-600: #86a6f5;
+  --seq-650: #9fb8f9;
+  --seq-700: #b8cafc;
+
+  --div-mid: #2a2d34;
+
+  --positive: #3fbf5a;
+  --negative: #e66767;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+  /* Tight, confident headings — the withwhite.id voice */
+  h1 {
+    letter-spacing: -0.035em;
+  }
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 22%, transparent);
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .surface-glass {
+    background: color-mix(in oklab, var(--card) 88%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Mono micro-label: "01 · VISUAL", "3 : 2 · 3 SERVICES" */
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.4;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* ── Motion ───────────────────────────────────────────────
+     One vocabulary: `lift` for surfaces you can click into,
+     `nudge` for directional affordances, `page-enter` for arrival.
+     Motion runs for everyone — see the note at the end of this file. */
+
+  /* Clickable surface: hairline warms to brand, card floats a touch */
+  .lift {
+    transition:
+      transform var(--dur) var(--ease-out),
+      box-shadow var(--dur) var(--ease-out),
+      border-color var(--dur) var(--ease-out),
+      background-color var(--dur) var(--ease-out);
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--lift-shadow);
+  }
+  .lift:active {
+    transform: translateY(0);
+    transition-duration: var(--dur-fast);
+  }
+
+  /* Arrow/chevron slides in its own direction on parent hover */
+  .nudge {
+    transition: transform var(--dur) var(--ease-out);
+  }
+  .group\/nudge:hover .nudge {
+    transform: translate(2px, -2px);
+  }
+  .group\/nudge:hover .nudge-x {
+    transform: translateX(2px);
+  }
+  .group\/nudge:hover .nudge-back {
+    transform: translateX(-2px);
+  }
+
+  /* Page arrival: sections rise in with a light stagger */
+  .page-enter > * {
+    animation: enter-up var(--dur-slow) var(--ease-out) both;
+  }
+  .page-enter > *:nth-child(2) {
+    animation-delay: 45ms;
+  }
+  .page-enter > *:nth-child(3) {
+    animation-delay: 90ms;
+  }
+  .page-enter > *:nth-child(n + 4) {
+    animation-delay: 130ms;
+  }
+
+  @keyframes enter-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Data still loading: hold the frame, just dim it (never a skeleton flash) */
+  body[data-nav-pending="true"] .page-enter {
+    opacity: 0.55;
+    transition: opacity var(--dur) var(--ease-in-out);
+  }
+  .page-enter {
+    transition: opacity var(--dur) var(--ease-in-out);
+  }
+
+  /* Technical corner brackets, drawn without extra DOM */
+  .crop-marks {
+    --cm-len: 9px;
+    --cm-w: 1px;
+    --cm-c: color-mix(in oklab, var(--brand) 40%, transparent);
+    background-image:
+      linear-gradient(var(--cm-c), var(--cm-c)), linear-gradient(var(--cm-c), var(--cm-c)),
+      linear-gradient(var(--cm-c), var(--cm-c)), linear-gradient(var(--cm-c), var(--cm-c)),
+      linear-gradient(var(--cm-c), var(--cm-c)), linear-gradient(var(--cm-c), var(--cm-c)),
+      linear-gradient(var(--cm-c), var(--cm-c)), linear-gradient(var(--cm-c), var(--cm-c));
+    background-size:
+      var(--cm-len) var(--cm-w), var(--cm-w) var(--cm-len),
+      var(--cm-len) var(--cm-w), var(--cm-w) var(--cm-len),
+      var(--cm-len) var(--cm-w), var(--cm-w) var(--cm-len),
+      var(--cm-len) var(--cm-w), var(--cm-w) var(--cm-len);
+    background-position:
+      6px 6px, 6px 6px,
+      calc(100% - 6px) 6px, calc(100% - 6px) 6px,
+      6px calc(100% - 6px), 6px calc(100% - 6px),
+      calc(100% - 6px) calc(100% - 6px), calc(100% - 6px) calc(100% - 6px);
+    background-repeat: no-repeat;
+  }
+
+}
+
+/* Motion is intentionally ON for everyone, including users whose OS reports
+   prefers-reduced-motion: reduce. Product decision (2026-08-21, requested by
+   the WHITE team): the brand leans on these cues. Every movement here is kept
+   deliberately small and short — 2px lift, 8px arrival, <= 260ms — so it stays
+   comfortable. If motion discomfort is ever reported, restore the guard here. */
