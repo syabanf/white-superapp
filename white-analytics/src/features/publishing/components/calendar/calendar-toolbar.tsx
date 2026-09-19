@@ -44,24 +44,10 @@ export function CalendarToolbar({
     return qs ? `${pathname}?${qs}` : pathname;
   };
   React.useEffect(() => {
-    const key = "white:calendar-filters";
-    const hasSavedQuery = ["view", "date", "platform", "status"].some((name) => sp.has(name));
-    if (!hasSavedQuery) {
-      try {
-        const stored = window.localStorage.getItem(key);
-        if (stored) {
-          const value = JSON.parse(stored) as Record<string, string>;
-          router.replace(hrefWith(value), { scroll: false });
-          return;
-        }
-      } catch {
-        window.localStorage.removeItem(key);
-      }
-    }
-    window.localStorage.setItem(key, JSON.stringify({ view, date, platform, status }));
-    // hrefWith reads the current URL; the primitive filter values are the persistence boundary.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, date, platform, status, router, sp]);
+    const value = { view, date, platform, status };
+    window.localStorage.setItem("white:calendar-filters", JSON.stringify(value));
+    document.cookie = `white_calendar_filters=${encodeURIComponent(JSON.stringify(value))}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  }, [view, date, platform, status]);
   const step = (n: number) => (view === "month" ? shiftMonths(date, n) : shiftDays(date, 7 * n));
   const days = weekDays(date);
   const title = view === "month" ? monthLabel(date) : `${dayLabel(days[0]!)} – ${dayLabel(days[6]!, true)}`;

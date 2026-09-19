@@ -234,7 +234,23 @@ export function CsvImportDialog({ clientId }: { clientId: string }) {
                   <p className="mb-1.5 text-xs font-medium text-muted-foreground">
                     {s.previewTitle} · ±{formatNumber(preview.totalPreviewRows)} {t.ads.importRows}
                   </p>
-                  <div className="overflow-x-auto rounded-lg border">
+                  <div className="space-y-2 sm:hidden">
+                    {previewRows.map((r, i) => (
+                      <dl key={i} className="rounded-lg border p-3 text-xs">
+                        <div className="mb-2">
+                          <dt className="text-muted-foreground">{t.ads.campaign}</dt>
+                          <dd className="mt-0.5 truncate font-medium">{r.campaignName}</dd>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 border-t pt-2">
+                          <div><dt className="text-muted-foreground">{t.common.date}</dt><dd className="mt-0.5 tabular">{r.date ?? "–"}</dd></div>
+                          <div><dt className="text-muted-foreground">{t.ads.spend}</dt><dd className="mt-0.5 tabular">{formatNumber(r.spend)}</dd></div>
+                          <div><dt className="text-muted-foreground">{t.ads.results}</dt><dd className="mt-0.5 tabular">{formatNumber(r.results)}</dd></div>
+                          <div><dt className="text-muted-foreground">{t.ads.ad}</dt><dd className="mt-0.5 truncate">{r.adName ?? "–"}</dd></div>
+                        </div>
+                      </dl>
+                    ))}
+                  </div>
+                  <div className="hidden overflow-x-auto rounded-lg border sm:block">
                     <Table className="[&_td]:py-1.5 [&_th]:h-8">
                       <TableHeader>
                         <TableRow className="hover:bg-transparent">

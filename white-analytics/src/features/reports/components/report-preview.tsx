@@ -32,7 +32,19 @@ function SectionPreview({ section }: { section: ReportSection }) {
       {table ? (
         <div className="space-y-2">
           <p className="text-xs font-semibold">{table.title}</p>
-          <Table>
+          <div className="space-y-2 md:hidden">
+            {table.rows.map((row, rowIndex) => (
+              <dl key={rowIndex} className="rounded-lg border bg-muted/15 px-3 py-2.5">
+                {row.map((cell, cellIndex) => (
+                  <div key={cellIndex} className="flex items-start justify-between gap-4 border-b py-1.5 last:border-0">
+                    <dt className="text-xs text-muted-foreground">{table.columns[cellIndex]?.label}</dt>
+                    <dd className="max-w-[65%] text-right text-xs font-medium tabular">{cell}</dd>
+                  </div>
+                ))}
+              </dl>
+            ))}
+          </div>
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 {table.columns.map((c) => (

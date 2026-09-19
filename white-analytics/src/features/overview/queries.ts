@@ -65,17 +65,22 @@ export type OverviewAds = {
 };
 
 export type DataQuality = {
-  state: "healthy" | "stale" | "demo" | "empty" | "not_connected";
+  state: "healthy" | "stale" | "failed" | "demo" | "empty" | "not_connected";
   lastSyncedAt: string | null;
   dataFrom: string | null;
   dataTo: string | null;
 };
 
-function quality(hasSource: boolean, isDemo: boolean, dates: Date[], lastSyncedAt: Date | null): DataQuality {
+type LatestSync = { startedAt: Date; status: string } | null;
+
+function quality(hasSource: boolean, isDemo: boolean, dates: Date[], latestSync: LatestSync): DataQuality {
   const sorted = dates.toSorted((a, b) => a.getTime() - b.getTime());
+  const lastSyncedAt = latestSync?.startedAt ?? null;
   const state = !hasSource
     ? "not_connected"
-    : isDemo
+    : latestSync?.status === "FAILED"
+      ? "failed"
+      : isDemo
       ? "demo"
       : dates.length === 0
         ? "empty"
@@ -149,7 +154,7 @@ export const getOverviewSocial = cache(
       db.syncJob.findFirst({
         where: { clientId, kind: "SOCIAL_SNAPSHOT" },
         orderBy: { startedAt: "desc" },
-        select: { startedAt: true },
+        select: { startedAt: true, status: true },
       }),
       db.socialPost.findMany({
         where: {
@@ -221,12 +226,11 @@ export const getOverviewSocial = cache(
       ...snapshots.filter((s) => s.date >= range.from && s.date <= range.to).map((s) => s.date),
       ...posts.map((p) => p.publishedAt),
     ];
-    const lastSyncedAt = latestJob?.startedAt ?? null;
     return {
       hasSource: true,
       hasData: currentDates.length > 0,
       isDemo,
-      quality: quality(true, isDemo, currentDates, lastSyncedAt),
+      quality: quality(true, isDemo, currentDates, latestJob),
       followers: followersNow,
       followersDelta,
       followersSpark,
@@ -292,7 +296,7 @@ export const getOverviewSeo = cache(
       db.syncJob.findFirst({
         where: { clientId, kind: { in: ["SEO_GSC", "SEO_GA4"] } },
         orderBy: { startedAt: "desc" },
-        select: { startedAt: true },
+        select: { startedAt: true, status: true },
       }),
     ]);
     const cur = aggregateSearch(rows);
@@ -305,7 +309,6 @@ export const getOverviewSeo = cache(
     const errors = latestCrawl?.issues.filter((i) => i.severity === "ERROR").length ?? 0;
     const warnings = latestCrawl?.issues.filter((i) => i.severity === "WARNING").length ?? 0;
     const isDemo = props.every((p) => p.connectionId == null);
-    const lastSyncedAt = latestJob?.startedAt ?? null;
     return {
       hasSource: true,
       hasData: rows.length > 0 || prevRows.length > 0,
@@ -314,7 +317,7 @@ export const getOverviewSeo = cache(
         true,
         isDemo,
         rows.map((row) => row.date),
-        lastSyncedAt,
+        latestJob,
       ),
       clicks: cur.clicks,
       clicksDelta: computeDelta(cur.clicks, prev.clicks),
@@ -363,7 +366,7 @@ export const getOverviewAds = cache(
       db.syncJob.findFirst({
         where: { clientId, kind: { in: ["ADS_INSIGHTS", "ADS_CSV_IMPORT"] } },
         orderBy: { startedAt: "desc" },
-        select: { startedAt: true },
+        select: { startedAt: true, status: true },
       }),
       db.adDailyInsight.findMany({
         where: {
@@ -392,7 +395,6 @@ export const getOverviewAds = cache(
       ["spend", "results"],
     ) as { date: string; spend: number; results: number }[];
     const isDemo = accounts.every((a) => a.connectionId == null);
-    const lastSyncedAt = latestJob?.startedAt ?? null;
     return {
       hasSource: true,
       hasData: rows.length > 0 || prevRows.length > 0,
@@ -401,7 +403,7 @@ export const getOverviewAds = cache(
         true,
         isDemo,
         rows.map((row) => row.date),
-        lastSyncedAt,
+        latestJob,
       ),
       kpis,
       prev,

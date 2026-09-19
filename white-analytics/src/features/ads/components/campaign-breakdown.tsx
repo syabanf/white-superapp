@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, Download } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/dashboard/status-badge";
+import { EmptyState } from "@/components/dashboard/empty-state";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/format";
 import { isFatigued } from "@/lib/metrics";
@@ -150,9 +151,7 @@ export function CampaignBreakdown({
 
   if (campaigns.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
-        {s.breakdownEmpty}
-      </p>
+      <EmptyState compact state="zero" title={s.breakdownEmpty} description="Coba ubah periode atau sinkronkan ulang akun iklan." />
     );
   }
 
@@ -163,7 +162,28 @@ export function CampaignBreakdown({
           <Download className="size-3.5" /> {t.common.exportCsv}
         </Button>
       </div>
-      <div className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow)">
+      <div className="space-y-2 md:hidden">
+        {sorted.map((campaign) => (
+          <article key={campaign.id} className="space-y-3 rounded-xl border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h4 className="truncate text-sm font-semibold">{campaign.name}</h4>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {objectiveLabel(campaign.objective)} · {campaign.adSets.length} {t.ads.adSet.toLowerCase()}
+                </p>
+              </div>
+              <StatusBadge kind={statusKind(campaign.status)}>{statusLabel(campaign.status)}</StatusBadge>
+            </div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-3">
+              <MobileMetric label={t.ads.spend} value={formatCurrency(campaign.kpis.spend, currency)} />
+              <MobileMetric label={t.ads.results} value={formatNumber(campaign.kpis.results)} />
+              <MobileMetric label={t.ads.cpr} value={campaign.kpis.results > 0 ? formatCurrency(campaign.kpis.cpr, currency) : "–"} />
+              <MobileMetric label={t.ads.ctr} value={formatPercent(campaign.kpis.ctr)} />
+            </dl>
+          </article>
+        ))}
+      </div>
+      <div className="hidden overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) md:block">
         <div className="overflow-x-auto scrollbar-thin">
           <Table className="[&_td]:py-2 [&_th]:h-9">
             <TableHeader>
@@ -309,6 +329,15 @@ export function CampaignBreakdown({
           </Table>
         </div>
       </div>
+    </div>
+  );
+}
+
+function MobileMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 text-sm font-semibold tabular">{value}</dd>
     </div>
   );
 }

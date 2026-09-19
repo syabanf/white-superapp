@@ -162,7 +162,7 @@ export function ShareSection({
         <CardFooter className="justify-end">
           <Button size="sm" onClick={save} disabled={pending}>
             {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-            {t.common.save}
+            Simpan akses
           </Button>
         </CardFooter>
       ) : null}

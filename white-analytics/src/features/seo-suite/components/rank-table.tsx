@@ -75,9 +75,24 @@ function RowMenu({
     });
   const saveTags = () =>
     startTransition(async () => {
+      const previousTags = row.tags.join(", ");
       const res = await updateKeywordTags({ clientId, keywordId: row.id, tags });
       if (res.ok) {
-        toast.success(s.tagsSaved);
+        toast.success(s.tagsSaved, {
+          action: {
+            label: "Urungkan",
+            onClick: () => {
+              setTags(previousTags);
+              startTransition(async () => {
+                const undo = await updateKeywordTags({ clientId, keywordId: row.id, tags: previousTags });
+                if (undo.ok) {
+                  toast.success("Tag dikembalikan");
+                  router.refresh();
+                } else toast.error(undo.error);
+              });
+            },
+          },
+        });
         setEditing(false);
         router.refresh();
       } else toast.error(res.error);
@@ -125,7 +140,7 @@ function RowMenu({
               </Button>
               <Button type="submit" disabled={pending}>
                 {pending ? <Spinner className="size-4" /> : null}
-                {t.common.save}
+                Simpan tag
               </Button>
             </DialogFooter>
           </form>

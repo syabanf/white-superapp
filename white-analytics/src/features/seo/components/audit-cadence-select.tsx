@@ -24,7 +24,22 @@ export function AuditCadenceSelect({ clientId, propertyId, value }: { clientId: 
     startTransition(async () => {
       const res = await setAuditCadence({ clientId, propertyId, cadence: next });
       if (res.ok) {
-        toast.success(s.cadenceSaved, { description: LABELS[next] });
+        toast.success(s.cadenceSaved, {
+          description: LABELS[next],
+          action: {
+            label: "Urungkan",
+            onClick: () => {
+              setCurrent(prev);
+              startTransition(async () => {
+                const undo = await setAuditCadence({ clientId, propertyId, cadence: prev });
+                if (undo.ok) {
+                  toast.success("Jadwal audit dikembalikan", { description: LABELS[prev] });
+                  router.refresh();
+                } else toast.error(undo.error);
+              });
+            },
+          },
+        });
         router.refresh();
       } else {
         setCurrent(prev);

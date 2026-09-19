@@ -1,6 +1,5 @@
 import { CheckCircle2, CircleAlert, Loader2, Clock } from "lucide-react";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatRelative } from "@/lib/format";
 import { t } from "@/i18n/id";
 import type { OverviewSyncJob } from "@/features/overview/queries";
@@ -16,12 +15,12 @@ const KIND_LABEL: Record<string, string> = {
 
 export function SyncActivity({ jobs, baseHref }: { jobs: OverviewSyncJob[]; baseHref: string }) {
   return (
-    <Card className="gap-3 py-0">
-      <CardHeader className="px-6 pt-5 pb-0">
-        <CardTitle className="text-sm font-semibold">{t.overview.syncActivity}</CardTitle>
-        <CardDescription className="text-xs">{t.common.lastSynced}</CardDescription>
-      </CardHeader>
-      <CardContent className="px-6 pb-6">
+    <section className="border-t pt-5" aria-labelledby="sync-activity-title">
+      <div>
+        <h2 id="sync-activity-title" className="text-sm font-semibold">{t.overview.syncActivity}</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t.common.lastSynced}</p>
+      </div>
+      <div className="mt-3">
         {jobs.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t.overview.noSync}</p>
         ) : (
@@ -71,8 +70,8 @@ export function SyncActivity({ jobs, baseHref }: { jobs: OverviewSyncJob[]; base
             })}
           </ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 

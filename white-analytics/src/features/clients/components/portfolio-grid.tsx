@@ -218,7 +218,7 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
         </span>
         <Button asChild size="xs" variant="outline" className="group/nudge">
           <Link href={href()}>
-            {t.common.open} <ArrowUpRight className="nudge size-3.5" />
+            Buka rincian <ArrowUpRight className="nudge size-3.5" />
           </Link>
         </Button>
       </div>

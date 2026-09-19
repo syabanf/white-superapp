@@ -61,6 +61,9 @@ export function TimeSeriesChart({
   /** Concise text alternative announced before the interactive chart. */
   summary?: string;
 }) {
+  const chartPointId = React.useId();
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const safeActiveIndex = Math.min(activeIndex, Math.max(0, data.length - 1));
   const resolved = React.useMemo(
     () => series.map((s, i) => ({ ...s, color: s.color ?? slotColor(i), type: s.type ?? "line" })),
     [series],
@@ -89,6 +92,15 @@ export function TimeSeriesChart({
   const accessibleSummary =
     summary ??
     `${resolved.map((item) => item.label).join(", ")}. ${data.length} titik data${data.length ? `, dari ${formatDateShort(data[0]!.date)} sampai ${formatDateShort(data.at(-1)!.date)}` : ""}.`;
+  const activePoint = data[safeActiveIndex];
+  const activePointText = activePoint
+    ? `${formatDateShort(activePoint.date)}. ${resolved
+        .map((item) => {
+          const value = activePoint[item.key];
+          return `${item.label}: ${typeof value === "number" ? (item.format ?? yFormat)(value) : "tidak ada data"}`;
+        })
+        .join(". ")}`
+    : "Grafik tidak memiliki titik data.";
 
   return (
     <div className={className}>
@@ -209,6 +221,32 @@ export function TimeSeriesChart({
       </div>
       {(showLegend ?? legendSeries.length > 1) ? (
         <SeriesLegend series={legendSeries} className="mt-2" />
+      ) : null}
+      {data.length > 0 ? (
+        <div className="mt-3 rounded-md border bg-muted/20 px-3 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label htmlFor={chartPointId} className="text-xs font-medium">
+              Jelajahi titik data
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {safeActiveIndex + 1} dari {data.length}
+            </span>
+          </div>
+          <input
+            id={chartPointId}
+            type="range"
+            min={0}
+            max={Math.max(0, data.length - 1)}
+            value={safeActiveIndex}
+            onChange={(event) => setActiveIndex(Number(event.currentTarget.value))}
+            className="mt-2 h-5 w-full accent-brand"
+            aria-label="Pilih titik data. Gunakan tombol panah kiri dan kanan."
+            aria-valuetext={activePointText}
+          />
+          <p className="mt-1.5 text-xs text-muted-foreground" aria-live="polite">
+            {activePointText}
+          </p>
+        </div>
       ) : null}
     </div>
   );

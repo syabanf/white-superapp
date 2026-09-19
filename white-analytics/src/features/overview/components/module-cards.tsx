@@ -59,12 +59,12 @@ function ModulePanel({
         </div>
         <Button asChild variant="ghost" size="xs" className="group/nudge shrink-0">
           <Link href={href}>
-            {t.common.open} <ArrowUpRight className="nudge size-3.5" />
+            Buka rincian <ArrowUpRight className="nudge size-3.5" />
           </Link>
         </Button>
       </div>
 
-      <DataQualityLine quality={quality} />
+      <DataQualityLine quality={quality} href={href} />
 
       <div className="flex flex-1 flex-col justify-center px-6 pb-6">{children}</div>
 
@@ -73,15 +73,16 @@ function ModulePanel({
   );
 }
 
-const QUALITY_COPY: Record<DataQuality["state"], { label: string; kind: "good" | "warning" | "neutral" }> = {
+const QUALITY_COPY: Record<DataQuality["state"], { label: string; kind: "good" | "warning" | "critical" | "neutral" }> = {
   healthy: { label: "Koneksi sehat", kind: "good" },
   stale: { label: "Data terlambat", kind: "warning" },
+  failed: { label: "Sinkronisasi gagal", kind: "critical" },
   demo: { label: "Data demo", kind: "neutral" },
   empty: { label: "Belum ada data", kind: "warning" },
   not_connected: { label: "Belum terhubung", kind: "neutral" },
 };
 
-function DataQualityLine({ quality }: { quality: DataQuality }) {
+function DataQualityLine({ quality, href }: { quality: DataQuality; href: string }) {
   const copy = QUALITY_COPY[quality.state];
   return (
     <div className="mx-6 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-b pb-3 text-xs text-muted-foreground">
@@ -97,6 +98,11 @@ function DataQualityLine({ quality }: { quality: DataQuality }) {
           <Database className="size-3.5" />
           Data {formatDateRange(new Date(quality.dataFrom), new Date(quality.dataTo))}
         </span>
+      ) : null}
+      {quality.state === "failed" ? (
+        <Link href={href} className="font-medium text-destructive underline-offset-4 hover:underline">
+          Periksa dan sinkronkan ulang
+        </Link>
       ) : null}
     </div>
   );
@@ -128,6 +134,7 @@ function ConnectEmpty({ title, description, href }: { title: string; description
   return (
     <EmptyState
       compact
+      state="disconnected"
       title={title}
       description={description}
       action={
@@ -143,6 +150,7 @@ function NoDataEmpty({ href }: { href: string }) {
   return (
     <EmptyState
       compact
+      state="zero"
       title="Belum ada data pada periode ini"
       description="Sumber data sudah tersedia, tetapi periode yang dipilih belum memiliki metrik. Coba periode lain atau sinkronkan ulang."
       action={

@@ -25,6 +25,10 @@ const parsers = {
 };
 const DATE_PREF_KEY = "white:date-range";
 
+function persistDateCookie(value: string) {
+  document.cookie = `white_date_range=${encodeURIComponent(value)}; Path=/; Max-Age=31536000; SameSite=Lax`;
+}
+
 function utcToLocal(d: Date): Date {
   return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 }
@@ -61,22 +65,11 @@ export function DateRangePicker({
     history: "replace",
     startTransition,
   });
-  React.useEffect(() => {
-    if (params.from || params.to || params.preset || params.compare) return;
-    try {
-      const stored = window.localStorage.getItem(DATE_PREF_KEY);
-      if (!stored) return;
-      const value = JSON.parse(stored) as Partial<Record<keyof typeof parsers, string | null>>;
-      void setParams(value);
-    } catch {
-      window.localStorage.removeItem(DATE_PREF_KEY);
-    }
-    // This restore intentionally runs once; subsequent changes are written by the event handlers below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   const persist = (value: Partial<Record<keyof typeof parsers, string | null>>) => {
     const next = { ...params, ...value };
-    window.localStorage.setItem(DATE_PREF_KEY, JSON.stringify(next));
+    const serialized = JSON.stringify(next);
+    window.localStorage.setItem(DATE_PREF_KEY, serialized);
+    persistDateCookie(serialized);
   };
   const resolved = React.useMemo(
     () =>
