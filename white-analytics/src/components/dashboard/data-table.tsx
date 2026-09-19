@@ -44,6 +44,8 @@ export type DataTableProps<TData, TValue> = {
   stickyHeader?: boolean;
   /** identifier for row keys */
   getRowId?: (row: TData, index: number) => string;
+  /** Show regular tables as labeled stacked rows below the sm breakpoint. */
+  mobileCards?: boolean;
 };
 
 export function DataTable<TData, TValue>({
@@ -64,10 +66,12 @@ export function DataTable<TData, TValue>({
   bare,
   stickyHeader,
   getRowId,
+  mobileCards,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const shouldPaginate = paginate ?? data.length > pageSize;
+  const useMobileCards = mobileCards ?? !bare;
 
   // TanStack Table intentionally returns functions that the React Compiler cannot memoize.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -140,8 +144,14 @@ export function DataTable<TData, TValue>({
         </div>
       ) : null}
       <div className="overflow-hidden rounded-lg border">
-        <div className="overflow-x-auto scrollbar-thin">
-          <Table className={cn(dense && "[&_td]:py-1.5 [&_th]:h-8")}>
+        <div className={cn("scrollbar-thin", useMobileCards ? "sm:overflow-x-auto" : "overflow-x-auto")}>
+          <Table
+            className={cn(
+              dense && "[&_td]:py-1.5 [&_th]:h-8",
+              useMobileCards &&
+                "max-sm:block max-sm:[&_thead]:hidden max-sm:[&_tbody]:block max-sm:[&_tr]:mb-2 max-sm:[&_tr]:block max-sm:[&_tr]:rounded-lg max-sm:[&_tr]:border max-sm:[&_tr]:bg-card max-sm:[&_td]:flex max-sm:[&_td]:items-start max-sm:[&_td]:justify-between max-sm:[&_td]:gap-4 max-sm:[&_td]:border-b max-sm:[&_td]:text-right max-sm:[&_td]:before:text-left max-sm:[&_td]:before:text-xs max-sm:[&_td]:before:font-medium max-sm:[&_td]:before:text-muted-foreground max-sm:[&_td]:before:content-[attr(data-label)] max-sm:[&_td:last-child]:border-b-0",
+            )}
+          >
             <TableHeader className={cn(stickyHeader && "sticky top-0 z-10 bg-card")}>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow key={hg.id} className="hover:bg-transparent">
@@ -196,9 +206,12 @@ export function DataTable<TData, TValue>({
                   >
                     {row.getVisibleCells().map((cell) => {
                       const meta = cell.column.columnDef.meta as ColMeta | undefined;
+                      const header = cell.column.columnDef.header;
+                      const dataLabel = typeof header === "string" ? header : cell.column.id;
                       return (
                         <TableCell
                           key={cell.id}
+                          data-label={dataLabel}
                           className={cn(
                             "text-sm",
                             meta?.align === "right" && "text-right tabular",

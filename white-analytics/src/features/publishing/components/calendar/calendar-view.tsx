@@ -85,7 +85,20 @@ export function CalendarView({
     start(async () => {
       const res = await reschedulePost({ postId: po.id, scheduledAt: next.toISOString() });
       if (res.ok) {
-        toast.success(p.rescheduled);
+        toast.success(p.rescheduled, {
+          action: {
+            label: "Urungkan",
+            onClick: () => {
+              start(async () => {
+                const undo = await reschedulePost({ postId: po.id, scheduledAt: po.at });
+                if (undo.ok) {
+                  toast.success("Jadwal dikembalikan");
+                  router.refresh();
+                } else toast.error(undo.error);
+              });
+            },
+          },
+        });
         router.refresh();
       } else toast.error(res.error);
     });

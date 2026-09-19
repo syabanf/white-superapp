@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useActionState } from "react";
-import { CalendarRange, FileText, Loader2 } from "lucide-react";
+import { AlertTriangle, CalendarRange, CheckCircle2, FileText, Loader2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +39,7 @@ export function ReportBuilderForm({
   compareDefault,
   previews,
   insightPreview,
+  moduleStatus,
 }: {
   slug: string;
   defaultTitle: string;
@@ -48,6 +49,7 @@ export function ReportBuilderForm({
   compareDefault: boolean;
   previews: Partial<Record<ModuleKey, React.ReactNode>>;
   insightPreview: React.ReactNode;
+  moduleStatus: Record<ModuleKey, { hasData: boolean; isDemo: boolean }>;
 }) {
   const [state, formAction, pending] = useActionState<CreateReportState, FormData>(
     createReport.bind(null, slug),
@@ -57,6 +59,9 @@ export function ReportBuilderForm({
   const [includeAi, setIncludeAi] = React.useState(true);
   const [compare, setCompare] = React.useState(compareDefault);
   const [language, setLanguage] = React.useState("id");
+  const selectedWithoutData = modules.filter((module) => !moduleStatus[module].hasData);
+  const selectedDemo = modules.filter((module) => moduleStatus[module].isDemo);
+  const estimatedPages = 1 + modules.length + (includeAi ? 1 : 0);
 
   React.useEffect(() => {
     if (state && !state.ok) toast.error(state.error);
@@ -147,6 +152,35 @@ export function ReportBuilderForm({
               </div>
             </div>
 
+            <div className="rounded-xl border bg-muted/25 p-3 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="size-4 text-positive" />
+                  {rs.builder.estimate(estimatedPages)}
+                </span>
+                <span className="text-xs text-muted-foreground">{modules.length} modul dipilih</span>
+              </div>
+              {selectedWithoutData.length > 0 ? (
+                <p className="mt-2 flex items-start gap-2 text-xs text-warning">
+                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                  {rs.builder.emptyModules(
+                    selectedWithoutData
+                      .map((key) => MODULE_OPTIONS.find((item) => item.key === key)!.label)
+                      .join(", "),
+                  )}
+                </p>
+              ) : null}
+              {selectedDemo.length > 0 ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {rs.builder.demoModules(
+                    selectedDemo
+                      .map((key) => MODULE_OPTIONS.find((item) => item.key === key)!.label)
+                      .join(", "),
+                  )}
+                </p>
+              ) : null}
+            </div>
+
             <Separator />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -158,7 +192,7 @@ export function ReportBuilderForm({
               </div>
               <Button type="submit" disabled={pending || modules.length === 0}>
                 {pending ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
-                {pending ? t.reports.generating : t.reports.generate}
+                {pending ? t.reports.generating : rs.builder.generatePdf}
               </Button>
             </div>
             {state && !state.ok ? <p className="text-sm text-destructive">{state.error}</p> : null}

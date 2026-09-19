@@ -37,6 +37,14 @@ export function ClientSwitcher({
   collapsed?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
+  const lastClientSlug = React.useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("storage", onStoreChange);
+      return () => window.removeEventListener("storage", onStoreChange);
+    },
+    () => window.localStorage.getItem("white:last-client"),
+    () => null,
+  );
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -65,6 +73,17 @@ export function ClientSwitcher({
   React.useEffect(() => {
     if (current) window.localStorage.setItem("white:last-client", current.slug);
   }, [current]);
+  const orderedClients = React.useMemo(
+    () =>
+      [...clients].sort((a, b) => {
+        if (a.slug === current?.slug) return -1;
+        if (b.slug === current?.slug) return 1;
+        if (a.slug === lastClientSlug) return -1;
+        if (b.slug === lastClientSlug) return 1;
+        return a.name.localeCompare(b.name, "id");
+      }),
+    [clients, current?.slug, lastClientSlug],
+  );
 
   return (
     <>
@@ -107,7 +126,7 @@ export function ClientSwitcher({
           <CommandList>
             <CommandEmpty>{t.nav.noClient}</CommandEmpty>
             <CommandGroup heading={t.nav.clients}>
-              {clients.map((c) => (
+              {orderedClients.map((c) => (
                 <CommandItem
                   key={c.id}
                   value={`${c.name} ${c.slug}`}

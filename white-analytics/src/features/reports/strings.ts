@@ -15,6 +15,11 @@ export const rs = {
     langId: "Bahasa Indonesia",
     langEn: "English",
     aiNote: "Ringkasan strategis dibuat otomatis dari data periode terpilih.",
+    generatePdf: "Buat laporan PDF",
+    estimate: (pages: number) => `Perkiraan ${pages} halaman PDF`,
+    emptyModules: (modules: string) =>
+      `${modules} belum memiliki data pada periode ini. Bagian tersebut akan kosong.`,
+    demoModules: (modules: string) => `${modules} masih memakai data demo.`,
   },
   history: {
     createdAt: "Dibuat pada",

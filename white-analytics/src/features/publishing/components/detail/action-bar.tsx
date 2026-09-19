@@ -3,11 +3,31 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarClock, CalendarX, Check, Copy, Loader2, Pencil, RotateCcw, Send, SendHorizonal, Trash2, Undo2, X } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarX,
+  Check,
+  Copy,
+  Loader2,
+  Pencil,
+  RotateCcw,
+  Send,
+  SendHorizonal,
+  Trash2,
+  Undo2,
+  X,
+} from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +38,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { approvePost, backToDraft, deletePost, duplicatePost, publishNow, rejectPost, retryPost, schedulePost, submitForReview, unschedulePost } from "@/features/publishing/actions";
+import {
+  approvePost,
+  backToDraft,
+  deletePost,
+  duplicatePost,
+  publishNow,
+  rejectPost,
+  retryPost,
+  schedulePost,
+  submitForReview,
+  unschedulePost,
+} from "@/features/publishing/actions";
 import { canDelete, canEdit, canTransition, type PostRole, type PostStatus } from "@/features/publishing/lib";
 import type { BestTimeSlot } from "@/features/publishing/queries";
 import { fromZoned, toZoned } from "@/features/publishing/time";
@@ -41,7 +72,18 @@ type Props = {
 
 type DialogKind = "reject" | "schedule" | "delete" | "publish" | null;
 
-export function PostActionBar({ postId, status, scheduledAt, slug, role, isAuthor, timezone, today, bestTimes, hasTargets }: Props) {
+export function PostActionBar({
+  postId,
+  status,
+  scheduledAt,
+  slug,
+  role,
+  isAuthor,
+  timezone,
+  today,
+  bestTimes,
+  hasTargets,
+}: Props) {
   const router = useRouter();
   const base = `/clients/${slug}/publish`;
   const [pending, start] = React.useTransition();
@@ -53,7 +95,11 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
   const ctx = { role, isAuthor };
   const can = (to: PostStatus) => canTransition(status, to, ctx);
 
-  const run = (fn: () => Promise<{ ok: true; data: unknown } | { ok: false; error: string }>, success: string, after?: (data: unknown) => void) => {
+  const run = (
+    fn: () => Promise<{ ok: true; data: unknown } | { ok: false; error: string }>,
+    success: string,
+    after?: (data: unknown) => void,
+  ) => {
     start(async () => {
       const res = await fn();
       if (res.ok) {
@@ -72,8 +118,27 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
     router.refresh();
   };
 
+  const unscheduleWithUndo = () => {
+    if (!scheduledAt) return;
+    start(async () => {
+      const result = await unschedulePost(postId);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(p.toast.unscheduled, {
+        action: {
+          label: "Urungkan",
+          onClick: () => run(() => schedulePost({ postId, scheduledAt }), "Jadwal dikembalikan"),
+        },
+      });
+      router.refresh();
+    });
+  };
+
   if (role === "VIEWER") return null;
-  const backLabel = status === "IN_REVIEW" ? p.act.withdraw : status === "REJECTED" ? p.act.revise : p.act.backToDraft;
+  const backLabel =
+    status === "IN_REVIEW" ? p.act.withdraw : status === "REJECTED" ? p.act.revise : p.act.backToDraft;
 
   return (
     <>
@@ -86,12 +151,21 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
           </Button>
         ) : null}
         {can("IN_REVIEW") ? (
-          <Button size="sm" variant={can("APPROVED") ? "outline" : "default"} disabled={pending} onClick={() => run(() => submitForReview(postId), p.toast.submitted)}>
+          <Button
+            size="sm"
+            variant={can("APPROVED") ? "outline" : "default"}
+            disabled={pending}
+            onClick={() => run(() => submitForReview(postId), p.toast.submitted)}
+          >
             <Send className="size-3.5" /> {p.act.submit}
           </Button>
         ) : null}
         {can("APPROVED") && status !== "SCHEDULED" ? (
-          <Button size="sm" disabled={pending} onClick={() => run(() => approvePost(postId), p.toast.approved)}>
+          <Button
+            size="sm"
+            disabled={pending}
+            onClick={() => run(() => approvePost(postId), p.toast.approved)}
+          >
             <Check className="size-3.5" /> {p.act.approve}
           </Button>
         ) : null}
@@ -106,18 +180,32 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
           </Button>
         ) : null}
         {status === "SCHEDULED" && can("APPROVED") ? (
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => unschedulePost(postId), p.toast.unscheduled)}>
+          <Button size="sm" variant="outline" disabled={pending} onClick={unscheduleWithUndo}>
             <CalendarX className="size-3.5" /> {p.act.unschedule}
           </Button>
         ) : null}
         {can("PUBLISHING") && hasTargets ? (
-          <Button size="sm" variant={status === "FAILED" ? "default" : "outline"} disabled={pending} onClick={() => setDialog("publish")}>
-            {status === "FAILED" ? <RotateCcw className="size-3.5" /> : <SendHorizonal className="size-3.5" />}
+          <Button
+            size="sm"
+            variant={status === "FAILED" ? "default" : "outline"}
+            disabled={pending}
+            onClick={() => setDialog("publish")}
+          >
+            {status === "FAILED" ? (
+              <RotateCcw className="size-3.5" />
+            ) : (
+              <SendHorizonal className="size-3.5" />
+            )}
             {status === "FAILED" ? p.act.retry : p.act.publishNow}
           </Button>
         ) : null}
         {can("DRAFT") ? (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => backToDraft(postId), t.common.saved)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={pending}
+            onClick={() => run(() => backToDraft(postId), t.common.saved)}
+          >
             <Undo2 className="size-3.5" /> {backLabel}
           </Button>
         ) : null}
@@ -126,7 +214,13 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
             size="sm"
             variant="ghost"
             disabled={pending}
-            onClick={() => run(() => duplicatePost(postId), p.toast.duplicated, (d) => router.push(`${base}/posts/${(d as { id: string }).id}`))}
+            onClick={() =>
+              run(
+                () => duplicatePost(postId),
+                p.toast.duplicated,
+                (d) => router.push(`${base}/posts/${(d as { id: string }).id}`),
+              )
+            }
           >
             <Copy className="size-3.5" /> {p.act.duplicate}
           </Button>
@@ -146,12 +240,22 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
             <DialogTitle>{p.rejectTitle}</DialogTitle>
             <DialogDescription>{p.rejectDesc}</DialogDescription>
           </DialogHeader>
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={p.rejectPlaceholder} rows={3} autoFocus />
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={p.rejectPlaceholder}
+            rows={3}
+            autoFocus
+          />
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
               {t.common.cancel}
             </Button>
-            <Button size="sm" disabled={pending || !note.trim()} onClick={() => run(() => rejectPost({ postId, note }), p.toast.rejected)}>
+            <Button
+              size="sm"
+              disabled={pending || !note.trim()}
+              onClick={() => run(() => rejectPost({ postId, note }), p.toast.rejected)}
+            >
               {p.act.reject}
             </Button>
           </DialogFooter>
@@ -183,7 +287,12 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
             <Button
               size="sm"
               disabled={pending || !date || !time}
-              onClick={() => run(() => schedulePost({ postId, scheduledAt: fromZoned(date, time, timezone).toISOString() }), p.toast.scheduled)}
+              onClick={() =>
+                run(
+                  () => schedulePost({ postId, scheduledAt: fromZoned(date, time, timezone).toISOString() }),
+                  p.toast.scheduled,
+                )
+              }
             >
               <CalendarClock className="size-3.5" /> {p.act.schedule}
             </Button>
@@ -204,7 +313,11 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
               disabled={pending}
               onClick={(e) => {
                 e.preventDefault();
-                run(() => (status === "FAILED" ? retryPost(postId) : publishNow(postId)), p.toast.retrying, publishLabel);
+                run(
+                  () => (status === "FAILED" ? retryPost(postId) : publishNow(postId)),
+                  p.toast.retrying,
+                  publishLabel,
+                );
               }}
             >
               {status === "FAILED" ? p.act.retry : p.act.publishNow}
@@ -226,7 +339,11 @@ export function PostActionBar({ postId, status, scheduledAt, slug, role, isAutho
               disabled={pending}
               onClick={(e) => {
                 e.preventDefault();
-                run(() => deletePost(postId), p.toast.deleted, () => router.push(`${base}/posts`));
+                run(
+                  () => deletePost(postId),
+                  p.toast.deleted,
+                  () => router.push(`${base}/posts`),
+                );
               }}
             >
               {t.common.delete}

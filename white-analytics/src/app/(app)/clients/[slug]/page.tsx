@@ -56,12 +56,12 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
         actions={
           <>
             <Button asChild variant="outline" size="sm">
-              <Link href={`${base}/settings`}>
+              <Link href={detailHref("settings")}>
                 <Settings className="size-4" /> {t.common.settings}
               </Link>
             </Button>
             <Button asChild size="sm">
-              <Link href={`${base}/reports`}>
+              <Link href={detailHref("reports")}>
                 <FileText className="size-4" /> {t.reports.builder}
               </Link>
             </Button>
@@ -100,12 +100,12 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
       />
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <SocialModuleCard data={social} href={`${base}/social`} settingsHref={`${base}/settings`} />
-        <SeoModuleCard data={seo} href={`${base}/seo`} settingsHref={`${base}/settings`} />
+        <SocialModuleCard data={social} href={detailHref("social")} settingsHref={detailHref("settings")} />
+        <SeoModuleCard data={seo} href={detailHref("seo")} settingsHref={detailHref("settings")} />
         <AdsModuleCard
           data={ads}
-          href={`${base}/ads`}
-          settingsHref={`${base}/settings`}
+          href={detailHref("ads")}
+          settingsHref={detailHref("settings")}
           currency={client.currency}
         />
       </div>
@@ -126,7 +126,7 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
           />
         </div>
         <div className="[&>div]:h-full">
-          <SyncActivity jobs={jobs} />
+          <SyncActivity jobs={jobs} baseHref={base} />
         </div>
       </div>
     </>

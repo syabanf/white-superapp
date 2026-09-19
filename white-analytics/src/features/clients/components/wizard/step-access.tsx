@@ -50,7 +50,7 @@ export function StepAccess({
         submit={
           <Button asChild className="group/nudge">
             <Link href={wizardHref("selesai", { slug })}>
-              {tc.wizard.finish} <ArrowRight className="nudge nudge-x size-4" />
+              {tc.wizard.reviewSetup} <ArrowRight className="nudge nudge-x size-4" />
             </Link>
           </Button>
         }

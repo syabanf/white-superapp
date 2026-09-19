@@ -1,4 +1,5 @@
 import { CheckCircle2, CircleAlert, Loader2, Clock } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatRelative } from "@/lib/format";
 import { t } from "@/i18n/id";
@@ -13,7 +14,7 @@ const KIND_LABEL: Record<string, string> = {
   ADS_CSV_IMPORT: "Impor CSV Ads",
 };
 
-export function SyncActivity({ jobs }: { jobs: OverviewSyncJob[] }) {
+export function SyncActivity({ jobs, baseHref }: { jobs: OverviewSyncJob[]; baseHref: string }) {
   return (
     <Card className="gap-3 py-0">
       <CardHeader className="px-6 pt-5 pb-0">
@@ -26,17 +27,44 @@ export function SyncActivity({ jobs }: { jobs: OverviewSyncJob[] }) {
         ) : (
           <ul className="divide-y">
             {jobs.map((j) => {
-              const Icon = j.status === "SUCCESS" ? CheckCircle2 : j.status === "FAILED" ? CircleAlert : j.status === "RUNNING" ? Loader2 : Clock;
-              const color = j.status === "SUCCESS" ? "var(--status-good)" : j.status === "FAILED" ? "var(--status-critical)" : "var(--muted-foreground)";
+              const Icon =
+                j.status === "SUCCESS"
+                  ? CheckCircle2
+                  : j.status === "FAILED"
+                    ? CircleAlert
+                    : j.status === "RUNNING"
+                      ? Loader2
+                      : Clock;
+              const color =
+                j.status === "SUCCESS"
+                  ? "var(--status-good)"
+                  : j.status === "FAILED"
+                    ? "var(--status-critical)"
+                    : "var(--muted-foreground)";
               return (
                 <li key={j.id} className="flex items-start gap-3 py-2 text-sm">
-                  <Icon className={j.status === "RUNNING" ? "mt-0.5 size-4 animate-spin" : "mt-0.5 size-4"} style={{ color }} />
+                  <Icon
+                    className={j.status === "RUNNING" ? "mt-0.5 size-4 animate-spin" : "mt-0.5 size-4"}
+                    style={{ color }}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium">{KIND_LABEL[j.kind] ?? j.kind}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{formatRelative(j.startedAt)}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {formatRelative(j.startedAt)}
+                      </span>
                     </div>
-                    <p className="truncate text-xs text-muted-foreground">{j.error ?? j.message ?? "–"}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-xs text-muted-foreground">{j.error ?? j.message ?? "–"}</p>
+                      {j.status === "FAILED" ? (
+                        <Link
+                          href={`${baseHref}/${modulePath(j.kind)}`}
+                          className="shrink-0 text-xs font-medium text-brand-ink hover:underline"
+                        >
+                          Coba sinkronkan ulang
+                        </Link>
+                      ) : null}
+                    </div>
                   </div>
                 </li>
               );
@@ -46,4 +74,10 @@ export function SyncActivity({ jobs }: { jobs: OverviewSyncJob[] }) {
       </CardContent>
     </Card>
   );
+}
+
+function modulePath(kind: string): string {
+  if (kind.startsWith("SOCIAL")) return "social";
+  if (kind.startsWith("ADS")) return "ads";
+  return "seo";
 }

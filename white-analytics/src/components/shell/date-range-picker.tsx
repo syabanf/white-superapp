@@ -23,6 +23,7 @@ const parsers = {
   preset: parseAsString,
   compare: parseAsString,
 };
+const DATE_PREF_KEY = "white:date-range";
 
 function utcToLocal(d: Date): Date {
   return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
@@ -60,6 +61,23 @@ export function DateRangePicker({
     history: "replace",
     startTransition,
   });
+  React.useEffect(() => {
+    if (params.from || params.to || params.preset || params.compare) return;
+    try {
+      const stored = window.localStorage.getItem(DATE_PREF_KEY);
+      if (!stored) return;
+      const value = JSON.parse(stored) as Partial<Record<keyof typeof parsers, string | null>>;
+      void setParams(value);
+    } catch {
+      window.localStorage.removeItem(DATE_PREF_KEY);
+    }
+    // This restore intentionally runs once; subsequent changes are written by the event handlers below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const persist = (value: Partial<Record<keyof typeof parsers, string | null>>) => {
+    const next = { ...params, ...value };
+    window.localStorage.setItem(DATE_PREF_KEY, JSON.stringify(next));
+  };
   const resolved = React.useMemo(
     () =>
       resolveRange({
@@ -82,6 +100,7 @@ export function DateRangePicker({
     : t.common.customRange;
 
   const choosePreset = (key: PresetKey) => {
+    persist({ preset: key, from: null, to: null });
     void setParams({ preset: key, from: null, to: null });
     setOpen(false);
   };
@@ -89,10 +108,12 @@ export function DateRangePicker({
     if (!draft?.from) return;
     const from = localToUtc(draft.from);
     const to = localToUtc(draft.to ?? draft.from);
+    persist({ from: toISODate(from), to: toISODate(to), preset: null });
     void setParams({ from: toISODate(from), to: toISODate(to), preset: null });
     setOpen(false);
   };
   const toggleCompare = (v: boolean) => {
+    persist({ compare: v ? null : "0" });
     void setParams({ compare: v ? null : "0" });
   };
 

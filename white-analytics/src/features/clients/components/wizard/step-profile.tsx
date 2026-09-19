@@ -4,7 +4,12 @@ import * as React from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WizardNav } from "@/features/clients/components/wizard/wizard-nav";
-import { ClientFields, emptyClientForm, type ClientFormValues, type FieldErrors } from "@/features/clients/components/client-fields";
+import {
+  ClientFields,
+  emptyClientForm,
+  type ClientFormValues,
+  type FieldErrors,
+} from "@/features/clients/components/client-fields";
 import { wizardCreateClientAction, type WizardProfileInput } from "@/features/clients/wizard-actions";
 import { websiteRequiredFor, type ProjectType } from "@/features/clients/wizard";
 import { slugify } from "@/lib/format";
@@ -63,7 +68,10 @@ export function StepProfile({ types }: { types: ProjectType[] }) {
         websiteHint={websiteRequired ? tc.wizard.websiteForSeo : undefined}
       />
       {formError ? (
-        <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+        >
           {formError}
         </p>
       ) : null}
@@ -80,7 +88,7 @@ export function StepProfile({ types }: { types: ProjectType[] }) {
             }
           >
             {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-            {pending ? tc.wizard.saving : tc.wizard.next}
+            {pending ? tc.wizard.saving : tc.wizard.saveProfileNext}
           </Button>
         }
       />

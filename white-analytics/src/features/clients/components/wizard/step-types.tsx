@@ -93,7 +93,7 @@ export function StepTypes({ initial }: { initial: ProjectType[] }) {
         backHref={{ href: "/clients", label: t.common.cancel }}
         submit={
           <Button type="submit" disabled={pending} className="group/nudge">
-            {tc.wizard.next} <ArrowRight className="nudge nudge-x size-4" />
+            {tc.wizard.chooseChannelsNext} <ArrowRight className="nudge nudge-x size-4" />
           </Button>
         }
       />

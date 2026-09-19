@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Clock, Megaphone, Search, Share2 } from "lucide-react";
+import { ArrowUpRight, CircleAlert, Clock, Megaphone, Search, Share2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { StatusBadge, ratingToKind } from "@/components/dashboard/status-badge";
 import { formatCompact, formatCurrency, formatNumber, initials } from "@/lib/format";
 import { rateScore, type Delta } from "@/lib/metrics";
+import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
 import { tc } from "@/features/clients/strings";
 
@@ -33,6 +34,8 @@ export type PortfolioCardData = {
   modules: { social: boolean; seo: boolean; ads: boolean };
   /** pre-formatted relative label (computed server-side to avoid hydration drift) */
   lastSyncLabel: string | null;
+  contextQuery: string;
+  attention: { label: string; href: string; kind: "warning" | "critical" }[];
 };
 
 type SortKey = "name" | "followers" | "clicks" | "spend" | "health";
@@ -78,7 +81,7 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
   }, [cards, query, sort]);
 
   return (
-    <div className="space-y-3">
+    <div id="clients" className="scroll-mt-20 space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -123,6 +126,12 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
 }
 
 function ClientCard({ data }: { data: PortfolioCardData }) {
+  const href = (path = "") => {
+    const base = `/clients/${data.slug}${path ? `/${path}` : ""}`;
+    if (!data.contextQuery) return base;
+    const separator = base.includes("?") ? "&" : "?";
+    return `${base}${separator}${data.contextQuery}`;
+  };
   const activeModules: { key: string; label: string; icon: typeof Share2 }[] = [];
   if (data.modules.social)
     activeModules.push({ key: "social", label: tc.portfolio.moduleSocial, icon: Share2 });
@@ -132,7 +141,7 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
   return (
     <Card className="lift flex flex-col gap-4 p-6 hover:ring-brand/25">
       <div className="flex items-start justify-between gap-3">
-        <Link href={`/clients/${data.slug}`} className="group flex min-w-0 items-center gap-3">
+        <Link href={href()} className="group flex min-w-0 items-center gap-3">
           <Avatar className="size-10 rounded-lg">
             {data.logoUrl ? <AvatarImage src={data.logoUrl} alt={data.name} /> : null}
             <AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">
@@ -184,13 +193,31 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
         )}
       </div>
 
+      {data.attention.length > 0 ? (
+        <div className="space-y-1.5 border-t pt-3" aria-label="Perlu perhatian">
+          {data.attention.map((item) => (
+            <Link
+              key={`${item.href}-${item.label}`}
+              href={href(item.href)}
+              className="flex items-center gap-2 rounded-md px-1 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <CircleAlert
+                className={cn("size-3.5", item.kind === "critical" ? "text-negative" : "text-warning")}
+              />
+              <span className="flex-1">{item.label}</span>
+              <ArrowUpRight className="size-3.5" />
+            </Link>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-auto flex items-center justify-between gap-2 border-t pt-3">
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="size-3.5" />
           {tc.portfolio.lastSync}: {data.lastSyncLabel ?? t.common.neverSynced}
         </span>
         <Button asChild size="xs" variant="outline" className="group/nudge">
-          <Link href={`/clients/${data.slug}`}>
+          <Link href={href()}>
             {t.common.open} <ArrowUpRight className="nudge size-3.5" />
           </Link>
         </Button>

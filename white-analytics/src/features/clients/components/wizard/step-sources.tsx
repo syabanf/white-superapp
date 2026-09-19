@@ -3,7 +3,11 @@ import { ArrowRight, Plug } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ConnectionCard } from "@/features/clients/components/connection-card";
-import { AdAccountsList, SeoPropertiesList, SocialAccountsList } from "@/features/clients/components/resource-lists";
+import {
+  AdAccountsList,
+  SeoPropertiesList,
+  SocialAccountsList,
+} from "@/features/clients/components/resource-lists";
 import { WizardNav } from "@/features/clients/components/wizard/wizard-nav";
 import { sourceSectionsFor } from "@/features/clients/wizard";
 import type { SettingsData } from "@/features/clients/queries";
@@ -85,7 +89,7 @@ export function StepSources({
         submit={
           <Button asChild className="group/nudge">
             <Link href={wizardHref("akses", { slug })}>
-              {tc.wizard.next} <ArrowRight className="nudge nudge-x size-4" />
+              {tc.wizard.configureAccessNext} <ArrowRight className="nudge nudge-x size-4" />
             </Link>
           </Button>
         }

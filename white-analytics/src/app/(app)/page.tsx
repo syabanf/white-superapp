@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { PortfolioGrid, type PortfolioCardData } from "@/features/clients/components/portfolio-grid";
 import { getLatestSyncByClient, getPortfolioTotals } from "@/features/clients/queries";
 import { getOverviewAds, getOverviewSeo, getOverviewSocial } from "@/features/overview/queries";
+import { getPublishingStats } from "@/features/publishing/queries";
 import { listAccessibleClients, requireUser } from "@/lib/rbac";
 import { getSetupState } from "@/lib/integrations";
 import { getRange } from "@/lib/range-params";
@@ -79,12 +80,13 @@ export default async function PortfolioPage(props: PageProps<"/">) {
     getLatestSyncByClient(clientIds),
     Promise.all(
       clients.map(async (c) => {
-        const [social, seo, ads] = await Promise.all([
+        const [social, seo, ads, publishing] = await Promise.all([
           getOverviewSocial(c.id, range, previous),
           getOverviewSeo(c.id, range, previous),
           getOverviewAds(c.id, range, previous),
+          getPublishingStats(c.id),
         ]);
-        return { client: c, social, seo, ads };
+        return { client: c, social, seo, ads, publishing };
       }),
     ),
   ]);
@@ -94,7 +96,8 @@ export default async function PortfolioPage(props: PageProps<"/">) {
   const allDemo = perClient.every((p) => p.social.isDemo && p.seo.isDemo && p.ads.isDemo);
   const d = (x: Delta, isDemo = allDemo): Delta | null => (compare && !isDemo ? x : null);
 
-  const cards: PortfolioCardData[] = perClient.map(({ client, social, seo, ads }) => ({
+  const globalQuery = pickGlobalQuery(sp);
+  const cards: PortfolioCardData[] = perClient.map(({ client, social, seo, ads, publishing }) => ({
     id: client.id,
     name: client.name,
     slug: client.slug,
@@ -110,6 +113,33 @@ export default async function PortfolioPage(props: PageProps<"/">) {
     health: seo.health,
     modules: { social: social.hasData, seo: seo.hasData, ads: ads.hasData },
     lastSyncLabel: lastSync[client.id] ? formatRelative(lastSync[client.id]) : null,
+    contextQuery: globalQuery,
+    attention: [
+      ...(publishing.failed > 0
+        ? [
+            {
+              label: `${publishing.failed} publikasi gagal`,
+              href: "publish/posts?status=FAILED",
+              kind: "critical" as const,
+            },
+          ]
+        : []),
+      ...(publishing.inReview > 0
+        ? [
+            {
+              label: `${publishing.inReview} post menunggu review`,
+              href: "publish/posts?status=IN_REVIEW",
+              kind: "warning" as const,
+            },
+          ]
+        : []),
+      ...(seo.health != null && seo.health < 60
+        ? [{ label: "Audit SEO perlu perhatian", href: "seo/audit", kind: "warning" as const }]
+        : []),
+      ...(!lastSync[client.id]
+        ? [{ label: "Belum pernah disinkronkan", href: "settings", kind: "warning" as const }]
+        : []),
+    ].slice(0, 2),
   }));
 
   return (
@@ -129,18 +159,21 @@ export default async function PortfolioPage(props: PageProps<"/">) {
             label: t.portfolio.followers,
             value: formatCompact(totals.followers),
             delta: d(totals.followersDelta),
+            href: "#clients",
             hint: tc.portfolio.followersHint,
           },
           {
             label: t.portfolio.organicClicks,
             value: formatCompact(totals.clicks),
             delta: d(totals.clicksDelta),
+            href: "#clients",
             hint: tc.portfolio.clicksHint,
           },
           {
             label: t.portfolio.adSpend,
             value: formatCurrency(totals.spend, "IDR", { compact: true }),
             delta: d(totals.spendDelta),
+            href: "#clients",
             hint: tc.portfolio.spendHint,
           },
           {
@@ -148,6 +181,7 @@ export default async function PortfolioPage(props: PageProps<"/">) {
             value: avgHealth != null ? formatNumber(avgHealth) : "–",
             caption: avgHealth != null ? tc.portfolio.healthOutOf : tc.portfolio.noAudit,
             hint: tc.portfolio.healthHint,
+            href: "#clients",
           },
         ]}
       />
@@ -156,6 +190,15 @@ export default async function PortfolioPage(props: PageProps<"/">) {
       <PortfolioGrid cards={cards} />
     </>
   );
+}
+
+function pickGlobalQuery(sp: Record<string, string | string[] | undefined>): string {
+  const query = new URLSearchParams();
+  for (const key of ["from", "to", "preset", "compare"]) {
+    const value = sp[key];
+    if (typeof value === "string" && value) query.set(key, value);
+  }
+  return query.toString();
 }
 
 function UnauthorizedNotice() {

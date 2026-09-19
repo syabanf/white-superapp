@@ -16,8 +16,10 @@ import {
 } from "@/lib/metrics";
 
 export type OverviewSocial = {
+  hasSource: boolean;
   hasData: boolean;
   isDemo: boolean;
+  quality: DataQuality;
   followers: number;
   followersDelta: Delta;
   followersSpark: number[];
@@ -31,8 +33,10 @@ export type OverviewSocial = {
 };
 
 export type OverviewSeo = {
+  hasSource: boolean;
   hasData: boolean;
   isDemo: boolean;
+  quality: DataQuality;
   clicks: number;
   clicksDelta: Delta;
   clicksSpark: number[];
@@ -47,8 +51,10 @@ export type OverviewSeo = {
 };
 
 export type OverviewAds = {
+  hasSource: boolean;
   hasData: boolean;
   isDemo: boolean;
+  quality: DataQuality;
   kpis: AdKpis;
   prev: AdKpis;
   spendDelta: Delta;
@@ -57,6 +63,32 @@ export type OverviewAds = {
   spendSpark: number[];
   daily: { date: string; spend: number; results: number }[];
 };
+
+export type DataQuality = {
+  state: "healthy" | "stale" | "demo" | "empty" | "not_connected";
+  lastSyncedAt: string | null;
+  dataFrom: string | null;
+  dataTo: string | null;
+};
+
+function quality(hasSource: boolean, isDemo: boolean, dates: Date[], lastSyncedAt: Date | null): DataQuality {
+  const sorted = dates.toSorted((a, b) => a.getTime() - b.getTime());
+  const state = !hasSource
+    ? "not_connected"
+    : isDemo
+      ? "demo"
+      : dates.length === 0
+        ? "empty"
+        : lastSyncedAt && Date.now() - lastSyncedAt.getTime() > 48 * 60 * 60 * 1000
+          ? "stale"
+          : "healthy";
+  return {
+    state,
+    lastSyncedAt: lastSyncedAt?.toISOString() ?? null,
+    dataFrom: sorted[0]?.toISOString() ?? null,
+    dataTo: sorted.at(-1)?.toISOString() ?? null,
+  };
+}
 
 /** Result types that are not conversions (awareness objectives). */
 export const NON_CONVERSION_RESULT_TYPES = new Set(["reach", "impressions", "video_view", "thruplay"]);
@@ -80,8 +112,10 @@ export const getOverviewSocial = cache(
     if (accounts.length === 0) {
       const zero = computeDelta(0, 0);
       return {
+        hasSource: false,
         hasData: false,
         isDemo: true,
+        quality: quality(false, true, [], null),
         followers: 0,
         followersDelta: zero,
         followersSpark: [],
@@ -95,7 +129,7 @@ export const getOverviewSocial = cache(
       };
     }
     const ids = accounts.map((a) => a.id);
-    const [snapshots, posts, prevPosts] = await Promise.all([
+    const [snapshots, posts, latestJob, prevPosts] = await Promise.all([
       db.socialSnapshot.findMany({
         where: { socialAccountId: { in: ids }, date: { gte: addDays(previous.from, -1), lte: range.to } },
         orderBy: { date: "asc" },
@@ -111,6 +145,11 @@ export const getOverviewSocial = cache(
           saves: true,
           publishedAt: true,
         },
+      }),
+      db.syncJob.findFirst({
+        where: { clientId, kind: "SOCIAL_SNAPSHOT" },
+        orderBy: { startedAt: "desc" },
+        select: { startedAt: true },
       }),
       db.socialPost.findMany({
         where: {
@@ -177,9 +216,17 @@ export const getOverviewSocial = cache(
     const er = erFor(posts);
     const prevEr = erFor(prevPosts);
 
+    const isDemo = accounts.every((a) => a.connectionId == null);
+    const currentDates = [
+      ...snapshots.filter((s) => s.date >= range.from && s.date <= range.to).map((s) => s.date),
+      ...posts.map((p) => p.publishedAt),
+    ];
+    const lastSyncedAt = latestJob?.startedAt ?? null;
     return {
-      hasData: true,
-      isDemo: accounts.every((a) => a.connectionId == null),
+      hasSource: true,
+      hasData: currentDates.length > 0,
+      isDemo,
+      quality: quality(true, isDemo, currentDates, lastSyncedAt),
       followers: followersNow,
       followersDelta,
       followersSpark,
@@ -207,8 +254,10 @@ export const getOverviewSeo = cache(
     const zero = computeDelta(0, 0);
     if (props.length === 0) {
       return {
+        hasSource: false,
         hasData: false,
         isDemo: true,
+        quality: quality(false, true, [], null),
         clicks: 0,
         clicksDelta: zero,
         clicksSpark: [],
@@ -223,7 +272,7 @@ export const getOverviewSeo = cache(
       };
     }
     const ids = props.map((p) => p.id);
-    const [rows, prevRows, latestAudit, latestCrawl] = await Promise.all([
+    const [rows, prevRows, latestAudit, latestCrawl, latestJob] = await Promise.all([
       db.seoDailyMetric.findMany({
         where: { propertyId: { in: ids }, date: { gte: range.from, lte: range.to } },
         orderBy: { date: "asc" },
@@ -240,6 +289,11 @@ export const getOverviewSeo = cache(
         orderBy: { startedAt: "desc" },
         include: { _count: { select: { issues: true } }, issues: { select: { severity: true } } },
       }),
+      db.syncJob.findFirst({
+        where: { clientId, kind: { in: ["SEO_GSC", "SEO_GA4"] } },
+        orderBy: { startedAt: "desc" },
+        select: { startedAt: true },
+      }),
     ]);
     const cur = aggregateSearch(rows);
     const prev = aggregateSearch(prevRows);
@@ -250,9 +304,18 @@ export const getOverviewSeo = cache(
     }[];
     const errors = latestCrawl?.issues.filter((i) => i.severity === "ERROR").length ?? 0;
     const warnings = latestCrawl?.issues.filter((i) => i.severity === "WARNING").length ?? 0;
+    const isDemo = props.every((p) => p.connectionId == null);
+    const lastSyncedAt = latestJob?.startedAt ?? null;
     return {
+      hasSource: true,
       hasData: rows.length > 0 || prevRows.length > 0,
-      isDemo: props.every((p) => p.connectionId == null),
+      isDemo,
+      quality: quality(
+        true,
+        isDemo,
+        rows.map((row) => row.date),
+        lastSyncedAt,
+      ),
       clicks: cur.clicks,
       clicksDelta: computeDelta(cur.clicks, prev.clicks),
       clicksSpark: sparkline(daily, "clicks"),
@@ -279,8 +342,10 @@ export const getOverviewAds = cache(
     if (ids.length === 0) {
       const zero = computeDelta(0, 0);
       return {
+        hasSource: false,
         hasData: false,
         isDemo: true,
+        quality: quality(false, true, [], null),
         kpis: empty,
         prev: empty,
         spendDelta: zero,
@@ -290,10 +355,15 @@ export const getOverviewAds = cache(
         daily: [],
       };
     }
-    const [rows, prevRows] = await Promise.all([
+    const [rows, latestJob, prevRows] = await Promise.all([
       db.adDailyInsight.findMany({
         where: { adAccountId: { in: ids }, adId: { not: null }, date: { gte: range.from, lte: range.to } },
         orderBy: { date: "asc" },
+      }),
+      db.syncJob.findFirst({
+        where: { clientId, kind: { in: ["ADS_INSIGHTS", "ADS_CSV_IMPORT"] } },
+        orderBy: { startedAt: "desc" },
+        select: { startedAt: true },
       }),
       db.adDailyInsight.findMany({
         where: {
@@ -321,9 +391,18 @@ export const getOverviewAds = cache(
       (r) => r.date,
       ["spend", "results"],
     ) as { date: string; spend: number; results: number }[];
+    const isDemo = accounts.every((a) => a.connectionId == null);
+    const lastSyncedAt = latestJob?.startedAt ?? null;
     return {
+      hasSource: true,
       hasData: rows.length > 0 || prevRows.length > 0,
-      isDemo: accounts.every((a) => a.connectionId == null),
+      isDemo,
+      quality: quality(
+        true,
+        isDemo,
+        rows.map((row) => row.date),
+        lastSyncedAt,
+      ),
       kpis,
       prev,
       spendDelta: computeDelta(kpis.spend, prev.spend),

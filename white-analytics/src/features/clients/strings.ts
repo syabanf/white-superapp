@@ -38,12 +38,17 @@ export const tc = {
     upNext: "Berikutnya",
     back: "Kembali",
     next: "Lanjut",
+    chooseChannelsNext: "Pilih kanal & lanjut",
+    saveProfileNext: "Simpan profil & lanjut",
+    configureAccessNext: "Atur akses & laporan",
+    reviewSetup: "Tinjau ringkasan",
     skip: "Lewati langkah ini",
     finish: "Selesaikan",
     saving: "Menyimpan…",
     pickOneChannel: "Pilih minimal satu kanal.",
     selectAll: "Pilih semua",
-    websiteForSeo: "Website wajib untuk proyek SEO. Dipakai sebagai properti Search Console dan target audit.",
+    websiteForSeo:
+      "Website wajib untuk proyek SEO. Dipakai sebagai properti Search Console dan target audit.",
     // step 2
     channelsTitle: "Kanal yang dipantau",
     channelsHint:

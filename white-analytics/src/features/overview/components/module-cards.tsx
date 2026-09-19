@@ -2,17 +2,25 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Megaphone, Search, Share2 } from "lucide-react";
+import { ArrowUpRight, Clock3, Database, Megaphone, Search, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TimeSeriesChart } from "@/components/dashboard/charts/time-series-chart";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { EmptyState } from "@/components/dashboard/empty-state";
+import { StatusBadge } from "@/components/dashboard/status-badge";
 import { cn } from "@/lib/utils";
-import { formatCompact, formatCurrency, formatNumber, formatPercent } from "@/lib/format";
+import {
+  formatCompact,
+  formatCurrency,
+  formatDateRange,
+  formatNumber,
+  formatPercent,
+  formatRelative,
+} from "@/lib/format";
 import { t } from "@/i18n/id";
 import type { Delta } from "@/lib/metrics";
-import type { OverviewAds, OverviewSeo, OverviewSocial } from "@/features/overview/queries";
+import type { DataQuality, OverviewAds, OverviewSeo, OverviewSocial } from "@/features/overview/queries";
 import { PlatformIcon } from "@/features/social/components/platform-icon";
 
 /**
@@ -27,6 +35,7 @@ function ModulePanel({
   children,
   footer,
   index,
+  quality,
 }: {
   icon: ReactNode;
   title: string;
@@ -35,10 +44,11 @@ function ModulePanel({
   children: ReactNode;
   footer?: ReactNode;
   index: string;
+  quality: DataQuality;
 }) {
   return (
     <Card className="lift flex min-h-[330px] flex-col gap-0 overflow-hidden py-0 hover:ring-brand/25">
-      <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-6">
+      <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-3">
         <div className="min-w-0">
           <span className="label-mono text-brand">{index}</span>
           <h3 className="mt-1 flex items-center gap-2 text-[15px] font-semibold tracking-[-0.02em]">
@@ -54,10 +64,41 @@ function ModulePanel({
         </Button>
       </div>
 
+      <DataQualityLine quality={quality} />
+
       <div className="flex flex-1 flex-col justify-center px-6 pb-6">{children}</div>
 
       {footer ? <div className="grid grid-cols-2 divide-x border-t">{footer}</div> : null}
     </Card>
+  );
+}
+
+const QUALITY_COPY: Record<DataQuality["state"], { label: string; kind: "good" | "warning" | "neutral" }> = {
+  healthy: { label: "Koneksi sehat", kind: "good" },
+  stale: { label: "Data terlambat", kind: "warning" },
+  demo: { label: "Data demo", kind: "neutral" },
+  empty: { label: "Belum ada data", kind: "warning" },
+  not_connected: { label: "Belum terhubung", kind: "neutral" },
+};
+
+function DataQualityLine({ quality }: { quality: DataQuality }) {
+  const copy = QUALITY_COPY[quality.state];
+  return (
+    <div className="mx-6 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-b pb-3 text-xs text-muted-foreground">
+      <StatusBadge kind={copy.kind}>{copy.label}</StatusBadge>
+      <span className="inline-flex items-center gap-1">
+        <Clock3 className="size-3.5" />
+        {quality.lastSyncedAt
+          ? `Sinkron ${formatRelative(quality.lastSyncedAt)}`
+          : "Belum pernah disinkronkan"}
+      </span>
+      {quality.dataFrom && quality.dataTo ? (
+        <span className="inline-flex items-center gap-1">
+          <Database className="size-3.5" />
+          Data {formatDateRange(new Date(quality.dataFrom), new Date(quality.dataTo))}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -98,6 +139,21 @@ function ConnectEmpty({ title, description, href }: { title: string; description
   );
 }
 
+function NoDataEmpty({ href }: { href: string }) {
+  return (
+    <EmptyState
+      compact
+      title="Belum ada data pada periode ini"
+      description="Sumber data sudah tersedia, tetapi periode yang dipilih belum memiliki metrik. Coba periode lain atau sinkronkan ulang."
+      action={
+        <Button asChild size="sm" variant="outline">
+          <Link href={href}>Buka modul</Link>
+        </Button>
+      }
+    />
+  );
+}
+
 export function SocialModuleCard({
   data,
   href,
@@ -115,6 +171,7 @@ export function SocialModuleCard({
       title={t.overview.socialCard}
       meta={`${formatNumber(data.followers)} followers · ${data.posts} ${t.social.posts.toLowerCase()}`}
       href={href}
+      quality={data.quality}
       footer={
         data.hasData ? (
           <>
@@ -132,8 +189,10 @@ export function SocialModuleCard({
         ) : undefined
       }
     >
-      {!data.hasData ? (
+      {!data.hasSource ? (
         <ConnectEmpty title={t.social.noAccount} description={t.social.noAccountDesc} href={settingsHref} />
+      ) : !data.hasData ? (
+        <NoDataEmpty href={href} />
       ) : (
         <ul className="space-y-3.5">
           {data.accounts.map((a) => (
@@ -175,6 +234,7 @@ export function SeoModuleCard({
       title={t.overview.seoCard}
       meta={`${formatNumber(data.clicks)} ${t.seo.clicks.toLowerCase()} · ${formatCompact(data.impressions)} ${t.seo.impressions.toLowerCase()}`}
       href={href}
+      quality={data.quality}
       footer={
         data.hasData ? (
           <>
@@ -193,8 +253,10 @@ export function SeoModuleCard({
         ) : undefined
       }
     >
-      {!data.hasData ? (
+      {!data.hasSource ? (
         <ConnectEmpty title={t.seo.noProperty} description={t.seo.noPropertyDesc} href={settingsHref} />
+      ) : !data.hasData ? (
+        <NoDataEmpty href={href} />
       ) : (
         <TimeSeriesChart
           data={data.daily}
@@ -232,6 +294,7 @@ export function AdsModuleCard({
       title={t.overview.adsCard}
       meta={`${formatCurrency(data.kpis.spend, currency, { compact: true })} · ${formatNumber(data.kpis.results)} ${t.ads.results.toLowerCase()}`}
       href={href}
+      quality={data.quality}
       footer={
         data.hasData ? (
           <>
@@ -250,8 +313,10 @@ export function AdsModuleCard({
         ) : undefined
       }
     >
-      {!data.hasData ? (
+      {!data.hasSource ? (
         <ConnectEmpty title={t.ads.noAccount} description={t.ads.noAccountDesc} href={settingsHref} />
+      ) : !data.hasData ? (
+        <NoDataEmpty href={href} />
       ) : (
         <TimeSeriesChart
           data={data.daily}

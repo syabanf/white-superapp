@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -33,7 +34,6 @@ export function CalendarToolbar({
   const pathname = usePathname();
   const sp = useSearchParams();
   const router = useRouter();
-
   const hrefWith = (patch: Record<string, string | null>) => {
     const q = new URLSearchParams(sp.toString());
     for (const [k, v] of Object.entries(patch)) {
@@ -43,6 +43,25 @@ export function CalendarToolbar({
     const qs = q.toString();
     return qs ? `${pathname}?${qs}` : pathname;
   };
+  React.useEffect(() => {
+    const key = "white:calendar-filters";
+    const hasSavedQuery = ["view", "date", "platform", "status"].some((name) => sp.has(name));
+    if (!hasSavedQuery) {
+      try {
+        const stored = window.localStorage.getItem(key);
+        if (stored) {
+          const value = JSON.parse(stored) as Record<string, string>;
+          router.replace(hrefWith(value), { scroll: false });
+          return;
+        }
+      } catch {
+        window.localStorage.removeItem(key);
+      }
+    }
+    window.localStorage.setItem(key, JSON.stringify({ view, date, platform, status }));
+    // hrefWith reads the current URL; the primitive filter values are the persistence boundary.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, date, platform, status, router, sp]);
   const step = (n: number) => (view === "month" ? shiftMonths(date, n) : shiftDays(date, 7 * n));
   const days = weekDays(date);
   const title = view === "month" ? monthLabel(date) : `${dayLabel(days[0]!)} – ${dayLabel(days[6]!, true)}`;

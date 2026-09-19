@@ -56,7 +56,7 @@ export function KpiTile({
         ? "text-[34px] sm:text-[38px] md:text-[44px]"
         : "text-[24px] md:text-[30px]";
 
-  const tile = (
+  return (
     <Card
       className={cn(
         "lift group/kpi relative min-w-0 gap-0 overflow-hidden py-0 hover:ring-brand/25",
@@ -74,11 +74,27 @@ export function KpiTile({
         </div>
 
         <div className="flex min-w-0 items-end justify-between gap-2 sm:gap-3">
-          <span
-            className={cn("min-w-0 whitespace-nowrap leading-none font-bold tracking-[-0.035em]", valueSize)}
-          >
-            {value}
-          </span>
+          {href ? (
+            <Link
+              href={href}
+              className={cn(
+                "min-w-0 whitespace-nowrap rounded-sm leading-none font-bold tracking-[-0.035em] underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
+                valueSize,
+              )}
+              aria-label={`${label}: ${value}. Buka rincian`}
+            >
+              {value}
+            </Link>
+          ) : (
+            <span
+              className={cn(
+                "min-w-0 whitespace-nowrap leading-none font-bold tracking-[-0.035em]",
+                valueSize,
+              )}
+            >
+              {value}
+            </span>
+          )}
           {spark && spark.length > 1 ? (
             <Sparkline
               values={spark}
@@ -102,17 +118,6 @@ export function KpiTile({
         ) : null}
       </div>
     </Card>
-  );
-  return href ? (
-    <Link
-      href={href}
-      className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      aria-label={`${label}: ${value}. Buka rincian`}
-    >
-      {tile}
-    </Link>
-  ) : (
-    tile
   );
 }
 

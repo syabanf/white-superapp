@@ -69,15 +69,25 @@ export function HeroStage({
 }
 
 function StatGlass({ stat }: { stat: HeroStat }) {
-  const content = (
+  return (
     <div className="surface-glass lift min-w-0 rounded-[1.25rem] p-3 md:p-3.5">
       <div className="flex items-start justify-between gap-2 text-muted-foreground">
         <span className="label-mono line-clamp-2">{stat.label}</span>
         {stat.hint ? <InfoHint className="ml-auto">{stat.hint}</InfoHint> : null}
       </div>
-      <p className="mt-1.5 whitespace-nowrap text-[23px] leading-none font-semibold tracking-[-0.03em] md:text-[26px]">
-        {stat.value}
-      </p>
+      {stat.href ? (
+        <Link
+          href={stat.href}
+          className="mt-1.5 block w-fit whitespace-nowrap rounded-sm text-[23px] leading-none font-semibold tracking-[-0.03em] underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring md:text-[26px]"
+          aria-label={`${stat.label}: ${stat.value}. Buka rincian`}
+        >
+          {stat.value}
+        </Link>
+      ) : (
+        <p className="mt-1.5 whitespace-nowrap text-[23px] leading-none font-semibold tracking-[-0.03em] md:text-[26px]">
+          {stat.value}
+        </p>
+      )}
       {stat.delta || stat.caption ? (
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <DeltaBadge delta={stat.delta} lowerIsBetter={stat.lowerIsBetter} />
@@ -85,16 +95,5 @@ function StatGlass({ stat }: { stat: HeroStat }) {
         </div>
       ) : null}
     </div>
-  );
-  return stat.href ? (
-    <Link
-      href={stat.href}
-      className="block rounded-[1.25rem] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      aria-label={`${stat.label}: ${stat.value}. Buka rincian`}
-    >
-      {content}
-    </Link>
-  ) : (
-    content
   );
 }

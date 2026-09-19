@@ -12,7 +12,16 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AXIS_TICK, CURSOR_STROKE, GRID_STROKE, MUTED_SERIES, SeriesLegend, TooltipBox, slotColor, type SeriesDef } from "./chart-primitives";
+import {
+  AXIS_TICK,
+  CURSOR_STROKE,
+  GRID_STROKE,
+  MUTED_SERIES,
+  SeriesLegend,
+  TooltipBox,
+  slotColor,
+  type SeriesDef,
+} from "./chart-primitives";
 import { formatCompact, formatDateShort } from "@/lib/format";
 import { tickEvery } from "@/lib/dates";
 import { t } from "@/i18n/id";
@@ -35,6 +44,7 @@ export function TimeSeriesChart({
   showLegend,
   yDomain,
   reverseY = false,
+  summary,
 }: {
   data: TimeSeriesPoint[];
   series: SeriesDef[];
@@ -48,6 +58,8 @@ export function TimeSeriesChart({
   yDomain?: [number | "auto" | "dataMin" | "dataMax", number | "auto" | "dataMin" | "dataMax"];
   /** for "position" charts where 1 is best */
   reverseY?: boolean;
+  /** Concise text alternative announced before the interactive chart. */
+  summary?: string;
 }) {
   const resolved = React.useMemo(
     () => series.map((s, i) => ({ ...s, color: s.color ?? slotColor(i), type: s.type ?? "line" })),
@@ -56,21 +68,50 @@ export function TimeSeriesChart({
   const seriesMap = React.useMemo(() => {
     const m: Record<string, SeriesDef & { color: string }> = {};
     for (const s of resolved) m[s.key] = s;
-    if (previousKey) m[previousKey] = { key: previousKey, label: t.common.previousPeriod, color: MUTED_SERIES, format: resolved[0]?.format };
+    if (previousKey)
+      m[previousKey] = {
+        key: previousKey,
+        label: t.common.previousPeriod,
+        color: MUTED_SERIES,
+        format: resolved[0]?.format,
+      };
     return m;
   }, [resolved, previousKey]);
   const legendSeries = previousKey
-    ? [...resolved, { key: previousKey, label: t.common.previousPeriod, color: MUTED_SERIES, type: "line" as const }]
+    ? [
+        ...resolved,
+        { key: previousKey, label: t.common.previousPeriod, color: MUTED_SERIES, type: "line" as const },
+      ]
     : resolved;
   const interval = Math.max(0, tickEvery(data.length) - 1);
   const hasBars = resolved.some((s) => s.type === "bar");
   const barSize = Math.min(24, Math.max(4, Math.floor(600 / Math.max(1, data.length)) - 2));
+  const accessibleSummary =
+    summary ??
+    `${resolved.map((item) => item.label).join(", ")}. ${data.length} titik data${data.length ? `, dari ${formatDateShort(data[0]!.date)} sampai ${formatDateShort(data.at(-1)!.date)}` : ""}.`;
 
   return (
     <div className={className}>
-      <div style={{ height }} className="w-full">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 560, height }}>
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={2} barCategoryGap="20%">
+      <p className="sr-only">{accessibleSummary}</p>
+      <div
+        style={{ height }}
+        className="w-full rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        role="img"
+        aria-label={accessibleSummary}
+        tabIndex={0}
+      >
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={0}
+          initialDimension={{ width: 560, height }}
+        >
+          <ComposedChart
+            data={data}
+            margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+            barGap={2}
+            barCategoryGap="20%"
+          >
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeWidth={1} />
             <XAxis
               dataKey="date"
@@ -93,7 +134,11 @@ export function TimeSeriesChart({
               allowDecimals={false}
             />
             <Tooltip
-              cursor={hasBars ? { fill: "var(--muted)", fillOpacity: 0.5 } : { stroke: CURSOR_STROKE, strokeWidth: 1 }}
+              cursor={
+                hasBars
+                  ? { fill: "var(--muted)", fillOpacity: 0.5 }
+                  : { stroke: CURSOR_STROKE, strokeWidth: 1 }
+              }
               content={<TooltipBox seriesMap={seriesMap} />}
               isAnimationActive={false}
               wrapperStyle={{ outline: "none" }}
@@ -162,7 +207,9 @@ export function TimeSeriesChart({
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-      {showLegend ?? legendSeries.length > 1 ? <SeriesLegend series={legendSeries} className="mt-2" /> : null}
+      {(showLegend ?? legendSeries.length > 1) ? (
+        <SeriesLegend series={legendSeries} className="mt-2" />
+      ) : null}
     </div>
   );
 }

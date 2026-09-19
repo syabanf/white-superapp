@@ -268,6 +268,11 @@ async function BuilderTab({
           }
         />
       }
+      moduleStatus={{
+        SOCIAL: { hasData: social.hasData || extras.SOCIAL.length > 0, isDemo: social.isDemo },
+        SEO: { hasData: seo.hasData || extras.SEO.length > 0, isDemo: seo.isDemo },
+        ADS: { hasData: ads.hasData, isDemo: ads.isDemo },
+      }}
     />
   );
 }
