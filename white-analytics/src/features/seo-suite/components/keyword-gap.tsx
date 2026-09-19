@@ -32,7 +32,11 @@ const DESCS: Record<GapKey, string> = {
 };
 
 function Pos({ v }: { v: number | null }) {
-  return v == null ? <span className="text-muted-foreground">–</span> : <span className="tabular">{formatNumber(v)}</span>;
+  return v == null ? (
+    <span className="text-muted-foreground">–</span>
+  ) : (
+    <span className="tabular">{formatNumber(v)}</span>
+  );
 }
 
 export function KeywordGapSection({
@@ -124,7 +128,10 @@ export function KeywordGapSection({
                 <TabsList>
                   {KEYS.map((k) => (
                     <TabsTrigger key={k} value={k}>
-                      {LABELS[k]} <span className="tabular text-[10px] text-muted-foreground">{formatNumber(gap[k].length)}</span>
+                      {LABELS[k]}{" "}
+                      <span className="tabular text-xs text-muted-foreground">
+                        {formatNumber(gap[k].length)}
+                      </span>
                     </TabsTrigger>
                   ))}
                 </TabsList>

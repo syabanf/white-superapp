@@ -7,7 +7,14 @@ import { toast } from "@/lib/toast";
 import { reschedulePost } from "@/features/publishing/actions";
 import { canReschedule, type Platform, type PostRole, type PostStatus } from "@/features/publishing/lib";
 import type { CalendarPost } from "@/features/publishing/queries";
-import { dayLabelLong, monthOf, moveToDay, toZoned, weekDays, weekdayLabel } from "@/features/publishing/time";
+import {
+  dayLabelLong,
+  monthOf,
+  moveToDay,
+  toZoned,
+  weekDays,
+  weekdayLabel,
+} from "@/features/publishing/time";
 import { StatusDot, StatusLegend } from "@/features/publishing/components/post-status";
 import { DND_MIME, PostChip } from "./post-chip";
 import { CalendarToolbar, type CalendarView as ViewKey } from "./calendar-toolbar";
@@ -30,14 +37,30 @@ type Props = {
 
 const MAX_CHIPS = 3;
 
-export function CalendarView({ slug, timezone, view, date, today, days, posts, role, platform, status }: Props) {
+export function CalendarView({
+  slug,
+  timezone,
+  view,
+  date,
+  today,
+  days,
+  posts,
+  role,
+  platform,
+  status,
+}: Props) {
   const router = useRouter();
   const base = `/clients/${slug}/publish`;
-  const [selected, setSelected] = React.useState<string>(() => (days.flat().includes(today) ? today : days[0]![0]!));
+  const [selected, setSelected] = React.useState<string>(() =>
+    days.flat().includes(today) ? today : days[0]![0]!,
+  );
   const [overDay, setOverDay] = React.useState<string | null>(null);
   const [pending, start] = React.useTransition();
 
-  const filtered = posts.filter((po) => (platform === "ALL" || po.platforms.includes(platform)) && (status === "ALL" || po.status === status));
+  const filtered = posts.filter(
+    (po) =>
+      (platform === "ALL" || po.platforms.includes(platform)) && (status === "ALL" || po.status === status),
+  );
   const byDay = React.useMemo(() => {
     const m = new Map<string, CalendarPost[]>();
     for (const po of filtered) {
@@ -110,7 +133,14 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
 
   return (
     <div className={cn("space-y-4", pending && "opacity-70")}>
-      <CalendarToolbar view={view} date={date} today={today} platform={platform} status={status} composeHref={`${base}/new`} />
+      <CalendarToolbar
+        view={view}
+        date={date}
+        today={today}
+        platform={platform}
+        status={status}
+        composeHref={`${base}/new`}
+      />
 
       {view === "month" ? (
         <>
@@ -145,18 +175,31 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
                         >
                           {dayNum}
                         </span>
-                        {items.length > 0 ? <span className="label-mono hidden text-muted-foreground md:inline">{items.length}</span> : null}
+                        {items.length > 0 ? (
+                          <span className="label-mono hidden text-muted-foreground md:inline">
+                            {items.length}
+                          </span>
+                        ) : null}
                       </div>
                       {/* desktop: chips */}
                       <ul className="mt-1 hidden space-y-1 md:block">
                         {items.slice(0, MAX_CHIPS).map((po) => (
                           <li key={po.id}>
-                            <PostChip post={po} href={href(po)} timeZone={timezone} draggable={draggable(po)} compact />
+                            <PostChip
+                              post={po}
+                              href={href(po)}
+                              timeZone={timezone}
+                              draggable={draggable(po)}
+                              compact
+                            />
                           </li>
                         ))}
                         {items.length > MAX_CHIPS ? (
                           <li>
-                            <Link href={`${base}?view=week&date=${key}`} className="block px-1 text-[11px] font-medium text-brand hover:underline">
+                            <Link
+                              href={`${base}?view=week&date=${key}`}
+                              className="block px-1 text-xs font-medium text-brand hover:underline"
+                            >
                               {p.more(items.length - MAX_CHIPS)}
                             </Link>
                           </li>
@@ -167,7 +210,11 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
                         {items.slice(0, 4).map((po) => (
                           <StatusDot key={po.id} status={po.status} className="size-1.5" />
                         ))}
-                        {items.length > 4 ? <span className="text-[9px] leading-none text-muted-foreground">+{items.length - 4}</span> : null}
+                        {items.length > 4 ? (
+                          <span className="text-xs leading-none text-muted-foreground">
+                            +{items.length - 4}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   );
@@ -189,14 +236,32 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
                 const items = byDay.get(key) ?? [];
                 const isToday = key === today;
                 return (
-                  <div key={key} {...dropProps(key)} className={cn("min-h-64 border-r p-1.5 transition-colors duration-150 last:border-r-0", overDay === key && "bg-brand/10 ring-1 ring-brand ring-inset")}>
-                    <span className={cn("tabular mb-1.5 inline-flex size-6 items-center justify-center rounded-full text-xs font-medium", isToday && "bg-brand text-primary-foreground")}>
+                  <div
+                    key={key}
+                    {...dropProps(key)}
+                    className={cn(
+                      "min-h-64 border-r p-1.5 transition-colors duration-150 last:border-r-0",
+                      overDay === key && "bg-brand/10 ring-1 ring-brand ring-inset",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "tabular mb-1.5 inline-flex size-6 items-center justify-center rounded-full text-xs font-medium",
+                        isToday && "bg-brand text-primary-foreground",
+                      )}
+                    >
                       {Number(key.slice(8))}
                     </span>
                     <ul className="space-y-1">
                       {items.map((po) => (
                         <li key={po.id}>
-                          <PostChip post={po} href={href(po)} timeZone={timezone} draggable={draggable(po)} compact />
+                          <PostChip
+                            post={po}
+                            href={href(po)}
+                            timeZone={timezone}
+                            draggable={draggable(po)}
+                            compact
+                          />
                         </li>
                       ))}
                     </ul>
@@ -211,12 +276,18 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
                 .filter((k) => (byDay.get(k) ?? []).length > 0)
                 .map((k) => (
                   <div key={k}>
-                    <p className={cn("label-mono mb-2", k === today ? "text-brand" : "text-muted-foreground")}>{dayLabelLong(k)}</p>
+                    <p
+                      className={cn("label-mono mb-2", k === today ? "text-brand" : "text-muted-foreground")}
+                    >
+                      {dayLabelLong(k)}
+                    </p>
                     {dayList(k, p.noPostsDay)}
                   </div>
                 ))
             ) : (
-              <p className="rounded-xl border border-dashed px-3 py-8 text-center text-sm text-muted-foreground">{p.noPostsWeek}</p>
+              <p className="rounded-xl border border-dashed px-3 py-8 text-center text-sm text-muted-foreground">
+                {p.noPostsWeek}
+              </p>
             )}
           </div>
         </>
@@ -224,7 +295,9 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
 
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <StatusLegend />
-        {role !== "VIEWER" ? <p className="hidden text-xs text-muted-foreground md:block">{p.dragHint}</p> : null}
+        {role !== "VIEWER" ? (
+          <p className="hidden text-xs text-muted-foreground md:block">{p.dragHint}</p>
+        ) : null}
       </div>
     </div>
   );

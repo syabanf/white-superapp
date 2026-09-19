@@ -45,22 +45,32 @@ export function Heatmap({
 
   return (
     <div className={cn("overflow-x-auto scrollbar-thin", className)}>
-      <div className="inline-grid gap-[2px]" style={{ gridTemplateColumns: `auto repeat(${cols}, ${cellSize}px)` }}>
+      <div
+        className="inline-grid gap-[2px]"
+        style={{ gridTemplateColumns: `auto repeat(${cols}, ${cellSize}px)` }}
+      >
         <div />
         {colLabels.map((l, i) => (
-          <div key={i} className="text-center text-[10px] text-muted-foreground tabular" style={{ width: cellSize }}>
+          <div
+            key={i}
+            className="text-center text-xs text-muted-foreground tabular"
+            style={{ width: cellSize }}
+          >
             {i % 3 === 0 ? l : ""}
           </div>
         ))}
         {Array.from({ length: rows }).map((_, r) => (
           <React.Fragment key={r}>
-            <div className="pr-2 text-[11px] leading-[16px] text-muted-foreground" style={{ height: cellSize }}>
+            <div className="pr-2 text-xs leading-[16px] text-muted-foreground" style={{ height: cellSize }}>
               {rowLabels[r]}
             </div>
             {Array.from({ length: cols }).map((_, c) => {
               const cell = grid.get(`${r}-${c}`);
               const v = cell?.value ?? 0;
-              const step = max > 0 && v > 0 ? SEQ_STEPS[Math.min(SEQ_STEPS.length - 1, Math.floor((v / max) * SEQ_STEPS.length))] : null;
+              const step =
+                max > 0 && v > 0
+                  ? SEQ_STEPS[Math.min(SEQ_STEPS.length - 1, Math.floor((v / max) * SEQ_STEPS.length))]
+                  : null;
               const bg = step ? `var(${step})` : "var(--muted)";
               return (
                 <Tooltip key={c}>
@@ -91,7 +101,7 @@ export function Heatmap({
           </React.Fragment>
         ))}
       </div>
-      <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+      <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
         <span>Rendah</span>
         {SEQ_STEPS.map((s) => (
           <span key={s} className="h-2 w-4 rounded-[2px]" style={{ background: `var(${s})` }} />

@@ -85,7 +85,11 @@ export function ConnectionCard({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-          {isMeta ? <PlatformIcon platform="FACEBOOK" className="size-4" /> : <Globe className="size-4 text-muted-foreground" />}
+          {isMeta ? (
+            <PlatformIcon platform="FACEBOOK" className="size-4" />
+          ) : (
+            <Globe className="size-4 text-muted-foreground" />
+          )}
           {title}
         </CardTitle>
         <CardDescription className="text-xs">{description}</CardDescription>
@@ -104,7 +108,11 @@ export function ConnectionCard({
                 </Button>
               ) : (
                 <Button size="xs" variant="outline" onClick={simulate} disabled={pending}>
-                  {pending ? <Loader2 className="size-3.5 animate-spin" /> : <FlaskConical className="size-3.5" />}
+                  {pending ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <FlaskConical className="size-3.5" />
+                  )}
                   {tc.settings.simulate}
                 </Button>
               )
@@ -122,7 +130,11 @@ export function ConnectionCard({
                   {canManage ? (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="xs" className="text-muted-foreground hover:text-destructive">
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          className="text-muted-foreground hover:text-destructive"
+                        >
                           <Unplug className="size-3.5" /> {t.settings.disconnect}
                         </Button>
                       </AlertDialogTrigger>
@@ -133,7 +145,11 @@ export function ConnectionCard({
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
-                          <AlertDialogAction variant="destructive" disabled={pending} onClick={() => disconnect(c.id)}>
+                          <AlertDialogAction
+                            variant="destructive"
+                            disabled={pending}
+                            onClick={() => disconnect(c.id)}
+                          >
                             {t.settings.disconnect}
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -153,9 +169,13 @@ export function ConnectionCard({
                 </dl>
                 {c.scopes.length > 0 ? (
                   <div className="flex flex-wrap items-center gap-1">
-                    <span className="text-[11px] text-muted-foreground">{t.settings.scopes}:</span>
+                    <span className="text-xs text-muted-foreground">{t.settings.scopes}:</span>
                     {c.scopes.map((s) => (
-                      <Badge key={s} variant="outline" className="px-1.5 py-0 font-mono text-[10px] font-normal text-muted-foreground">
+                      <Badge
+                        key={s}
+                        variant="outline"
+                        className="px-1.5 py-0 font-mono text-xs font-normal text-muted-foreground"
+                      >
                         {scopeLabel(s)}
                       </Badge>
                     ))}

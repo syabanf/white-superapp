@@ -18,7 +18,14 @@ import { getAdsDashboard } from "@/features/ads/queries";
 import { resultTypeLabel, s } from "@/features/ads/strings";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
-import { formatCompact, formatCurrency, formatDateRange, formatNumber, formatPercent, formatRelative } from "@/lib/format";
+import {
+  formatCompact,
+  formatCurrency,
+  formatDateRange,
+  formatNumber,
+  formatPercent,
+  formatRelative,
+} from "@/lib/format";
 import { t } from "@/i18n/id";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/ads">): Promise<Metadata> {
@@ -37,7 +44,8 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
   const data = await getAdsDashboard(client.id, range, previous, campaignParam);
   const { kpis, deltas } = data;
 
-  const d = (x: { pct: number | null; abs: number; direction: "up" | "down" | "flat" }) => (compare ? x : null);
+  const d = (x: { pct: number | null; abs: number; direction: "up" | "down" | "flat" }) =>
+    compare && !data.isDemo ? x : null;
 
   return (
     <>
@@ -55,7 +63,9 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
         }
       />
 
-      {data.isDemo && data.account ? <DemoBanner message={t.ads.demoBanner} settingsHref={`${base}/settings`} /> : null}
+      {data.isDemo && data.account ? (
+        <DemoBanner message={t.ads.demoBanner} settingsHref={`${base}/settings`} />
+      ) : null}
 
       {!data.account ? (
         <EmptyState
@@ -75,7 +85,9 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
             <CampaignFilter options={data.campaignOptions} />
             <p className="text-xs text-muted-foreground">
               {data.account.name}
-              {data.account.lastSyncedAt ? ` · ${t.common.lastSynced} ${formatRelative(data.account.lastSyncedAt)}` : ` · ${t.common.neverSynced}`}
+              {data.account.lastSyncedAt
+                ? ` · ${t.common.lastSynced} ${formatRelative(data.account.lastSyncedAt)}`
+                : ` · ${t.common.neverSynced}`}
             </p>
           </div>
 
@@ -91,7 +103,11 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
               value={formatNumber(kpis.results)}
               delta={d(deltas.results)}
               spark={data.resultsSpark}
-              caption={kpis.results > 0 && data.dominantResultType ? resultTypeLabel(data.dominantResultType) : s.noConversionResults}
+              caption={
+                kpis.results > 0 && data.dominantResultType
+                  ? resultTypeLabel(data.dominantResultType)
+                  : s.noConversionResults
+              }
               hint={s.resultsHint}
             />
             <KpiTile
@@ -101,13 +117,27 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
               lowerIsBetter
               hint={s.cprHint}
             />
-            <KpiTile label={t.ads.ctr} value={formatPercent(kpis.ctr)} delta={d(deltas.ctr)} hint={s.ctrHint} />
+            <KpiTile
+              label={t.ads.ctr}
+              value={formatPercent(kpis.ctr)}
+              delta={d(deltas.ctr)}
+              hint={s.ctrHint}
+            />
           </KpiGrid>
 
           <StatStrip
             items={[
-              { label: t.ads.impressions, value: formatCompact(kpis.impressions), delta: d(deltas.impressions) },
-              { label: t.ads.reach, value: formatCompact(kpis.reach), delta: d(deltas.reach), hint: s.reachHint },
+              {
+                label: t.ads.impressions,
+                value: formatCompact(kpis.impressions),
+                delta: d(deltas.impressions),
+              },
+              {
+                label: t.ads.reach,
+                value: formatCompact(kpis.reach),
+                delta: d(deltas.reach),
+                hint: s.reachHint,
+              },
               { label: t.ads.linkClicks, value: formatCompact(kpis.linkClicks), delta: d(deltas.linkClicks) },
               {
                 label: t.ads.cpc,
@@ -131,7 +161,14 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
                 hint: s.frequencyHint,
               },
               ...(kpis.roas != null
-                ? [{ label: t.ads.roas, value: `${formatNumber(kpis.roas, 2)}×`, delta: deltas.roas ? d(deltas.roas) : null, hint: s.roasHint }]
+                ? [
+                    {
+                      label: t.ads.roas,
+                      value: `${formatNumber(kpis.roas, 2)}×`,
+                      delta: deltas.roas ? d(deltas.roas) : null,
+                      hint: s.roasHint,
+                    },
+                  ]
                 : []),
             ]}
           />

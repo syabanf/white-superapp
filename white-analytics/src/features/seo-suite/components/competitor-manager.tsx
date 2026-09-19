@@ -7,7 +7,15 @@ import { toast } from "@/lib/toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -18,7 +26,15 @@ import { t } from "@/i18n/id";
 import { addCompetitorDomain, removeCompetitorDomain } from "@/features/seo-suite/actions-domains";
 import { s } from "@/features/seo-suite/strings";
 
-export function AddDomainDialog({ clientId, propertyId, disabled }: { clientId: string; propertyId: string; disabled?: boolean }) {
+export function AddDomainDialog({
+  clientId,
+  propertyId,
+  disabled,
+}: {
+  clientId: string;
+  propertyId: string;
+  disabled?: boolean;
+}) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
@@ -159,7 +175,7 @@ export function CompetitorManager({
           <ul className="divide-y">
             <li className="flex items-center justify-between gap-2 py-2 text-sm">
               <span className="font-medium">{ownDomain}</span>
-              <Badge variant="secondary" className="text-[10px]">
+              <Badge variant="secondary" className="text-xs">
                 {s.yourDomain}
               </Badge>
             </li>
@@ -167,7 +183,13 @@ export function CompetitorManager({
               <li key={c.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                 <span>{c.domain}</span>
                 {canManage ? (
-                  <Button variant="ghost" size="icon-xs" aria-label={s.removeDomain} onClick={() => remove(c)} disabled={pendingId === c.id}>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={s.removeDomain}
+                    onClick={() => remove(c)}
+                    disabled={pendingId === c.id}
+                  >
                     {pendingId === c.id ? <Spinner className="size-3.5" /> : <Trash2 className="size-3.5" />}
                   </Button>
                 ) : null}
@@ -198,12 +220,19 @@ export function CompetitorManager({
                   <div className="min-w-0">
                     <p className="truncate font-medium">{sg.domain}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatNumber(sg.intersections)} {s.intersections.toLowerCase()} · {formatCompact(sg.organicTraffic)} {s.organicTraffic.toLowerCase()}
+                      {formatNumber(sg.intersections)} {s.intersections.toLowerCase()} ·{" "}
+                      {formatCompact(sg.organicTraffic)} {s.organicTraffic.toLowerCase()}
                     </p>
                   </div>
                   {canManage ? (
-                    <Button variant="outline" size="xs" onClick={() => add(sg.domain)} disabled={full || pendingId === sg.domain}>
-                      {pendingId === sg.domain ? <Spinner className="size-3" /> : <Plus className="size-3" />} {s.addSuggested}
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => add(sg.domain)}
+                      disabled={full || pendingId === sg.domain}
+                    >
+                      {pendingId === sg.domain ? <Spinner className="size-3" /> : <Plus className="size-3" />}{" "}
+                      {s.addSuggested}
                     </Button>
                   ) : null}
                 </li>

@@ -41,7 +41,13 @@ function csvEscape(v: string): string {
  * Tabel drill-down "Rincian kampanye": kampanye → set iklan → iklan.
  * Bisa diurutkan berdasar belanja / biaya per hasil; ekspor CSV (rata).
  */
-export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampaignNode[]; currency: string }) {
+export function CampaignBreakdown({
+  campaigns,
+  currency,
+}: {
+  campaigns: AdsCampaignNode[];
+  currency: string;
+}) {
   const [openCampaigns, setOpenCampaigns] = React.useState<ReadonlySet<string>>(new Set());
   const [openAdSets, setOpenAdSets] = React.useState<ReadonlySet<string>>(new Set());
   const [sortKey, setSortKey] = React.useState<SortKey>("spend");
@@ -98,7 +104,13 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
       t.ads.frequency,
     ];
     const lines: string[] = [header.map(csvEscape).join(",")];
-    const push = (level: string, names: [string, string, string], status: string, objective: string, k: AdsNodeKpis) => {
+    const push = (
+      level: string,
+      names: [string, string, string],
+      status: string,
+      objective: string,
+      k: AdsNodeKpis,
+    ) => {
       lines.push(
         [
           level,
@@ -137,7 +149,11 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
   };
 
   if (campaigns.length === 0) {
-    return <p className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">{s.breakdownEmpty}</p>;
+    return (
+      <p className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
+        {s.breakdownEmpty}
+      </p>
+    );
   }
 
   return (
@@ -152,22 +168,44 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
           <Table className="[&_td]:py-2 [&_th]:h-9">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="min-w-56 text-xs font-medium text-muted-foreground">{t.common.name}</TableHead>
+                <TableHead className="min-w-56 text-xs font-medium text-muted-foreground">
+                  {t.common.name}
+                </TableHead>
                 <TableHead className="text-xs font-medium text-muted-foreground">{t.common.status}</TableHead>
                 <TableHead className="text-xs font-medium text-muted-foreground">{t.ads.objective}</TableHead>
                 <TableHead className="text-right text-xs font-medium text-muted-foreground">
-                  <SortButton label={t.ads.spend} k="spend" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                  <SortButton
+                    label={t.ads.spend}
+                    k="spend"
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={onSort}
+                  />
                 </TableHead>
-                <TableHead className="text-right text-xs font-medium text-muted-foreground">{t.ads.results}</TableHead>
+                <TableHead className="text-right text-xs font-medium text-muted-foreground">
+                  {t.ads.results}
+                </TableHead>
                 <TableHead className="text-right text-xs font-medium text-muted-foreground">
                   <SortButton label={t.ads.cpr} k="cpr" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
                 </TableHead>
-                <TableHead className="text-right text-xs font-medium text-muted-foreground">{t.ads.impressions}</TableHead>
-                <TableHead className="text-right text-xs font-medium text-muted-foreground">{t.ads.reach}</TableHead>
-                <TableHead className="text-right text-xs font-medium text-muted-foreground">{t.ads.linkClicks}</TableHead>
-                <TableHead className="text-right text-xs font-medium text-muted-foreground">{t.ads.ctr}</TableHead>
-                <TableHead className="text-right text-xs font-medium text-muted-foreground">{t.ads.cpc}</TableHead>
-                <TableHead className="text-right text-xs font-medium text-muted-foreground">{t.ads.frequency}</TableHead>
+                <TableHead className="text-right text-xs font-medium text-muted-foreground">
+                  {t.ads.impressions}
+                </TableHead>
+                <TableHead className="text-right text-xs font-medium text-muted-foreground">
+                  {t.ads.reach}
+                </TableHead>
+                <TableHead className="text-right text-xs font-medium text-muted-foreground">
+                  {t.ads.linkClicks}
+                </TableHead>
+                <TableHead className="text-right text-xs font-medium text-muted-foreground">
+                  {t.ads.ctr}
+                </TableHead>
+                <TableHead className="text-right text-xs font-medium text-muted-foreground">
+                  {t.ads.cpc}
+                </TableHead>
+                <TableHead className="text-right text-xs font-medium text-muted-foreground">
+                  {t.ads.frequency}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -175,7 +213,10 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
                 const cOpen = openCampaigns.has(c.id);
                 return (
                   <React.Fragment key={c.id}>
-                    <TableRow className="cursor-pointer" onClick={() => setOpenCampaigns((prev) => toggle(prev, c.id))}>
+                    <TableRow
+                      className="cursor-pointer"
+                      onClick={() => setOpenCampaigns((prev) => toggle(prev, c.id))}
+                    >
                       <TableCell className="text-sm font-medium">
                         <span className="flex items-center gap-1.5">
                           <button
@@ -188,7 +229,9 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
                               setOpenCampaigns((prev) => toggle(prev, c.id));
                             }}
                           >
-                            <ChevronRight className={cn("size-4 transition-transform", cOpen && "rotate-90")} />
+                            <ChevronRight
+                              className={cn("size-4 transition-transform", cOpen && "rotate-90")}
+                            />
                           </button>
                           <span className="max-w-72 truncate" title={c.name}>
                             {c.name}
@@ -198,7 +241,9 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
                       <TableCell>
                         <StatusBadge kind={statusKind(c.status)}>{statusLabel(c.status)}</StatusBadge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{objectiveLabel(c.objective)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {objectiveLabel(c.objective)}
+                      </TableCell>
                       <MetricCells kpis={c.kpis} currency={currency} />
                     </TableRow>
                     {cOpen
@@ -216,7 +261,9 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
                                       className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                                       onClick={() => setOpenAdSets((prev) => toggle(prev, st.id))}
                                     >
-                                      <ChevronRight className={cn("size-4 transition-transform", sOpen && "rotate-90")} />
+                                      <ChevronRight
+                                        className={cn("size-4 transition-transform", sOpen && "rotate-90")}
+                                      />
                                     </button>
                                     <span className="max-w-64 truncate" title={st.name}>
                                       {st.name}
@@ -224,7 +271,9 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
                                   </span>
                                 </TableCell>
                                 <TableCell>
-                                  <StatusBadge kind={statusKind(st.status)}>{statusLabel(st.status)}</StatusBadge>
+                                  <StatusBadge kind={statusKind(st.status)}>
+                                    {statusLabel(st.status)}
+                                  </StatusBadge>
                                 </TableCell>
                                 <TableCell className="text-xs text-muted-foreground">{t.ads.adSet}</TableCell>
                                 <MetricCells kpis={st.kpis} currency={currency} />
@@ -238,9 +287,13 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
                                         </span>
                                       </TableCell>
                                       <TableCell>
-                                        <StatusBadge kind={statusKind(ad.status)}>{statusLabel(ad.status)}</StatusBadge>
+                                        <StatusBadge kind={statusKind(ad.status)}>
+                                          {statusLabel(ad.status)}
+                                        </StatusBadge>
                                       </TableCell>
-                                      <TableCell className="text-xs text-muted-foreground">{t.ads.ad}</TableCell>
+                                      <TableCell className="text-xs text-muted-foreground">
+                                        {t.ads.ad}
+                                      </TableCell>
                                       <MetricCells kpis={ad.kpis} currency={currency} />
                                     </TableRow>
                                   ))
@@ -299,23 +352,35 @@ function MetricCells({ kpis: k, currency }: { kpis: AdsNodeKpis; currency: strin
   const dash = <span className="text-muted-foreground">–</span>;
   return (
     <>
-      <TableCell className="text-right text-sm tabular">{empty ? dash : formatCurrency(k.spend, currency)}</TableCell>
+      <TableCell className="text-right text-sm tabular">
+        {empty ? dash : formatCurrency(k.spend, currency)}
+      </TableCell>
       <TableCell className="text-right text-sm tabular">
         {empty ? (
           dash
         ) : (
           <>
             {formatNumber(k.results)}
-            {k.resultType ? <span className="ml-1 text-[11px] text-muted-foreground">{resultTypeLabel(k.resultType)}</span> : null}
+            {k.resultType ? (
+              <span className="ml-1 text-xs text-muted-foreground">{resultTypeLabel(k.resultType)}</span>
+            ) : null}
           </>
         )}
       </TableCell>
-      <TableCell className="text-right text-sm tabular">{empty || k.results === 0 ? dash : formatCurrency(k.cpr, currency)}</TableCell>
-      <TableCell className="text-right text-sm tabular">{empty ? dash : formatNumber(k.impressions)}</TableCell>
+      <TableCell className="text-right text-sm tabular">
+        {empty || k.results === 0 ? dash : formatCurrency(k.cpr, currency)}
+      </TableCell>
+      <TableCell className="text-right text-sm tabular">
+        {empty ? dash : formatNumber(k.impressions)}
+      </TableCell>
       <TableCell className="text-right text-sm tabular">{empty ? dash : formatNumber(k.reach)}</TableCell>
-      <TableCell className="text-right text-sm tabular">{empty ? dash : formatNumber(k.linkClicks)}</TableCell>
+      <TableCell className="text-right text-sm tabular">
+        {empty ? dash : formatNumber(k.linkClicks)}
+      </TableCell>
       <TableCell className="text-right text-sm tabular">{empty ? dash : formatPercent(k.ctr)}</TableCell>
-      <TableCell className="text-right text-sm tabular">{empty || k.linkClicks === 0 ? dash : formatCurrency(k.cpc, currency)}</TableCell>
+      <TableCell className="text-right text-sm tabular">
+        {empty || k.linkClicks === 0 ? dash : formatCurrency(k.cpc, currency)}
+      </TableCell>
       <TableCell className="text-right text-sm tabular">
         {empty ? (
           dash
@@ -326,7 +391,7 @@ function MetricCells({ kpis: k, currency }: { kpis: AdsNodeKpis; currency: strin
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <StatusBadge kind="warning" className="px-1.5 py-0 text-[10px]">
+                    <StatusBadge kind="warning" className="px-1.5 py-0 text-xs">
                       {s.fatigueBadge}
                     </StatusBadge>
                   </span>

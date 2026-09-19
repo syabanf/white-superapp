@@ -22,7 +22,14 @@ import { getSocialDashboard } from "@/features/social/queries";
 import { s } from "@/features/social/strings";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
-import { formatCompact, formatDateRange, formatDeltaNumber, formatDeltaPercent, formatNumber, formatPercent } from "@/lib/format";
+import {
+  formatCompact,
+  formatDateRange,
+  formatDeltaNumber,
+  formatDeltaPercent,
+  formatNumber,
+  formatPercent,
+} from "@/lib/format";
 import type { Delta } from "@/lib/metrics";
 import { t } from "@/i18n/id";
 
@@ -40,7 +47,7 @@ export default async function SocialPage(props: PageProps<"/clients/[slug]/socia
   const base = `/clients/${slug}`;
 
   const data = await getSocialDashboard(client.id, platform, range, previous);
-  const d = (x: Delta) => (compare ? x : null);
+  const d = (x: Delta) => (compare && !data.isDemo ? x : null);
   const kpis = data.kpis;
 
   return (
@@ -63,10 +70,14 @@ export default async function SocialPage(props: PageProps<"/clients/[slug]/socia
 
       <PlatformTabs current={platform} />
 
-      <DemoBanner
-        message={platform === "TIKTOK" ? `${t.social.demoBanner} ${t.social.tiktokMock}` : t.social.demoBanner}
-        settingsHref={`${base}/settings`}
-      />
+      {data.isDemo ? (
+        <DemoBanner
+          message={
+            platform === "TIKTOK" ? `${t.social.demoBanner} ${t.social.tiktokMock}` : t.social.demoBanner
+          }
+          settingsHref={`${base}/settings`}
+        />
+      ) : null}
 
       {!data.account || !kpis ? (
         <EmptyState
@@ -110,7 +121,11 @@ export default async function SocialPage(props: PageProps<"/clients/[slug]/socia
 
           <StatStrip
             items={[
-              { label: t.social.impressions, value: formatCompact(kpis.impressions), hint: s.impressionsHint },
+              {
+                label: t.social.impressions,
+                value: formatCompact(kpis.impressions),
+                hint: s.impressionsHint,
+              },
               {
                 label: t.social.postsPublished,
                 value: formatNumber(kpis.posts),

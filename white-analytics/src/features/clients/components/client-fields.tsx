@@ -37,12 +37,16 @@ export function ClientFields({
   errors,
   disabled,
   idPrefix = "client",
+  websiteRequired = false,
+  websiteHint,
 }: {
   values: ClientFormValues;
   onChange: <K extends keyof ClientFormValues>(field: K, value: ClientFormValues[K]) => void;
   errors?: FieldErrors;
   disabled?: boolean;
   idPrefix?: string;
+  websiteRequired?: boolean;
+  websiteHint?: string;
 }) {
   return (
     <div className="grid gap-5">
@@ -104,7 +108,10 @@ export function ClientFields({
           <FieldError errors={errors} name="industry" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-website`}>{t.clients.website}</Label>
+          <Label htmlFor={`${idPrefix}-website`}>
+            {t.clients.website}
+            {websiteRequired ? <span className="text-destructive"> *</span> : null}
+          </Label>
           <Input
             id={`${idPrefix}-website`}
             type="url"
@@ -112,7 +119,15 @@ export function ClientFields({
             onChange={(e) => onChange("websiteUrl", e.target.value)}
             disabled={disabled}
             placeholder={tc.form.websitePlaceholder}
+            required={websiteRequired}
+            aria-required={websiteRequired}
+            aria-describedby={websiteHint ? `${idPrefix}-website-hint` : undefined}
           />
+          {websiteHint ? (
+            <p id={`${idPrefix}-website-hint`} className="text-xs text-muted-foreground">
+              {websiteHint}
+            </p>
+          ) : null}
           <FieldError errors={errors} name="websiteUrl" />
         </div>
       </div>

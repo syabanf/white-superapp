@@ -1,5 +1,5 @@
 /**
- * "Buat project" wizard — step model.
+ * "Tambah klien" wizard — step model.
  *
  * The project *type* is chosen first and drives the rest of the flow: which
  * fields matter, which data sources are asked for, and what the client link
@@ -29,15 +29,15 @@ export const WIZARD_META: Record<WizardStep, WizardStepMeta> = {
   jenis: {
     key: "jenis",
     index: "01",
-    title: "Jenis project",
-    description: "Pilih pekerjaan yang akan dijalankan. Langkah berikutnya menyesuaikan pilihan ini.",
+    title: "Pilih kanal",
+    description: "Pilih kanal yang akan dikelola. Langkah berikutnya menyesuaikan pilihan ini.",
     needsClient: false,
     needsTypes: false,
   },
   profil: {
     key: "profil",
     index: "02",
-    title: "Profil project",
+    title: "Profil klien",
     description: "Nama klien, alamat dashboard, dan preferensi angka.",
     needsClient: false,
     needsTypes: true,

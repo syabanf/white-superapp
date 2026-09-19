@@ -29,13 +29,24 @@ function Dots({ n }: { n: number }) {
   return (
     <div className="flex justify-center gap-1 py-1.5">
       {Array.from({ length: Math.min(n, 10) }, (_, i) => (
-        <span key={i} className={cn("size-1.5 rounded-full", i === 0 ? "bg-brand" : "bg-muted-foreground/30")} />
+        <span
+          key={i}
+          className={cn("size-1.5 rounded-full", i === 0 ? "bg-brand" : "bg-muted-foreground/30")}
+        />
       ))}
     </div>
   );
 }
 
-function InstagramCard({ account, caption, media }: { account: PreviewAccount; caption: string; media: PreviewMedia[] }) {
+function InstagramCard({
+  account,
+  caption,
+  media,
+}: {
+  account: PreviewAccount;
+  caption: string;
+  media: PreviewMedia[];
+}) {
   const first = media[0];
   return (
     <div className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) text-card-foreground">
@@ -47,7 +58,13 @@ function InstagramCard({ account, caption, media }: { account: PreviewAccount; c
         <span className="flex-1 text-[13px] font-semibold">{account.username}</span>
         <MoreHorizontal className="size-4 text-muted-foreground" />
       </div>
-      {first ? <MediaThumb asset={first} className="aspect-square w-full" /> : <div className="flex aspect-square items-center justify-center bg-muted text-xs text-muted-foreground">{p.sectionMedia}</div>}
+      {first ? (
+        <MediaThumb asset={first} className="aspect-square w-full" />
+      ) : (
+        <div className="flex aspect-square items-center justify-center bg-muted text-xs text-muted-foreground">
+          {p.sectionMedia}
+        </div>
+      )}
       <Dots n={media.length} />
       <div className="flex items-center gap-3 px-3 pt-1">
         <Heart className="size-5" />
@@ -64,7 +81,17 @@ function InstagramCard({ account, caption, media }: { account: PreviewAccount; c
   );
 }
 
-function FacebookCard({ account, caption, media, linkUrl }: { account: PreviewAccount; caption: string; media: PreviewMedia[]; linkUrl?: string }) {
+function FacebookCard({
+  account,
+  caption,
+  media,
+  linkUrl,
+}: {
+  account: PreviewAccount;
+  caption: string;
+  media: PreviewMedia[];
+  linkUrl?: string;
+}) {
   const first = media[0];
   let host = "";
   try {
@@ -81,7 +108,7 @@ function FacebookCard({ account, caption, media, linkUrl }: { account: PreviewAc
         </Avatar>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[13px] font-semibold">{account.displayName}</span>
-          <span className="block text-[11px] text-muted-foreground">{p.previewSponsored} · 🌐</span>
+          <span className="block text-xs text-muted-foreground">{p.previewSponsored} · 🌐</span>
         </span>
         <MoreHorizontal className="size-4 text-muted-foreground" />
       </div>
@@ -96,17 +123,33 @@ function FacebookCard({ account, caption, media, linkUrl }: { account: PreviewAc
           <p className="truncate text-[13px] font-semibold">{linkUrl}</p>
         </div>
       ) : null}
-      {media.length > 1 ? <p className="px-3 pt-1 text-[11px] text-muted-foreground">+{media.length - 1} foto</p> : null}
+      {media.length > 1 ? (
+        <p className="px-3 pt-1 text-xs text-muted-foreground">+{media.length - 1} foto</p>
+      ) : null}
       <div className="grid grid-cols-3 border-t text-[12px] text-muted-foreground">
-        <span className="flex items-center justify-center gap-1.5 py-2"><ThumbsUp className="size-4" /> Suka</span>
-        <span className="flex items-center justify-center gap-1.5 py-2"><MessageCircle className="size-4" /> Komentar</span>
-        <span className="flex items-center justify-center gap-1.5 py-2"><Share2 className="size-4" /> Bagikan</span>
+        <span className="flex items-center justify-center gap-1.5 py-2">
+          <ThumbsUp className="size-4" /> Suka
+        </span>
+        <span className="flex items-center justify-center gap-1.5 py-2">
+          <MessageCircle className="size-4" /> Komentar
+        </span>
+        <span className="flex items-center justify-center gap-1.5 py-2">
+          <Share2 className="size-4" /> Bagikan
+        </span>
       </div>
     </div>
   );
 }
 
-function TikTokCard({ account, caption, media }: { account: PreviewAccount; caption: string; media: PreviewMedia[] }) {
+function TikTokCard({
+  account,
+  caption,
+  media,
+}: {
+  account: PreviewAccount;
+  caption: string;
+  media: PreviewMedia[];
+}) {
   const first = media.find((m) => m.kind === "VIDEO") ?? media[0];
   return (
     <div className="relative mx-auto aspect-[9/16] w-full max-w-[260px] overflow-hidden rounded-2xl border bg-black text-white">
@@ -114,10 +157,15 @@ function TikTokCard({ account, caption, media }: { account: PreviewAccount; capt
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pr-14">
         <p className="text-[13px] font-semibold">@{account.username}</p>
         <p className="mt-1 line-clamp-4 text-[12px] leading-snug whitespace-pre-wrap">{caption}</p>
-        <p className="mt-1.5 flex items-center gap-1 text-[11px] text-white/80"><Music2 className="size-3" /> Suara asli · {account.displayName}</p>
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-white/80">
+          <Music2 className="size-3" /> Suara asli · {account.displayName}
+        </p>
       </div>
       <div className="absolute right-2 bottom-16 flex flex-col items-center gap-4 text-white">
-        <Avatar className="size-9 border-2 border-white"><AvatarImage src={account.avatarUrl ?? undefined} alt="" /><AvatarFallback className="text-[10px] text-black">{initials(account.displayName)}</AvatarFallback></Avatar>
+        <Avatar className="size-9 border-2 border-white">
+          <AvatarImage src={account.avatarUrl ?? undefined} alt="" />
+          <AvatarFallback className="text-[10px] text-black">{initials(account.displayName)}</AvatarFallback>
+        </Avatar>
         <Heart className="size-6" />
         <MessageCircle className="size-6" />
         <Bookmark className="size-6" />
@@ -145,7 +193,8 @@ export function PostPreview({
   return (
     <div className={cn("space-y-2", className)}>
       <p className="label-mono flex items-center gap-1.5 text-muted-foreground">
-        <PlatformIcon platform={platform} className="size-3" /> {platform === "INSTAGRAM" ? "Instagram feed" : platform === "FACEBOOK" ? "Facebook Page" : "TikTok"}
+        <PlatformIcon platform={platform} className="size-3" />{" "}
+        {platform === "INSTAGRAM" ? "Instagram feed" : platform === "FACEBOOK" ? "Facebook Page" : "TikTok"}
       </p>
       {platform === "INSTAGRAM" ? (
         <InstagramCard account={account} caption={caption} media={media} />

@@ -13,7 +13,10 @@ function Thumb({ src, alt }: { src: string | null; alt: string }) {
   const [failed, setFailed] = React.useState(false);
   if (!src || failed) {
     return (
-      <div aria-hidden className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+      <div
+        aria-hidden
+        className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+      >
         <ImageOff className="size-5" />
       </div>
     );
@@ -33,7 +36,11 @@ function Thumb({ src, alt }: { src: string | null; alt: string }) {
 /** Kartu "Iklan terbaik" — 6 iklan dengan biaya per hasil terendah bervolume memadai. */
 export function TopAds({ ads, currency }: { ads: AdsTopAd[]; currency: string }) {
   if (ads.length === 0) {
-    return <p className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">{s.topAdsEmpty}</p>;
+    return (
+      <p className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
+        {s.topAdsEmpty}
+      </p>
+    );
   }
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -46,8 +53,15 @@ export function TopAds({ ads, currency }: { ads: AdsTopAd[]; currency: string })
                 <p className="truncate text-sm font-medium" title={ad.name}>
                   {ad.name}
                 </p>
-                <StatusBadge kind={ad.status === "ACTIVE" ? "good" : "neutral"} className="shrink-0 px-1.5 py-0 text-[10px]">
-                  {ad.status === "ACTIVE" ? t.common.active : ad.status === "PAUSED" ? t.common.paused : ad.status}
+                <StatusBadge
+                  kind={ad.status === "ACTIVE" ? "good" : "neutral"}
+                  className="shrink-0 px-1.5 py-0 text-xs"
+                >
+                  {ad.status === "ACTIVE"
+                    ? t.common.active
+                    : ad.status === "PAUSED"
+                      ? t.common.paused
+                      : ad.status}
                 </StatusBadge>
               </div>
               <p className="mt-0.5 truncate text-xs text-muted-foreground" title={ad.campaignName}>
@@ -58,7 +72,9 @@ export function TopAds({ ads, currency }: { ads: AdsTopAd[]; currency: string })
           <dl className="mt-3 grid grid-cols-4 gap-2 border-t pt-3 text-xs">
             <div className="min-w-0">
               <dt className="truncate text-muted-foreground">{t.ads.spend}</dt>
-              <dd className="mt-0.5 truncate font-semibold tabular">{formatCurrency(ad.spend, currency, { compact: true })}</dd>
+              <dd className="mt-0.5 truncate font-semibold tabular">
+                {formatCurrency(ad.spend, currency, { compact: true })}
+              </dd>
             </div>
             <div className="min-w-0">
               <dt className="truncate text-muted-foreground" title={resultTypeLabel(ad.resultType)}>
@@ -68,7 +84,9 @@ export function TopAds({ ads, currency }: { ads: AdsTopAd[]; currency: string })
             </div>
             <div className="min-w-0">
               <dt className="truncate text-muted-foreground">{t.ads.cpr}</dt>
-              <dd className="mt-0.5 truncate font-semibold tabular">{formatCurrency(ad.cpr, currency, { compact: true })}</dd>
+              <dd className="mt-0.5 truncate font-semibold tabular">
+                {formatCurrency(ad.cpr, currency, { compact: true })}
+              </dd>
             </div>
             <div className="min-w-0">
               <dt className="truncate text-muted-foreground">{t.ads.ctr}</dt>

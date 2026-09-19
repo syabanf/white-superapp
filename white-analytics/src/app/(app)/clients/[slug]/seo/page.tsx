@@ -21,7 +21,11 @@ import {
   getSeoProperty,
   hasGoogleConnection,
 } from "@/features/seo/queries";
-import { SearchTrendCards, PositionTrendCard, Ga4SessionsCard } from "@/features/seo/components/overview-charts";
+import {
+  SearchTrendCards,
+  PositionTrendCard,
+  Ga4SessionsCard,
+} from "@/features/seo/components/overview-charts";
 import { PositionDistributionCard, DeviceCountryCards } from "@/features/seo/components/breakdown-cards";
 import { TopQueriesCard, TopPagesCard } from "@/features/seo/components/top-tables";
 
@@ -65,7 +69,8 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
     getDimBreakdown(property.id, range),
   ]);
 
-  const d = (x: { pct: number | null; abs: number; direction: "up" | "down" | "flat" }) => (compare ? x : null);
+  const d = (x: { pct: number | null; abs: number; direction: "up" | "down" | "flat" }) =>
+    compare && connected ? x : null;
 
   return (
     <>
@@ -79,10 +84,28 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
       {!connected ? <DemoBanner message={t.seo.demoBanner} settingsHref={settingsHref} /> : null}
 
       <KpiGrid>
-        <KpiTile label={t.seo.clicks} value={formatCompact(overview.kpis.clicks)} delta={d(overview.deltas.clicks)} spark={overview.sparks.clicks} hint={s.clicksHint} />
-        <KpiTile label={t.seo.impressions} value={formatCompact(overview.kpis.impressions)} delta={d(overview.deltas.impressions)} spark={overview.sparks.impressions} hint={s.impressionsHint} />
+        <KpiTile
+          label={t.seo.clicks}
+          value={formatCompact(overview.kpis.clicks)}
+          delta={d(overview.deltas.clicks)}
+          spark={overview.sparks.clicks}
+          hint={s.clicksHint}
+        />
+        <KpiTile
+          label={t.seo.impressions}
+          value={formatCompact(overview.kpis.impressions)}
+          delta={d(overview.deltas.impressions)}
+          spark={overview.sparks.impressions}
+          hint={s.impressionsHint}
+        />
         <KpiTile label={t.seo.ctr} value={formatPercent(overview.kpis.ctr)} delta={d(overview.deltas.ctr)} />
-        <KpiTile label={t.seo.position} value={formatNumber(overview.kpis.position, 1)} delta={d(overview.deltas.position)} lowerIsBetter hint={s.positionHint} />
+        <KpiTile
+          label={t.seo.position}
+          value={formatNumber(overview.kpis.position, 1)}
+          delta={d(overview.deltas.position)}
+          lowerIsBetter
+          hint={s.positionHint}
+        />
       </KpiGrid>
 
       <StatStrip

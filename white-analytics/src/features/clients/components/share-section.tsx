@@ -85,7 +85,12 @@ export function ShareSection({
             </Label>
             <p className="mt-0.5 text-xs text-muted-foreground">{tc.settings.shareDisabledHint}</p>
           </div>
-          <Switch id="share-enabled" checked={enabled} onCheckedChange={setEnabled} disabled={!canManage || pending} />
+          <Switch
+            id="share-enabled"
+            checked={enabled}
+            onCheckedChange={setEnabled}
+            disabled={!canManage || pending}
+          />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
@@ -93,7 +98,7 @@ export function ShareSection({
             <Label htmlFor="share-pin" className="flex items-center gap-2">
               {t.reports.sharePin}
               {hasPin ? (
-                <Badge variant="secondary" className="gap-1 px-1.5 py-0 text-[10px]">
+                <Badge variant="secondary" className="gap-1 px-1.5 py-0 text-xs">
                   <ShieldCheck className="size-3" /> {tc.settings.pinSet}
                 </Badge>
               ) : null}
@@ -135,7 +140,13 @@ export function ShareSection({
         <div className="space-y-2">
           <Label htmlFor="share-url">{t.reports.shareUrl}</Label>
           <div className="flex flex-wrap items-center gap-2">
-            <Input id="share-url" readOnly value={shareUrl} className="w-auto min-w-64 flex-1 font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+            <Input
+              id="share-url"
+              readOnly
+              value={shareUrl}
+              className="w-auto min-w-64 flex-1 font-mono text-xs"
+              onFocus={(e) => e.currentTarget.select()}
+            />
             <Button type="button" variant="outline" onClick={copy}>
               {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />} {t.common.copy}
             </Button>

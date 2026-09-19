@@ -46,10 +46,12 @@ export function AiInsightCard({
             {action ? <div className="mt-1">{action}</div> : null}
           </div>
         )}
-        {(createdAt || isMock) ? (
-          <p className="mt-3 text-[11px] text-muted-foreground">
+        {createdAt || isMock ? (
+          <p className="mt-3 text-xs text-muted-foreground">
             {isMock ? t.reports.aiMock : null}
-            {createdAt ? ` ${t.reports.aiCached} ${createdAt.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}` : null}
+            {createdAt
+              ? ` ${t.reports.aiCached} ${createdAt.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}`
+              : null}
           </p>
         ) : null}
       </CardContent>
@@ -66,7 +68,17 @@ export function MarkdownLite({ text }: { text: string }) {
   const flush = () => {
     if (list) {
       const key = `${list.type}-${list.startLine}`;
-      out.push(list.type === "ul" ? <ul key={key} className="list-disc space-y-0.5">{list.items}</ul> : <ol key={key} className="list-decimal space-y-0.5">{list.items}</ol>);
+      out.push(
+        list.type === "ul" ? (
+          <ul key={key} className="list-disc space-y-0.5">
+            {list.items}
+          </ul>
+        ) : (
+          <ol key={key} className="list-decimal space-y-0.5">
+            {list.items}
+          </ol>
+        ),
+      );
       list = null;
     }
   };
@@ -79,7 +91,11 @@ export function MarkdownLite({ text }: { text: string }) {
     const h = /^(#{1,3})\s+(.*)$/.exec(line);
     if (h) {
       flush();
-      out.push(<h3 key={`h-${i}`} className="font-semibold">{inline(h[2]!)}</h3>);
+      out.push(
+        <h3 key={`h-${i}`} className="font-semibold">
+          {inline(h[2]!)}
+        </h3>,
+      );
       return;
     }
     const ul = /^\s*[-*•]\s+(.*)$/.exec(line);
@@ -109,5 +125,11 @@ export function MarkdownLite({ text }: { text: string }) {
 
 function inline(s: string): React.ReactNode {
   const parts = s.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((p, i) => (p.startsWith("**") && p.endsWith("**") ? <strong key={i}>{p.slice(2, -2)}</strong> : <span key={i}>{p}</span>));
+  return parts.map((p, i) =>
+    p.startsWith("**") && p.endsWith("**") ? (
+      <strong key={i}>{p.slice(2, -2)}</strong>
+    ) : (
+      <span key={i}>{p}</span>
+    ),
+  );
 }

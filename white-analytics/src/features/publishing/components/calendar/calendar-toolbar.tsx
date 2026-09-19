@@ -48,7 +48,7 @@ export function CalendarToolbar({
   const title = view === "month" ? monthLabel(date) : `${dayLabel(days[0]!)} – ${dayLabel(days[6]!, true)}`;
 
   return (
-    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
       <div className="flex items-center gap-2">
         <Button asChild variant="outline" size="icon-sm" aria-label={p.prev}>
           <Link href={hrefWith({ date: step(-1) })} scroll={false}>
@@ -67,7 +67,7 @@ export function CalendarToolbar({
         </Button>
         <h2 className="ml-1 truncate text-base font-semibold tracking-[-0.02em] md:text-lg">{title}</h2>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 xl:justify-end">
         <Tabs value={view}>
           <TabsList className="h-8">
             <TabsTrigger value="month" asChild>
@@ -82,10 +82,15 @@ export function CalendarToolbar({
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        <Select value={platform} onValueChange={(v) => router.replace(hrefWith({ platform: v }), { scroll: false })}>
+        <Select
+          value={platform}
+          onValueChange={(v) => router.replace(hrefWith({ platform: v }), { scroll: false })}
+        >
           <SelectTrigger size="sm" className="w-[150px]" aria-label={p.allPlatforms}>
             {/* Explicit children so the label is server-rendered (Radix fills it only after hydration). */}
-            <SelectValue>{platform === "ALL" ? p.allPlatforms : platformLabel(platform as Platform)}</SelectValue>
+            <SelectValue>
+              {platform === "ALL" ? p.allPlatforms : platformLabel(platform as Platform)}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">{p.allPlatforms}</SelectItem>
@@ -96,7 +101,10 @@ export function CalendarToolbar({
             ))}
           </SelectContent>
         </Select>
-        <Select value={status} onValueChange={(v) => router.replace(hrefWith({ status: v }), { scroll: false })}>
+        <Select
+          value={status}
+          onValueChange={(v) => router.replace(hrefWith({ status: v }), { scroll: false })}
+        >
           <SelectTrigger size="sm" className="w-[160px]" aria-label={t.common.status}>
             <SelectValue>{status === "ALL" ? p.allStatuses : statusLabel(status as PostStatus)}</SelectValue>
           </SelectTrigger>
@@ -109,7 +117,7 @@ export function CalendarToolbar({
             ))}
           </SelectContent>
         </Select>
-        <Button asChild size="sm">
+        <Button asChild size="sm" className="sm:ml-auto xl:ml-0">
           <Link href={composeHref}>
             <Plus className="size-3.5" /> {t.nav.compose}
           </Link>

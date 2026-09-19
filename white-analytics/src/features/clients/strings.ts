@@ -13,7 +13,8 @@ export const tc = {
     sortSpend: "Belanja iklan",
     sortHealth: "Skor kesehatan",
     noMatch: "Tidak ada klien yang cocok dengan pencarian.",
-    followersHint: "Total followers akun sendiri (IG, FB, TikTok) semua klien. Delta = pertumbuhan periode ini vs periode sebelumnya.",
+    followersHint:
+      "Total followers akun sendiri (IG, FB, TikTok) semua klien. Delta = pertumbuhan periode ini vs periode sebelumnya.",
     clicksHint: "Total klik organik Google Search Console semua klien.",
     spendHint: "Total belanja iklan Meta semua klien (agregat level iklan).",
     healthHint: "Rata-rata skor kesehatan situs dari audit terakhir tiap klien (0–100).",
@@ -31,8 +32,8 @@ export const tc = {
   },
   wizard: {
     eyebrow: "Konfigurasi awal",
-    title: "Buat project baru",
-    subtitle: "Lima langkah singkat. Bisa ditinggal kapan saja — yang sudah diisi tersimpan.",
+    title: "Tambah klien",
+    subtitle: "Lima langkah singkat. Setelah profil dibuat, progres tersimpan otomatis.",
     stepOf: "Langkah",
     upNext: "Berikutnya",
     back: "Kembali",
@@ -40,15 +41,17 @@ export const tc = {
     skip: "Lewati langkah ini",
     finish: "Selesaikan",
     saving: "Menyimpan…",
-    pickOneChannel: "Pilih minimal satu jenis project.",
+    pickOneChannel: "Pilih minimal satu kanal.",
     selectAll: "Pilih semua",
-    websiteForSeo: "Dipakai sebagai properti Search Console dan target audit.",
+    websiteForSeo: "Website wajib untuk proyek SEO. Dipakai sebagai properti Search Console dan target audit.",
     // step 2
     channelsTitle: "Kanal yang dipantau",
-    channelsHint: "Bisa diubah kapan saja di Pengaturan Klien. Pilihan ini juga jadi default tab pada tautan klien.",
-    typesRecap: "Jenis project",
+    channelsHint:
+      "Bisa diubah kapan saja di Pengaturan Klien. Pilihan ini juga jadi default tab pada tautan klien.",
+    typesRecap: "Kanal yang dipilih",
     socialLabel: "Social Media",
-    socialDesc: "Instagram, Facebook, dan TikTok — analitik, kalender konten, penjadwalan & persetujuan post.",
+    socialDesc:
+      "Instagram, Facebook, dan TikTok — analitik, kalender konten, penjadwalan & persetujuan post.",
     seoLabel: "SEO",
     seoDesc: "Search Console & GA4, riset kata kunci, rank tracker, backlink, kompetitor, dan audit situs.",
     adsLabel: "Meta Ads",
@@ -58,7 +61,8 @@ export const tc = {
       "Hubungkan akun untuk data nyata, atau lewati dulu — dashboard tetap bisa dibuka dengan data demo.",
     noSourceYet: "Belum ada sumber data",
     setupNeededTitle: "Kredensial aplikasi belum diatur",
-    setupNeededDesc: "Koneksi nyata butuh App ID Meta / Client ID Google. Sementara itu tombol “Simulasikan” mengisi data demo.",
+    setupNeededDesc:
+      "Koneksi nyata butuh App ID Meta / Client ID Google. Sementara itu tombol “Simulasikan” mengisi data demo.",
     setupOpen: "Buka Setup awal",
     // step 4
     accessHint: "Anggota bisa ditambahkan belakangan. Tautan klien bersifat read-only.",
@@ -97,10 +101,12 @@ export const tc = {
     simulate: "Simulasikan koneksi (demo)",
     simulated: "Koneksi demo berhasil dibuat",
     disconnected: "Koneksi diputus",
-    disconnectConfirm: "Putuskan koneksi ini? Sinkronisasi otomatis akan berhenti sampai dihubungkan kembali.",
+    disconnectConfirm:
+      "Putuskan koneksi ini? Sinkronisasi otomatis akan berhenti sampai dihubungkan kembali.",
     connectedMeta: "Meta berhasil dihubungkan.",
     connectedGoogle: "Google berhasil dihubungkan.",
-    demoNotice: "Kredensial penyedia belum dikonfigurasi — koneksi nyata tidak tersedia. Gunakan tombol simulasi (demo).",
+    demoNotice:
+      "Kredensial penyedia belum dikonfigurasi — koneksi nyata tidak tersedia. Gunakan tombol simulasi (demo).",
     oauthDenied: "Akses ditolak di halaman izin penyedia.",
     oauthState: "Sesi OAuth tidak valid atau kedaluwarsa. Silakan coba lagi.",
     username: "Username",
@@ -130,7 +136,8 @@ export const tc = {
     pinRemoveHint: "Kosongkan kolom PIN lalu simpan untuk menghapus PIN.",
     modulesMin: "Pilih minimal satu modul",
     shareDisabledHint: "Aktifkan untuk membagikan dashboard read-only ke klien.",
-    dangerConfirmDesc: "Semua data klien — akun sosial, metrik SEO, data iklan, laporan — akan dihapus permanen.",
+    dangerConfirmDesc:
+      "Semua data klien — akun sosial, metrik SEO, data iklan, laporan — akan dihapus permanen.",
     readOnly: "Hanya manajer atau admin yang dapat mengubah bagian ini.",
     empty: "Belum ada",
   },

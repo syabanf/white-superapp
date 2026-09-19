@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Sparkline } from "@/components/dashboard/sparkline";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
@@ -24,6 +25,8 @@ export type KpiTileProps = {
   /** sm = compact secondary strip · md = default · lg = hero */
   size?: "sm" | "md" | "lg";
   accentVar?: string;
+  /** Optional drill-down destination for the underlying data. */
+  href?: string;
 };
 
 /**
@@ -43,14 +46,26 @@ export function KpiTile({
   className,
   size = "md",
   accentVar,
+  href,
 }: KpiTileProps) {
-  const pad = size === "sm" ? "px-3.5 py-3" : size === "lg" ? "p-6" : "p-5";
+  const pad = size === "sm" ? "px-3.5 py-3" : size === "lg" ? "p-5 sm:p-6" : "p-4 sm:p-5";
   const valueSize =
-    size === "sm" ? "text-lg" : size === "lg" ? "text-[38px] md:text-[44px]" : "text-[26px] md:text-[30px]";
+    size === "sm"
+      ? "text-lg"
+      : size === "lg"
+        ? "text-[34px] sm:text-[38px] md:text-[44px]"
+        : "text-[24px] md:text-[30px]";
 
-  return (
-    <Card className={cn("lift group/kpi relative min-w-0 gap-0 overflow-hidden py-0 hover:ring-brand/25", className)}>
-      {accentVar ? <span aria-hidden className="absolute inset-x-0 top-0 h-0.5" style={{ background: accentVar }} /> : null}
+  const tile = (
+    <Card
+      className={cn(
+        "lift group/kpi relative min-w-0 gap-0 overflow-hidden py-0 hover:ring-brand/25",
+        className,
+      )}
+    >
+      {accentVar ? (
+        <span aria-hidden className="absolute inset-x-0 top-0 h-0.5" style={{ background: accentVar }} />
+      ) : null}
       <div className={cn("flex min-w-0 flex-col", pad, size === "sm" ? "gap-1.5" : "gap-3")}>
         <div className="flex min-w-0 items-start gap-1.5 text-muted-foreground">
           {icon ? <span className="text-muted-foreground/80 [&>svg]:size-3.5">{icon}</span> : null}
@@ -58,8 +73,10 @@ export function KpiTile({
           {hint ? <InfoHint className="ml-auto">{hint}</InfoHint> : null}
         </div>
 
-        <div className="flex min-w-0 items-end justify-between gap-3">
-          <span className={cn("min-w-0 leading-none font-bold tracking-[-0.035em] break-words", valueSize)}>
+        <div className="flex min-w-0 items-end justify-between gap-2 sm:gap-3">
+          <span
+            className={cn("min-w-0 whitespace-nowrap leading-none font-bold tracking-[-0.035em]", valueSize)}
+          >
             {value}
           </span>
           {spark && spark.length > 1 ? (
@@ -67,7 +84,7 @@ export function KpiTile({
               values={spark}
               width={size === "sm" ? 56 : 84}
               height={size === "sm" ? 20 : 30}
-              className="mb-0.5 opacity-70 transition-opacity duration-200 group-hover/kpi:opacity-100"
+              className="mb-0.5 hidden shrink-0 opacity-70 transition-opacity duration-200 group-hover/kpi:opacity-100 min-[480px]:block"
             />
           ) : null}
         </div>
@@ -85,6 +102,17 @@ export function KpiTile({
         ) : null}
       </div>
     </Card>
+  );
+  return href ? (
+    <Link
+      href={href}
+      className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      aria-label={`${label}: ${value}. Buka rincian`}
+    >
+      {tile}
+    </Link>
+  ) : (
+    tile
   );
 }
 
@@ -107,5 +135,5 @@ export function KpiGrid({
           : cols === 6
             ? "grid-cols-2 md:grid-cols-3 xl:grid-cols-6"
             : "grid-cols-2 lg:grid-cols-4";
-  return <div className={cn("grid gap-5", grid, className)}>{children}</div>;
+  return <div className={cn("grid gap-3 sm:gap-5", grid, className)}>{children}</div>;
 }

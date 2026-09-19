@@ -12,6 +12,7 @@ import { tc } from "@/features/clients/strings";
 
 /** Step 2 — creates the client with the chosen types, then jumps to sources. */
 export function StepProfile({ types }: { types: ProjectType[] }) {
+  const websiteRequired = websiteRequiredFor(types);
   const [values, setValues] = React.useState<ClientFormValues>(emptyClientForm);
   const [errors, setErrors] = React.useState<FieldErrors>();
   const [formError, setFormError] = React.useState<string>();
@@ -52,10 +53,15 @@ export function StepProfile({ types }: { types: ProjectType[] }) {
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <ClientFields values={values} onChange={setField} errors={errors} disabled={pending} idPrefix="wizard" />
-      {websiteRequiredFor(types) ? (
-        <p className="-mt-2 text-xs text-muted-foreground">{tc.wizard.websiteForSeo}</p>
-      ) : null}
+      <ClientFields
+        values={values}
+        onChange={setField}
+        errors={errors}
+        disabled={pending}
+        idPrefix="wizard"
+        websiteRequired={websiteRequired}
+        websiteHint={websiteRequired ? tc.wizard.websiteForSeo : undefined}
+      />
       {formError ? (
         <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
           {formError}
@@ -70,7 +76,7 @@ export function StepProfile({ types }: { types: ProjectType[] }) {
             disabled={
               pending ||
               values.name.trim().length === 0 ||
-              (websiteRequiredFor(types) && values.websiteUrl.trim().length === 0)
+              (websiteRequired && values.websiteUrl.trim().length === 0)
             }
           >
             {pending ? <Loader2 className="size-4 animate-spin" /> : null}

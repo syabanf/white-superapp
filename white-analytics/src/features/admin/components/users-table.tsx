@@ -27,7 +27,15 @@ import { t } from "@/i18n/id";
 import { ta } from "@/features/admin/strings";
 import { UserFormDialog, type ClientOption } from "./user-form-dialog";
 
-export function UsersTable({ users, clients, currentUserId }: { users: AdminUserRow[]; clients: ClientOption[]; currentUserId: string }) {
+export function UsersTable({
+  users,
+  clients,
+  currentUserId,
+}: {
+  users: AdminUserRow[];
+  clients: ClientOption[];
+  currentUserId: string;
+}) {
   const [editTarget, setEditTarget] = React.useState<AdminUserRow | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<AdminUserRow | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -71,7 +79,7 @@ export function UsersTable({ users, clients, currentUserId }: { users: AdminUser
             <span className="block truncate font-medium">
               {row.original.name}
               {row.original.id === currentUserId ? (
-                <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-[10px]">
+                <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
                   {ta.you}
                 </Badge>
               ) : null}
@@ -87,11 +95,11 @@ export function UsersTable({ users, clients, currentUserId }: { users: AdminUser
       cell: ({ getValue }) => {
         const role = getValue() as AdminUserRow["role"];
         return role === "ADMIN" ? (
-          <Badge className="gap-1 text-[11px]">
+          <Badge className="gap-1 text-xs">
             <ShieldCheck className="size-3" /> {t.admin.roleAdmin}
           </Badge>
         ) : (
-          <Badge variant="secondary" className="gap-1 text-[11px]">
+          <Badge variant="secondary" className="gap-1 text-xs">
             <UserIcon className="size-3" /> {t.admin.roleMember}
           </Badge>
         );
@@ -117,11 +125,14 @@ export function UsersTable({ users, clients, currentUserId }: { users: AdminUser
       cell: ({ row }) => {
         const u = row.original;
         if (u.role === "ADMIN") return <span className="text-xs text-muted-foreground">{t.common.all}</span>;
-        if (u.clients.length === 0) return <span className="text-xs text-muted-foreground">{ta.noClients}</span>;
+        if (u.clients.length === 0)
+          return <span className="text-xs text-muted-foreground">{ta.noClients}</span>;
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="cursor-default underline decoration-dotted underline-offset-4 tabular">{u.clients.length}</span>
+              <span className="cursor-default underline decoration-dotted underline-offset-4 tabular">
+                {u.clients.length}
+              </span>
             </TooltipTrigger>
             <TooltipContent className="max-w-64">
               <p className="mb-1 text-xs font-medium">{ta.clientsTooltip}</p>
@@ -129,7 +140,9 @@ export function UsersTable({ users, clients, currentUserId }: { users: AdminUser
                 {u.clients.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-3">
                     <span className="truncate">{c.name}</span>
-                    <span className="shrink-0 opacity-70">{c.role === "MANAGER" ? t.clients.roleManager : t.clients.roleViewer}</span>
+                    <span className="shrink-0 opacity-70">
+                      {c.role === "MANAGER" ? t.clients.roleManager : t.clients.roleViewer}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -141,7 +154,9 @@ export function UsersTable({ users, clients, currentUserId }: { users: AdminUser
     {
       accessorKey: "createdAt",
       header: t.clients.createdAt,
-      cell: ({ getValue }) => <span className="text-muted-foreground">{formatDate(getValue() as string)}</span>,
+      cell: ({ getValue }) => (
+        <span className="text-muted-foreground">{formatDate(getValue() as string)}</span>
+      ),
     },
     {
       id: "actions",
@@ -152,7 +167,13 @@ export function UsersTable({ users, clients, currentUserId }: { users: AdminUser
         const u = row.original;
         return (
           <span className="flex items-center justify-end gap-1">
-            <Button variant="ghost" size="icon" className="size-7" aria-label={t.admin.editUser} onClick={() => setEditTarget(u)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              aria-label={t.admin.editUser}
+              onClick={() => setEditTarget(u)}
+            >
               <Pencil className="size-4" />
             </Button>
             <Button
@@ -199,7 +220,9 @@ export function UsersTable({ users, clients, currentUserId }: { users: AdminUser
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{ta.deleteTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{deleteTarget ? ta.deleteDesc(deleteTarget.name) : null}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {deleteTarget ? ta.deleteDesc(deleteTarget.name) : null}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={pending}>{t.common.cancel}</AlertDialogCancel>

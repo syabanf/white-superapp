@@ -53,7 +53,9 @@ export function MetaReviewChecklist({ initial }: { initial: MetaReviewState }) {
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2 text-sm font-semibold">
           {ts.reviewTitle}
-          <span className="label-mono text-muted-foreground">{ts.reviewProgress(progress.approved, progress.total)}</span>
+          <span className="label-mono text-muted-foreground">
+            {ts.reviewProgress(progress.approved, progress.total)}
+          </span>
         </CardTitle>
         <CardDescription className="text-xs">{ts.reviewDesc}</CardDescription>
       </CardHeader>
@@ -76,17 +78,25 @@ export function MetaReviewChecklist({ initial }: { initial: MetaReviewState }) {
           {META_PERMISSIONS.map((p) => {
             const value = reviewStatusOf(state, p.name);
             return (
-              <li key={p.name} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-2.5">
+              <li
+                key={p.name}
+                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-2.5"
+              >
                 <div className="min-w-0">
                   <code className="block truncate font-mono text-[12px]">{p.name}</code>
-                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                     {ts.unlocks}: {UNLOCK_LABEL[p.unlocks]}
                     {!p.required ? <span className="label-mono">· {ts.optional}</span> : null}
                   </span>
                 </div>
                 <Select
                   value={value}
-                  onValueChange={(v) => persist({ ...state, permissions: { ...state.permissions, [p.name]: v as MetaReviewStatus } })}
+                  onValueChange={(v) =>
+                    persist({
+                      ...state,
+                      permissions: { ...state.permissions, [p.name]: v as MetaReviewStatus },
+                    })
+                  }
                   disabled={pending}
                 >
                   <SelectTrigger size="sm" className="w-[150px]" aria-label={`${ts.status} ${p.name}`}>
@@ -108,11 +118,19 @@ export function MetaReviewChecklist({ initial }: { initial: MetaReviewState }) {
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
             <Label className="text-sm font-normal">{ts.appLive}</Label>
-            <Switch checked={state.appLive} onCheckedChange={(v) => persist({ ...state, appLive: v })} disabled={pending} />
+            <Switch
+              checked={state.appLive}
+              onCheckedChange={(v) => persist({ ...state, appLive: v })}
+              disabled={pending}
+            />
           </label>
           <label className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
             <Label className="text-sm font-normal">{ts.businessVerified}</Label>
-            <Switch checked={state.businessVerified} onCheckedChange={(v) => persist({ ...state, businessVerified: v })} disabled={pending} />
+            <Switch
+              checked={state.businessVerified}
+              onCheckedChange={(v) => persist({ ...state, businessVerified: v })}
+              disabled={pending}
+            />
           </label>
         </div>
 

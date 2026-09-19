@@ -38,7 +38,11 @@ export type ReportRow = {
   createdAt: string; // ISO
 };
 
-const MODULE_LABEL: Record<string, string> = { SOCIAL: t.overview.socialCard, SEO: t.overview.seoCard, ADS: t.overview.adsCard };
+const MODULE_LABEL: Record<string, string> = {
+  SOCIAL: t.overview.socialCard,
+  SEO: t.overview.seoCard,
+  ADS: t.overview.adsCard,
+};
 
 function DeleteButton({ slug, id }: { slug: string; id: string }) {
   const router = useRouter();
@@ -57,7 +61,13 @@ function DeleteButton({ slug, id }: { slug: string; id: string }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-destructive" aria-label={t.common.delete} disabled={pending}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 text-muted-foreground hover:text-destructive"
+          aria-label={t.common.delete}
+          disabled={pending}
+        >
           {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
         </Button>
       </AlertDialogTrigger>
@@ -93,7 +103,15 @@ function CreatedToast() {
   return null;
 }
 
-export function ReportHistoryTable({ slug, rows, canManage }: { slug: string; rows: ReportRow[]; canManage: boolean }) {
+export function ReportHistoryTable({
+  slug,
+  rows,
+  canManage,
+}: {
+  slug: string;
+  rows: ReportRow[];
+  canManage: boolean;
+}) {
   const columns: ColumnDef<ReportRow, unknown>[] = [
     {
       accessorKey: "title",
@@ -101,7 +119,9 @@ export function ReportHistoryTable({ slug, rows, canManage }: { slug: string; ro
       cell: ({ row }) => (
         <span className="flex items-center gap-2 font-medium">
           {row.original.title}
-          {row.original.hasAiSummary ? <Sparkles className="size-3.5 shrink-0 text-muted-foreground" aria-label={t.reports.aiInsight} /> : null}
+          {row.original.hasAiSummary ? (
+            <Sparkles className="size-3.5 shrink-0 text-muted-foreground" aria-label={t.reports.aiInsight} />
+          ) : null}
         </span>
       ),
     },
@@ -109,7 +129,11 @@ export function ReportHistoryTable({ slug, rows, canManage }: { slug: string; ro
       id: "period",
       header: rs.history.period,
       accessorFn: (r) => `${r.from}..${r.to}`,
-      cell: ({ row }) => <span className="tabular text-muted-foreground">{formatDateRange(new Date(row.original.from), new Date(row.original.to))}</span>,
+      cell: ({ row }) => (
+        <span className="tabular text-muted-foreground">
+          {formatDateRange(new Date(row.original.from), new Date(row.original.to))}
+        </span>
+      ),
     },
     {
       id: "modules",
@@ -119,15 +143,23 @@ export function ReportHistoryTable({ slug, rows, canManage }: { slug: string; ro
       cell: ({ row }) => (
         <span className="flex flex-wrap gap-1">
           {row.original.modules.map((m) => (
-            <Badge key={m} variant="secondary" className="text-[11px]">
+            <Badge key={m} variant="secondary" className="text-xs">
               {MODULE_LABEL[m] ?? m}
             </Badge>
           ))}
         </span>
       ),
     },
-    { accessorKey: "createdByName", header: t.reports.createdBy, cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue() ?? "–")}</span> },
-    { accessorKey: "createdAt", header: rs.history.createdAt, cell: ({ getValue }) => <span className="text-muted-foreground">{formatDate(String(getValue()))}</span> },
+    {
+      accessorKey: "createdByName",
+      header: t.reports.createdBy,
+      cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue() ?? "–")}</span>,
+    },
+    {
+      accessorKey: "createdAt",
+      header: rs.history.createdAt,
+      cell: ({ getValue }) => <span className="text-muted-foreground">{formatDate(String(getValue()))}</span>,
+    },
     {
       id: "actions",
       header: t.common.actions,
@@ -152,7 +184,15 @@ export function ReportHistoryTable({ slug, rows, canManage }: { slug: string; ro
       {rows.length === 0 ? (
         <EmptyState title={t.reports.historyEmpty} description={t.reports.historyEmptyDesc} />
       ) : (
-        <DataTable columns={columns} data={rows} searchKey="title" exportName={`laporan-${slug}`} pageSize={10} getRowId={(r) => r.id} initialSorting={[{ id: "createdAt", desc: true }]} />
+        <DataTable
+          columns={columns}
+          data={rows}
+          searchKey="title"
+          exportName={`laporan-${slug}`}
+          pageSize={10}
+          getRowId={(r) => r.id}
+          initialSorting={[{ id: "createdAt", desc: true }]}
+        />
       )}
     </>
   );

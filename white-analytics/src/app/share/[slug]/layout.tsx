@@ -21,7 +21,10 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
             <>
               <Separator orientation="vertical" className="!h-5" />
               <span className="truncate text-sm font-medium">{client.name}</span>
-              <Badge variant="outline" className="hidden gap-1 border-dashed text-[11px] text-muted-foreground sm:inline-flex">
+              <Badge
+                variant="outline"
+                className="hidden gap-1 border-dashed text-xs text-muted-foreground sm:inline-flex"
+              >
                 <Sparkles className="size-3" /> {t.share.live}
               </Badge>
             </>
@@ -29,7 +32,9 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
           <div className="ml-auto">{ctx.status === "ok" ? <ShareControls slug={slug} /> : null}</div>
         </div>
       </header>
-      <main className="page-enter mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">{props.children}</main>
+      <main className="page-enter mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
+        {props.children}
+      </main>
       <footer className="border-t">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 text-xs text-muted-foreground md:px-6">
           <span>{t.share.footer}</span>

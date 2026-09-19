@@ -52,7 +52,12 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
   const visible = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = q
-      ? cards.filter((c) => c.name.toLowerCase().includes(q) || (c.industry ?? "").toLowerCase().includes(q) || c.slug.includes(q))
+      ? cards.filter(
+          (c) =>
+            c.name.toLowerCase().includes(q) ||
+            (c.industry ?? "").toLowerCase().includes(q) ||
+            c.slug.includes(q),
+        )
       : cards;
     const sorted = [...filtered];
     sorted.sort((a, b) => {
@@ -103,7 +108,9 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
       </div>
 
       {visible.length === 0 ? (
-        <p className="rounded-xl border border-dashed bg-card/50 py-10 text-center text-sm text-muted-foreground">{tc.portfolio.noMatch}</p>
+        <p className="rounded-xl border border-dashed bg-card/50 py-10 text-center text-sm text-muted-foreground">
+          {tc.portfolio.noMatch}
+        </p>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {visible.map((c) => (
@@ -117,7 +124,8 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
 
 function ClientCard({ data }: { data: PortfolioCardData }) {
   const activeModules: { key: string; label: string; icon: typeof Share2 }[] = [];
-  if (data.modules.social) activeModules.push({ key: "social", label: tc.portfolio.moduleSocial, icon: Share2 });
+  if (data.modules.social)
+    activeModules.push({ key: "social", label: tc.portfolio.moduleSocial, icon: Share2 });
   if (data.modules.seo) activeModules.push({ key: "seo", label: tc.portfolio.moduleSeo, icon: Search });
   if (data.modules.ads) activeModules.push({ key: "ads", label: tc.portfolio.moduleAds, icon: Megaphone });
 
@@ -127,7 +135,9 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
         <Link href={`/clients/${data.slug}`} className="group flex min-w-0 items-center gap-3">
           <Avatar className="size-10 rounded-lg">
             {data.logoUrl ? <AvatarImage src={data.logoUrl} alt={data.name} /> : null}
-            <AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">{initials(data.name)}</AvatarFallback>
+            <AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+              {initials(data.name)}
+            </AvatarFallback>
           </Avatar>
           <span className="min-w-0">
             <span className="block truncate text-sm font-semibold group-hover:underline">{data.name}</span>
@@ -144,18 +154,30 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
       </div>
 
       <div className="divide-y rounded-lg border bg-muted/25">
-        <MiniMetric label={tc.portfolio.metricFollowers} value={formatCompact(data.followers)} delta={data.followersDelta} />
-        <MiniMetric label={tc.portfolio.metricClicks} value={formatCompact(data.clicks)} delta={data.clicksDelta} />
-        <MiniMetric label={tc.portfolio.metricSpend} value={formatCurrency(data.spend, data.currency, { compact: true })} delta={data.spendDelta} />
+        <MiniMetric
+          label={tc.portfolio.metricFollowers}
+          value={formatCompact(data.followers)}
+          delta={data.followersDelta}
+        />
+        <MiniMetric
+          label={tc.portfolio.metricClicks}
+          value={formatCompact(data.clicks)}
+          delta={data.clicksDelta}
+        />
+        <MiniMetric
+          label={tc.portfolio.metricSpend}
+          value={formatCurrency(data.spend, data.currency, { compact: true })}
+          delta={data.spendDelta}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[11px] text-muted-foreground">{t.portfolio.modulesActive}:</span>
+        <span className="text-xs text-muted-foreground">{t.portfolio.modulesActive}:</span>
         {activeModules.length === 0 ? (
-          <span className="text-[11px] text-muted-foreground">{tc.portfolio.noModules}</span>
+          <span className="text-xs text-muted-foreground">{tc.portfolio.noModules}</span>
         ) : (
           activeModules.map((m) => (
-            <Badge key={m.key} variant="secondary" className="gap-1 px-1.5 py-0 text-[11px] font-medium">
+            <Badge key={m.key} variant="secondary" className="gap-1 px-1.5 py-0 text-xs font-medium">
               <m.icon className="size-3" /> {m.label}
             </Badge>
           ))
@@ -163,7 +185,7 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-2 border-t pt-3">
-        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="size-3.5" />
           {tc.portfolio.lastSync}: {data.lastSyncLabel ?? t.common.neverSynced}
         </span>
@@ -181,7 +203,7 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
 function MiniMetric({ label, value, delta }: { label: string; value: string; delta: Delta | null }) {
   return (
     <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
-      <span className="label-mono truncate text-[11px] text-muted-foreground">{label}</span>
+      <span className="label-mono truncate text-xs text-muted-foreground">{label}</span>
       <span className="flex shrink-0 items-center gap-1.5">
         <span className="text-[13px] font-bold tracking-[-0.02em] tabular">{value}</span>
         {delta ? <DeltaBadge delta={delta} /> : null}

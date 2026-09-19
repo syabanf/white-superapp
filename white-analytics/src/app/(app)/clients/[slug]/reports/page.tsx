@@ -73,8 +73,8 @@ export default async function ReportsPage(props: PageProps<"/clients/[slug]/repo
         }
       />
 
-      <Tabs value={tab}>
-        <TabsList>
+      <Tabs value={tab} className="min-w-0 overflow-x-auto pb-1 scrollbar-thin">
+        <TabsList className="min-w-max">
           <TabsTrigger value="builder" asChild>
             <Link href={tabHref("builder")}>
               <FileText className="size-3.5" /> {t.reports.builder}
@@ -98,11 +98,39 @@ export default async function ReportsPage(props: PageProps<"/clients/[slug]/repo
         </TabsList>
       </Tabs>
 
-      {tab === "builder" ? <BuilderTab slug={slug} clientId={client.id} clientName={client.name} currency={client.currency} range={range} previous={previous} compare={compare} from={from} to={to} rangeLabel={rangeLabel} /> : null}
+      {tab === "builder" ? (
+        <BuilderTab
+          slug={slug}
+          clientId={client.id}
+          clientName={client.name}
+          currency={client.currency}
+          range={range}
+          previous={previous}
+          compare={compare}
+          from={from}
+          to={to}
+          rangeLabel={rangeLabel}
+        />
+      ) : null}
       {tab === "history" ? <HistoryTab slug={slug} clientId={client.id} canManage={canManage} /> : null}
-      {tab === "insight" ? <InsightTab slug={slug} clientId={client.id} range={range} from={from} to={to} rangeLabel={rangeLabel} /> : null}
+      {tab === "insight" ? (
+        <InsightTab
+          slug={slug}
+          clientId={client.id}
+          range={range}
+          from={from}
+          to={to}
+          rangeLabel={rangeLabel}
+        />
+      ) : null}
       {tab === "share" ? (
-        <ShareSummaryCard slug={slug} enabled={client.shareEnabled} pinSet={Boolean(client.sharePinHash)} modules={client.shareModules} shareUrl={shareUrl} />
+        <ShareSummaryCard
+          slug={slug}
+          enabled={client.shareEnabled}
+          pinSet={Boolean(client.sharePinHash)}
+          modules={client.shareModules}
+          shareUrl={shareUrl}
+        />
       ) : null}
     </>
   );
@@ -138,24 +166,54 @@ async function BuilderTab({
     getLatestInsight(clientId, "OVERVIEW", range),
     getReportSections({ clientId, range, previous, compare, modules: ["SOCIAL", "SEO"], lang: "id" }),
   ]);
-  const d = <T,>(x: T) => (compare ? x : null);
+  const d = <T,>(x: T, isDemo: boolean) => (compare && !isDemo ? x : null);
 
   const socialKpis: PreviewKpi[] = [
-    { label: t.social.followers, value: formatCompact(social.followers), delta: d(social.followersDelta) },
-    { label: t.social.engagementRate, value: formatPercent(social.engagementRate), delta: d(social.engagementRateDelta) },
-    { label: t.social.reach, value: formatCompact(social.reach), delta: d(social.reachDelta) },
-    { label: t.social.postsPublished, value: formatNumber(social.posts), delta: d(social.postsDelta) },
+    {
+      label: t.social.followers,
+      value: formatCompact(social.followers),
+      delta: d(social.followersDelta, social.isDemo),
+    },
+    {
+      label: t.social.engagementRate,
+      value: formatPercent(social.engagementRate),
+      delta: d(social.engagementRateDelta, social.isDemo),
+    },
+    { label: t.social.reach, value: formatCompact(social.reach), delta: d(social.reachDelta, social.isDemo) },
+    {
+      label: t.social.postsPublished,
+      value: formatNumber(social.posts),
+      delta: d(social.postsDelta, social.isDemo),
+    },
   ];
   const seoKpis: PreviewKpi[] = [
-    { label: t.seo.clicks, value: formatCompact(seo.clicks), delta: d(seo.clicksDelta) },
-    { label: t.seo.impressions, value: formatCompact(seo.impressions), delta: d(seo.impressionsDelta) },
-    { label: t.seo.ctr, value: formatPercent(seo.ctr), delta: d(seo.ctrDelta) },
-    { label: t.seo.position, value: formatNumber(seo.position, 1), delta: d(seo.positionDelta), lowerIsBetter: true },
+    { label: t.seo.clicks, value: formatCompact(seo.clicks), delta: d(seo.clicksDelta, seo.isDemo) },
+    {
+      label: t.seo.impressions,
+      value: formatCompact(seo.impressions),
+      delta: d(seo.impressionsDelta, seo.isDemo),
+    },
+    { label: t.seo.ctr, value: formatPercent(seo.ctr), delta: d(seo.ctrDelta, seo.isDemo) },
+    {
+      label: t.seo.position,
+      value: formatNumber(seo.position, 1),
+      delta: d(seo.positionDelta, seo.isDemo),
+      lowerIsBetter: true,
+    },
   ];
   const adsKpis: PreviewKpi[] = [
-    { label: t.ads.spend, value: formatCurrency(ads.kpis.spend, currency, { compact: true }), delta: d(ads.spendDelta) },
-    { label: t.ads.results, value: formatNumber(ads.kpis.results), delta: d(ads.resultsDelta) },
-    { label: t.ads.cpr, value: formatCurrency(ads.kpis.cpr, currency), delta: d(ads.cprDelta), lowerIsBetter: true },
+    {
+      label: t.ads.spend,
+      value: formatCurrency(ads.kpis.spend, currency, { compact: true }),
+      delta: d(ads.spendDelta, ads.isDemo),
+    },
+    { label: t.ads.results, value: formatNumber(ads.kpis.results), delta: d(ads.resultsDelta, ads.isDemo) },
+    {
+      label: t.ads.cpr,
+      value: formatCurrency(ads.kpis.cpr, currency),
+      delta: d(ads.cprDelta, ads.isDemo),
+      lowerIsBetter: true,
+    },
     { label: t.ads.ctr, value: formatPercent(ads.kpis.ctr) },
   ];
 
@@ -168,23 +226,61 @@ async function BuilderTab({
       rangeLabel={rangeLabel}
       compareDefault={compare}
       previews={{
-        SOCIAL: social.hasData || extras.SOCIAL.length > 0 ? <ModulePreviewCard title={t.overview.socialCard} icon={<Share2 className="size-4 text-muted-foreground" />} kpis={social.hasData ? socialKpis : []} sections={extras.SOCIAL} /> : null,
-        SEO: seo.hasData || extras.SEO.length > 0 ? <ModulePreviewCard title={t.overview.seoCard} icon={<Search className="size-4 text-muted-foreground" />} kpis={seo.hasData ? seoKpis : []} sections={extras.SEO} /> : null,
-        ADS: ads.hasData ? <ModulePreviewCard title={t.overview.adsCard} icon={<Megaphone className="size-4 text-muted-foreground" />} kpis={adsKpis} /> : null,
+        SOCIAL:
+          social.hasData || extras.SOCIAL.length > 0 ? (
+            <ModulePreviewCard
+              title={t.overview.socialCard}
+              icon={<Share2 className="size-4 text-muted-foreground" />}
+              kpis={social.hasData ? socialKpis : []}
+              sections={extras.SOCIAL}
+            />
+          ) : null,
+        SEO:
+          seo.hasData || extras.SEO.length > 0 ? (
+            <ModulePreviewCard
+              title={t.overview.seoCard}
+              icon={<Search className="size-4 text-muted-foreground" />}
+              kpis={seo.hasData ? seoKpis : []}
+              sections={extras.SEO}
+            />
+          ) : null,
+        ADS: ads.hasData ? (
+          <ModulePreviewCard
+            title={t.overview.adsCard}
+            icon={<Megaphone className="size-4 text-muted-foreground" />}
+            kpis={adsKpis}
+          />
+        ) : null,
       }}
       insightPreview={
         <AiInsightCard
           content={insight?.content}
           createdAt={insight?.createdAt}
           isMock={insight?.model === "mock"}
-          action={<InsightGenerator slug={slug} module="OVERVIEW" from={from} to={to} hasExisting={Boolean(insight)} />}
+          action={
+            <InsightGenerator
+              slug={slug}
+              module="OVERVIEW"
+              from={from}
+              to={to}
+              hasExisting={Boolean(insight)}
+            />
+          }
         />
       }
     />
   );
 }
 
-async function HistoryTab({ slug, clientId, canManage }: { slug: string; clientId: string; canManage: boolean }) {
+async function HistoryTab({
+  slug,
+  clientId,
+  canManage,
+}: {
+  slug: string;
+  clientId: string;
+  canManage: boolean;
+}) {
   const reports = await listReports(clientId);
   const rows: ReportRow[] = reports.map((r) => ({
     id: r.id,
@@ -228,7 +324,10 @@ async function InsightTab({
 }) {
   const insights = await Promise.all(INSIGHT_MODULES.map((m) => getLatestInsight(clientId, m.key, range)));
   return (
-    <Section title={t.reports.aiInsight} description={`${t.reports.aiInsightDesc} · ${rs.insight.forRange} ${rangeLabel}`}>
+    <Section
+      title={t.reports.aiInsight}
+      description={`${t.reports.aiInsightDesc} · ${rs.insight.forRange} ${rangeLabel}`}
+    >
       <div className="grid gap-5 lg:grid-cols-2">
         {INSIGHT_MODULES.map((m, i) => {
           const insight = insights[i];
@@ -242,7 +341,15 @@ async function InsightTab({
                 content={insight?.content}
                 createdAt={insight?.createdAt}
                 isMock={insight?.model === "mock"}
-                action={<InsightGenerator slug={slug} module={m.key} from={from} to={to} hasExisting={Boolean(insight)} />}
+                action={
+                  <InsightGenerator
+                    slug={slug}
+                    module={m.key}
+                    from={from}
+                    to={to}
+                    hasExisting={Boolean(insight)}
+                  />
+                }
               />
             </div>
           );

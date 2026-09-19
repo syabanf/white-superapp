@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ export function ClientSwitcher({
 }) {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -52,8 +53,18 @@ export function ClientSwitcher({
 
   const go = (href: string) => {
     setOpen(false);
-    router.push(href);
+    const query = new URLSearchParams();
+    for (const key of ["from", "to", "preset", "compare"]) {
+      const value = searchParams.get(key);
+      if (value) query.set(key, value);
+    }
+    const suffix = query.toString();
+    router.push(suffix ? `${href}?${suffix}` : href);
   };
+
+  React.useEffect(() => {
+    if (current) window.localStorage.setItem("white:last-client", current.slug);
+  }, [current]);
 
   return (
     <>
@@ -74,14 +85,10 @@ export function ClientSwitcher({
         {!collapsed ? (
           <>
             <span className="flex min-w-0 flex-1 flex-col leading-tight">
-              <span className="truncate text-sm font-medium">
-                {current?.name ?? t.nav.allClients}
-              </span>
-              <span className="truncate text-[11px] text-muted-foreground">
+              <span className="truncate text-sm font-medium">{current?.name ?? t.nav.allClients}</span>
+              <span className="truncate text-xs text-muted-foreground">
                 {current?.industry ??
-                  (current
-                    ? t.nav.workspace
-                    : `${clients.length} ${t.portfolio.clientsCount}`)}
+                  (current ? t.nav.workspace : `${clients.length} ${t.portfolio.clientsCount}`)}
               </span>
             </span>
             <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
@@ -112,26 +119,20 @@ export function ClientSwitcher({
                     </AvatarFallback>
                   </Avatar>
                   <span className="flex-1 truncate">{c.name}</span>
-                  {c.industry ? (
-                    <span className="text-xs text-muted-foreground">
-                      {c.industry}
-                    </span>
-                  ) : null}
+                  {c.industry ? <span className="text-xs text-muted-foreground">{c.industry}</span> : null}
                   {current?.id === c.id ? <Check className="size-4" /> : null}
                 </CommandItem>
               ))}
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading={t.nav.general}>
-              <CommandItem onSelect={() => go("/")}>
-                {t.nav.portfolio}
-              </CommandItem>
+              <CommandItem onSelect={() => go("/")}>{t.nav.portfolio}</CommandItem>
               <CommandItem onSelect={() => go("/clients/new")}>
                 <Plus className="size-4" /> {t.clients.new}
               </CommandItem>
             </CommandGroup>
           </CommandList>
-          <div className="flex items-center gap-2 border-t px-3 py-2 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
             <Kbd>↑↓</Kbd> navigasi <Kbd>↵</Kbd> pilih <Kbd>esc</Kbd> tutup
           </div>
         </Command>

@@ -59,7 +59,9 @@ export function MembersSection({
               <span className="text-xs font-medium text-muted-foreground">{t.clients.addMember}</span>
               <Select value={selectedUser} onValueChange={setSelectedUser} disabled={available.length === 0}>
                 <SelectTrigger className="w-full" aria-label={tc.settings.pickUser}>
-                  <SelectValue placeholder={available.length === 0 ? tc.settings.noCandidates : tc.settings.pickUser} />
+                  <SelectValue
+                    placeholder={available.length === 0 ? tc.settings.noCandidates : tc.settings.pickUser}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {available.map((u) => (
@@ -98,7 +100,9 @@ export function MembersSection({
         ) : null}
 
         {members.length === 0 ? (
-          <p className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">{tc.settings.membersEmpty}</p>
+          <p className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
+            {tc.settings.membersEmpty}
+          </p>
         ) : (
           <div className="overflow-hidden rounded-lg border">
             <Table>
@@ -107,7 +111,9 @@ export function MembersSection({
                   <TableHead className="text-xs">{t.common.name}</TableHead>
                   <TableHead className="text-xs">{t.admin.role}</TableHead>
                   <TableHead className="text-xs">{tc.settings.memberSince}</TableHead>
-                  {canManage ? <TableHead className="w-12 text-right text-xs">{t.common.actions}</TableHead> : null}
+                  {canManage ? (
+                    <TableHead className="w-12 text-right text-xs">{t.common.actions}</TableHead>
+                  ) : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -116,12 +122,21 @@ export function MembersSection({
                     <TableCell>
                       <span className="flex items-center gap-2.5">
                         <Avatar className="size-8">
-                          <AvatarFallback className="text-xs font-semibold">{initials(m.name)}</AvatarFallback>
+                          <AvatarFallback className="text-xs font-semibold">
+                            {initials(m.name)}
+                          </AvatarFallback>
                         </Avatar>
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-medium">
                             {m.name}
-                            {!m.isActive ? <Badge variant="outline" className="ml-2 px-1.5 py-0 text-[10px] text-muted-foreground">{t.common.inactive}</Badge> : null}
+                            {!m.isActive ? (
+                              <Badge
+                                variant="outline"
+                                className="ml-2 px-1.5 py-0 text-xs text-muted-foreground"
+                              >
+                                {t.common.inactive}
+                              </Badge>
+                            ) : null}
                           </span>
                           <span className="block truncate text-xs text-muted-foreground">{m.email}</span>
                         </span>
@@ -131,7 +146,12 @@ export function MembersSection({
                       {canManage ? (
                         <Select
                           value={m.role}
-                          onValueChange={(role) => run(() => updateMemberRoleAction(clientId, { userId: m.userId, role }), tc.settings.memberRoleUpdated)}
+                          onValueChange={(role) =>
+                            run(
+                              () => updateMemberRoleAction(clientId, { userId: m.userId, role }),
+                              tc.settings.memberRoleUpdated,
+                            )
+                          }
                           disabled={pending}
                         >
                           <SelectTrigger size="sm" className="w-28" aria-label={t.admin.role}>
@@ -143,7 +163,9 @@ export function MembersSection({
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge variant="secondary" className="text-[11px]">{ROLE_LABEL[m.role] ?? m.role}</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {ROLE_LABEL[m.role] ?? m.role}
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{formatDate(m.createdAt)}</TableCell>
@@ -155,7 +177,9 @@ export function MembersSection({
                           className="size-7 text-muted-foreground hover:text-destructive"
                           aria-label={t.common.delete}
                           disabled={pending}
-                          onClick={() => run(() => removeMemberAction(clientId, m.userId), tc.settings.memberRemoved)}
+                          onClick={() =>
+                            run(() => removeMemberAction(clientId, m.userId), tc.settings.memberRemoved)
+                          }
                         >
                           <Trash2 className="size-4" />
                         </Button>

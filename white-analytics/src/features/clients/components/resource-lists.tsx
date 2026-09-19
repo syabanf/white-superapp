@@ -61,7 +61,19 @@ function useRun() {
   return { pending, run };
 }
 
-function ListShell({ title, icon, count, addButton, children }: { title: string; icon: React.ReactNode; count: number; addButton: React.ReactNode; children: React.ReactNode }) {
+function ListShell({
+  title,
+  icon,
+  count,
+  addButton,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  count: number;
+  addButton: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -76,14 +88,31 @@ function ListShell({ title, icon, count, addButton, children }: { title: string;
 }
 
 function EmptyRow() {
-  return <p className="rounded-md border border-dashed px-3 py-2.5 text-xs text-muted-foreground">{t.common.noData}</p>;
+  return (
+    <p className="rounded-md border border-dashed px-3 py-2.5 text-xs text-muted-foreground">
+      {t.common.noData}
+    </p>
+  );
 }
 
-function RemoveButton({ onConfirm, pending, label }: { onConfirm: () => void; pending: boolean; label: string }) {
+function RemoveButton({
+  onConfirm,
+  pending,
+  label,
+}: {
+  onConfirm: () => void;
+  pending: boolean;
+  label: string;
+}) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-destructive" aria-label={label}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-6 text-muted-foreground hover:text-destructive"
+          aria-label={label}
+        >
           <Trash2 className="size-3.5" />
         </Button>
       </AlertDialogTrigger>
@@ -163,7 +192,15 @@ function AddTrigger({ label, disabled }: { label: string; disabled?: boolean }) 
 
 // ── Akun sosial ──────────────────────────────────────────────
 
-export function SocialAccountsList({ clientId, accounts, canManage }: { clientId: string; accounts: SettingsData["socialAccounts"]; canManage: boolean }) {
+export function SocialAccountsList({
+  clientId,
+  accounts,
+  canManage,
+}: {
+  clientId: string;
+  accounts: SettingsData["socialAccounts"];
+  canManage: boolean;
+}) {
   const { pending, run } = useRun();
   const [open, setOpen] = React.useState(false);
   const [platform, setPlatform] = React.useState<string>("INSTAGRAM");
@@ -188,7 +225,14 @@ export function SocialAccountsList({ clientId, accounts, canManage }: { clientId
       count={accounts.length}
       addButton={
         canManage ? (
-          <AddDialog title={t.social.addAccount} trigger={<AddTrigger label={tc.settings.addSocial} />} open={open} onOpenChange={setOpen} onSubmit={submit} pending={pending}>
+          <AddDialog
+            title={t.social.addAccount}
+            trigger={<AddTrigger label={tc.settings.addSocial} />}
+            open={open}
+            onOpenChange={setOpen}
+            onSubmit={submit}
+            pending={pending}
+          >
             <div className="space-y-2">
               <Label htmlFor="sa-platform">{t.social.platform}</Label>
               <Select value={platform} onValueChange={setPlatform}>
@@ -206,13 +250,24 @@ export function SocialAccountsList({ clientId, accounts, canManage }: { clientId
             </div>
             <div className="space-y-2">
               <Label htmlFor="sa-username">{tc.settings.username}</Label>
-              <Input id="sa-username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="kopinusantara.id" required />
+              <Input
+                id="sa-username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="kopinusantara.id"
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="sa-display">
                 {tc.settings.displayName} <span className="text-muted-foreground">({t.common.optional})</span>
               </Label>
-              <Input id="sa-display" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Kopi Nusantara" />
+              <Input
+                id="sa-display"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Kopi Nusantara"
+              />
             </div>
           </AddDialog>
         ) : null
@@ -229,7 +284,15 @@ export function SocialAccountsList({ clientId, accounts, canManage }: { clientId
                 <span className="truncate">@{a.username}</span>
                 <span className="truncate text-xs text-muted-foreground">{a.displayName}</span>
               </span>
-              {canManage ? <RemoveButton pending={pending} label={t.common.delete} onConfirm={() => run(() => removeSocialAccountAction(clientId, a.id), tc.settings.resourceRemoved)} /> : null}
+              {canManage ? (
+                <RemoveButton
+                  pending={pending}
+                  label={t.common.delete}
+                  onConfirm={() =>
+                    run(() => removeSocialAccountAction(clientId, a.id), tc.settings.resourceRemoved)
+                  }
+                />
+              ) : null}
             </li>
           ))}
         </ul>
@@ -240,7 +303,15 @@ export function SocialAccountsList({ clientId, accounts, canManage }: { clientId
 
 // ── Properti SEO ─────────────────────────────────────────────
 
-export function SeoPropertiesList({ clientId, properties, canManage }: { clientId: string; properties: SettingsData["seoProperties"]; canManage: boolean }) {
+export function SeoPropertiesList({
+  clientId,
+  properties,
+  canManage,
+}: {
+  clientId: string;
+  properties: SettingsData["seoProperties"];
+  canManage: boolean;
+}) {
   const { pending, run } = useRun();
   const [open, setOpen] = React.useState(false);
   const [siteUrl, setSiteUrl] = React.useState("");
@@ -264,16 +335,35 @@ export function SeoPropertiesList({ clientId, properties, canManage }: { clientI
       count={properties.length}
       addButton={
         canManage ? (
-          <AddDialog title={t.seo.addProperty} trigger={<AddTrigger label={tc.settings.addSeo} />} open={open} onOpenChange={setOpen} onSubmit={submit} pending={pending}>
+          <AddDialog
+            title={t.seo.addProperty}
+            trigger={<AddTrigger label={tc.settings.addSeo} />}
+            open={open}
+            onOpenChange={setOpen}
+            onSubmit={submit}
+            pending={pending}
+          >
             <div className="space-y-2">
               <Label htmlFor="seo-url">{t.seo.siteUrl}</Label>
-              <Input id="seo-url" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} placeholder="https://klien.co.id" required />
+              <Input
+                id="seo-url"
+                value={siteUrl}
+                onChange={(e) => setSiteUrl(e.target.value)}
+                placeholder="https://klien.co.id"
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="seo-ga4">
-                {tc.settings.ga4PropertyId} <span className="text-muted-foreground">({t.common.optional})</span>
+                {tc.settings.ga4PropertyId}{" "}
+                <span className="text-muted-foreground">({t.common.optional})</span>
               </Label>
-              <Input id="seo-ga4" value={ga4PropertyId} onChange={(e) => setGa4PropertyId(e.target.value)} placeholder={tc.settings.ga4Placeholder} />
+              <Input
+                id="seo-ga4"
+                value={ga4PropertyId}
+                onChange={(e) => setGa4PropertyId(e.target.value)}
+                placeholder={tc.settings.ga4Placeholder}
+              />
             </div>
           </AddDialog>
         ) : null
@@ -289,12 +379,20 @@ export function SeoPropertiesList({ clientId, properties, canManage }: { clientI
                 <Globe className="size-4 shrink-0 text-muted-foreground" />
                 <span className="truncate">{p.siteUrl}</span>
                 {p.ga4PropertyId ? (
-                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+                  <Badge variant="secondary" className="px-1.5 py-0 text-xs">
                     GA4 · {p.ga4PropertyId}
                   </Badge>
                 ) : null}
               </span>
-              {canManage ? <RemoveButton pending={pending} label={t.common.delete} onConfirm={() => run(() => removeSeoPropertyAction(clientId, p.id), tc.settings.resourceRemoved)} /> : null}
+              {canManage ? (
+                <RemoveButton
+                  pending={pending}
+                  label={t.common.delete}
+                  onConfirm={() =>
+                    run(() => removeSeoPropertyAction(clientId, p.id), tc.settings.resourceRemoved)
+                  }
+                />
+              ) : null}
             </li>
           ))}
         </ul>
@@ -305,7 +403,15 @@ export function SeoPropertiesList({ clientId, properties, canManage }: { clientI
 
 // ── Akun iklan ───────────────────────────────────────────────
 
-export function AdAccountsList({ clientId, accounts, canManage }: { clientId: string; accounts: SettingsData["adAccounts"]; canManage: boolean }) {
+export function AdAccountsList({
+  clientId,
+  accounts,
+  canManage,
+}: {
+  clientId: string;
+  accounts: SettingsData["adAccounts"];
+  canManage: boolean;
+}) {
   const { pending, run } = useRun();
   const [open, setOpen] = React.useState(false);
   const [externalId, setExternalId] = React.useState("");
@@ -329,14 +435,34 @@ export function AdAccountsList({ clientId, accounts, canManage }: { clientId: st
       count={accounts.length}
       addButton={
         canManage ? (
-          <AddDialog title={tc.settings.addAds} trigger={<AddTrigger label={tc.settings.addAds} />} open={open} onOpenChange={setOpen} onSubmit={submit} pending={pending}>
+          <AddDialog
+            title={tc.settings.addAds}
+            trigger={<AddTrigger label={tc.settings.addAds} />}
+            open={open}
+            onOpenChange={setOpen}
+            onSubmit={submit}
+            pending={pending}
+          >
             <div className="space-y-2">
               <Label htmlFor="ads-id">{tc.settings.adAccountExternalId}</Label>
-              <Input id="ads-id" value={externalId} onChange={(e) => setExternalId(e.target.value)} placeholder={tc.settings.adAccountPlaceholder} required className="font-mono text-sm" />
+              <Input
+                id="ads-id"
+                value={externalId}
+                onChange={(e) => setExternalId(e.target.value)}
+                placeholder={tc.settings.adAccountPlaceholder}
+                required
+                className="font-mono text-sm"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ads-name">{tc.settings.adAccountName}</Label>
-              <Input id="ads-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Kopi Nusantara Ads" required />
+              <Input
+                id="ads-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Kopi Nusantara Ads"
+                required
+              />
             </div>
           </AddDialog>
         ) : null
@@ -353,7 +479,15 @@ export function AdAccountsList({ clientId, accounts, canManage }: { clientId: st
                 <span className="truncate">{a.name}</span>
                 <span className="truncate font-mono text-xs text-muted-foreground">{a.externalId}</span>
               </span>
-              {canManage ? <RemoveButton pending={pending} label={t.common.delete} onConfirm={() => run(() => removeAdAccountAction(clientId, a.id), tc.settings.resourceRemoved)} /> : null}
+              {canManage ? (
+                <RemoveButton
+                  pending={pending}
+                  label={t.common.delete}
+                  onConfirm={() =>
+                    run(() => removeAdAccountAction(clientId, a.id), tc.settings.resourceRemoved)
+                  }
+                />
+              ) : null}
             </li>
           ))}
         </ul>

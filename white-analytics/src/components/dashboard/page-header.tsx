@@ -22,7 +22,9 @@ export function PageHeader({
         {eyebrow ? <div className="label-mono mb-1.5 text-muted-foreground">{eyebrow}</div> : null}
         <h1 className="truncate text-[28px] leading-[1.1] font-semibold md:text-[34px]">{title}</h1>
         {description ? (
-          <p className="mt-1.5 line-clamp-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1.5 line-clamp-2 max-w-2xl text-sm text-muted-foreground sm:line-clamp-1">
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}

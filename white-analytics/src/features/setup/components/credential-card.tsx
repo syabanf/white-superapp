@@ -96,35 +96,40 @@ export function CredentialCard({
     }
   };
 
-  const sourceLabel = status.source === "db" ? ts.sourceDb : status.source === "env" ? ts.sourceEnv : ts.sourceNone;
+  const sourceLabel =
+    status.source === "db" ? ts.sourceDb : status.source === "env" ? ts.sourceEnv : ts.sourceNone;
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2 text-sm font-semibold">
           {icon}
           {labels.title}
-          <StatusBadge kind={status.configured ? "good" : "neutral"}>{status.configured ? ts.modeReal : ts.modeDemo}</StatusBadge>
+          <StatusBadge kind={status.configured ? "good" : "neutral"}>
+            {status.configured ? ts.modeReal : ts.modeDemo}
+          </StatusBadge>
         </CardTitle>
         <CardDescription className="text-xs">{labels.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
-              <Label htmlFor={`${idBase}-public`}>
-                {labels.publicLabel}
-                {labels.publicOptional ? <span className="ml-1 text-xs font-normal text-muted-foreground">({ts.optionalWord})</span> : null}
-              </Label>
-              <Input
-                id={`${idBase}-public`}
-                value={publicId}
-                onChange={(e) => setPublicId(e.target.value)}
-                placeholder={labels.publicPlaceholder}
-                autoComplete="off"
-                spellCheck={false}
-                className="font-mono text-[13px]"
-                disabled={pending}
-              />
+            <Label htmlFor={`${idBase}-public`}>
+              {labels.publicLabel}
+              {labels.publicOptional ? (
+                <span className="ml-1 text-xs font-normal text-muted-foreground">({ts.optionalWord})</span>
+              ) : null}
+            </Label>
+            <Input
+              id={`${idBase}-public`}
+              value={publicId}
+              onChange={(e) => setPublicId(e.target.value)}
+              placeholder={labels.publicPlaceholder}
+              autoComplete="off"
+              spellCheck={false}
+              className="font-mono text-[13px]"
+              disabled={pending}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor={`${idBase}-secret`}>{labels.secretLabel}</Label>
@@ -138,7 +143,7 @@ export function CredentialCard({
               className="font-mono text-[13px]"
               disabled={pending}
             />
-            {status.secretMasked ? <p className="text-[11px] text-muted-foreground">{ts.secretKept}</p> : null}
+            {status.secretMasked ? <p className="text-xs text-muted-foreground">{ts.secretKept}</p> : null}
           </div>
         </div>
 
@@ -150,14 +155,15 @@ export function CredentialCard({
             <div className="mt-1 flex items-center justify-between gap-2">
               <code className="min-w-0 truncate font-mono text-[12px]">{redirectUri}</code>
               <Button type="button" size="xs" variant="ghost" onClick={copy} aria-label={ts.copy}>
-                {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />} {copied ? ts.copied : ts.copy}
+                {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}{" "}
+                {copied ? ts.copied : ts.copy}
               </Button>
             </div>
           </div>
         ) : null}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-          <dl className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+          <dl className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <div className="flex gap-1">
               <dt className="label-mono">{ts.status}:</dt>
               <dd>{sourceLabel}</dd>
@@ -171,7 +177,13 @@ export function CredentialCard({
             {status.source === "db" ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button type="button" size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" disabled={pending}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-destructive"
+                    disabled={pending}
+                  >
                     <Trash2 className="size-3.5" /> {ts.clear}
                   </Button>
                 </AlertDialogTrigger>
@@ -189,7 +201,13 @@ export function CredentialCard({
                 </AlertDialogContent>
               </AlertDialog>
             ) : null}
-            <Button type="button" size="sm" variant="outline" onClick={() => submit(false)} disabled={pending}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => submit(false)}
+              disabled={pending}
+            >
               {ts.save}
             </Button>
             <Button type="button" size="sm" onClick={() => submit(true)} disabled={pending}>

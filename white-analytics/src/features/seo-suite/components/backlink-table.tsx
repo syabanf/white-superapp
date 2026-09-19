@@ -32,10 +32,16 @@ export function BacklinkTable({ rows, today }: { rows: BacklinkRow[]; today: str
   const [view, setView] = React.useState<BacklinkView>("all");
   const now = React.useMemo(() => new Date(today), [today]);
   const counts = React.useMemo(
-    () => Object.fromEntries(VIEWS.map((v) => [v, rows.filter((r) => backlinkMatchesView(r, v, now)).length])) as Record<BacklinkView, number>,
+    () =>
+      Object.fromEntries(
+        VIEWS.map((v) => [v, rows.filter((r) => backlinkMatchesView(r, v, now)).length]),
+      ) as Record<BacklinkView, number>,
     [rows, now],
   );
-  const filtered = React.useMemo(() => rows.filter((r) => backlinkMatchesView(r, view, now)), [rows, view, now]);
+  const filtered = React.useMemo(
+    () => rows.filter((r) => backlinkMatchesView(r, view, now)),
+    [rows, view, now],
+  );
 
   const columns: ColumnDef<BacklinkRow, unknown>[] = [
     {
@@ -43,10 +49,16 @@ export function BacklinkTable({ rows, today }: { rows: BacklinkRow[]; today: str
       header: s.sourceUrl,
       cell: ({ row }) => (
         <div className="flex min-w-0 flex-col">
-          <a href={row.original.sourceUrl} target="_blank" rel="noreferrer" className="font-medium underline-offset-2 hover:underline" title={row.original.sourceUrl}>
+          <a
+            href={row.original.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium underline-offset-2 hover:underline"
+            title={row.original.sourceUrl}
+          >
             {row.original.sourceDomain}
           </a>
-          <span className="truncate text-[11px] text-muted-foreground" title={row.original.sourceUrl}>
+          <span className="truncate text-xs text-muted-foreground" title={row.original.sourceUrl}>
             {truncate(row.original.sourceUrl.replace(/^https?:\/\/[^/]+/, ""), 40)}
           </span>
         </div>
@@ -56,7 +68,13 @@ export function BacklinkTable({ rows, today }: { rows: BacklinkRow[]; today: str
       accessorKey: "anchor",
       header: s.anchor,
       cell: ({ row }) => (
-        <span title={row.original.anchor}>{row.original.anchor ? truncate(row.original.anchor, 28) : <span className="text-muted-foreground">–</span>}</span>
+        <span title={row.original.anchor}>
+          {row.original.anchor ? (
+            truncate(row.original.anchor, 28)
+          ) : (
+            <span className="text-muted-foreground">–</span>
+          )}
+        </span>
       ),
     },
     {
@@ -72,13 +90,21 @@ export function BacklinkTable({ rows, today }: { rows: BacklinkRow[]; today: str
       accessorKey: "domainRank",
       header: s.dr,
       meta: right,
-      cell: ({ row }) => (row.original.domainRank == null ? "–" : <span className="tabular font-medium">{formatNumber(row.original.domainRank)}</span>),
+      cell: ({ row }) =>
+        row.original.domainRank == null ? (
+          "–"
+        ) : (
+          <span className="tabular font-medium">{formatNumber(row.original.domainRank)}</span>
+        ),
     },
     {
       accessorKey: "dofollow",
       header: s.follow,
       cell: ({ row }) => (
-        <Badge variant={row.original.dofollow ? "secondary" : "outline"} className="px-1.5 py-0 text-[10px] font-normal">
+        <Badge
+          variant={row.original.dofollow ? "secondary" : "outline"}
+          className="px-1.5 py-0 text-xs font-normal"
+        >
           {row.original.dofollow ? s.dofollow : s.nofollow}
         </Badge>
       ),
@@ -109,7 +135,12 @@ export function BacklinkTable({ rows, today }: { rows: BacklinkRow[]; today: str
     {
       accessorKey: "isLost",
       header: t.common.status,
-      cell: ({ row }) => (row.original.isLost ? <StatusBadge kind="neutral">{s.tabLost}</StatusBadge> : <StatusBadge kind="good">{t.common.active}</StatusBadge>),
+      cell: ({ row }) =>
+        row.original.isLost ? (
+          <StatusBadge kind="neutral">{s.tabLost}</StatusBadge>
+        ) : (
+          <StatusBadge kind="good">{t.common.active}</StatusBadge>
+        ),
     },
   ];
 
@@ -122,7 +153,8 @@ export function BacklinkTable({ rows, today }: { rows: BacklinkRow[]; today: str
               <TabsList>
                 {VIEWS.map((v) => (
                   <TabsTrigger key={v} value={v}>
-                    {LABELS[v]} <span className="tabular text-[10px] text-muted-foreground">{formatNumber(counts[v])}</span>
+                    {LABELS[v]}{" "}
+                    <span className="tabular text-xs text-muted-foreground">{formatNumber(counts[v])}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>

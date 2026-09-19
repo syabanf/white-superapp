@@ -9,7 +9,12 @@ import type { KeywordIntentKey } from "@/lib/providers/dataforseo/types";
 import { cn } from "@/lib/utils";
 import { BAND_LABELS, INTENT_LABELS, serpFeatureLabel } from "@/features/seo-suite/lib";
 
-const BAND_KIND: Record<DifficultyBand, StatusKind> = { easy: "good", medium: "warning", hard: "serious", very_hard: "critical" };
+const BAND_KIND: Record<DifficultyBand, StatusKind> = {
+  easy: "good",
+  medium: "warning",
+  hard: "serious",
+  very_hard: "critical",
+};
 
 /** KD number + band label (status colours are legitimate here: it is a real difficulty rating). */
 export function DifficultyBadge({ kd, className }: { kd: number | null | undefined; className?: string }) {
@@ -39,11 +44,11 @@ export function SerpFeatureChips({ features, max = 3 }: { features: string[]; ma
   return (
     <span className="inline-flex flex-wrap gap-1" title={features.map(serpFeatureLabel).join(", ")}>
       {shown.map((f) => (
-        <Badge key={f} variant="secondary" className="px-1.5 py-0 text-[10px] font-normal">
+        <Badge key={f} variant="secondary" className="px-1.5 py-0 text-xs font-normal">
           {serpFeatureLabel(f)}
         </Badge>
       ))}
-      {rest > 0 ? <span className="text-[10px] text-muted-foreground">+{rest}</span> : null}
+      {rest > 0 ? <span className="text-xs text-muted-foreground">+{rest}</span> : null}
     </span>
   );
 }

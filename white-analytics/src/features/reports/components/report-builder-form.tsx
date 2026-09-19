@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Section } from "@/components/dashboard/page-header";
+import { DateRangePicker } from "@/components/shell/date-range-picker";
 import { createReport, type CreateReportState } from "@/features/reports/actions";
 import { t } from "@/i18n/id";
 import { rs } from "@/features/reports/strings";
@@ -48,7 +49,10 @@ export function ReportBuilderForm({
   previews: Partial<Record<ModuleKey, React.ReactNode>>;
   insightPreview: React.ReactNode;
 }) {
-  const [state, formAction, pending] = useActionState<CreateReportState, FormData>(createReport.bind(null, slug), null);
+  const [state, formAction, pending] = useActionState<CreateReportState, FormData>(
+    createReport.bind(null, slug),
+    null,
+  );
   const [modules, setModules] = React.useState<ModuleKey[]>(["SOCIAL", "SEO", "ADS"]);
   const [includeAi, setIncludeAi] = React.useState(true);
   const [compare, setCompare] = React.useState(compareDefault);
@@ -85,7 +89,14 @@ export function ReportBuilderForm({
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="report-title">{t.reports.reportTitle}</Label>
-                <Input id="report-title" name="title" defaultValue={defaultTitle} placeholder={rs.builder.titlePlaceholder} required maxLength={160} />
+                <Input
+                  id="report-title"
+                  name="title"
+                  defaultValue={defaultTitle}
+                  placeholder={rs.builder.titlePlaceholder}
+                  required
+                  maxLength={160}
+                />
               </div>
 
               <div className="space-y-2.5">
@@ -93,12 +104,17 @@ export function ReportBuilderForm({
                 <div className="space-y-2">
                   {MODULE_OPTIONS.map((m) => (
                     <label key={m.key} className="flex cursor-pointer items-center gap-2 text-sm">
-                      <Checkbox checked={modules.includes(m.key)} onCheckedChange={(c) => toggleModule(m.key, c === true)} />
+                      <Checkbox
+                        checked={modules.includes(m.key)}
+                        onCheckedChange={(c) => toggleModule(m.key, c === true)}
+                      />
                       {m.label}
                     </label>
                   ))}
                 </div>
-                {modules.length === 0 ? <p className="text-xs text-destructive">{rs.builder.noModules}</p> : null}
+                {modules.length === 0 ? (
+                  <p className="text-xs text-destructive">{rs.builder.noModules}</p>
+                ) : null}
               </div>
 
               <div className="space-y-4">
@@ -115,7 +131,10 @@ export function ReportBuilderForm({
                   </Select>
                 </div>
                 <label className="flex cursor-pointer items-center justify-between gap-3 text-sm">
-                  <span>{t.common.comparePrevious}</span>
+                  <span>
+                    {rs.builder.includeComparison}
+                    <span className="block text-xs text-muted-foreground">{t.common.comparePrevious}</span>
+                  </span>
                   <Switch checked={compare} onCheckedChange={setCompare} />
                 </label>
                 <label className="flex cursor-pointer items-center justify-between gap-3 text-sm">
@@ -130,10 +149,13 @@ export function ReportBuilderForm({
 
             <Separator />
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CalendarRange className="size-3.5" />
-                {t.common.period}: <span className="font-medium text-foreground">{rangeLabel}</span> · {rs.builder.periodHint}
-              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CalendarRange className="size-3.5" />
+                  {t.common.period}: <span className="font-medium text-foreground">{rangeLabel}</span>
+                </p>
+                <DateRangePicker showCompare={false} />
+              </div>
               <Button type="submit" disabled={pending || modules.length === 0}>
                 {pending ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
                 {pending ? t.reports.generating : t.reports.generate}

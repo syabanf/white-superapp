@@ -69,7 +69,13 @@ export function UserFormDialog({
           <DialogTitle>{mode === "create" ? t.admin.newUser : t.admin.editUser}</DialogTitle>
           <DialogDescription>{t.admin.subtitle}</DialogDescription>
         </DialogHeader>
-        <UserFormBody key={user?.id ?? "new"} mode={mode} user={user} clients={clients} onClose={() => setOpen(false)} />
+        <UserFormBody
+          key={user?.id ?? "new"}
+          mode={mode}
+          user={user}
+          clients={clients}
+          onClose={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -118,7 +124,8 @@ function UserFormBody({
       memberships: Object.entries(memberships).map(([clientId, r]) => ({ clientId, role: r })),
     };
     startTransition(async () => {
-      const res = mode === "create" ? await createUserAction(payload) : await updateUserAction(user!.id, payload);
+      const res =
+        mode === "create" ? await createUserAction(payload) : await updateUserAction(user!.id, payload);
       if (!res.ok) {
         setErrors(res.fieldErrors);
         toast.error(res.error);
@@ -140,12 +147,25 @@ function UserFormBody({
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="user-name">{t.admin.name}</Label>
-          <Input id="user-name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Tim WHITE" />
+          <Input
+            id="user-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            placeholder="Tim WHITE"
+          />
           <FieldError errors={errors} name="name" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="user-email">{t.admin.email}</Label>
-          <Input id="user-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="nama@white.id" />
+          <Input
+            id="user-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="nama@white.id"
+          />
           <FieldError errors={errors} name="email" />
         </div>
       </div>
@@ -162,7 +182,9 @@ function UserFormBody({
           placeholder="••••••••"
           autoComplete="new-password"
         />
-        <p className="text-xs text-muted-foreground">{mode === "edit" ? t.admin.passwordHint : ta.passwordMin}</p>
+        <p className="text-xs text-muted-foreground">
+          {mode === "edit" ? t.admin.passwordHint : ta.passwordMin}
+        </p>
         <FieldError errors={errors} name="password" />
       </div>
 
@@ -178,7 +200,9 @@ function UserFormBody({
               <SelectItem value="MEMBER">{t.admin.roleMember}</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">{role === "ADMIN" ? t.admin.roleAdminDesc : t.admin.roleMemberDesc}</p>
+          <p className="text-xs text-muted-foreground">
+            {role === "ADMIN" ? t.admin.roleAdminDesc : t.admin.roleMemberDesc}
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="user-active">{t.admin.activeStatus}</Label>
@@ -191,7 +215,9 @@ function UserFormBody({
       <div className="space-y-2">
         <Label>{t.admin.clientsAccess}</Label>
         {role === "ADMIN" ? (
-          <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">{ta.adminAccessAll}</p>
+          <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+            {ta.adminAccessAll}
+          </p>
         ) : (
           <>
             <p className="text-xs text-muted-foreground">{ta.accessHint}</p>
@@ -202,7 +228,11 @@ function UserFormBody({
                   return (
                     <li key={c.id} className="flex items-center justify-between gap-2 px-3 py-2">
                       <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-sm">
-                        <Checkbox checked={checked} onCheckedChange={(v) => toggleClient(c.id, v === true)} aria-label={c.name} />
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => toggleClient(c.id, v === true)}
+                          aria-label={c.name}
+                        />
                         <span className="truncate">{c.name}</span>
                       </label>
                       {checked ? (
@@ -210,12 +240,14 @@ function UserFormBody({
                           {ta.makeManager}
                           <Switch
                             checked={memberships[c.id] === "MANAGER"}
-                            onCheckedChange={(v) => setMemberships((prev) => ({ ...prev, [c.id]: v ? "MANAGER" : "VIEWER" }))}
+                            onCheckedChange={(v) =>
+                              setMemberships((prev) => ({ ...prev, [c.id]: v ? "MANAGER" : "VIEWER" }))
+                            }
                             aria-label={`${ta.makeManager} ${c.name}`}
                           />
                         </label>
                       ) : (
-                        <Badge variant="outline" className="px-1.5 py-0 text-[10px] text-muted-foreground/60">
+                        <Badge variant="outline" className="px-1.5 py-0 text-xs text-muted-foreground/60">
                           {t.clients.roleViewer}
                         </Badge>
                       )}

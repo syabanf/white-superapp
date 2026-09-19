@@ -56,7 +56,12 @@ export function StepTypes({ initial }: { initial: ProjectType[] }) {
                 on ? "border-brand/45 bg-accent/60" : "hover:bg-muted/50",
               )}
             >
-              <Checkbox checked={on} onCheckedChange={() => toggle(c.key)} disabled={pending} className="mt-0.5" />
+              <Checkbox
+                checked={on}
+                onCheckedChange={() => toggle(c.key)}
+                disabled={pending}
+                className="mt-0.5"
+              />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2 text-sm font-semibold">
                   <c.icon className={cn("size-4", on ? "text-brand" : "text-muted-foreground")} />
@@ -72,7 +77,7 @@ export function StepTypes({ initial }: { initial: ProjectType[] }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">{tc.wizard.channelsHint}</p>
         {!allSelected ? (
-          <Button type="button" variant="ghost" size="xs" onClick={selectAll} disabled={pending}>
+          <Button type="button" variant="outline" size="xs" onClick={selectAll} disabled={pending}>
             {tc.wizard.selectAll}
           </Button>
         ) : null}

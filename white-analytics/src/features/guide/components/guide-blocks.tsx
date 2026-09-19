@@ -25,7 +25,7 @@ function Block({ block }: { block: GuideBlock }) {
         <ol className="space-y-3">
           {block.items.map((it, i) => (
             <li key={i} className="flex gap-3.5">
-              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-brand text-[11px] font-semibold text-primary-foreground">
+              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-semibold text-primary-foreground">
                 {i + 1}
               </span>
               <span className="min-w-0">
@@ -45,7 +45,7 @@ function Block({ block }: { block: GuideBlock }) {
               <dt className="flex flex-wrap items-baseline gap-2">
                 <span className="text-sm font-semibold">{it.term}</span>
                 {it.formula ? (
-                  <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground/80">
+                  <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground/80">
                     {it.formula}
                   </code>
                 ) : null}
@@ -67,7 +67,10 @@ function Block({ block }: { block: GuideBlock }) {
             background: `color-mix(in oklab, ${warn ? "var(--status-warning)" : "var(--brand)"} 7%, transparent)`,
           }}
         >
-          <Icon className="mt-0.5 size-4 shrink-0" style={{ color: warn ? "var(--status-warning)" : "var(--brand)" }} />
+          <Icon
+            className="mt-0.5 size-4 shrink-0"
+            style={{ color: warn ? "var(--status-warning)" : "var(--brand)" }}
+          />
           <p className="text-sm leading-relaxed text-foreground/85">{block.text}</p>
         </div>
       );

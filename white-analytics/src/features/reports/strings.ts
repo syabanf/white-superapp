@@ -4,7 +4,7 @@
  */
 export const rs = {
   builder: {
-    periodHint: "Periode laporan mengikuti filter tanggal global di kanan atas.",
+    includeComparison: "Sertakan perbandingan dalam PDF",
     titlePlaceholder: "Contoh: Laporan Agustus — Kopi Nusantara",
     previewTitle: "Pratinjau isi laporan",
     previewDesc: "Cuplikan KPI per modul untuk periode terpilih — persis seperti yang akan masuk ke PDF.",

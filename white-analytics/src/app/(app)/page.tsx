@@ -91,7 +91,8 @@ export default async function PortfolioPage(props: PageProps<"/">) {
 
   const healths = perClient.map((p) => p.seo.health).filter((h): h is number => h != null);
   const avgHealth = healths.length > 0 ? Math.round(mean(healths)) : null;
-  const d = (x: Delta): Delta | null => (compare ? x : null);
+  const allDemo = perClient.every((p) => p.social.isDemo && p.seo.isDemo && p.ads.isDemo);
+  const d = (x: Delta, isDemo = allDemo): Delta | null => (compare && !isDemo ? x : null);
 
   const cards: PortfolioCardData[] = perClient.map(({ client, social, seo, ads }) => ({
     id: client.id,
@@ -101,11 +102,11 @@ export default async function PortfolioPage(props: PageProps<"/">) {
     logoUrl: client.logoUrl,
     currency: client.currency,
     followers: social.followers,
-    followersDelta: d(social.followersDelta),
+    followersDelta: d(social.followersDelta, social.isDemo),
     clicks: seo.clicks,
-    clicksDelta: d(seo.clicksDelta),
+    clicksDelta: d(seo.clicksDelta, seo.isDemo),
     spend: ads.kpis.spend,
-    spendDelta: d(ads.spendDelta),
+    spendDelta: d(ads.spendDelta, ads.isDemo),
     health: seo.health,
     modules: { social: social.hasData, seo: seo.hasData, ads: ads.hasData },
     lastSyncLabel: lastSync[client.id] ? formatRelative(lastSync[client.id]) : null,
@@ -124,9 +125,24 @@ export default async function PortfolioPage(props: PageProps<"/">) {
         description={`${clients.length} ${t.portfolio.clientsCount} · ${formatDateRange(range.from, range.to)}`}
         actions={newClientAction}
         stats={[
-          { label: t.portfolio.followers, value: formatCompact(totals.followers), delta: d(totals.followersDelta), hint: tc.portfolio.followersHint },
-          { label: t.portfolio.organicClicks, value: formatCompact(totals.clicks), delta: d(totals.clicksDelta), hint: tc.portfolio.clicksHint },
-          { label: t.portfolio.adSpend, value: formatCurrency(totals.spend, "IDR", { compact: true }), delta: d(totals.spendDelta), hint: tc.portfolio.spendHint },
+          {
+            label: t.portfolio.followers,
+            value: formatCompact(totals.followers),
+            delta: d(totals.followersDelta),
+            hint: tc.portfolio.followersHint,
+          },
+          {
+            label: t.portfolio.organicClicks,
+            value: formatCompact(totals.clicks),
+            delta: d(totals.clicksDelta),
+            hint: tc.portfolio.clicksHint,
+          },
+          {
+            label: t.portfolio.adSpend,
+            value: formatCurrency(totals.spend, "IDR", { compact: true }),
+            delta: d(totals.spendDelta),
+            hint: tc.portfolio.spendHint,
+          },
           {
             label: t.portfolio.healthScore,
             value: avgHealth != null ? formatNumber(avgHealth) : "–",

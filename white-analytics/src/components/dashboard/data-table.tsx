@@ -69,6 +69,8 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const shouldPaginate = paginate ?? data.length > pageSize;
 
+  // TanStack Table intentionally returns functions that the React Compiler cannot memoize.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
@@ -86,7 +88,9 @@ export function DataTable<TData, TValue>({
   const exportCsv = () => {
     const rows = table.getFilteredRowModel().rows;
     const cols = table.getAllLeafColumns().filter((c) => c.getIsVisible());
-    const header = cols.map((c) => csvEscape(String(typeof c.columnDef.header === "string" ? c.columnDef.header : c.id)));
+    const header = cols.map((c) =>
+      csvEscape(String(typeof c.columnDef.header === "string" ? c.columnDef.header : c.id)),
+    );
     const lines = rows.map((r) =>
       cols
         .map((c) => {
@@ -149,13 +153,19 @@ export function DataTable<TData, TValue>({
                       <TableHead
                         key={header.id}
                         style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                        className={cn("whitespace-nowrap text-xs font-medium text-muted-foreground", align === "right" && "text-right")}
+                        className={cn(
+                          "whitespace-nowrap text-xs font-medium text-muted-foreground",
+                          align === "right" && "text-right",
+                        )}
                       >
                         {header.isPlaceholder ? null : canSort ? (
                           <button
                             type="button"
                             onClick={header.column.getToggleSortingHandler()}
-                            className={cn("inline-flex items-center gap-1 hover:text-foreground", align === "right" && "flex-row-reverse")}
+                            className={cn(
+                              "inline-flex items-center gap-1 hover:text-foreground",
+                              align === "right" && "flex-row-reverse",
+                            )}
                           >
                             {flexRender(header.column.columnDef.header, header.getContext())}
                             {sorted === "asc" ? (
@@ -189,7 +199,12 @@ export function DataTable<TData, TValue>({
                       return (
                         <TableCell
                           key={cell.id}
-                          className={cn("text-sm", meta?.align === "right" && "text-right tabular", meta?.mono && "font-mono text-xs", meta?.className)}
+                          className={cn(
+                            "text-sm",
+                            meta?.align === "right" && "text-right tabular",
+                            meta?.mono && "font-mono text-xs",
+                            meta?.className,
+                          )}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
@@ -199,7 +214,10 @@ export function DataTable<TData, TValue>({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-sm text-muted-foreground"
+                  >
                     {emptyMessage ?? t.common.noResults}
                   </TableCell>
                 </TableRow>
@@ -211,7 +229,8 @@ export function DataTable<TData, TValue>({
       {shouldPaginate && total > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <div>
-            {t.common.showing} {pageIndex * ps + 1}–{Math.min((pageIndex + 1) * ps, total)} {t.common.of} {total}
+            {t.common.showing} {pageIndex * ps + 1}–{Math.min((pageIndex + 1) * ps, total)} {t.common.of}{" "}
+            {total}
           </div>
           <div className="flex items-center gap-2">
             <Select value={String(ps)} onValueChange={(v) => table.setPageSize(Number(v))}>
@@ -226,13 +245,25 @@ export function DataTable<TData, TValue>({
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" size="icon-sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} aria-label={t.common.prev}>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              aria-label={t.common.prev}
+            >
               <ChevronLeft className="size-4" />
             </Button>
             <span className="tabular">
               {pageIndex + 1} / {table.getPageCount()}
             </span>
-            <Button variant="outline" size="icon-sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} aria-label={t.common.next}>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              aria-label={t.common.next}
+            >
               <ChevronRight className="size-4" />
             </Button>
           </div>

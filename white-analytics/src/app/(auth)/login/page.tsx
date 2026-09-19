@@ -26,8 +26,8 @@ export default async function LoginPage(props: PageProps<"/login">) {
             Tiga kanal, <span className="text-muted-foreground">satu corong.</span>
           </h1>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-            Pantau Social Media, SEO, dan Meta Ads setiap klien, jadwalkan kontennya, lalu kirim
-            laporannya dalam satu tautan.
+            Pantau Social Media, SEO, dan Meta Ads setiap klien, jadwalkan kontennya, lalu kirim laporannya
+            dalam satu tautan.
           </p>
 
           <div className="stage-tint relative mt-8 h-[340px] max-w-xl overflow-hidden rounded-[1.75rem]">
@@ -38,7 +38,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
               {HIGHLIGHTS.map((h) => (
                 <li key={h.name} className="surface-glass rounded-2xl px-3.5 py-3">
                   <span className="block text-sm font-semibold tracking-[-0.02em]">{h.name}</span>
-                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{h.meta}</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">{h.meta}</span>
                 </li>
               ))}
             </ul>

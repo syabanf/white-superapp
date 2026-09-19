@@ -118,8 +118,16 @@ export function SocialModuleCard({
       footer={
         data.hasData ? (
           <>
-            <FooterStat label={t.social.engagementRate} value={formatPercent(data.engagementRate)} delta={data.engagementRateDelta} />
-            <FooterStat label={t.social.reach} value={formatCompact(data.reach)} delta={data.reachDelta} />
+            <FooterStat
+              label={t.social.engagementRate}
+              value={formatPercent(data.engagementRate)}
+              delta={data.isDemo ? null : data.engagementRateDelta}
+            />
+            <FooterStat
+              label={t.social.reach}
+              value={formatCompact(data.reach)}
+              delta={data.isDemo ? null : data.reachDelta}
+            />
           </>
         ) : undefined
       }
@@ -151,7 +159,15 @@ export function SocialModuleCard({
   );
 }
 
-export function SeoModuleCard({ data, href, settingsHref }: { data: OverviewSeo; href: string; settingsHref: string }) {
+export function SeoModuleCard({
+  data,
+  href,
+  settingsHref,
+}: {
+  data: OverviewSeo;
+  href: string;
+  settingsHref: string;
+}) {
   return (
     <ModulePanel
       index="02 · SEO"
@@ -162,8 +178,17 @@ export function SeoModuleCard({ data, href, settingsHref }: { data: OverviewSeo;
       footer={
         data.hasData ? (
           <>
-            <FooterStat label={t.seo.ctr} value={formatPercent(data.ctr)} delta={data.ctrDelta} />
-            <FooterStat label={t.seo.position} value={formatNumber(data.position, 1)} delta={data.positionDelta} lowerIsBetter />
+            <FooterStat
+              label={t.seo.ctr}
+              value={formatPercent(data.ctr)}
+              delta={data.isDemo ? null : data.ctrDelta}
+            />
+            <FooterStat
+              label={t.seo.position}
+              value={formatNumber(data.position, 1)}
+              delta={data.isDemo ? null : data.positionDelta}
+              lowerIsBetter
+            />
           </>
         ) : undefined
       }
@@ -210,8 +235,17 @@ export function AdsModuleCard({
       footer={
         data.hasData ? (
           <>
-            <FooterStat label={t.ads.cpr} value={formatCurrency(data.kpis.cpr, currency)} delta={data.cprDelta} lowerIsBetter />
-            <FooterStat label={t.ads.ctr} value={formatPercent(data.kpis.ctr)} delta={ctrDelta} />
+            <FooterStat
+              label={t.ads.cpr}
+              value={formatCurrency(data.kpis.cpr, currency)}
+              delta={data.isDemo ? null : data.cprDelta}
+              lowerIsBetter
+            />
+            <FooterStat
+              label={t.ads.ctr}
+              value={formatPercent(data.kpis.ctr)}
+              delta={data.isDemo ? null : ctrDelta}
+            />
           </>
         ) : undefined
       }

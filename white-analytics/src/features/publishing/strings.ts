@@ -15,7 +15,8 @@ export const p = {
   composeSubtitle: "Satu caption, banyak akun — sesuaikan per platform bila perlu.",
   editTitle: "Ubah post",
   detailEyebrow: "Detail post",
-  demoBanner: "Kredensial Meta belum diatur — publikasi dijalankan lewat simulasi (tidak ada yang benar-benar terkirim).",
+  demoBanner:
+    "Kredensial Meta belum diatur — publikasi dijalankan lewat simulasi (tidak ada yang benar-benar terkirim).",
 
   // ── status ────────────────────────────────────────────────
   status: {
@@ -49,6 +50,7 @@ export const p = {
   statPublished30d: "Terbit 30 hari terakhir",
   statFailed: "Gagal",
   statDrafts: "Draf",
+  scrollMetricsHint: "Geser untuk melihat metrik lainnya",
 
   // ── posts list ────────────────────────────────────────────
   colPost: "Post",

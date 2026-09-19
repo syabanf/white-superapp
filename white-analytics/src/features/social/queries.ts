@@ -83,6 +83,7 @@ export type ReachPoint = { date: string; reach: number; impressions: number };
 export type HeatCellData = { day: number; hour: number; posts: number; avgEngagement: number };
 
 export type SocialDashboard = {
+  isDemo: boolean;
   account: { id: string; username: string; displayName: string; avatarUrl: string | null } | null;
   kpis: SocialKpis | null;
   growthSeries: GrowthPoint[];
@@ -167,7 +168,14 @@ export const getSocialAccounts = cache(async (clientId: string): Promise<SocialA
   const accounts = await db.socialAccount.findMany({
     where: { clientId },
     orderBy: [{ isCompetitor: "asc" }, { platform: "asc" }, { createdAt: "asc" }],
-    select: { id: true, platform: true, username: true, displayName: true, avatarUrl: true, isCompetitor: true },
+    select: {
+      id: true,
+      platform: true,
+      username: true,
+      displayName: true,
+      avatarUrl: true,
+      isCompetitor: true,
+    },
   });
   if (accounts.length === 0) return [];
   const latest = await db.socialSnapshot.findMany({
@@ -182,13 +190,28 @@ export const getSocialAccounts = cache(async (clientId: string): Promise<SocialA
 
 /** Dashboard per platform untuk akun milik sendiri. */
 export const getSocialDashboard = cache(
-  async (clientId: string, platform: Platform, range: DateRange, previous: DateRange): Promise<SocialDashboard> => {
+  async (
+    clientId: string,
+    platform: Platform,
+    range: DateRange,
+    previous: DateRange,
+  ): Promise<SocialDashboard> => {
     const account = await db.socialAccount.findFirst({
       where: { clientId, platform, isCompetitor: false },
-      select: { id: true, username: true, displayName: true, avatarUrl: true },
+      select: { id: true, username: true, displayName: true, avatarUrl: true, connectionId: true },
     });
     if (!account) {
-      return { account: null, kpis: null, growthSeries: [], reachSeries: [], erByType: [], heatmap: [], topPosts: [], posts: [] };
+      return {
+        isDemo: true,
+        account: null,
+        kpis: null,
+        growthSeries: [],
+        reachSeries: [],
+        erByType: [],
+        heatmap: [],
+        topPosts: [],
+        posts: [],
+      };
     }
 
     const [snapshots, posts, prevPosts] = await Promise.all([
@@ -202,12 +225,26 @@ export const getSocialDashboard = cache(
         where: { socialAccountId: account.id, publishedAt: { gte: range.from, lt: addDays(range.to, 1) } },
         orderBy: { publishedAt: "desc" },
         select: {
-          id: true, caption: true, mediaType: true, productType: true, permalink: true, thumbnailUrl: true,
-          publishedAt: true, likes: true, comments: true, shares: true, saves: true, views: true, reach: true,
+          id: true,
+          caption: true,
+          mediaType: true,
+          productType: true,
+          permalink: true,
+          thumbnailUrl: true,
+          publishedAt: true,
+          likes: true,
+          comments: true,
+          shares: true,
+          saves: true,
+          views: true,
+          reach: true,
         },
       }),
       db.socialPost.findMany({
-        where: { socialAccountId: account.id, publishedAt: { gte: previous.from, lt: addDays(previous.to, 1) } },
+        where: {
+          socialAccountId: account.id,
+          publishedAt: { gte: previous.from, lt: addDays(previous.to, 1) },
+        },
         select: { likes: true, comments: true, shares: true, saves: true, publishedAt: true },
       }),
     ]);
@@ -227,7 +264,11 @@ export const getSocialDashboard = cache(
       followers: p.followers as number | null,
       followersPrev: (p.followersPrev ?? null) as number | null,
     }));
-    const reachSeries: ReachPoint[] = cur.map((p) => ({ date: p.date, reach: p.reach, impressions: p.impressions }));
+    const reachSeries: ReachPoint[] = cur.map((p) => ({
+      date: p.date,
+      reach: p.reach,
+      impressions: p.impressions,
+    }));
     const followersSpark = growthSeries
       .map((p) => p.followers)
       .filter((v): v is number => v != null)
@@ -263,7 +304,13 @@ export const getSocialDashboard = cache(
     };
 
     return {
-      account,
+      isDemo: account.connectionId == null,
+      account: {
+        id: account.id,
+        username: account.username,
+        displayName: account.displayName,
+        avatarUrl: account.avatarUrl,
+      },
       kpis,
       growthSeries,
       reachSeries,
@@ -283,7 +330,8 @@ export const getCompetitorDashboard = cache(
       orderBy: { createdAt: "asc" },
       select: { id: true, username: true, displayName: true, avatarUrl: true, isCompetitor: true },
     });
-    if (accounts.length === 0) return { hasOwn: false, rows: [], chart: { data: [], series: [] }, topPosts: [] };
+    if (accounts.length === 0)
+      return { hasOwn: false, rows: [], chart: { data: [], series: [] }, topPosts: [] };
 
     const ids = accounts.map((a) => a.id);
     const [snapshots, posts] = await Promise.all([
@@ -296,9 +344,20 @@ export const getCompetitorDashboard = cache(
         where: { socialAccountId: { in: ids }, publishedAt: { gte: range.from, lt: addDays(range.to, 1) } },
         orderBy: { publishedAt: "desc" },
         select: {
-          id: true, socialAccountId: true, caption: true, mediaType: true, productType: true, permalink: true,
-          thumbnailUrl: true, publishedAt: true, likes: true, comments: true, shares: true, saves: true,
-          views: true, reach: true,
+          id: true,
+          socialAccountId: true,
+          caption: true,
+          mediaType: true,
+          productType: true,
+          permalink: true,
+          thumbnailUrl: true,
+          publishedAt: true,
+          likes: true,
+          comments: true,
+          shares: true,
+          saves: true,
+          views: true,
+          reach: true,
         },
       }),
     ]);
@@ -345,7 +404,10 @@ export const getCompetitorDashboard = cache(
 
     const own = accounts.find((a) => !a.isCompetitor) ?? null;
     const ownRow = own ? build(own) : null;
-    const compRows = accounts.filter((a) => a.isCompetitor).map(build).sort((x, y) => y.followers - x.followers);
+    const compRows = accounts
+      .filter((a) => a.isCompetitor)
+      .map(build)
+      .sort((x, y) => y.followers - x.followers);
     const rows = ownRow ? [ownRow, ...compRows] : compRows;
 
     // Grafik: akun sendiri + 3 kompetitor teratas, diindeks ke 100 di awal periode

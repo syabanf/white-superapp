@@ -34,13 +34,25 @@ export default async function PublishCalendarPage(props: PageProps<"/clients/[sl
   const days = view === "month" ? monthGrid(date) : [weekDays(date)];
   const range = rangeForDays(days.flat(), tz);
 
-  const [posts, stats] = await Promise.all([getCalendarPosts(client.id, range.from, range.to), getPublishingStats(client.id)]);
+  const [posts, stats] = await Promise.all([
+    getCalendarPosts(client.id, range.from, range.to),
+    getPublishingStats(client.id),
+  ]);
 
   return (
     <>
-      <PageHeader eyebrow={t.nav.publish} title={p.calendarTitle} description={`${p.calendarSubtitle} ${p.timezoneNote(tz)}`} />
-      {!isPublisherConfigured() ? <DemoBanner message={p.demoBanner} settingsHref={`/clients/${slug}/settings`} /> : null}
+      <PageHeader
+        eyebrow={t.nav.publish}
+        title={p.calendarTitle}
+        description={`${p.calendarSubtitle} ${p.timezoneNote(tz)}`}
+      />
+      {!isPublisherConfigured() ? (
+        <DemoBanner message={p.demoBanner} settingsHref={`/clients/${slug}/settings`} />
+      ) : null}
       <StatStrip
+        scrollOnMobile
+        mobileScrollHint={p.scrollMetricsHint}
+        minWidth={148}
         items={[
           { label: p.statScheduled7d, value: formatNumber(stats.scheduled7d) },
           { label: p.statInReview, value: formatNumber(stats.inReview) },
@@ -49,7 +61,18 @@ export default async function PublishCalendarPage(props: PageProps<"/clients/[sl
           { label: p.statFailed, value: formatNumber(stats.failed) },
         ]}
       />
-      <CalendarView slug={slug} timezone={tz} view={view} date={date} today={today} days={days} posts={posts} role={role} platform={platform} status={status} />
+      <CalendarView
+        slug={slug}
+        timezone={tz}
+        view={view}
+        date={date}
+        today={today}
+        days={days}
+        posts={posts}
+        role={role}
+        platform={platform}
+        status={status}
+      />
     </>
   );
 }

@@ -31,8 +31,22 @@ function localToUtc(d: Date): Date {
   return utcDate(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-export function DateRangePicker({ className }: { className?: string }) {
+export function DateRangePicker({
+  className,
+  showCompare = true,
+}: {
+  className?: string;
+  showCompare?: boolean;
+}) {
   const [isPending, startTransition] = useTransition();
+  const [calendarMonths, setCalendarMonths] = React.useState(1);
+  React.useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+    const sync = () => setCalendarMonths(query.matches ? 2 : 1);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
   // Hold the frame while the range refetches: dim the content instead of
   // flashing a skeleton (no layout jump, numbers never disappear).
   React.useEffect(() => {
@@ -41,7 +55,11 @@ export function DateRangePicker({ className }: { className?: string }) {
       delete document.body.dataset.navPending;
     };
   }, [isPending]);
-  const [params, setParams] = useQueryStates(parsers, { shallow: false, history: "replace", startTransition });
+  const [params, setParams] = useQueryStates(parsers, {
+    shallow: false,
+    history: "replace",
+    startTransition,
+  });
   const resolved = React.useMemo(
     () =>
       resolveRange({
@@ -59,7 +77,9 @@ export function DateRangePicker({ className }: { className?: string }) {
     setOpenState(next);
   };
 
-  const presetLabel = resolved.preset ? PRESETS.find((p) => p.key === resolved.preset)?.label : t.common.customRange;
+  const presetLabel = resolved.preset
+    ? PRESETS.find((p) => p.key === resolved.preset)?.label
+    : t.common.customRange;
 
   const choosePreset = (key: PresetKey) => {
     void setParams({ preset: key, from: null, to: null });
@@ -81,7 +101,11 @@ export function DateRangePicker({ className }: { className?: string }) {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="bg-background font-normal shadow-none">
-            {isPending ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : <CalendarDays className="size-4 text-muted-foreground" />}
+            {isPending ? (
+              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+            ) : (
+              <CalendarDays className="size-4 text-muted-foreground" />
+            )}
             <span className="hidden xl:inline">{presetLabel}</span>
             <span className="hidden text-muted-foreground tabular sm:inline">
               {formatDateRange(resolved.range.from, resolved.range.to)}
@@ -89,21 +113,25 @@ export function DateRangePicker({ className }: { className?: string }) {
             <span className="text-muted-foreground sm:hidden">{presetLabel}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-auto p-0">
-          <div className="flex">
-            <ul className="w-44 border-r py-2" role="listbox" aria-label={t.common.period}>
+        <PopoverContent align="end" className="w-[min(94vw,46rem)] p-0 sm:w-auto">
+          <div className="flex flex-col sm:flex-row">
+            <ul
+              className="flex w-full gap-1 overflow-x-auto border-b p-2 scrollbar-thin sm:block sm:w-44 sm:border-r sm:border-b-0 sm:py-2"
+              role="listbox"
+              aria-label={t.common.period}
+            >
               {PRESETS.map((p) => {
                 const selected = resolved.preset === p.key;
                 return (
-                  <li key={p.key}>
+                  <li key={p.key} className="shrink-0">
                     <button
                       type="button"
                       role="option"
                       aria-selected={selected}
                       onClick={() => choosePreset(p.key)}
                       className={cn(
-                        "flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-accent",
-                        selected && "font-medium",
+                        "flex w-full items-center justify-between gap-2 rounded-full px-3 py-1.5 text-left text-sm whitespace-nowrap hover:bg-accent sm:rounded-none",
+                        selected && "bg-accent font-medium",
                       )}
                     >
                       {p.label}
@@ -116,7 +144,7 @@ export function DateRangePicker({ className }: { className?: string }) {
             <div className="p-2">
               <Calendar
                 mode="range"
-                numberOfMonths={2}
+                numberOfMonths={calendarMonths}
                 selected={draft}
                 onSelect={setDraft}
                 defaultMonth={draft?.from}
@@ -125,9 +153,20 @@ export function DateRangePicker({ className }: { className?: string }) {
                 locale={idLocale}
               />
               <Separator className="my-2" />
+              {showCompare ? (
+                <div className="flex items-center justify-between gap-3 px-2 pb-3 md:hidden">
+                  <Label htmlFor="compare-mobile" className="cursor-pointer gap-2 text-sm font-normal">
+                    <GitCompareArrows className="size-4 text-muted-foreground" />
+                    {t.common.comparePrevious}
+                  </Label>
+                  <Switch id="compare-mobile" checked={resolved.compare} onCheckedChange={toggleCompare} />
+                </div>
+              ) : null}
               <div className="flex items-center justify-between gap-3 px-2 pb-1">
                 <span className="text-xs text-muted-foreground tabular">
-                  {draft?.from ? formatDateRange(localToUtc(draft.from), localToUtc(draft.to ?? draft.from)) : t.common.customRange}
+                  {draft?.from
+                    ? formatDateRange(localToUtc(draft.from), localToUtc(draft.to ?? draft.from))
+                    : t.common.customRange}
                 </span>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
@@ -142,12 +181,19 @@ export function DateRangePicker({ className }: { className?: string }) {
           </div>
         </PopoverContent>
       </Popover>
-      <div className="hidden items-center gap-2 md:flex">
-        <Switch id="compare" checked={resolved.compare} onCheckedChange={toggleCompare} aria-label={t.common.comparePrevious} />
-        <Label htmlFor="compare" className="cursor-pointer gap-1 text-xs font-normal text-muted-foreground">
-          <GitCompareArrows className="size-3.5" /> {t.common.vsPrevious}
-        </Label>
-      </div>
+      {showCompare ? (
+        <div className="hidden items-center gap-2 md:flex">
+          <Switch
+            id="compare"
+            checked={resolved.compare}
+            onCheckedChange={toggleCompare}
+            aria-label={t.common.comparePrevious}
+          />
+          <Label htmlFor="compare" className="cursor-pointer gap-1 text-xs font-normal text-muted-foreground">
+            <GitCompareArrows className="size-3.5" /> {t.common.vsPrevious}
+          </Label>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -55,11 +55,15 @@ export function ClientsTable({ clients, isAdmin }: { clients: ClientRow[]; isAdm
         <span className="flex items-center gap-2.5">
           <Avatar className="size-8 rounded-md">
             {row.original.logoUrl ? <AvatarImage src={row.original.logoUrl} alt={row.original.name} /> : null}
-            <AvatarFallback className="rounded-md bg-primary/10 text-xs font-semibold text-primary">{initials(row.original.name)}</AvatarFallback>
+            <AvatarFallback className="rounded-md bg-primary/10 text-xs font-semibold text-primary">
+              {initials(row.original.name)}
+            </AvatarFallback>
           </Avatar>
           <span className="min-w-0">
             <span className="block truncate font-medium">{row.original.name}</span>
-            <span className="block truncate font-mono text-[11px] text-muted-foreground">/{row.original.slug}</span>
+            <span className="block truncate font-mono text-xs text-muted-foreground">
+              /{row.original.slug}
+            </span>
           </span>
         </span>
       ),
@@ -67,7 +71,9 @@ export function ClientsTable({ clients, isAdmin }: { clients: ClientRow[]; isAdm
     {
       accessorKey: "industry",
       header: t.clients.industry,
-      cell: ({ getValue }) => <span className="text-muted-foreground">{(getValue() as string | null) ?? "–"}</span>,
+      cell: ({ getValue }) => (
+        <span className="text-muted-foreground">{(getValue() as string | null) ?? "–"}</span>
+      ),
     },
     {
       accessorKey: "websiteUrl",
@@ -101,7 +107,9 @@ export function ClientsTable({ clients, isAdmin }: { clients: ClientRow[]; isAdm
     {
       accessorKey: "createdAt",
       header: t.clients.createdAt,
-      cell: ({ getValue }) => <span className="text-muted-foreground">{formatDate(getValue() as string)}</span>,
+      cell: ({ getValue }) => (
+        <span className="text-muted-foreground">{formatDate(getValue() as string)}</span>
+      ),
     },
     {
       id: "actions",

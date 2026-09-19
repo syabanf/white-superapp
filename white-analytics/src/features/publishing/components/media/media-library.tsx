@@ -10,7 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { addExternalMedia, deleteMedia, updateMedia } from "@/features/publishing/actions-media";
 import { MediaThumb, UploadButton } from "@/features/publishing/components/composer/media-picker";
@@ -22,7 +29,15 @@ import { t } from "@/i18n/id";
 
 type Kind = "ALL" | "IMAGE" | "VIDEO";
 
-export function MediaLibrary({ clientId, assets, role }: { clientId: string; assets: MediaRow[]; role: PostRole }) {
+export function MediaLibrary({
+  clientId,
+  assets,
+  role,
+}: {
+  clientId: string;
+  assets: MediaRow[];
+  role: PostRole;
+}) {
   const router = useRouter();
   const canManage = role !== "VIEWER";
   const [kind, setKind] = React.useState<Kind>("ALL");
@@ -34,7 +49,11 @@ export function MediaLibrary({ clientId, assets, role }: { clientId: string; ass
     if (kind !== "ALL" && a.kind !== kind) return false;
     if (!q.trim()) return true;
     const needle = q.toLowerCase();
-    return a.filename.toLowerCase().includes(needle) || a.tags.some((tg) => tg.toLowerCase().includes(needle)) || (a.altText ?? "").toLowerCase().includes(needle);
+    return (
+      a.filename.toLowerCase().includes(needle) ||
+      a.tags.some((tg) => tg.toLowerCase().includes(needle)) ||
+      (a.altText ?? "").toLowerCase().includes(needle)
+    );
   });
 
   return (
@@ -54,7 +73,12 @@ export function MediaLibrary({ clientId, assets, role }: { clientId: string; ass
           </Tabs>
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={p.librarySearch} className="h-8 w-56 pl-8 text-[13px]" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={p.librarySearch}
+              className="h-8 w-56 pl-8 text-[13px]"
+            />
           </div>
         </div>
         {canManage ? (
@@ -68,23 +92,32 @@ export function MediaLibrary({ clientId, assets, role }: { clientId: string; ass
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={<ImageIcon />} title={assets.length === 0 ? p.mediaEmpty : t.common.noResults} description={assets.length === 0 ? p.mediaEmptyDesc : undefined} compact />
+        <EmptyState
+          icon={<ImageIcon />}
+          title={assets.length === 0 ? p.mediaEmpty : t.common.noResults}
+          description={assets.length === 0 ? p.mediaEmptyDesc : undefined}
+          compact
+        />
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {filtered.map((a) => (
             <li key={a.id}>
-              <button type="button" onClick={() => setEditing(a)} className="lift block w-full overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) text-left">
+              <button
+                type="button"
+                onClick={() => setEditing(a)}
+                className="lift block w-full overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) text-left"
+              >
                 <MediaThumb asset={a} className="aspect-square" />
                 <div className="space-y-1 px-2.5 py-2">
                   <p className="truncate text-xs font-medium">{a.filename}</p>
                   <p className="label-mono text-muted-foreground">
                     {formatCompact(a.sizeBytes / 1024, 0)} KB · {formatDateShort(a.createdAt)}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{p.usedIn(a.usageCount)}</p>
+                  <p className="text-xs text-muted-foreground">{p.usedIn(a.usageCount)}</p>
                   {a.tags.length ? (
                     <div className="flex flex-wrap gap-1 pt-0.5">
                       {a.tags.slice(0, 3).map((tg) => (
-                        <Badge key={tg} variant="secondary" className="h-4 px-1.5 text-[10px]">
+                        <Badge key={tg} variant="secondary" className="min-h-5 px-1.5 text-xs">
                           {tg}
                         </Badge>
                       ))}
@@ -97,20 +130,37 @@ export function MediaLibrary({ clientId, assets, role }: { clientId: string; ass
         </ul>
       )}
 
-      {editing ? <EditMediaDialog asset={editing} canManage={canManage} onClose={() => setEditing(null)} /> : null}
+      {editing ? (
+        <EditMediaDialog asset={editing} canManage={canManage} onClose={() => setEditing(null)} />
+      ) : null}
       <AddUrlDialog clientId={clientId} open={urlOpen} onClose={() => setUrlOpen(false)} />
     </div>
   );
 }
 
-function EditMediaDialog({ asset, canManage, onClose }: { asset: MediaRow; canManage: boolean; onClose: () => void }) {
+function EditMediaDialog({
+  asset,
+  canManage,
+  onClose,
+}: {
+  asset: MediaRow;
+  canManage: boolean;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const [alt, setAlt] = React.useState(asset.altText ?? "");
   const [tags, setTags] = React.useState(asset.tags.join(", "));
   const [pending, start] = React.useTransition();
   const save = () =>
     start(async () => {
-      const res = await updateMedia({ id: asset.id, altText: alt, tags: tags.split(",").map((s) => s.trim()).filter(Boolean) });
+      const res = await updateMedia({
+        id: asset.id,
+        altText: alt,
+        tags: tags
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      });
       if (res.ok) {
         toast.success(p.toast.mediaUpdated);
         router.refresh();
@@ -138,24 +188,49 @@ function EditMediaDialog({ asset, canManage, onClose }: { asset: MediaRow; canMa
           <div className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="media-alt">{p.altText}</Label>
-              <Input id="media-alt" value={alt} onChange={(e) => setAlt(e.target.value)} placeholder={p.altPlaceholder} disabled={!canManage || pending} className="h-8 text-sm" />
+              <Input
+                id="media-alt"
+                value={alt}
+                onChange={(e) => setAlt(e.target.value)}
+                placeholder={p.altPlaceholder}
+                disabled={!canManage || pending}
+                className="h-8 text-sm"
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="media-tags">{p.tags}</Label>
-              <Input id="media-tags" value={tags} onChange={(e) => setTags(e.target.value)} placeholder={p.tagsPlaceholder} disabled={!canManage || pending} className="h-8 text-sm" />
+              <Input
+                id="media-tags"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder={p.tagsPlaceholder}
+                disabled={!canManage || pending}
+                className="h-8 text-sm"
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               {asset.mimeType} · {asset.width && asset.height ? `${asset.width}×${asset.height} · ` : ""}
               {p.usedIn(asset.usageCount)}
             </p>
-            <a href={asset.url} target="_blank" rel="noreferrer" className="block truncate text-xs text-brand underline-offset-4 hover:underline">
+            <a
+              href={asset.url}
+              target="_blank"
+              rel="noreferrer"
+              className="block truncate text-xs text-brand underline-offset-4 hover:underline"
+            >
               {asset.url}
             </a>
           </div>
         </div>
         {canManage ? (
           <DialogFooter className="flex-row items-center justify-between sm:justify-between">
-            <Button variant="destructive" size="sm" onClick={remove} disabled={pending || asset.usageCount > 0} title={asset.usageCount > 0 ? p.mediaInUse : undefined}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={remove}
+              disabled={pending || asset.usageCount > 0}
+              title={asset.usageCount > 0 ? p.mediaInUse : undefined}
+            >
               <Trash2 className="size-3.5" /> {t.common.delete}
             </Button>
             <Button size="sm" onClick={save} disabled={pending}>
@@ -163,7 +238,9 @@ function EditMediaDialog({ asset, canManage, onClose }: { asset: MediaRow; canMa
             </Button>
           </DialogFooter>
         ) : null}
-        {canManage && asset.usageCount > 0 ? <p className="text-xs text-muted-foreground">{p.mediaInUse}</p> : null}
+        {canManage && asset.usageCount > 0 ? (
+          <p className="text-xs text-muted-foreground">{p.mediaInUse}</p>
+        ) : null}
       </DialogContent>
     </Dialog>
   );
@@ -196,7 +273,15 @@ function AddUrlDialog({ clientId, open, onClose }: { clientId: string; open: boo
         <div className="space-y-3">
           <div className="space-y-1">
             <Label htmlFor="ext-url">{p.urlLabel}</Label>
-            <Input id="ext-url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" className="h-9" autoFocus />
+            <Input
+              id="ext-url"
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://…"
+              className="h-9"
+              autoFocus
+            />
           </div>
           <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
             <div className="space-y-1">
@@ -213,7 +298,13 @@ function AddUrlDialog({ clientId, open, onClose }: { clientId: string; open: boo
             </div>
             <div className="space-y-1">
               <Label htmlFor="ext-alt">{p.altText}</Label>
-              <Input id="ext-alt" value={alt} onChange={(e) => setAlt(e.target.value)} placeholder={p.altPlaceholder} className="h-8 text-sm" />
+              <Input
+                id="ext-alt"
+                value={alt}
+                onChange={(e) => setAlt(e.target.value)}
+                placeholder={p.altPlaceholder}
+                className="h-8 text-sm"
+              />
             </div>
           </div>
         </div>

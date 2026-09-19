@@ -6,7 +6,14 @@ import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { uploadMedia } from "@/features/publishing/actions-media";
 import type { MediaRow } from "@/features/publishing/queries";
 import { p } from "@/features/publishing/strings";
@@ -14,17 +21,28 @@ import { cn } from "@/lib/utils";
 
 /* eslint-disable @next/next/no-img-element */
 
-export function MediaThumb({ asset, className }: { asset: Pick<MediaRow, "url" | "thumbnailUrl" | "kind" | "altText" | "filename">; className?: string }) {
+export function MediaThumb({
+  asset,
+  className,
+}: {
+  asset: Pick<MediaRow, "url" | "thumbnailUrl" | "kind" | "altText" | "filename">;
+  className?: string;
+}) {
   const src = asset.thumbnailUrl ?? asset.url;
   return (
     <div className={cn("relative overflow-hidden bg-muted", className)}>
       {asset.kind === "VIDEO" && !asset.thumbnailUrl ? (
         <video src={asset.url} muted playsInline preload="metadata" className="size-full object-cover" />
       ) : (
-        <img src={src} alt={asset.altText ?? asset.filename} loading="lazy" className="size-full object-cover" />
+        <img
+          src={src}
+          alt={asset.altText ?? asset.filename}
+          loading="lazy"
+          className="size-full object-cover"
+        />
       )}
       {asset.kind === "VIDEO" ? (
-        <span className="absolute right-1 bottom-1 inline-flex items-center gap-1 rounded-full bg-background/90 px-1.5 py-0.5 text-[10px] font-medium">
+        <span className="absolute right-1 bottom-1 inline-flex items-center gap-1 rounded-full bg-background/90 px-1.5 py-0.5 text-xs font-medium">
           <Film className="size-3" /> Video
         </span>
       ) : null}
@@ -64,8 +82,21 @@ export function UploadButton({
   };
   return (
     <>
-      <input ref={ref} type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime" className="hidden" onChange={(e) => onFiles(e.target.files)} />
-      <Button type="button" size={size} variant={variant} onClick={() => ref.current?.click()} disabled={pending || disabled}>
+      <input
+        ref={ref}
+        type="file"
+        multiple
+        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime"
+        className="hidden"
+        onChange={(e) => onFiles(e.target.files)}
+      />
+      <Button
+        type="button"
+        size={size}
+        variant={variant}
+        onClick={() => ref.current?.click()}
+        disabled={pending || disabled}
+      >
         {pending ? <Spinner className="size-3.5" /> : <Upload className="size-3.5" />}
         {pending ? p.uploading : p.upload}
       </Button>
@@ -104,7 +135,10 @@ export function MediaPicker({
   const confirm = () => {
     const byId = new Map(library.map((m) => [m.id, m]));
     const kept = selected.filter((s) => picked.includes(s.id));
-    const added = picked.filter((id) => !selected.some((s) => s.id === id)).map((id) => byId.get(id)).filter((m): m is MediaRow => Boolean(m));
+    const added = picked
+      .filter((id) => !selected.some((s) => s.id === id))
+      .map((id) => byId.get(id))
+      .filter((m): m is MediaRow => Boolean(m));
     onChange([...kept, ...added].slice(0, 10));
     setOpen(false);
   };
@@ -118,13 +152,19 @@ export function MediaPicker({
   const filtered = library.filter((m) => {
     if (!q.trim()) return true;
     const needle = q.toLowerCase();
-    return m.filename.toLowerCase().includes(needle) || m.tags.some((tg) => tg.toLowerCase().includes(needle)) || (m.altText ?? "").toLowerCase().includes(needle);
+    return (
+      m.filename.toLowerCase().includes(needle) ||
+      m.tags.some((tg) => tg.toLowerCase().includes(needle)) ||
+      (m.altText ?? "").toLowerCase().includes(needle)
+    );
   });
 
   return (
     <div className="space-y-3">
       {selected.length === 0 ? (
-        <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground">{p.noMediaSelected}</p>
+        <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground">
+          {p.noMediaSelected}
+        </p>
       ) : (
         <ul className="space-y-2">
           {selected.map((m, i) => (
@@ -142,13 +182,34 @@ export function MediaPicker({
                 />
               </div>
               <div className="flex shrink-0 flex-col gap-0.5">
-                <Button type="button" variant="ghost" size="icon-xs" onClick={() => move(i, -1)} disabled={disabled || i === 0} aria-label={p.moveUp}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => move(i, -1)}
+                  disabled={disabled || i === 0}
+                  aria-label={p.moveUp}
+                >
                   <ArrowUp />
                 </Button>
-                <Button type="button" variant="ghost" size="icon-xs" onClick={() => move(i, 1)} disabled={disabled || i === selected.length - 1} aria-label={p.moveDown}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => move(i, 1)}
+                  disabled={disabled || i === selected.length - 1}
+                  aria-label={p.moveDown}
+                >
                   <ArrowDown />
                 </Button>
-                <Button type="button" variant="ghost" size="icon-xs" onClick={() => onChange(selected.filter((s) => s.id !== m.id))} disabled={disabled} aria-label={p.remove}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => onChange(selected.filter((s) => s.id !== m.id))}
+                  disabled={disabled}
+                  aria-label={p.remove}
+                >
                   <X />
                 </Button>
               </div>
@@ -179,7 +240,12 @@ export function MediaPicker({
           </DialogHeader>
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={p.librarySearch} className="h-8 pl-8 text-[13px]" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={p.librarySearch}
+              className="h-8 pl-8 text-[13px]"
+            />
           </div>
           <div className="max-h-[50vh] overflow-y-auto scrollbar-thin">
             {filtered.length === 0 ? (
@@ -192,12 +258,19 @@ export function MediaPicker({
                     <li key={m.id}>
                       <button
                         type="button"
-                        onClick={() => setPicked((cur) => (on ? cur.filter((x) => x !== m.id) : [...cur, m.id]))}
-                        className={cn("lift block w-full overflow-hidden rounded-lg border text-left", on && "ring-2 ring-brand ring-offset-1")}
+                        onClick={() =>
+                          setPicked((cur) => (on ? cur.filter((x) => x !== m.id) : [...cur, m.id]))
+                        }
+                        className={cn(
+                          "lift block w-full overflow-hidden rounded-lg border text-left",
+                          on && "ring-2 ring-brand ring-offset-1",
+                        )}
                         aria-pressed={on}
                       >
                         <MediaThumb asset={m} className="aspect-square" />
-                        <span className="block truncate px-1.5 py-1 text-[11px] text-muted-foreground">{m.filename}</span>
+                        <span className="block truncate px-1.5 py-1 text-xs text-muted-foreground">
+                          {m.filename}
+                        </span>
                       </button>
                     </li>
                   );
@@ -206,7 +279,14 @@ export function MediaPicker({
             )}
           </div>
           <DialogFooter className="flex-row items-center justify-between sm:justify-between">
-            <UploadButton clientId={clientId} size="xs" onUploaded={(assets) => { onLibraryAdd(assets); setPicked((cur) => [...cur, ...assets.map((a) => a.id)]); }} />
+            <UploadButton
+              clientId={clientId}
+              size="xs"
+              onUploaded={(assets) => {
+                onLibraryAdd(assets);
+                setPicked((cur) => [...cur, ...assets.map((a) => a.id)]);
+              }}
+            />
             <Button type="button" size="sm" onClick={confirm}>
               {p.done}
             </Button>

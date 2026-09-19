@@ -63,7 +63,7 @@ export function ScoreRing({
       </div>
       {label ? <span className="text-xs text-muted-foreground">{label}</span> : null}
       {rt ? (
-        <span className="text-[10px] font-medium" style={{ color }}>
+        <span className="text-xs font-medium" style={{ color }}>
           {RATING_LABEL[rt]}
         </span>
       ) : null}

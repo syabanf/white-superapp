@@ -25,12 +25,13 @@ export function DeltaBadge({
 }) {
   if (!delta) return null;
   const good = isGoodChange(delta, lowerIsBetter);
-  const label = mode === "pct" ? formatDeltaPercent(delta.pct, digits ?? 1) : formatDeltaNumber(delta.abs, digits ?? 0);
+  const label =
+    mode === "pct" ? formatDeltaPercent(delta.pct, digits ?? 1) : formatDeltaNumber(delta.abs, digits ?? 0);
   const Icon = delta.direction === "up" ? ArrowUpRight : delta.direction === "down" ? ArrowDownRight : Minus;
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[11px] font-medium tabular",
+        "inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs font-medium tabular",
         good === true && "border-positive/25 bg-positive/8 text-positive",
         good === false && "border-negative/25 bg-negative/8 text-negative",
         good === null && "border-border bg-muted text-muted-foreground",

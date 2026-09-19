@@ -23,20 +23,34 @@ export function StatStrip({
   items,
   className,
   minWidth = 168,
+  scrollOnMobile = false,
+  mobileScrollHint,
 }: {
   items: StatStripItem[];
   className?: string;
   minWidth?: number;
+  /** Keep a single compact row on phones; useful above dense primary content such as a calendar. */
+  scrollOnMobile?: boolean;
+  mobileScrollHint?: string;
 }) {
   if (items.length === 0) return null;
   return (
-    <div className={cn("overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow)", className)}>
+    <div
+      className={cn(
+        "rounded-[1.5rem] bg-card shadow-(--card-shadow)",
+        scrollOnMobile ? "overflow-x-auto scrollbar-thin md:overflow-hidden" : "overflow-hidden",
+        className,
+      )}
+    >
       {/* flex (not grid) so a short last row stretches instead of leaving a dead band */}
-      <div className="flex flex-wrap">
+      <div className={cn("flex", scrollOnMobile ? "flex-nowrap md:flex-wrap" : "flex-wrap")}>
         {items.map((it) => (
           <div
             key={it.label}
-            className="-mt-px -ml-px min-w-0 flex-1 border-t border-l px-4 py-3 transition-colors duration-150 hover:bg-muted/40"
+            className={cn(
+              "-mt-px -ml-px min-w-0 flex-1 border-t border-l px-4 py-3 transition-colors duration-150 hover:bg-muted/40",
+              scrollOnMobile && "shrink-0 md:shrink",
+            )}
             style={{ minWidth: `${minWidth}px` }}
           >
             <div className="flex min-w-0 items-start gap-1.5 text-muted-foreground">
@@ -47,10 +61,17 @@ export function StatStrip({
               <span className="text-[17px] font-bold tracking-[-0.025em] tabular">{it.value}</span>
               {it.delta ? <DeltaBadge delta={it.delta} lowerIsBetter={it.lowerIsBetter} /> : null}
             </div>
-            {it.caption ? <div className="mt-0.5 truncate text-xs text-muted-foreground">{it.caption}</div> : null}
+            {it.caption ? (
+              <div className="mt-0.5 truncate text-xs text-muted-foreground">{it.caption}</div>
+            ) : null}
           </div>
         ))}
       </div>
+      {scrollOnMobile && mobileScrollHint ? (
+        <p className="sticky left-0 border-t px-4 py-1.5 text-xs text-muted-foreground md:hidden">
+          {mobileScrollHint} <span aria-hidden>→</span>
+        </p>
+      ) : null}
     </div>
   );
 }
