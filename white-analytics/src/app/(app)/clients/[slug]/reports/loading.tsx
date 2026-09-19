@@ -10,7 +10,7 @@ export default function ReportsLoading() {
       </div>
       <Skeleton className="h-9 w-[420px] max-w-full" />
       <Skeleton className="h-[320px] w-full rounded-xl" />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <Skeleton className="h-[180px] rounded-xl" />
         <Skeleton className="h-[180px] rounded-xl" />
       </div>

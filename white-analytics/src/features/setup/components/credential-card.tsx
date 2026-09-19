@@ -99,7 +99,7 @@ export function CredentialCard({
   const sourceLabel = status.source === "db" ? ts.sourceDb : status.source === "env" ? ts.sourceEnv : ts.sourceNone;
 
   return (
-    <Card className="crop-marks">
+    <Card >
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2 text-sm font-semibold">
           {icon}
@@ -109,7 +109,7 @@ export function CredentialCard({
         <CardDescription className="text-xs">{labels.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
               <Label htmlFor={`${idBase}-public`}>
                 {labels.publicLabel}

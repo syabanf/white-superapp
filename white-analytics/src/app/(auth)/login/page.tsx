@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/features/auth/login-form";
 import { WhiteLogo } from "@/components/brand/logo";
+import { MarketingFunnel3D } from "@/components/brand/marketing-funnel-3d";
 import { t } from "@/i18n/id";
 
 export const metadata: Metadata = { title: t.common.login };
 
 const HIGHLIGHTS = [
-  { index: "01", name: "Social Media", meta: "IG · FB · TIKTOK" },
-  { index: "02", name: "SEO", meta: "GSC · GA4 · AUDIT" },
-  { index: "03", name: "Meta Ads", meta: "SPEND · CPR · ROAS" },
+  { name: "Social Media", meta: "Analitik · Publikasi" },
+  { name: "SEO", meta: "GSC · Rank · Backlink" },
+  { name: "Meta Ads", meta: "Spend · CPR · ROAS" },
 ];
 
 export default async function LoginPage(props: PageProps<"/login">) {
@@ -21,37 +22,40 @@ export default async function LoginPage(props: PageProps<"/login">) {
         {/* ── Hero ── */}
         <section className="hidden lg:block">
           <WhiteLogo size={30} />
-          <p className="label-mono mt-12 text-brand">{t.app.tagline}</p>
-          <h1 className="mt-4 text-[56px] leading-[0.98] font-bold tracking-[-0.04em]">
-            Data klien,
-            <br />
-            satu meja.
+          <h1 className="mt-10 text-[52px] leading-[1.02] font-medium tracking-[-0.035em]">
+            Tiga kanal, <span className="text-muted-foreground">satu corong.</span>
           </h1>
-          <span aria-hidden className="mt-5 block h-[3px] w-24 rounded-full bg-brand" />
-          <p className="mt-6 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-            Pantau performa Social Media, SEO, dan Meta Ads setiap klien — lalu kirim laporannya
-            dalam satu tautan.
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+            Pantau Social Media, SEO, dan Meta Ads setiap klien, jadwalkan kontennya, lalu kirim
+            laporannya dalam satu tautan.
           </p>
 
-          <ul className="mt-14 grid max-w-lg grid-cols-3 gap-3">
-            {HIGHLIGHTS.map((h) => (
-              <li key={h.index} className="crop-marks rounded-xl border bg-card/70 px-3.5 py-3.5">
-                <span className="label-mono text-brand">{h.index}</span>
-                <span className="mt-1.5 block text-sm font-semibold tracking-[-0.02em]">{h.name}</span>
-                <span className="label-mono mt-1 block text-[9px] text-muted-foreground">{h.meta}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="stage-tint relative mt-8 h-[340px] max-w-xl overflow-hidden rounded-[1.75rem]">
+            <div className="absolute inset-x-0 top-0 h-[270px]">
+              <MarketingFunnel3D />
+            </div>
+            <ul className="absolute inset-x-4 bottom-4 grid grid-cols-3 gap-2.5">
+              {HIGHLIGHTS.map((h) => (
+                <li key={h.name} className="surface-glass rounded-2xl px-3.5 py-3">
+                  <span className="block text-sm font-semibold tracking-[-0.02em]">{h.name}</span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{h.meta}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         {/* ── Form ── */}
         <section className="mx-auto w-full max-w-[420px]">
-          <div className="crop-marks rounded-2xl border bg-card p-7 shadow-[0_1px_2px_rgba(10,10,10,0.04),0_12px_40px_-16px_rgba(10,10,10,0.16)] sm:p-9">
+          <div className="stage-tint mb-4 h-44 overflow-hidden rounded-[1.5rem] lg:hidden">
+            <MarketingFunnel3D />
+          </div>
+          <div className="rounded-[1.75rem] bg-card p-7 shadow-(--card-shadow) sm:p-9">
             <div className="lg:hidden">
               <WhiteLogo size={26} />
             </div>
-            <p className="label-mono mt-6 text-brand lg:mt-0">Masuk</p>
-            <h2 className="mt-2 text-[24px] leading-tight font-bold tracking-[-0.03em]">
+            <p className="label-mono mt-6 text-muted-foreground lg:mt-0">Masuk</p>
+            <h2 className="mt-1.5 text-[26px] leading-tight font-semibold tracking-[-0.03em]">
               {t.auth.title}
             </h2>
             <p className="mt-2 mb-7 text-sm text-muted-foreground">{t.auth.subtitle}</p>

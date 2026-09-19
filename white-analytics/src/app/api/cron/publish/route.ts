@@ -1,6 +1,7 @@
 import { publishDuePosts } from "@/features/publishing/scheduler";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 /**
  * Publish cron (every 5 min via vercel.json; Vercel Hobby only allows daily —

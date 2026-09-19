@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
-import { Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sparkline } from "@/components/dashboard/sparkline";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { cn } from "@/lib/utils";
+import { InfoHint } from "@/components/dashboard/info-hint";
 import type { Delta } from "@/lib/metrics";
 import { t } from "@/i18n/id";
 
@@ -55,21 +54,8 @@ export function KpiTile({
       <div className={cn("flex min-w-0 flex-col", pad, size === "sm" ? "gap-1.5" : "gap-3")}>
         <div className="flex min-w-0 items-start gap-1.5 text-muted-foreground">
           {icon ? <span className="text-muted-foreground/80 [&>svg]:size-3.5">{icon}</span> : null}
-          <span className="label-mono line-clamp-2 tracking-[0.08em]">{label}</span>
-          {hint ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="mt-px ml-auto shrink-0 text-muted-foreground/50 hover:text-muted-foreground"
-                  aria-label={hint}
-                >
-                  <Info className="size-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-60 text-xs">{hint}</TooltipContent>
-            </Tooltip>
-          ) : null}
+          <span className="label-mono line-clamp-2">{label}</span>
+          {hint ? <InfoHint className="ml-auto">{hint}</InfoHint> : null}
         </div>
 
         <div className="flex min-w-0 items-end justify-between gap-3">
@@ -121,5 +107,5 @@ export function KpiGrid({
           : cols === 6
             ? "grid-cols-2 md:grid-cols-3 xl:grid-cols-6"
             : "grid-cols-2 lg:grid-cols-4";
-  return <div className={cn("grid gap-4", grid, className)}>{children}</div>;
+  return <div className={cn("grid gap-5", grid, className)}>{children}</div>;
 }

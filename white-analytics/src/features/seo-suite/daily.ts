@@ -22,12 +22,13 @@ function shouldAudit(cadence: "NONE" | "WEEKLY" | "DAILY", lastRunAt: Date | nul
   return !lastRunAt || now.getTime() - lastRunAt.getTime() > 6 * 86_400_000;
 }
 
-export async function runSeoSuiteDaily(opts: { now?: Date } = {}): Promise<SeoSuiteDailyResult> {
+export async function runSeoSuiteDaily(opts: { now?: Date; clientId?: string } = {}): Promise<SeoSuiteDailyResult> {
   const now = opts.now ?? new Date();
   const date = todayUtc(now);
   const out: SeoSuiteDailyResult = { properties: 0, ranks: 0, backlinks: 0, domains: 0, audits: 0 };
 
   const properties = await db.seoProperty.findMany({
+    where: opts.clientId ? { clientId: opts.clientId } : undefined,
     select: { id: true, siteUrl: true, locationCode: true, languageCode: true, auditCadence: true, clientId: true, client: { select: { slug: true } } },
   });
 

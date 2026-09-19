@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
-import { deleteObject, isAllowedContentType, keyFromUrl, MAX_UPLOAD_BYTES, putObject } from "@/lib/storage";
+import { deleteObject, keyFromUrl, MAX_UPLOAD_BYTES, putObject, sniffContentType } from "@/lib/storage";
 import { resolvePublishingAccess, revalidatePublishing } from "@/features/publishing/access";
 import type { MediaRow } from "@/features/publishing/queries";
 import { p } from "@/features/publishing/strings";
@@ -35,22 +35,26 @@ export async function uploadMedia(formData: FormData): Promise<ActionResult<{ as
 
   const files = formData.getAll("files").filter((f): f is File => typeof f === "object" && f != null && "arrayBuffer" in f);
   if (files.length === 0) return fail(t.errors.VALIDATION, "VALIDATION");
+  // Validate every file before storing any: size first, then the real type from its bytes.
+  const checked: { file: File; buf: Buffer; type: string }[] = [];
   for (const f of files) {
-    if (!isAllowedContentType(f.type)) return fail(`${p.fileTypeNotAllowed} (${f.name})`, "VALIDATION");
     if (f.size > MAX_UPLOAD_BYTES) return fail(`${p.fileTooLarge} (${f.name})`, "VALIDATION");
+    const buf = Buffer.from(await f.arrayBuffer());
+    const type = sniffContentType(buf);
+    if (!type) return fail(`${p.fileTypeNotAllowed} (${f.name})`, "VALIDATION");
+    checked.push({ file: f, buf, type });
   }
 
   const assets: MediaRow[] = [];
-  for (const f of files) {
-    const buf = Buffer.from(await f.arrayBuffer());
-    const stored = await putObject(buf, { clientId, contentType: f.type });
+  for (const { file: f, buf, type } of checked) {
+    const stored = await putObject(buf, { clientId, contentType: type });
     const asset = await db.mediaAsset.create({
       data: {
         clientId,
-        kind: f.type.startsWith("video/") ? "VIDEO" : "IMAGE",
+        kind: type.startsWith("video/") ? "VIDEO" : "IMAGE",
         url: stored.url,
         filename: f.name.slice(0, 200),
-        mimeType: f.type,
+        mimeType: type,
         sizeBytes: stored.sizeBytes,
         uploadedById: access.userId,
       },

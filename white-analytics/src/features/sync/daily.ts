@@ -21,8 +21,8 @@ async function mockJob(clientId: string, kind: string) {
   await db.syncJob.create({ data: { clientId, kind, status: "SUCCESS", startedAt: now, finishedAt: now, message: "mock" } });
 }
 
-export async function runDailySync(): Promise<{ clients: number; summary: DailySyncSummary }> {
-  const clients = await db.client.findMany({ select: { id: true, slug: true } });
+export async function runDailySync(opts: { clientId?: string } = {}): Promise<{ clients: number; summary: DailySyncSummary }> {
+  const clients = await db.client.findMany({ where: opts.clientId ? { id: opts.clientId } : undefined, select: { id: true, slug: true } });
   const summary: DailySyncSummary = [];
   const apify = isApifyConfigured();
 

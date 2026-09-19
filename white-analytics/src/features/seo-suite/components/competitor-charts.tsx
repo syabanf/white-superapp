@@ -58,7 +58,7 @@ export function BenchmarkTable({ rows, gapHref }: { rows: BenchmarkRow[]; gapHre
   ];
   return (
     <Card className="gap-0 py-0">
-      <CardContent className="p-5">
+      <CardContent className="p-6">
         <DataTable data={rows} columns={columns} exportName="benchmark-domain" paginate={false} initialSorting={[{ id: "organicTraffic", desc: true }]} emptyMessage={t.common.noData} getRowId={(r) => r.domain} />
       </CardContent>
     </Card>

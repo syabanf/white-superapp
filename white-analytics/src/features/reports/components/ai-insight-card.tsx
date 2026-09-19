@@ -20,7 +20,7 @@ export function AiInsightCard({
 }) {
   return (
     <Card className="gap-3 py-0">
-      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 px-5 pt-4 pb-0">
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 px-6 pt-5 pb-0">
         <div>
           <CardTitle className="flex items-center gap-2 text-sm font-semibold">
             <Sparkles className="size-4 text-muted-foreground" /> {t.reports.aiInsight}
@@ -29,7 +29,7 @@ export function AiInsightCard({
         </div>
         {content ? action : null}
       </CardHeader>
-      <CardContent className="px-5 pb-4">
+      <CardContent className="px-6 pb-6">
         {content ? (
           <div className="prose prose-sm max-w-none text-sm text-foreground/90 dark:prose-invert [&_h3]:mt-3 [&_h3]:text-sm [&_ol]:pl-4 [&_ul]:pl-4">
             <MarkdownLite text={content} />

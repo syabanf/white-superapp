@@ -52,7 +52,7 @@ export function SeoCostEstimator({ trackedKeywords, competitorDomains, usdIdr }:
         <CardDescription className="text-xs">{ts.costDesc}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <NumberField id="cost-kw" label={ts.costKeywords} value={kw} onChange={setKw} />
           <NumberField id="cost-comp" label={ts.costCompetitors} value={comp} onChange={setComp} />
           <NumberField id="cost-research" label={ts.costResearch} value={research} onChange={setResearch} />
@@ -61,7 +61,7 @@ export function SeoCostEstimator({ trackedKeywords, competitorDomains, usdIdr }:
 
         <details className="rounded-lg border px-3 py-2.5 text-sm">
           <summary className="cursor-pointer text-xs font-medium">{ts.costAdvanced}</summary>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <NumberField id="p-serp" label={ts.priceSerp} value={prices.serpPerKeyword} step={0.0005} onChange={(v) => setPrices({ ...prices, serpPerKeyword: v })} />
             <NumberField id="p-bl" label={ts.priceBacklinks} value={prices.backlinkSummaryPerDay} step={0.005} onChange={(v) => setPrices({ ...prices, backlinkSummaryPerDay: v })} />
             <NumberField id="p-dom" label={ts.priceDomain} value={prices.domainOverviewPerDomainPerDay} step={0.005} onChange={(v) => setPrices({ ...prices, domainOverviewPerDomainPerDay: v })} />

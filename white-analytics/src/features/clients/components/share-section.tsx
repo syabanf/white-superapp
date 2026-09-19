@@ -88,7 +88,7 @@ export function ShareSection({
           <Switch id="share-enabled" checked={enabled} onCheckedChange={setEnabled} disabled={!canManage || pending} />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="share-pin" className="flex items-center gap-2">
               {t.reports.sharePin}

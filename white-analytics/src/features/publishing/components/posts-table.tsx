@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type ColMeta } from "@/components/dashboard/data-table";
 import { PlatformIcon, platformLabel } from "@/features/social/components/platform-icon";
-import { PLATFORMS, type Platform, type PostStatus } from "@/features/publishing/lib";
+import { PLATFORMS, type Platform } from "@/features/publishing/lib";
 import type { PostRow } from "@/features/publishing/queries";
 import type { PostStatusKey } from "@/lib/metrics/publishing";
 import { PostStatusBadge } from "@/features/publishing/components/post-status";
@@ -16,32 +16,9 @@ import { clock, toZoned } from "@/features/publishing/time";
 import { p } from "@/features/publishing/strings";
 import { formatDateShort } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { POSTS_TABS, TAB_STATUSES, tabCount, type PostsTab } from "@/features/publishing/posts-tabs";
 
 /* eslint-disable @next/next/no-img-element */
-
-export type PostsTab = "ALL" | "DRAFT" | "IN_REVIEW" | "APPROVED" | "SCHEDULED" | "PUBLISHED" | "FAILED";
-export const POSTS_TABS: PostsTab[] = ["ALL", "DRAFT", "IN_REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED", "FAILED"];
-
-/** Which statuses each tab shows (REJECTED sits with drafts, PUBLISHING with scheduled). */
-export const TAB_STATUSES: Record<PostsTab, PostStatus[] | null> = {
-  ALL: null,
-  DRAFT: ["DRAFT", "REJECTED"],
-  IN_REVIEW: ["IN_REVIEW"],
-  APPROVED: ["APPROVED"],
-  SCHEDULED: ["SCHEDULED", "PUBLISHING"],
-  PUBLISHED: ["PUBLISHED"],
-  FAILED: ["FAILED"],
-};
-
-export function isPostsTab(v: string | undefined | null): v is PostsTab {
-  return !!v && (POSTS_TABS as string[]).includes(v);
-}
-
-export function tabCount(tab: PostsTab, counts: Record<PostStatusKey, number>): number {
-  const statuses = TAB_STATUSES[tab];
-  if (!statuses) return Object.values(counts).reduce((a, b) => a + b, 0);
-  return statuses.reduce((a, s) => a + counts[s], 0);
-}
 
 export function PostsTable({ rows, counts, tab, slug, timezone }: { rows: PostRow[]; counts: Record<PostStatusKey, number>; tab: PostsTab; slug: string; timezone: string }) {
   const router = useRouter();

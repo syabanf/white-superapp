@@ -5,7 +5,7 @@ import { Briefcase, Plus, ShieldAlert } from "lucide-react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/dashboard/empty-state";
-import { KpiGrid, KpiTile } from "@/components/dashboard/kpi-tile";
+import { HeroStage } from "@/components/dashboard/hero-stage";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { PortfolioGrid, type PortfolioCardData } from "@/features/clients/components/portfolio-grid";
 import { getLatestSyncByClient, getPortfolioTotals } from "@/features/clients/queries";
@@ -33,20 +33,20 @@ export default async function PortfolioPage(props: PageProps<"/">) {
     if (!setup.completedAt && !setup.skippedAt) redirect("/setup");
   }
 
+  const newClientAction = isAdmin ? (
+    <Button asChild size="sm">
+      <Link href="/clients/new">
+        <Plus className="size-4" /> {t.portfolio.newClient}
+      </Link>
+    </Button>
+  ) : undefined;
+
   const header = (
     <PageHeader
       eyebrow={t.nav.portfolio}
       title={t.portfolio.title}
       description={`${t.portfolio.subtitle} · ${clients.length} ${t.portfolio.clientsCount} · ${formatDateRange(range.from, range.to)}`}
-      actions={
-        isAdmin ? (
-          <Button asChild size="sm">
-            <Link href="/clients/new">
-              <Plus className="size-4" /> {t.portfolio.newClient}
-            </Link>
-          </Button>
-        ) : undefined
-      }
+      actions={newClientAction}
     />
   );
 
@@ -113,35 +113,29 @@ export default async function PortfolioPage(props: PageProps<"/">) {
 
   return (
     <>
-      {header}
+      <HeroStage
+        eyebrow={t.nav.portfolio}
+        title={
+          <>
+            Halo, {user.name.split(" ")[0]} 👋{" "}
+            <span className="text-muted-foreground">bagaimana performa</span> klien hari ini?
+          </>
+        }
+        description={`${clients.length} ${t.portfolio.clientsCount} · ${formatDateRange(range.from, range.to)}`}
+        actions={newClientAction}
+        stats={[
+          { label: t.portfolio.followers, value: formatCompact(totals.followers), delta: d(totals.followersDelta), hint: tc.portfolio.followersHint },
+          { label: t.portfolio.organicClicks, value: formatCompact(totals.clicks), delta: d(totals.clicksDelta), hint: tc.portfolio.clicksHint },
+          { label: t.portfolio.adSpend, value: formatCurrency(totals.spend, "IDR", { compact: true }), delta: d(totals.spendDelta), hint: tc.portfolio.spendHint },
+          {
+            label: t.portfolio.healthScore,
+            value: avgHealth != null ? formatNumber(avgHealth) : "–",
+            caption: avgHealth != null ? tc.portfolio.healthOutOf : tc.portfolio.noAudit,
+            hint: tc.portfolio.healthHint,
+          },
+        ]}
+      />
       {showUnauthorized ? <UnauthorizedNotice /> : null}
-
-      <KpiGrid cols={4}>
-        <KpiTile
-          label={t.portfolio.followers}
-          value={formatCompact(totals.followers)}
-          delta={d(totals.followersDelta)}
-          hint={tc.portfolio.followersHint}
-        />
-        <KpiTile
-          label={t.portfolio.organicClicks}
-          value={formatCompact(totals.clicks)}
-          delta={d(totals.clicksDelta)}
-          hint={tc.portfolio.clicksHint}
-        />
-        <KpiTile
-          label={t.portfolio.adSpend}
-          value={formatCurrency(totals.spend, "IDR", { compact: true })}
-          delta={d(totals.spendDelta)}
-          hint={tc.portfolio.spendHint}
-        />
-        <KpiTile
-          label={t.portfolio.healthScore}
-          value={avgHealth != null ? formatNumber(avgHealth) : "–"}
-          caption={avgHealth != null ? tc.portfolio.healthOutOf : tc.portfolio.noAudit}
-          hint={tc.portfolio.healthHint}
-        />
-      </KpiGrid>
 
       <PortfolioGrid cards={cards} />
     </>

@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ChevronRight, FilePlus2, Plus } from "lucide-react";
@@ -14,13 +15,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { WhiteLogo } from "@/components/brand/logo";
 import { ClientSwitcher, type SwitcherClient } from "@/components/shell/client-switcher";
@@ -38,16 +35,13 @@ export function AppSidebar({ clients, user }: { clients: SwitcherClient[]; user:
   const collapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" variant="sidebar" className="border-r">
+    <Sidebar collapsible="icon" variant="sidebar" className="border-r-0">
       <SidebarHeader className="gap-4 px-4 pt-5">
         <Link
           href="/"
           className="flex h-8 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <WhiteLogo variant={collapsed ? "mark" : "full"} size={collapsed ? 22 : 26} />
-          {!collapsed ? (
-            <span className="label-mono ml-auto text-muted-foreground">Analytics</span>
-          ) : null}
         </Link>
         <ClientSwitcher clients={clients} current={currentClient} collapsed={collapsed} />
       </SidebarHeader>
@@ -81,102 +75,86 @@ export function AppSidebar({ clients, user }: { clients: SwitcherClient[]; user:
   );
 }
 
-/** Active marker: a blue dot, the withwhite.id nav rhythm — rows split by hairlines. */
-function Dot({ active }: { active: boolean }) {
+/** Round icon chip: white on the grey rail, ink when the row is active. */
+function NavIcon({ icon: Icon, active }: { icon: NavItem["icon"]; active: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "size-1.5 shrink-0 rounded-full transition-all duration-200 group-data-[collapsible=icon]:hidden",
-        active ? "scale-100 bg-brand" : "scale-50 bg-muted-foreground/30",
+        "flex size-8 shrink-0 items-center justify-center rounded-full transition-colors duration-200",
+        active ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground shadow-(--card-shadow) group-hover/row:text-foreground",
       )}
-    />
+    >
+      <Icon className="size-4" />
+    </span>
   );
 }
 
+const ROW =
+  "group/row h-11 gap-3 rounded-full px-1.5 font-normal text-muted-foreground transition-colors duration-150 hover:bg-transparent hover:text-foreground data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-foreground group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:p-1.5!";
+
 function NavGroup({ label, items, pathname }: { label: string; items: NavItem[]; pathname: string }) {
+  // Accordion: the section you are in is open, and opening another closes it.
+  // A manual choice only lasts until the next navigation, then the route decides again.
+  const routeOpen = items.find((it) => it.children?.some((c) => isActivePath(pathname, c.href)) || (it.children && isActivePath(pathname, it.href, it.exact)))?.href ?? null;
+  const [manual, setManual] = React.useState<{ at: string; href: string | null } | null>(null);
+  const openHref = manual?.at === pathname ? manual.href : routeOpen;
+
   return (
     <SidebarGroup className="px-2 py-1.5">
       <SidebarGroupLabel className="label-mono h-auto truncate px-2 pb-1.5 text-muted-foreground">
         {label}
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu className="gap-0">
-          {items.map((item, i) => {
+        <SidebarMenu className="gap-0.5">
+          {items.map((item) => {
             const active = isActivePath(pathname, item.href, item.exact);
-            const last = i === items.length - 1;
-            const rowBorder = !last ? "border-b border-sidebar-border/60" : "";
-
-            if (item.children?.length) {
-              const childActive = item.children.some((c) => isActivePath(pathname, c.href));
-              return (
-                <Collapsible
-                  key={item.href}
-                  asChild
-                  defaultOpen={active || childActive}
-                  className="group/collapsible"
-                >
-                  <SidebarMenuItem className={rowBorder}>
-                    <SidebarMenuButton
-                      asChild
-                      tooltip={item.label}
-                      isActive={active && !childActive}
-                      className="h-9 gap-2.5 rounded-md px-2 font-normal transition-colors duration-150 data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-brand-ink"
-                    >
-                      <Link href={item.href}>
-                        <Dot active={active || childActive} />
-                        <item.icon className="hidden text-muted-foreground group-data-[collapsible=icon]:block" />
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    <CollapsibleTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label={`${t.nav.expand} ${item.label}`}
-                        className="absolute top-1.5 right-1 flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden"
-                      >
-                        <ChevronRight className="size-3.5 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub className="mr-0 ml-3.5 gap-0 border-l border-sidebar-border/70 px-0">
-                        {item.children.map((child) => {
-                          const ca = isActivePath(pathname, child.href);
-                          return (
-                            <SidebarMenuSubItem key={child.href}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={ca}
-                                className="h-8 gap-2 rounded-none border-l-2 border-transparent pl-3 text-[13px] font-normal data-[active=true]:border-brand data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-brand-ink"
-                              >
-                                <Link href={child.href}>
-                                  <span>{child.label}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          );
-                        })}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </SidebarMenuItem>
-                </Collapsible>
-              );
-            }
-
+            const childActive = item.children?.some((c) => isActivePath(pathname, c.href)) ?? false;
+            const open = openHref === item.href;
             return (
-              <SidebarMenuItem key={item.href} className={rowBorder}>
-                <SidebarMenuButton
-                  asChild
-                  tooltip={item.label}
-                  isActive={active}
-                  className="h-9 gap-2.5 rounded-md px-2 font-normal transition-colors duration-150 data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-brand-ink"
-                >
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild tooltip={item.label} isActive={active || childActive} className={cn(ROW, item.children && "pr-9")}>
                   <Link href={item.href}>
-                    <Dot active={active} />
-                    <item.icon className="hidden text-muted-foreground group-data-[collapsible=icon]:block" />
+                    <NavIcon icon={item.icon} active={active || childActive} />
                     <span>{item.label}</span>
                   </Link>
                 </SidebarMenuButton>
+
+                {item.children?.length ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      aria-label={`${open ? t.nav.collapse : t.nav.expand} ${item.label}`}
+                      onClick={() => setManual({ at: pathname, href: open ? null : item.href })}
+                      className="absolute top-2 right-1 flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground group-data-[collapsible=icon]:hidden"
+                    >
+                      <ChevronRight className={cn("size-3.5 transition-transform duration-200", open && "rotate-90")} />
+                    </button>
+                    {open ? (
+                      <ul className="mt-1 mb-2 ml-4 space-y-0.5 rounded-2xl bg-card p-1.5 shadow-(--card-shadow) group-data-[collapsible=icon]:hidden">
+                        {item.children.map((child) => {
+                          const on = isActivePath(pathname, child.href);
+                          return (
+                            <li key={child.href}>
+                              <Link
+                                href={child.href}
+                                aria-current={on ? "page" : undefined}
+                                className={cn(
+                                  "flex h-8 items-center gap-2.5 rounded-full px-3 text-[13px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
+                                  on ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                                )}
+                              >
+                                <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", on ? "bg-brand" : "bg-border")} />
+                                <span className="truncate">{child.label}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : null}
+                  </>
+                ) : null}
               </SidebarMenuItem>
             );
           })}

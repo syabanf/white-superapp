@@ -120,12 +120,12 @@ export default async function SocialPage(props: PageProps<"/clients/[slug]/socia
             ]}
           />
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <GrowthChartCard data={data.growthSeries} />
             <ReachChartCard data={data.reachSeries} />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <ErByTypeCard items={data.erByType} />
             <PostingHeatmapCard cells={data.heatmap} />
           </div>

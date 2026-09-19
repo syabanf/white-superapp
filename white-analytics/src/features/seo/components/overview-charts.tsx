@@ -26,7 +26,7 @@ function dailyColumns(label: string, key: keyof SearchDailyPoint, prevKey: keyof
 /** (a) Klik & impresi — two small multiples (NOT one dual-axis chart), previous overlay. */
 export function SearchTrendCards({ daily, compare }: { daily: SearchDailyPoint[]; compare: boolean }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-2">
       <ChartCard
         title={t.seo.clicks}
         description={s.clicksCardDesc}

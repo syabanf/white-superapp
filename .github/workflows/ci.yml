@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  white-analytics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: white-analytics
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: white_analytics
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci -d white_analytics"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/white_analytics?schema=public
+      # Throwaway values: CI never talks to a real provider.
+      AUTH_SECRET: ci-only-auth-secret-not-used-anywhere-else
+      ENCRYPTION_KEY: ci-only-encryption-key-not-used-anywhere-else
+      AUTH_TRUST_HOST: "true"
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: white-analytics/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: white-analytics/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma client + migrations
+        run: |
+          pnpm db:generate
+          pnpm exec prisma migrate deploy
+
+      - name: Route types
+        run: pnpm exec next typegen
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Sync pipelines against Postgres (mock adapters)
+        run: pnpm sync:smoke
+
+      - name: Build
+        run: pnpm build

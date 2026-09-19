@@ -45,6 +45,8 @@ export default async function Page(props: PageProps<"/clients/[slug]/social">) {
 | Import | Use |
 |---|---|
 | `@/components/dashboard/page-header` → `PageHeader`, `Section` | page title/eyebrow/description/actions; section wrapper |
+| `@/components/dashboard/hero-stage` → `HeroStage` | landing hero: greeting, 3D funnel, 4 glass stats (portfolio, client overview) |
+| `@/components/dashboard/error-panel` → `ErrorPanel` | body of every route-level `error.tsx` |
 | `@/components/dashboard/stat-strip` → `StatStrip` | secondary metrics as one hairline strip (auto-fits, last row stretches) |
 | `@/components/dashboard/kpi-tile` → `KpiTile`, `KpiGrid` | stat tiles (value string already formatted, `delta`, `spark: number[]`, `hint`, `caption`, `lowerIsBetter`) |
 | `@/components/dashboard/delta-badge` → `DeltaBadge` | period-over-period badge |
@@ -104,34 +106,45 @@ Feedback cues are synthesised with the Web Audio API in `src/lib/sound.ts` — n
 - Users can mute from the user menu; the preference lives in `localStorage` and is read through `useSyncExternalStore` (`subscribeSound`), so it syncs across tabs. Default is **on**.
 - Because every toast is routed through `@/lib/toast`, a notification and its sound can never drift apart.
 
-## Visual tone — withwhite.id (READ THIS BEFORE STYLING ANYTHING)
+## Visual tone (READ THIS BEFORE STYLING ANYTHING)
 
-The product wears the agency's own visual language: a **plain white canvas**, one decisive **royal blue**, tight bold type, and **monospace micro-labels**. Structure comes from hairline borders — no background grid, no decorative rules. Data is the only loud thing on screen.
+Set on 2026-09-19 from four dashboard references the WHITE team supplied. It replaces the earlier withwhite.id tone (white canvas, hairline borders, crop marks, mono labels).
+
+The page is a **soft cool-grey canvas**. Content sits in **borderless white cards with a 24 px radius** and a faint shadow. Actions are **ink pills**. Royal blue marks **data and active state only**. Landing pages open with a **hero stage**: greeting headline, the 3D funnel on a blue-tinted panel, and headline numbers as glass cards beside it.
 
 | Use | How |
 |---|---|
-| Page plane | plain `bg-background` (white). **Do not add background grids, ruler strips, or decorative line textures** — removed deliberately. |
-| Accent | `bg-brand` / `text-brand` / `text-brand-ink` (never hard-code a blue) |
-| Page title | `<PageHeader eyebrow="…">` → mono blue eyebrow + tight bold headline + short blue rule |
+| Page plane | `bg-background` (`#eef0f5`). Cards are `bg-card` white. Never put a border on a card: separation comes from the canvas contrast and `--card-shadow`. |
+| Cards | `<Card>` already carries the radius and shadow. For a hand-built surface use `rounded-[1.5rem] bg-card shadow-(--card-shadow)`. |
+| Accent | `bg-brand` / `text-brand` for data marks, links and active state. Never hard-code a blue. Primary buttons are ink (`--primary`), not blue. |
+| Landing hero | `<HeroStage>` from `@/components/dashboard/hero-stage`: two-tone headline (wrap the quiet half in `text-muted-foreground`), `MarketingFunnel3D`, up to 4 stats as glass cards. Used on the portfolio and the client overview. One hero per page, landing pages only. |
+| Inner page title | `<PageHeader eyebrow="…">`: quiet eyebrow, 28 to 34 px semibold headline, no underline rule. |
 | Section title | `<Section index="01" title="…">` |
-| Micro-label | `.label-mono` (mono, 10px, uppercase, wide tracking) — KPI labels, group labels, metadata |
-| Technical framing | `.crop-marks` on sparse panels (KPI tiles, hero cards). NOT on chart cards or dense tables — it reads as noise there. |
-| Buttons | pill by default (base `Button` is `rounded-full`). **Never hand-tune `h-*`, `px-*` or `text-xs` on a Button** — pick a `size`: `xs` 28px · `sm` 32px · `default` 36px · `lg` 40px, and `icon-xs`/`icon-sm`/`icon`/`icon-lg` for square ones. Height, padding, text size and icon size all travel with the size. |
-| Tabs | `Tabs`/`TabsList`/`TabsTrigger` render a pill segmented control (40px track, 13px labels) that matches the button scale. Don't add padding classes to a trigger; for link tabs use `asChild` with a bare `<Link>`. |
-| Selects next to buttons | `<SelectTrigger size="sm">` — no manual height. |
-| Sidebar nav | hairline divider per row + blue **dot** for the active item; never a filled active block |
-| Numbers | proportional figures for big values; `.tabular` only in aligned columns |
-| Motion | One vocabulary, tokens in `globals.css` (`--dur-fast/--dur/--dur-slow`, `--ease-out`). `.lift` = clickable surface (2px rise + `--lift-shadow`); `.nudge` inside `group/nudge` = directional arrow; `.page-enter` on a page wrapper = staggered arrival of its direct children. **Never hand-roll a transform/duration** — reach for these. |
-| Reduced motion | **Deliberately NOT honoured** — motion runs for every user (product decision 2026-08-21, requested by the WHITE team; note at the bottom of `globals.css`). This is why every movement stays small and short: 2px lift, 8px arrival, ≤260ms. Do not add large or looping motion — that is what would actually hurt. Restore the guard if motion discomfort is ever reported. |
-| Loading | while the date range refetches, `body[data-nav-pending="true"]` dims `.page-enter`. Hold the frame — never swap live numbers for a skeleton. |
-| Charts | deliberately **not** animated (`isAnimationActive={false}`): every filter change would replay the animation and read as lag. |
-| Composition | **Few, large, focal elements.** Max ~4 primary `KpiTile`s per page — secondary metrics go in a `StatStrip` (one hairline strip), never a second row of cards. |
-| Panels in a row | give them one shape (header · `flex-1` body · footer) + `min-h-*` so bottoms align. See `features/overview/components/module-cards.tsx` → `ModulePanel`. |
-| Empty states | never leave a stretched card with one grey line — centre an icon + copy + the primary action (see `AiInsightCard`). |
-| Missing days | GSC/GA4 series use `fillDaily(..., { missing: null })` — an unreported day is a gap, not zero. Ads keep `0` (no delivery really is zero). |
-| Nominal bars | one hue (`--chart-1`) for every bar of a single series; never a rainbow by rank. |
+| Small label | `.label-mono`. The name is historical: it now renders a 12 px sans label in sentence case. Do not add `uppercase` or letter-spacing. |
+| Glass | `.surface-glass` only on top of `.stage-tint` or imagery. On the plain canvas it reads as a dirty white. |
+| Tinted stage | `.stage-tint` behind the 3D object or a feature card. One per page. |
+| Buttons | Pill by default. **Never hand-tune `h-*`, `px-*` or `text-xs` on a Button**: pick a `size`: `xs` 28px, `sm` 32px, `default` 36px, `lg` 40px, plus `icon-xs`/`icon-sm`/`icon`/`icon-lg`. |
+| Tabs | `Tabs`/`TabsList`/`TabsTrigger` render a pill segmented control. No padding classes on a trigger. Link tabs use `asChild` with a bare `<Link>`. |
+| Selects next to buttons | `<SelectTrigger size="sm">`, no manual height. |
+| Sidebar (md and up) | Grey rail, no border. Each row is a round icon chip plus label. The active chip turns ink. Sub-menus are an accordion: one section open at a time (the route decides, a manual toggle lasts until the next navigation), rendered as a white rounded panel with pill rows and a brand dot on the active one. |
+| Phone navigation | `MobileTabBar` (`components/shell/mobile-tab-bar.tsx`): floating ink pill, the first 4 destinations of the current context, active one in a brand circle, plus a "Semua menu" button that opens a bottom sheet with the full menu, client switcher and account menu. The drawer trigger is hidden below `md`. The bar hides on routes that own a sticky bottom action bar (`HAS_OWN_BOTTOM_BAR`): add new ones there. Page content gets `pb-28` on phones from the app layout. |
+| Logo | `WhiteLogo`: eight blades around an open centre, inherits `currentColor`. Traced by eye from the raster. Replace the path when the official SVG arrives. |
+| 3D | `MarketingFunnel3D` is a 2D canvas with hand-rolled perspective. No WebGL and no dependency. Keep it on the hero and the login page. Do not put it behind charts or tables. |
+| Numbers | Proportional figures for big values. `.tabular` only in aligned columns. |
+| Motion | One vocabulary, tokens in `globals.css` (`--dur-fast/--dur/--dur-slow`, `--ease-out`). `.lift` for a clickable surface, `.nudge` inside `group/nudge` for a directional arrow, `.page-enter` on a page wrapper for staggered arrival. **Never hand-roll a transform or duration.** |
+| Reduced motion | **Deliberately NOT honoured**: motion runs for every user (product decision 2026-08-21, note at the bottom of `globals.css`). Keep every movement small and short. Restore the guard if anyone reports discomfort. |
+| Loading | While the date range refetches, `body[data-nav-pending="true"]` dims `.page-enter`. Hold the frame. Never swap live numbers for a skeleton. |
+| Charts | Not animated (`isAnimationActive={false}`): every filter change would replay the animation and read as lag. |
+| Spacing | One rhythm. Page sections: `gap-6` (`md:gap-7`), set by the app layout. Card grids: `gap-5`. Card inner padding: 24 px (`<Card>` default, or `p-6` / `px-6 pt-5 pb-6` on a hand-built surface) so it matches the 24 px radius. Never `p-4` inside a 24 px-radius card. |
+| Copy on screen | **Titles only.** Explanations go into `<InfoHint>` (`@/components/dashboard/info-hint`), the single info-icon tooltip. `ChartCard description`, `Section description` and every stat `hint` already render through it. `PageHeader description` is clamped to one line: keep it to context such as the date range. `DemoBanner` is a chip whose message sits in its tooltip. Do not add helper paragraphs under titles. |
+| Composition | **Few, large, focal elements.** At most 4 headline numbers per page (hero stats or `KpiTile`s). Secondary metrics go in a `StatStrip`, never a second row of cards. |
+| Panels in a row | Give them one shape (header, `flex-1` body, footer) plus `min-h-*` so bottoms align. See `ModulePanel` in `features/overview/components/module-cards.tsx`. |
+| Empty states | Never leave a stretched card with one grey line. Centre an icon, copy and the primary action (see `AiInsightCard`). |
+| Missing days | GSC/GA4 series use `fillDaily(..., { missing: null })`: an unreported day is a gap. Ads keep `0`. |
+| Nominal bars | One hue (`--chart-1`) for every bar of a single series. Never a rainbow by rank. |
+| Error boundaries | Every route group has an `error.tsx` that renders `ErrorPanel` (`@/components/dashboard/error-panel`). Routes without the app shell pass `fullPage`. |
 
-Do not reintroduce the old monochrome near-black accent, and do not add a second brand hue.
+Do not reintroduce crop marks, mono uppercase labels, hairline card borders, or a blue primary button.
 
 ## Charts — hard rules (from the dataviz method)
 - **One y-axis per chart. Never dual-axis.** Two measures of different scale → two `TimeSeriesChart`s side by side (small multiples) or index to 100.
@@ -164,7 +177,7 @@ One pattern for every source: an **auth-free write path** in `features/<module>/
 | Meta Ads hierarchy + insights + demographics | `AdAccount.connectionId` → `syncAdAccount` | `mode: "demo"`, touch `lastSyncedAt` only |
 
 - Tokens come from `src/lib/connections.ts` → `getConnectionToken(connectionId)`: decrypts, refreshes Google access tokens with the stored refresh token, throws `TOKEN_EXPIRED` for expired Meta tokens (the UI says "Hubungkan ulang"). Never decrypt `Connection.accessTokenEnc` inline.
-- `GET /api/cron/daily` runs `features/sync/daily.ts` (`runDailySync`) then the SEO-suite job. Every SyncJob message says `mock` when nothing real happened, so the activity feed never lies.
+- `GET /api/cron/daily` is a dispatcher: it runs retention (`features/sync/retention.ts`), then calls itself once per client (`?client=<id>`, 4 in parallel, longest-waiting first, plan in `features/sync/policy.ts`). Each per-client call runs `runDailySync({ clientId })` and `runSeoSuiteDaily({ clientId })` inside its own 300 s budget. Every SyncJob message says `mock` when nothing real happened, so the activity feed never lies.
 - DB-backed smoke: `pnpm sync:smoke` runs all three pipelines with the mock adapters on a throwaway client (idempotency asserted) — run it after touching any sync writer.
 
 ## Workspace setup wizard (`/setup`, ADMIN)
@@ -201,12 +214,15 @@ Mobile is a requirement for every page: no horizontal page scroll at 375 px, tab
 ## Providers (adapters)
 - Env: `META_APP_ID/SECRET`, `GOOGLE_CLIENT_ID/SECRET`, `PAGESPEED_API_KEY` (optional), `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `DATAFORSEO_LOGIN/PASSWORD`, `UPLOAD_DIR`, `CRON_SECRET`, `ENCRYPTION_KEY`, `NEXT_PUBLIC_APP_URL`. When credentials are missing → **mock adapter** and show `DemoBanner`.
 - Real Google/Meta/PageSpeed/OpenRouter calls: plain `fetch` (no heavy SDKs). Normalize errors into `ProviderError(provider, code, message)`.
+- Uploads are validated by content: `putObject` rejects any file whose leading bytes (`sniffContentType`) disagree with the claimed type. Never trust `File.type`.
+- Security headers (CSP, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS) are set in `next.config.ts`. A new external origin (script, font, API called from the browser) needs a CSP entry there.
 - Tokens are stored encrypted (`Connection.accessTokenEnc` via `encrypt()`); never returned to the client.
 - Cron: `GET /api/cron/daily` (02:00 UTC: sync + SEO suite daily) and `GET /api/cron/publish` (every 5 min: due posts), both guarded by `Authorization: Bearer ${CRON_SECRET}` — log into `SyncJob`.
 
 ## Do / Don't
 - DO run `pnpm typecheck` and `pnpm lint` before reporting. `pnpm test` must stay green (add tests to `tests/*.test.ts` for pure logic you add).
 - DO keep files ≤ ~400 lines; split components.
+- DON'T import a plain helper (`isX`, `parseX`, constants) from a `"use client"` module into a server page: the call throws at render ("Attempted to call … from the server"). Put shared helpers in a plain `.ts` module next to the component (example: `features/publishing/posts-tabs.ts`).
 - DO use `t.*` for every visible string; add new keys to `src/i18n/id.ts` under your module section only.
 - DON'T add npm dependencies (everything needed is installed: recharts, @tanstack/react-table v8, papaparse, cheerio, @react-pdf/renderer, zod, date-fns, nuqs, sonner, next-themes, bcryptjs, lucide-react). If truly blocked, say so in your report instead.
 - DON'T edit shared files: `prisma/schema.prisma`, `prisma/seed*.ts`, `src/lib/*` (except adding a NEW provider folder under `src/lib/providers/`), `src/components/{ui,dashboard,shell}/*`, `src/app/layout.tsx`, `src/app/(app)/layout.tsx`, `src/proxy.ts`, `src/auth*.ts`, `CONVENTIONS.md`. If a primitive lacks something you need, compose around it locally and mention it in your report.

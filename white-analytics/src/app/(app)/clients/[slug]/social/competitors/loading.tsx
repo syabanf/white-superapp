@@ -14,7 +14,7 @@ export default function CompetitorsLoading() {
       <Skeleton className="h-12 w-full" />
       <Skeleton className="h-72" />
       <Skeleton className="h-96" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-72" />
         ))}

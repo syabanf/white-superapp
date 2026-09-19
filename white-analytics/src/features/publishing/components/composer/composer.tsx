@@ -36,7 +36,7 @@ type Props = {
 
 function Block({ index, title, hint, children }: { index: string; title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border bg-card p-4 md:p-5">
+    <section className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
       <header className="mb-3">
         <h2 className="flex items-baseline gap-2 text-sm font-semibold tracking-[-0.01em]">
           <span className="label-mono text-brand">{index}</span> {title}
@@ -223,7 +223,7 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
       </div>
 
       <aside className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="flex items-baseline gap-2 text-sm font-semibold">
               <span className="label-mono text-brand">07</span> {p.sectionPreview}

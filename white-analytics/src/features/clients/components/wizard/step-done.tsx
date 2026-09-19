@@ -38,7 +38,7 @@ export function StepDone({
         </div>
       </div>
 
-      <dl className="overflow-hidden rounded-xl border bg-card">
+      <dl className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow)">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
           <dt className="label-mono text-muted-foreground">{tc.wizard.summaryChannels}</dt>
           <dd className="flex flex-wrap items-center gap-1.5">

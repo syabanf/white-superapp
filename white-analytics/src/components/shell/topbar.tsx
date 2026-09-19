@@ -63,9 +63,9 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
   }, [pathname, client]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-canvas/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-canvas/75">
-      <SidebarTrigger className="-ml-1 shrink-0" />
-      <Separator orientation="vertical" className="mr-2 shrink-0 data-[orientation=vertical]:h-4" />
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 bg-canvas/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-canvas/70">
+      <SidebarTrigger className="-ml-1 hidden shrink-0 md:inline-flex" />
+      <Separator orientation="vertical" className="mr-2 hidden shrink-0 data-[orientation=vertical]:h-4 md:block" />
       <Breadcrumb className="min-w-0 flex-1 overflow-hidden">
         <BreadcrumbList className="flex-nowrap overflow-hidden">
           {crumbs.map((c, i) => {

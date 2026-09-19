@@ -16,11 +16,11 @@ const KIND_LABEL: Record<string, string> = {
 export function SyncActivity({ jobs }: { jobs: OverviewSyncJob[] }) {
   return (
     <Card className="gap-3 py-0">
-      <CardHeader className="px-5 pt-4 pb-0">
+      <CardHeader className="px-6 pt-5 pb-0">
         <CardTitle className="text-sm font-semibold">{t.overview.syncActivity}</CardTitle>
         <CardDescription className="text-xs">{t.common.lastSynced}</CardDescription>
       </CardHeader>
-      <CardContent className="px-5 pb-4">
+      <CardContent className="px-6 pb-6">
         {jobs.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t.overview.noSync}</p>
         ) : (

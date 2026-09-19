@@ -147,7 +147,7 @@ export function CompetitorManager({
   };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-2">
       <Card className="gap-3 py-0">
         <CardHeader className="px-5 pt-4 pb-0">
           <CardTitle className="text-sm font-semibold">{s.competitorsCount}</CardTitle>

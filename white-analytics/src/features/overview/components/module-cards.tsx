@@ -37,8 +37,8 @@ function ModulePanel({
   index: string;
 }) {
   return (
-    <Card className="lift crop-marks flex min-h-[330px] flex-col gap-0 overflow-hidden py-0 hover:ring-brand/25">
-      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4">
+    <Card className="lift flex min-h-[330px] flex-col gap-0 overflow-hidden py-0 hover:ring-brand/25">
+      <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-6">
         <div className="min-w-0">
           <span className="label-mono text-brand">{index}</span>
           <h3 className="mt-1 flex items-center gap-2 text-[15px] font-semibold tracking-[-0.02em]">
@@ -54,7 +54,7 @@ function ModulePanel({
         </Button>
       </div>
 
-      <div className="flex flex-1 flex-col justify-center px-5 pb-4">{children}</div>
+      <div className="flex flex-1 flex-col justify-center px-6 pb-6">{children}</div>
 
       {footer ? <div className="grid grid-cols-2 divide-x border-t">{footer}</div> : null}
     </Card>
@@ -73,7 +73,7 @@ function FooterStat({
   lowerIsBetter?: boolean;
 }) {
   return (
-    <div className="min-w-0 px-5 py-3.5">
+    <div className="min-w-0 px-6 py-3.5">
       <div className="label-mono truncate text-muted-foreground">{label}</div>
       <div className="mt-1.5 flex flex-wrap items-center gap-2">
         <span className="text-[17px] font-bold tracking-[-0.02em] tabular">{value}</span>

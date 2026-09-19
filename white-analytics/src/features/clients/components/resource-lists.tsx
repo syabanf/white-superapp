@@ -36,7 +36,7 @@ import {
   removeAdAccountAction,
   removeSeoPropertyAction,
   removeSocialAccountAction,
-} from "@/features/clients/actions";
+} from "@/features/clients/actions-resources";
 import { SOCIAL_PLATFORMS } from "@/features/clients/constants";
 import type { SettingsData } from "@/features/clients/queries";
 import type { ActionResult } from "@/lib/action-result";

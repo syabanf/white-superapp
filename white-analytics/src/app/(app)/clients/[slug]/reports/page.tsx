@@ -11,6 +11,7 @@ import { ReportBuilderForm } from "@/features/reports/components/report-builder-
 import { ReportHistoryTable, type ReportRow } from "@/features/reports/components/report-history-table";
 import { ShareSummaryCard } from "@/features/reports/components/share-summary-card";
 import { getOverviewAds, getOverviewSeo, getOverviewSocial } from "@/features/overview/queries";
+import { getReportSections } from "@/features/reports/sections";
 import { getLatestInsight, listReports, type InsightModule } from "@/features/reports/queries";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
@@ -130,11 +131,12 @@ async function BuilderTab({
   to: string;
   rangeLabel: string;
 }) {
-  const [social, seo, ads, insight] = await Promise.all([
+  const [social, seo, ads, insight, extras] = await Promise.all([
     getOverviewSocial(clientId, range, previous),
     getOverviewSeo(clientId, range, previous),
     getOverviewAds(clientId, range, previous),
     getLatestInsight(clientId, "OVERVIEW", range),
+    getReportSections({ clientId, range, previous, compare, modules: ["SOCIAL", "SEO"], lang: "id" }),
   ]);
   const d = <T,>(x: T) => (compare ? x : null);
 
@@ -166,8 +168,8 @@ async function BuilderTab({
       rangeLabel={rangeLabel}
       compareDefault={compare}
       previews={{
-        SOCIAL: social.hasData ? <ModulePreviewCard title={t.overview.socialCard} icon={<Share2 className="size-4 text-muted-foreground" />} kpis={socialKpis} /> : null,
-        SEO: seo.hasData ? <ModulePreviewCard title={t.overview.seoCard} icon={<Search className="size-4 text-muted-foreground" />} kpis={seoKpis} /> : null,
+        SOCIAL: social.hasData || extras.SOCIAL.length > 0 ? <ModulePreviewCard title={t.overview.socialCard} icon={<Share2 className="size-4 text-muted-foreground" />} kpis={social.hasData ? socialKpis : []} sections={extras.SOCIAL} /> : null,
+        SEO: seo.hasData || extras.SEO.length > 0 ? <ModulePreviewCard title={t.overview.seoCard} icon={<Search className="size-4 text-muted-foreground" />} kpis={seo.hasData ? seoKpis : []} sections={extras.SEO} /> : null,
         ADS: ads.hasData ? <ModulePreviewCard title={t.overview.adsCard} icon={<Megaphone className="size-4 text-muted-foreground" />} kpis={adsKpis} /> : null,
       }}
       insightPreview={
@@ -227,7 +229,7 @@ async function InsightTab({
   const insights = await Promise.all(INSIGHT_MODULES.map((m) => getLatestInsight(clientId, m.key, range)));
   return (
     <Section title={t.reports.aiInsight} description={`${t.reports.aiInsightDesc} · ${rs.insight.forRange} ${rangeLabel}`}>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         {INSIGHT_MODULES.map((m, i) => {
           const insight = insights[i];
           return (

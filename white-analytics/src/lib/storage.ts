@@ -39,8 +39,19 @@ export function extensionFor(contentType: string): string | null {
   return ALLOWED[contentType] ?? null;
 }
 
-export function isAllowedContentType(contentType: string): boolean {
-  return contentType in ALLOWED;
+/**
+ * Content type from the file's leading bytes. The browser-supplied MIME is a
+ * claim, this is the evidence. Returns null for anything outside the allowlist.
+ */
+export function sniffContentType(data: Uint8Array): string | null {
+  const b = data;
+  const ascii = (from: number, to: number) => String.fromCharCode(...b.subarray(from, to));
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b.length >= 8 && b[0] === 0x89 && ascii(1, 4) === "PNG" && b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a) return "image/png";
+  if (b.length >= 6 && (ascii(0, 6) === "GIF87a" || ascii(0, 6) === "GIF89a")) return "image/gif";
+  if (b.length >= 12 && ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image/webp";
+  if (b.length >= 12 && ascii(4, 8) === "ftyp") return ascii(8, 12).startsWith("qt") ? "video/quicktime" : "video/mp4";
+  return null;
 }
 
 export function publicUrl(key: string): string {
@@ -53,7 +64,7 @@ export async function putObject(
   opts: { clientId: string; contentType: string },
 ): Promise<StoredObject> {
   const ext = extensionFor(opts.contentType);
-  if (!ext) throw new Error("UNSUPPORTED_TYPE");
+  if (!ext || sniffContentType(data) !== opts.contentType) throw new Error("UNSUPPORTED_TYPE");
   if (data.byteLength > MAX_UPLOAD_BYTES) throw new Error("TOO_LARGE");
   const key = safeKey(`${opts.clientId}/${randomUUID()}.${ext}`);
   const abs = path.join(rootDir(), key);

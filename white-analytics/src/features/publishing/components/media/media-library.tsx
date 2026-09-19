@@ -73,7 +73,7 @@ export function MediaLibrary({ clientId, assets, role }: { clientId: string; ass
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {filtered.map((a) => (
             <li key={a.id}>
-              <button type="button" onClick={() => setEditing(a)} className="lift block w-full overflow-hidden rounded-xl border bg-card text-left">
+              <button type="button" onClick={() => setEditing(a)} className="lift block w-full overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) text-left">
                 <MediaThumb asset={a} className="aspect-square" />
                 <div className="space-y-1 px-2.5 py-2">
                   <p className="truncate text-xs font-medium">{a.filename}</p>
@@ -133,7 +133,7 @@ function EditMediaDialog({ asset, canManage, onClose }: { asset: MediaRow; canMa
           <DialogTitle>{p.editMedia}</DialogTitle>
           <DialogDescription className="truncate">{asset.filename}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 sm:grid-cols-[160px_1fr]">
+        <div className="grid gap-5 sm:grid-cols-[160px_1fr]">
           <MediaThumb asset={asset} className="aspect-square rounded-lg" />
           <div className="space-y-3">
             <div className="space-y-1">

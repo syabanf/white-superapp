@@ -24,7 +24,7 @@ export function BacklinkTrendCards({ daily, weekly }: { daily: BacklinkData["dai
     { accessorKey: "hilang", header: s.lostBacklinks, meta: right },
   ];
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-2">
       <ChartCard title={s.refDomainsChart} description={s.refDomainsChartDesc} table={<DataTable bare dense data={daily} columns={dailyCols} pageSize={14} />}>
         <TimeSeriesChart data={daily} series={[{ key: "referringDomains", label: s.referringDomains, type: "area", format: (v) => formatNumber(v) }]} yDomain={["auto", "auto"]} height={220} />
       </ChartCard>
@@ -49,7 +49,7 @@ export function BacklinkTopCards({ topAnchors, topDomains }: { topAnchors: Backl
     { accessorKey: "count", header: s.backlinksKpi, meta: right },
   ];
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-2">
       <ChartCard title={s.topAnchors} description={s.topAnchorsDesc} table={<DataTable bare dense data={topAnchors} columns={cols} paginate={false} />}>
         <HBarChart items={topAnchors.map((a) => ({ label: a.label, value: a.count }))} format={(v) => formatNumber(v)} className="py-1" emptyLabel={t.common.noData} />
       </ChartCard>

@@ -38,7 +38,7 @@ function Dots({ n }: { n: number }) {
 function InstagramCard({ account, caption, media }: { account: PreviewAccount; caption: string; media: PreviewMedia[] }) {
   const first = media[0];
   return (
-    <div className="overflow-hidden rounded-xl border bg-card text-card-foreground">
+    <div className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) text-card-foreground">
       <div className="flex items-center gap-2.5 px-3 py-2.5">
         <Avatar className="size-8 ring-2 ring-[var(--brand-instagram)] ring-offset-1 ring-offset-card">
           <AvatarImage src={account.avatarUrl ?? undefined} alt="" />
@@ -73,7 +73,7 @@ function FacebookCard({ account, caption, media, linkUrl }: { account: PreviewAc
     host = "";
   }
   return (
-    <div className="overflow-hidden rounded-xl border bg-card text-card-foreground">
+    <div className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) text-card-foreground">
       <div className="flex items-center gap-2.5 px-3 py-2.5">
         <Avatar className="size-9">
           <AvatarImage src={account.avatarUrl ?? undefined} alt="" />

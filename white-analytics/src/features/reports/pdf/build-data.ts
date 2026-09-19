@@ -4,8 +4,10 @@ import { formatCompact, formatCurrency, formatDateRange, formatDateShort, format
 import { contentType, isGoodChange, type Delta } from "@/lib/metrics";
 import { getOverviewAds, getOverviewSeo, getOverviewSocial } from "@/features/overview/queries";
 import { getCampaignRows, getSocialDailyFollowers, getTopPostRows, getTopQueryRows } from "@/features/reports/queries";
+import type { ReportSection } from "@/features/reports/extras";
+import { getReportSections } from "@/features/reports/sections";
 import { pdfLabels, type PdfLang } from "@/features/reports/strings";
-import type { PdfKpi, PdfModuleBlock, ReportPdfData } from "./types";
+import type { PdfKpi, PdfModuleBlock, PdfSection, ReportPdfData } from "./types";
 
 const OBJECTIVE_LABEL: Record<string, string> = {
   OUTCOME_TRAFFIC: "Traffic",
@@ -25,6 +27,9 @@ function kpi(label: string, value: string, delta: Delta | null, opts: { lowerIsB
     deltaGood: isGoodChange(delta, opts.lowerIsBetter ?? false),
   };
 }
+
+const toPdfSections = (sections: ReportSection[]): PdfSection[] =>
+  sections.map((s) => ({ title: s.title, kpis: s.kpis.map((k) => kpi(k.label, k.value, k.delta, { lowerIsBetter: k.lowerIsBetter })), table: s.table }));
 
 export type BuildReportPdfArgs = {
   clientId: string;
@@ -46,6 +51,11 @@ export async function buildReportPdfData(args: BuildReportPdfArgs): Promise<Repo
   const { clientId, range, previous, compare, currency } = args;
   const blocks: PdfModuleBlock[] = [];
   const d = (x: Delta) => (compare ? x : null);
+  const sections = await getReportSections({ clientId, range, previous, compare, modules: args.modules, lang });
+  // A module without channel data still gets its page when an extra block has data.
+  const pushSectionsOnly = (key: "SOCIAL" | "SEO", title: string, extra: ReportSection[]) => {
+    if (extra.length > 0) blocks.push({ key, title, kpis: [], chart: null, tables: [], sections: toPdfSections(extra) });
+  };
 
   if (args.modules.includes("SOCIAL")) {
     // One extra leading day so the first in-range growth delta has a base.
@@ -96,7 +106,10 @@ export async function buildReportPdfData(args: BuildReportPdfArgs): Promise<Repo
             ]),
           },
         ],
+        sections: toPdfSections(sections.SOCIAL),
       });
+    } else {
+      pushSectionsOnly("SOCIAL", L.social, sections.SOCIAL);
     }
   }
 
@@ -134,7 +147,10 @@ export async function buildReportPdfData(args: BuildReportPdfArgs): Promise<Repo
             rows: topQueries.map((q) => [q.query, formatNumber(q.clicks), formatCompact(q.impressions), formatPercent(q.ctr), formatNumber(q.position, 1)]),
           },
         ],
+        sections: toPdfSections(sections.SEO),
       });
+    } else {
+      pushSectionsOnly("SEO", L.seo, sections.SEO);
     }
   }
 
@@ -179,6 +195,7 @@ export async function buildReportPdfData(args: BuildReportPdfArgs): Promise<Repo
             ]),
           },
         ],
+        sections: [],
       });
     }
   }

@@ -16,7 +16,7 @@ export function TopPostsGrid({ posts }: { posts: SocialPostRow[] }) {
     return <p className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">{s.noPosts}</p>;
   }
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {posts.map((p) => (
         <PostCard key={p.id} post={p} />
       ))}

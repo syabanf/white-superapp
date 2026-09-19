@@ -5,6 +5,7 @@ import type { DateRange } from "@/lib/dates";
 import { addDays, dayKey, eachDay } from "@/lib/dates";
 import { aggregateSearch, postEngagements, safeDiv } from "@/lib/metrics";
 import { NON_CONVERSION_RESULT_TYPES } from "@/features/overview/queries";
+import { summarizePublishing, type PublishingSummary } from "@/features/reports/extras";
 
 export type InsightModule = "OVERVIEW" | "SOCIAL" | "SEO" | "ADS";
 
@@ -158,6 +159,51 @@ export const getCampaignRows = cache(async (clientId: string, range: DateRange):
       };
     })
     .sort((a, b) => b.spend - a.spend);
+});
+
+/**
+ * Publishing in range: PUBLISHED targets by `publishedAt`, FAILED targets by the post's
+ * planned instant (`scheduledAt`, else `createdAt`). Engagement comes from synced
+ * `SocialPost` rows that share the target's account and `externalId`.
+ */
+export const getPublishingSummary = cache(async (clientId: string, range: DateRange): Promise<PublishingSummary> => {
+  const window = { gte: range.from, lt: addDays(range.to, 1) };
+  const [targets, failed] = await Promise.all([
+    db.postTarget.findMany({
+      where: { status: "PUBLISHED", publishedAt: window, post: { clientId } },
+      select: {
+        postId: true,
+        socialAccountId: true,
+        externalId: true,
+        publishedAt: true,
+        post: { select: { title: true, body: true } },
+        account: { select: { platform: true } },
+      },
+    }),
+    db.postTarget.count({
+      where: { status: "FAILED", post: { clientId, OR: [{ scheduledAt: window }, { scheduledAt: null, createdAt: window }] } },
+    }),
+  ]);
+  const externalIds = targets.flatMap((t) => (t.externalId ? [t.externalId] : []));
+  const synced = externalIds.length
+    ? await db.socialPost.findMany({
+        where: { externalId: { in: externalIds }, account: { clientId, isCompetitor: false } },
+        select: { socialAccountId: true, externalId: true, publishedAt: true, likes: true, comments: true, shares: true, saves: true },
+      })
+    : [];
+  return summarizePublishing(
+    targets.map((t) => ({
+      postId: t.postId,
+      title: t.post.title,
+      body: t.post.body,
+      platform: t.account.platform,
+      socialAccountId: t.socialAccountId,
+      externalId: t.externalId,
+      publishedAt: t.publishedAt!,
+    })),
+    failed,
+    synced,
+  );
 });
 
 /** Daily total followers across own accounts (carry-forward per account). */

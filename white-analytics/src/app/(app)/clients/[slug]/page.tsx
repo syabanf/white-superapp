@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText, Settings, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
-import { KpiGrid, KpiTile } from "@/components/dashboard/kpi-tile";
+import { HeroStage } from "@/components/dashboard/hero-stage";
 import { AdsModuleCard, SeoModuleCard, SocialModuleCard } from "@/features/overview/components/module-cards";
 import { SyncActivity } from "@/features/overview/components/sync-activity";
 import { AiInsightCard } from "@/features/reports/components/ai-insight-card";
@@ -38,9 +37,13 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
 
   return (
     <>
-      <PageHeader
+      <HeroStage
         eyebrow={t.nav.overview}
-        title={client.name}
+        title={
+          <>
+            {client.name} <span className="text-muted-foreground">dalam satu corong</span>
+          </>
+        }
         description={`${t.overview.subtitle} · ${formatDateRange(range.from, range.to)}`}
         actions={
           <>
@@ -56,45 +59,32 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
             </Button>
           </>
         }
+        stats={[
+          {
+            label: t.social.followers,
+            value: formatCompact(social.followers),
+            delta: d(social.followersDelta),
+            hint: "Total followers semua akun sendiri (IG, FB, TikTok). Delta = pertumbuhan periode ini vs periode sebelumnya.",
+          },
+          { label: `${t.seo.clicks} organik`, value: formatCompact(seo.clicks), delta: d(seo.clicksDelta), hint: "Klik organik dari Google Search Console." },
+          { label: t.ads.spend, value: formatCurrency(ads.kpis.spend, client.currency, { compact: true }), delta: d(ads.spendDelta) },
+          {
+            label: t.ads.cpr,
+            value: formatCurrency(ads.kpis.cpr, client.currency),
+            delta: d(ads.cprDelta),
+            lowerIsBetter: true,
+            hint: "Belanja iklan / hasil konversi. Lebih rendah lebih baik.",
+          },
+        ]}
       />
 
-      <KpiGrid>
-        <KpiTile
-          label={t.social.followers}
-          value={formatCompact(social.followers)}
-          delta={d(social.followersDelta)}
-          spark={social.followersSpark}
-          hint="Total followers semua akun sendiri (IG, FB, TikTok). Delta = pertumbuhan periode ini vs periode sebelumnya."
-        />
-        <KpiTile
-          label={`${t.seo.clicks} organik`}
-          value={formatCompact(seo.clicks)}
-          delta={d(seo.clicksDelta)}
-          spark={seo.clicksSpark}
-          hint="Klik organik dari Google Search Console."
-        />
-        <KpiTile
-          label={t.ads.spend}
-          value={formatCurrency(ads.kpis.spend, client.currency, { compact: true })}
-          delta={d(ads.spendDelta)}
-          spark={ads.spendSpark}
-        />
-        <KpiTile
-          label={t.ads.cpr}
-          value={formatCurrency(ads.kpis.cpr, client.currency)}
-          delta={d(ads.cprDelta)}
-          lowerIsBetter
-          hint="Belanja iklan / hasil konversi. Lebih rendah lebih baik."
-        />
-      </KpiGrid>
-
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <SocialModuleCard data={social} href={`${base}/social`} settingsHref={`${base}/settings`} />
         <SeoModuleCard data={seo} href={`${base}/seo`} settingsHref={`${base}/settings`} />
         <AdsModuleCard data={ads} href={`${base}/ads`} settingsHref={`${base}/settings`} currency={client.currency} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2 [&>div]:h-full">
           <AiInsightCard
             content={insight?.content}

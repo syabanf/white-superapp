@@ -1,6 +1,6 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { pdfLabels } from "@/features/reports/strings";
-import type { PdfChart, PdfKpi, PdfModuleBlock, PdfTable, ReportPdfData } from "./types";
+import type { PdfChart, PdfKpi, PdfModuleBlock, PdfSection, PdfTable, ReportPdfData } from "./types";
 
 /**
  * WHITE monochrome A4 report. Built-in Helvetica only (no network fonts) —
@@ -145,28 +145,39 @@ function BarChart({ chart }: { chart: PdfChart }) {
   );
 }
 
+function TableRow({ table, row }: { table: PdfTable; row: string[] }) {
+  return (
+    <View style={styles.tableRow} wrap={false}>
+      {row.map((cell, ci) => {
+        const col = table.columns[ci];
+        return (
+          <Text key={ci} style={[styles.tdText, { width: `${col?.width ?? 20}%`, textAlign: col?.align ?? "left", paddingRight: 6 }]}>
+            {safe(cell)}
+          </Text>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Title, header and first row stay together so a page break never strands the header. */
 function Table({ table }: { table: PdfTable }) {
+  const [first, ...rest] = table.rows;
   return (
     <View style={{ marginTop: 14 }}>
-      <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 9, marginBottom: 6 }}>{safe(table.title)}</Text>
-      <View style={styles.tableHead}>
-        {table.columns.map((c, i) => (
-          <Text key={i} style={[styles.thText, { width: `${c.width}%`, textAlign: c.align ?? "left", paddingRight: 6 }]}>
-            {safe(c.label)}
-          </Text>
-        ))}
-      </View>
-      {table.rows.map((row, ri) => (
-        <View key={ri} style={styles.tableRow} wrap={false}>
-          {row.map((cell, ci) => {
-            const col = table.columns[ci];
-            return (
-              <Text key={ci} style={[styles.tdText, { width: `${col?.width ?? 20}%`, textAlign: col?.align ?? "left", paddingRight: 6 }]}>
-                {safe(cell)}
-              </Text>
-            );
-          })}
+      <View wrap={false}>
+        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 9, marginBottom: 6 }}>{safe(table.title)}</Text>
+        <View style={styles.tableHead}>
+          {table.columns.map((c, i) => (
+            <Text key={i} style={[styles.thText, { width: `${c.width}%`, textAlign: c.align ?? "left", paddingRight: 6 }]}>
+              {safe(c.label)}
+            </Text>
+          ))}
         </View>
+        {first ? <TableRow table={table} row={first} /> : null}
+      </View>
+      {rest.map((row, ri) => (
+        <TableRow key={ri} table={table} row={row} />
       ))}
     </View>
   );
@@ -267,6 +278,19 @@ function CoverPage({ data }: { data: ReportPdfData }) {
   );
 }
 
+/** Sub-block under a module: hairline rule, heading kept with its KPI row, optional table. */
+function Section({ section }: { section: PdfSection }) {
+  return (
+    <View style={{ marginTop: 20, borderTopWidth: 0.5, borderTopColor: FAINT, paddingTop: 12 }}>
+      <View wrap={false}>
+        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 11, marginBottom: 8 }}>{safe(section.title)}</Text>
+        <Kpis kpis={section.kpis} />
+      </View>
+      {section.table && section.table.rows.length > 0 ? <Table table={section.table} /> : null}
+    </View>
+  );
+}
+
 function ModulePage({ block, data }: { block: PdfModuleBlock; data: ReportPdfData }) {
   return (
     <Page size="A4" style={styles.page}>
@@ -278,6 +302,9 @@ function ModulePage({ block, data }: { block: PdfModuleBlock; data: ReportPdfDat
       {block.chart && block.chart.points.length > 1 ? <BarChart chart={block.chart} /> : null}
       {block.tables.map((tb, i) => (
         <Table key={i} table={tb} />
+      ))}
+      {block.sections.map((sec, i) => (
+        <Section key={i} section={sec} />
       ))}
       <Footer data={data} />
     </Page>

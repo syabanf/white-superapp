@@ -9,7 +9,7 @@ import { formatDateTime, initials } from "@/lib/format";
 export function TargetsList({ targets, timezone }: { targets: PostTargetView[]; timezone: string }) {
   if (targets.length === 0) return <p className="text-sm text-muted-foreground">{p.err.nothingToPublish}</p>;
   return (
-    <ul className="divide-y rounded-xl border bg-card">
+    <ul className="divide-y rounded-[1.5rem] bg-card shadow-(--card-shadow)">
       {targets.map((tg) => (
         <li key={tg.id} className="flex items-start gap-3 px-3 py-2.5">
           <div className="relative shrink-0">

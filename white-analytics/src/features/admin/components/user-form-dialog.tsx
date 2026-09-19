@@ -137,7 +137,7 @@ function UserFormBody({
       }}
       className="space-y-4"
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="user-name">{t.admin.name}</Label>
           <Input id="user-name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Tim WHITE" />
@@ -166,7 +166,7 @@ function UserFormBody({
         <FieldError errors={errors} name="password" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="user-role">{t.admin.role}</Label>
           <Select value={role} onValueChange={(v) => setRole(v as "ADMIN" | "MEMBER")}>

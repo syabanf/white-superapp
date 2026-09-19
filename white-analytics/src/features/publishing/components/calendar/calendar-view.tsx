@@ -114,7 +114,7 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
 
       {view === "month" ? (
         <>
-          <div className="overflow-hidden rounded-xl border bg-card">
+          <div className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow)">
             {weekHeader}
             {days.map((row, ri) => (
               <div key={ri} className="grid grid-cols-7 border-b last:border-b-0">
@@ -182,7 +182,7 @@ export function CalendarView({ slug, timezone, view, date, today, days, posts, r
         </>
       ) : (
         <>
-          <div className="hidden overflow-hidden rounded-xl border bg-card md:block">
+          <div className="hidden overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) md:block">
             {weekHeader}
             <div className="grid grid-cols-7">
               {weekDays(date).map((key) => {

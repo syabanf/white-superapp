@@ -19,12 +19,12 @@ export default function Loading() {
           <Skeleton key={i} className="h-[104px] rounded-xl" />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-72 rounded-xl" />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Skeleton className="h-56 rounded-xl lg:col-span-2" />
         <Skeleton className="h-56 rounded-xl" />
       </div>

@@ -28,12 +28,16 @@ export type PdfTable = {
   rows: string[][];
 };
 
+/** Sub-block inside a module page: rank tracker, backlinks, publishing performance. */
+export type PdfSection = { title: string; kpis: PdfKpi[]; table: PdfTable | null };
+
 export type PdfModuleBlock = {
   key: "SOCIAL" | "SEO" | "ADS";
   title: string;
   kpis: PdfKpi[];
   chart: PdfChart | null;
   tables: PdfTable[];
+  sections: PdfSection[];
 };
 
 export type ReportPdfData = {

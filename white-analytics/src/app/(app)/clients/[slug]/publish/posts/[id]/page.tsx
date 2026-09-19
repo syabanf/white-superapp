@@ -110,7 +110,7 @@ export default async function PostDetailPage(props: PageProps<"/clients/[slug]/p
             {platforms.length === 0 ? (
               <p className="rounded-xl border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">{p.previewEmpty}</p>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 {platforms.map((pl) => {
                   const tg = post.targets.find((x) => x.platform === pl)!;
                   return (
@@ -129,7 +129,7 @@ export default async function PostDetailPage(props: PageProps<"/clients/[slug]/p
           </Section>
 
           <Section index="02" title={p.metaTitle}>
-            <dl className="grid gap-x-6 gap-y-3 rounded-xl border bg-card p-4 text-sm sm:grid-cols-2">
+            <dl className="grid gap-x-6 gap-y-3 rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow) text-sm sm:grid-cols-2">
               <div>
                 <dt className="label-mono text-muted-foreground">{p.linkOut}</dt>
                 <dd className="mt-1 break-all">
@@ -162,7 +162,7 @@ export default async function PostDetailPage(props: PageProps<"/clients/[slug]/p
           </Section>
 
           <Section index="03" title={p.timeline}>
-            <div className="rounded-xl border bg-card p-4">
+            <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
               <ActivityTimeline activities={post.activities} timezone={tz} />
             </div>
           </Section>
@@ -173,7 +173,7 @@ export default async function PostDetailPage(props: PageProps<"/clients/[slug]/p
             <TargetsList targets={post.targets} timezone={tz} />
           </Section>
           <Section index="05" title={p.comments}>
-            <div className="rounded-xl border bg-card p-4">
+            <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
               <CommentsThread postId={post.id} comments={post.comments} />
             </div>
           </Section>

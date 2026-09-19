@@ -80,7 +80,7 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
         <EmptyState icon={<ShieldCheck />} title={t.seo.noAudit} description={t.seo.noAuditDesc} />
       ) : (
         <>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <AuditStrategyCard audit={data.latestMobile} strategy="MOBILE" />
             <AuditStrategyCard audit={data.latestDesktop} strategy="DESKTOP" />
           </div>
@@ -104,7 +104,7 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
           </div>
         }
       >
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-5 lg:grid-cols-3">
           <Card className="gap-3 py-0">
             <CardHeader className="px-5 pt-4 pb-0">
               <CardTitle className="text-sm font-semibold">{s.crawlSummary}</CardTitle>

@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
 /**
- * WHITE brand mark — eight pinwheel petals around a small centre, drawn inline so it
- * inherits currentColor in both themes. `variant="mark"` renders only the flower.
- * (Raster original lives at /public/logo-white.png for PDF/export use.)
+ * WHITE brand mark: eight shutter blades around an open centre, drawn inline so it
+ * inherits currentColor in both themes. `variant="mark"` renders only the blades.
+ * Traced by eye from the raster logo. Swap the path for the official SVG when it arrives.
  */
 export function WhiteLogo({
   className,
@@ -27,13 +27,12 @@ export function WhiteLogo({
       {Array.from({ length: 8 }).map((_, i) => (
         <path
           key={i}
-          // petal: square inner-left corner, rounded outer end → pinwheel rhythm
-          d="M18.6 18.4V11a5.4 5.4 0 0 1 10.8 0v5.6a1.8 1.8 0 0 1-1.8 1.8Z"
+          // blade: straight leading edge, swept trailing curve, open centre
+          d="M21.2 17.6V4.6c6 .2 9.8 4.9 8.7 10.6l-.5 2.4Z"
           fill="currentColor"
           transform={`rotate(${i * 45} 24 24)`}
         />
       ))}
-      <circle cx="24" cy="24" r="3.4" fill="currentColor" />
     </svg>
   );
   if (variant === "mark")
@@ -41,7 +40,7 @@ export function WhiteLogo({
   return (
     <span className={cn("inline-flex items-center gap-2 text-foreground", className)}>
       {mark}
-      <span className="font-semibold tracking-tight" style={{ fontSize: size * 0.85, lineHeight: 1 }}>
+      <span className="relative font-semibold tracking-[-0.04em]" style={{ fontSize: size * 0.95, lineHeight: 1 }}>
         white
       </span>
     </span>

@@ -33,7 +33,7 @@ export function ApifyCostEstimator({ trackedKeywords, socialAccounts, usdIdr }: 
         <CardDescription className="text-xs">{ts.apifyCostDesc}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <Field id="ap-kw" label={ts.costKeywords} value={kw} onChange={setKw} />
           <Field id="ap-acc" label={ts.apifyAccounts} value={acc} onChange={setAcc} />
           <Field id="ap-posts" label={ts.apifyPosts} value={posts} onChange={setPosts} />

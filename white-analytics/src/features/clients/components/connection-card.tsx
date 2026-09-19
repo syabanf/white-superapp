@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { PlatformIcon } from "@/features/social/components/platform-icon";
-import { disconnectConnectionAction, simulateConnectionAction } from "@/features/clients/actions";
+import { disconnectConnectionAction, simulateConnectionAction } from "@/features/clients/actions-resources";
 import type { SettingsConnection } from "@/features/clients/queries";
 import { formatDate } from "@/lib/format";
 import { t } from "@/i18n/id";

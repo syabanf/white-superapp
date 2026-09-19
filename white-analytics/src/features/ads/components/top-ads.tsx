@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/dashboard/status-badge";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { resultTypeLabel, s } from "@/features/ads/strings";
-import type { AdsTopAd } from "@/features/ads/queries";
+import type { AdsTopAd } from "@/features/ads/queries-breakdown";
 
 function Thumb({ src, alt }: { src: string | null; alt: string }) {
   const [failed, setFailed] = React.useState(false);

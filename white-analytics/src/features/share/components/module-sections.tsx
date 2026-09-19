@@ -80,7 +80,7 @@ export function ShareSeoSection({ data }: { data: ShareSeoView }) {
         <KpiTile label={t.seo.position} value={formatNumber(data.position, 1)} delta={data.positionDelta} lowerIsBetter />
       </KpiGrid>
       {/* Klik vs impresi differ ~30×: small multiples, one y-axis each (chart rule). */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title={t.seo.clicks} description={t.seo.trendChartDesc}>
           <TimeSeriesChart data={data.daily} series={[{ key: "clicks", label: t.seo.clicks, type: "area", format: (v) => formatNumber(v) }]} height={200} />
         </ChartCard>
@@ -128,7 +128,7 @@ export function ShareAdsSection({ data }: { data: ShareAdsView }) {
           yFormat={(v) => formatCompact(v)}
         />
       </ChartCard>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title={rs.share.campaigns} description={t.ads.spend}>
           <HBarChart
             items={data.campaigns.slice(0, 6).map((c) => ({ label: c.name, value: c.spend }))}

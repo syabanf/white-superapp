@@ -137,7 +137,7 @@ export function ResearchResults({
         ]}
       />
       <Card className="gap-0 py-0">
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="space-y-4 p-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-1.5">
               <Label htmlFor="f-vol" className="label-mono">

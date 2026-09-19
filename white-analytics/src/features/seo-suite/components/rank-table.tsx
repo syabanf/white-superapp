@@ -168,7 +168,7 @@ export function RankTable({ rows, tags, clientId, canManage, toolbar }: { rows: 
 
   return (
     <Card className="gap-0 py-0">
-      <CardContent className="p-5">
+      <CardContent className="p-6">
         <DataTable
           data={filtered}
           columns={columns}

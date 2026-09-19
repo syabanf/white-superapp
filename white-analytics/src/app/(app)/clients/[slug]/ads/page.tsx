@@ -137,12 +137,12 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
           />
 
           {/* Dua small multiples terpisah — bukan dual axis */}
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <SpendDailyCard daily={data.daily} currency={client.currency} compare={compare} />
             <ResultsDailyCard daily={data.daily} />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <CampaignShareCard items={data.campaignShare} currency={client.currency} />
             <DemographicsCard
               byAge={data.demographics.byAge}

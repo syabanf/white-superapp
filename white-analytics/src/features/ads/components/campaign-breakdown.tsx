@@ -11,7 +11,7 @@ import { isFatigued } from "@/lib/metrics";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
 import { objectiveLabel, resultTypeLabel, s } from "@/features/ads/strings";
-import type { AdsCampaignNode, AdsNodeKpis } from "@/features/ads/queries";
+import type { AdsCampaignNode, AdsNodeKpis } from "@/features/ads/queries-breakdown";
 
 type SortKey = "spend" | "cpr";
 type SortDir = "asc" | "desc";
@@ -147,7 +147,7 @@ export function CampaignBreakdown({ campaigns, currency }: { campaigns: AdsCampa
           <Download className="size-3.5" /> {t.common.exportCsv}
         </Button>
       </div>
-      <div className="overflow-hidden rounded-lg border bg-card">
+      <div className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow)">
         <div className="overflow-x-auto scrollbar-thin">
           <Table className="[&_td]:py-2 [&_th]:h-9">
             <TableHeader>

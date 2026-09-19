@@ -6,7 +6,6 @@
 export const t = {
   app: {
     name: "WHITE Analytics",
-    tagline: "Analisa & reporting Social Media, SEO, dan Meta Ads",
   },
   common: {
     loading: "Memuat…",
@@ -143,6 +142,7 @@ export const t = {
     admin: "Admin",
     users: "Manajemen User",
     setup: "Setup awal & integrasi",
+    more: "Semua menu",
     switchClient: "Pindah klien",
     searchClient: "Cari klien…",
     noClient: "Tidak ada klien",
@@ -521,6 +521,7 @@ export const t = {
     lastLogin: "Login terakhir",
   },
   errors: {
+    pageLoad: "Terjadi kesalahan saat memuat halaman ini.",
     RATE_LIMIT: "Batas permintaan API tercapai. Coba lagi beberapa menit.",
     TOKEN_EXPIRED: "Koneksi akun kedaluwarsa. Hubungkan ulang akun.",
     PERMISSION: "Izin tidak mencukupi. Periksa akses akun yang dihubungkan.",

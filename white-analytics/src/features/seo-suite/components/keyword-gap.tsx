@@ -101,7 +101,7 @@ export function KeywordGapSection({
 
   return (
     <Card className="gap-0 py-0" id="gap">
-      <CardContent className="space-y-4 p-5">
+      <CardContent className="space-y-4 p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="label-mono">{s.gapPickCompetitor}</span>
