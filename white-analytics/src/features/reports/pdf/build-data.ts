@@ -115,6 +115,8 @@ export async function buildReportPdfData(args: BuildReportPdfArgs): Promise<Repo
 
   if (args.modules.includes("SEO")) {
     const [seo, topQueries] = await Promise.all([getOverviewSeo(clientId, range, previous), getTopQueryRows(clientId, range, 8)]);
+    // Days GSC did not report are skipped: a zero bar would claim traffic fell.
+    const seoReported = seo.daily.filter((p): p is { date: string; clicks: number; impressions: number } => p.clicks != null);
     if (seo.hasData) {
       blocks.push({
         key: "SEO",
@@ -127,11 +129,11 @@ export async function buildReportPdfData(args: BuildReportPdfArgs): Promise<Repo
           ...(seo.health != null ? [{ label: "Skor kesehatan", value: `${formatNumber(seo.health)}/100`, delta: null, deltaGood: null } satisfies PdfKpi] : []),
         ],
         chart:
-          seo.daily.length > 1
+          seoReported.length > 1
             ? {
                 title: L.dailyClicks,
-                maxLabel: formatCompact(Math.max(...seo.daily.map((p) => p.clicks))),
-                points: seo.daily.map((p) => ({ date: formatDateShort(p.date), value: p.clicks })),
+                maxLabel: formatCompact(Math.max(...seoReported.map((p) => p.clicks))),
+                points: seoReported.map((p) => ({ date: formatDateShort(p.date), value: p.clicks })),
               }
             : null,
         tables: [

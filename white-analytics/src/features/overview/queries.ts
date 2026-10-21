@@ -47,7 +47,7 @@ export type OverviewSeo = {
   position: number;
   positionDelta: Delta;
   health: number | null;
-  daily: { date: string; clicks: number; impressions: number }[];
+  daily: { date: string; clicks: number | null; impressions: number | null }[];
 };
 
 export type OverviewAds = {
@@ -303,8 +303,8 @@ export const getOverviewSeo = cache(
     const prev = aggregateSearch(prevRows);
     const daily = fillDaily(range, rows, (r) => r.date, ["clicks", "impressions"], { missing: null }) as {
       date: string;
-      clicks: number;
-      impressions: number;
+      clicks: number | null;
+      impressions: number | null;
     }[];
     const errors = latestCrawl?.issues.filter((i) => i.severity === "ERROR").length ?? 0;
     const warnings = latestCrawl?.issues.filter((i) => i.severity === "WARNING").length ?? 0;

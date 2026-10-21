@@ -1,0 +1,488 @@
+syntax = "proto3";
+
+package white.identity.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "white/common/v1/common.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/identity/v1;identityv1";
+
+// ─────────────────────────────────────────────────────────────
+// Shared messages
+// ─────────────────────────────────────────────────────────────
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  ADMIN = 1;
+  MEMBER = 2;
+}
+
+enum ClientMemberRole {
+  CLIENT_MEMBER_ROLE_UNSPECIFIED = 0;
+  MANAGER = 1;
+  VIEWER = 2;
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  UserRole role = 4;
+  bool is_active = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message Membership {
+  string client_id = 1;
+  ClientMemberRole role = 2;
+}
+
+message Client {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+  optional string logo_url = 5;
+  optional string website_url = 6;
+  optional string industry = 7;
+  string currency = 8;
+  string timezone = 9;
+  bool share_enabled = 10;
+  bool share_pin_set = 11;
+  repeated white.common.v1.ModuleKey share_modules = 12;
+  google.protobuf.Timestamp created_at = 13;
+}
+
+// What the caller may do with a client. Admins get role ADMIN_OVERRIDE.
+message ClientAccess {
+  Client client = 1;
+  AccessRole role = 2;
+  bool can_manage = 3;
+
+  enum AccessRole {
+    ACCESS_ROLE_UNSPECIFIED = 0;
+    ADMIN_OVERRIDE = 1;
+    MANAGER = 2;
+    VIEWER = 3;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// AuthService: password login, token refresh, current user
+// ─────────────────────────────────────────────────────────────
+
+service AuthService {
+  rpc Login(LoginRequest) returns (TokenPair) {
+    option (google.api.http) = {post: "/v1/auth/login" body: "*"};
+  }
+  rpc Refresh(RefreshRequest) returns (TokenPair) {
+    option (google.api.http) = {post: "/v1/auth/refresh" body: "*"};
+  }
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {post: "/v1/auth/logout" body: "*"};
+  }
+  rpc Me(google.protobuf.Empty) returns (User) {
+    option (google.api.http) = {get: "/v1/auth/me"};
+  }
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message TokenPair {
+  string access_token = 1;
+  google.protobuf.Timestamp access_expires_at = 2;
+  string refresh_token = 3;
+  google.protobuf.Timestamp refresh_expires_at = 4;
+  User user = 5;
+}
+
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// UserService: workspace users (ADMIN only)
+// ─────────────────────────────────────────────────────────────
+
+service UserService {
+  rpc ListUsers(google.protobuf.Empty) returns (ListUsersResponse) {
+    option (google.api.http) = {get: "/v1/users"};
+  }
+  // Active users for member pickers. Any signed-in user.
+  rpc ListUserOptions(google.protobuf.Empty) returns (ListUserOptionsResponse) {
+    option (google.api.http) = {get: "/v1/users:options"};
+  }
+  rpc CreateUser(CreateUserRequest) returns (User) {
+    option (google.api.http) = {post: "/v1/users" body: "*"};
+  }
+  rpc UpdateUser(UpdateUserRequest) returns (User) {
+    option (google.api.http) = {put: "/v1/users/{user_id}" body: "*"};
+  }
+  rpc SetUserActive(SetUserActiveRequest) returns (User) {
+    option (google.api.http) = {post: "/v1/users/{user_id}:setActive" body: "*"};
+  }
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/users/{user_id}"};
+  }
+}
+
+message UserWithClients {
+  User user = 1;
+  repeated UserClient clients = 2;
+
+  message UserClient {
+    string id = 1;
+    string name = 2;
+    string slug = 3;
+    ClientMemberRole role = 4;
+  }
+}
+
+message ListUsersResponse {
+  repeated UserWithClients users = 1;
+}
+
+message UserOption {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message ListUserOptionsResponse {
+  repeated UserOption users = 1;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+  UserRole role = 4;
+  bool is_active = 5;
+  repeated Membership memberships = 6;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  string name = 2;
+  string email = 3;
+  // Empty keeps the current password.
+  string password = 4;
+  UserRole role = 5;
+  bool is_active = 6;
+  // Replaces every membership of the user.
+  repeated Membership memberships = 7;
+}
+
+message SetUserActiveRequest {
+  string user_id = 1;
+  bool is_active = 2;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ClientService: projects, members, public share settings
+// ─────────────────────────────────────────────────────────────
+
+service ClientService {
+  // Clients the caller may see, with member count and the caller's role.
+  rpc ListClients(google.protobuf.Empty) returns (ListClientsResponse) {
+    option (google.api.http) = {get: "/v1/clients"};
+  }
+  rpc GetClient(GetClientRequest) returns (ClientAccess) {
+    option (google.api.http) = {get: "/v1/clients/{slug}"};
+  }
+  rpc CreateClient(CreateClientRequest) returns (Client) {
+    option (google.api.http) = {post: "/v1/clients" body: "*"};
+  }
+  rpc UpdateClient(UpdateClientRequest) returns (Client) {
+    option (google.api.http) = {put: "/v1/clients/{client_id}" body: "*"};
+  }
+  rpc DeleteClient(DeleteClientRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}"};
+  }
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/members"};
+  }
+  rpc UpsertMember(UpsertMemberRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {put: "/v1/clients/{client_id}/members/{user_id}" body: "*"};
+  }
+  rpc RemoveMember(RemoveMemberRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/members/{user_id}"};
+  }
+  rpc UpdateShareSettings(UpdateShareSettingsRequest) returns (Client) {
+    option (google.api.http) = {put: "/v1/clients/{client_id}/share" body: "*"};
+  }
+}
+
+message ClientSummary {
+  Client client = 1;
+  int32 members_count = 2;
+  ClientAccess.AccessRole my_role = 3;
+}
+
+message ListClientsResponse {
+  repeated ClientSummary clients = 1;
+}
+
+message GetClientRequest {
+  string slug = 1;
+}
+
+message ClientProfile {
+  string name = 1;
+  string slug = 2;
+  string description = 3;
+  string industry = 4;
+  string website_url = 5;
+  string currency = 6;
+  string timezone = 7;
+}
+
+message CreateClientRequest {
+  ClientProfile profile = 1;
+  // Channels picked in the wizard. Empty keeps the default (all modules).
+  repeated white.common.v1.ModuleKey modules = 2;
+}
+
+message UpdateClientRequest {
+  string client_id = 1;
+  ClientProfile profile = 2;
+}
+
+message DeleteClientRequest {
+  string client_id = 1;
+}
+
+message ClientMember {
+  string user_id = 1;
+  string name = 2;
+  string email = 3;
+  bool is_active = 4;
+  ClientMemberRole role = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ListMembersRequest {
+  string client_id = 1;
+}
+
+message ListMembersResponse {
+  repeated ClientMember members = 1;
+}
+
+message UpsertMemberRequest {
+  string client_id = 1;
+  string user_id = 2;
+  ClientMemberRole role = 3;
+}
+
+message RemoveMemberRequest {
+  string client_id = 1;
+  string user_id = 2;
+}
+
+message UpdateShareSettingsRequest {
+  string client_id = 1;
+  bool share_enabled = 2;
+  // Six digits sets a new PIN; empty clears the PIN.
+  string pin = 3;
+  repeated white.common.v1.ModuleKey modules = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AccessService: internal authorization lookups for other services
+// ─────────────────────────────────────────────────────────────
+
+service AccessService {
+  // Resolves what `user_id` may do with the client given by id or slug.
+  rpc CheckClientAccess(CheckClientAccessRequest) returns (ClientAccess);
+  rpc GetUser(GetUserRequest) returns (User);
+  // Clients the user may see (ids only). Admins get every client.
+  rpc ListAccessibleClientIds(ListAccessibleClientIdsRequest) returns (ListAccessibleClientIdsResponse);
+  // Every client (id, slug, timezone, modules), for schedulers.
+  rpc ListAllClients(google.protobuf.Empty) returns (ListAllClientsResponse);
+}
+
+message CheckClientAccessRequest {
+  string user_id = 1;
+  oneof client {
+    string client_id = 2;
+    string slug = 3;
+  }
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message ListAccessibleClientIdsRequest {
+  string user_id = 1;
+}
+
+message ListAccessibleClientIdsResponse {
+  repeated string client_ids = 1;
+}
+
+message ListAllClientsResponse {
+  repeated Client clients = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// NotificationService: per-user feed + internal fan-out
+// ─────────────────────────────────────────────────────────────
+
+service NotificationService {
+  rpc ListNotifications(ListNotificationsRequest) returns (NotificationFeed) {
+    option (google.api.http) = {get: "/v1/notifications"};
+  }
+  rpc MarkNotificationRead(MarkNotificationReadRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {post: "/v1/notifications/{notification_id}:read"};
+  }
+  rpc MarkAllNotificationsRead(google.protobuf.Empty) returns (MarkAllNotificationsReadResponse) {
+    option (google.api.http) = {post: "/v1/notifications:readAll"};
+  }
+  // Internal. Resolves the audience of a client and inserts one row per user.
+  rpc Notify(NotifyRequest) returns (NotifyResponse);
+}
+
+message Notification {
+  string id = 1;
+  string type = 2;
+  string title = 3;
+  string body = 4;
+  optional string href = 5;
+  bool read = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ListNotificationsRequest {
+  int32 limit = 1;
+}
+
+message NotificationFeed {
+  int32 unread = 1;
+  repeated Notification items = 2;
+}
+
+message MarkNotificationReadRequest {
+  string notification_id = 1;
+}
+
+message MarkAllNotificationsReadResponse {
+  int32 count = 1;
+}
+
+message NotifyRequest {
+  // Explicit recipients, or an audience derived from the client.
+  repeated string user_ids = 1;
+  string client_id = 2;
+  Audience audience = 3;
+  // Left out of the audience (usually the actor).
+  string except_user_id = 4;
+  string type = 5;
+  string title = 6;
+  string body = 7;
+  string href = 8;
+
+  enum Audience {
+    AUDIENCE_UNSPECIFIED = 0;
+    // Active admins plus every active member of the client.
+    CLIENT_ALL = 1;
+    // Active admins plus active MANAGER members of the client.
+    CLIENT_APPROVERS = 2;
+  }
+}
+
+message NotifyResponse {
+  int32 count = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ShareService: public dashboard access by slug + PIN
+// ─────────────────────────────────────────────────────────────
+
+service ShareService {
+  // Resolves the public dashboard. `unlock_token` is the cookie value the
+  // gateway stores after VerifySharePin.
+  rpc GetShareContext(GetShareContextRequest) returns (ShareContext) {
+    option (google.api.http) = {get: "/v1/share/{slug}"};
+  }
+  rpc VerifySharePin(VerifySharePinRequest) returns (VerifySharePinResponse) {
+    option (google.api.http) = {post: "/v1/share/{slug}:verifyPin" body: "*"};
+  }
+}
+
+message GetShareContextRequest {
+  string slug = 1;
+  string unlock_token = 2;
+}
+
+message ShareContext {
+  Status status = 1;
+  // Present unless status is NOT_FOUND.
+  Client client = 2;
+
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    OK = 1;
+    LOCKED = 2;
+    DISABLED = 3;
+    NOT_FOUND = 4;
+  }
+}
+
+message VerifySharePinRequest {
+  string slug = 1;
+  string pin = 2;
+  // Client IP for rate limiting (set by the gateway).
+  string remote_ip = 3;
+}
+
+message VerifySharePinResponse {
+  string client_id = 1;
+  // Value for the `share_<client_id>` cookie, valid 12 hours.
+  string unlock_token = 2;
+  int32 max_age_seconds = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// WorkspaceService: setup flags (ADMIN)
+// ─────────────────────────────────────────────────────────────
+
+service WorkspaceService {
+  rpc GetSetupState(google.protobuf.Empty) returns (SetupState) {
+    option (google.api.http) = {get: "/v1/workspace/setup"};
+  }
+  rpc MarkSetup(MarkSetupRequest) returns (SetupState) {
+    option (google.api.http) = {post: "/v1/workspace/setup:mark" body: "*"};
+  }
+}
+
+message SetupState {
+  optional google.protobuf.Timestamp completed_at = 1;
+  optional google.protobuf.Timestamp skipped_at = 2;
+  // Counts shown on the setup overview.
+  int32 clients = 3;
+}
+
+message MarkSetupRequest {
+  Kind kind = 1;
+
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    COMPLETED = 1;
+    SKIPPED = 2;
+  }
+}

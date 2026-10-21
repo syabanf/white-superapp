@@ -125,7 +125,8 @@ export function MarketingFunnel3D({ className }: { className?: string }) {
       ctx.font = "500 10px ui-monospace, SFMono-Regular, Menlo, monospace";
       ctx.textAlign = "center";
       ctx.fillStyle = ink;
-      CHANNELS.forEach((label, i) => {
+      // Labels need room: on a short stage (the dashboard hero) they collide with each other.
+      if (Math.min(w, h * 1.15) >= 240) CHANNELS.forEach((label, i) => {
         const a = (i * TAU) / CHANNELS.length;
         const p = project(Math.cos(a) * 1.02, funnelY(0) - 0.09, Math.sin(a) * 1.02);
         ctx.globalAlpha = 0.35 + 0.65 * Math.max(0, Math.min(1, (1.2 - p.depth) / 2.4));

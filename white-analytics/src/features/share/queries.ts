@@ -30,7 +30,7 @@ export type ShareSeoView = {
   ctrDelta: Delta;
   position: number;
   positionDelta: Delta;
-  daily: { date: string; clicks: number; impressions: number }[];
+  daily: { date: string; clicks: number | null; impressions: number | null }[];
   topQueries: { query: string; clicks: number; impressions: number; ctr: number; position: number }[];
 };
 

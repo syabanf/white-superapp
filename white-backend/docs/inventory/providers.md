@@ -1,0 +1,519 @@
+# External integration inventory: white-analytics (src/lib/providers/** + src/lib/integrations.ts)
+
+Base path: `/Users/syabanf/Documents/works/WHITE-Superapps-main/white-analytics/src/lib/`
+
+## How errors work in every adapter (`src/lib/action-result.ts`)
+- `ProviderErrorCode = "RATE_LIMIT" | "TOKEN_EXPIRED" | "PERMISSION" | "NOT_FOUND" | "NETWORK" | "UNKNOWN"`.
+- `class ProviderError(provider: string, code, message, opts {requiresReconnect?, cause?})`. `requiresReconnect` defaults to `code === TOKEN_EXPIRED || code === PERMISSION`.
+- No adapter has retry or backoff. Rate limits are only mapped to `RATE_LIMIT` and thrown. Retry is the caller's job (for example, the publish retry flow).
+- Every adapter uses plain `fetch`. No SDKs are used.
+
+---
+
+## 1. lazy.ts
+- `lazyProvider<T extends object>(pick: () => T): T` returns a `Proxy`. Every property access calls `pick()` again and binds functions to the chosen implementation.
+- Why: the choice between mock and real is made per call, not at import time. Credentials saved in the setup wizard are written into `process.env`, so an adapter switches to real immediately without a restart.
+- Used by: `seoData` (dataforseo), `metaGraph`, `socialPublisher`, `publicSocial` (apify).
+- Not used by: google-search (`getGoogleSearchProvider()`), openrouter (`getInsightProvider()`) and meta-marketing (`getMetaMarketing(token)`). These are function pickers that also decide per call.
+- Go port: a factory function called per request that reads config/env.
+
+## 2. integrations.ts (credential storage and env hydration)
+- The registry is in `src/features/setup/integrations.ts`:
+  - `INTEGRATION_KEYS = ["META","GOOGLE","DATAFORSEO","APIFY","OPENROUTER"]`
+  - META: `publicEnv: META_APP_ID`, `secretEnv: META_APP_SECRET`, publicRequired=true
+  - GOOGLE: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, publicRequired=true
+  - DATAFORSEO: `DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD`, publicRequired=true
+  - APIFY: `APIFY_ACTORS` (public) / `APIFY_TOKEN` (secret), publicRequired=false
+  - OPENROUTER: `OPENROUTER_MODEL` (public) / `OPENROUTER_API_KEY` (secret), publicRequired=false
+- `isConfiguredPair(def, publicId, secret)`: a secret is always required; the public half only when `publicRequired`.
+- `maskSecret(s)`: if length ≤ 8 returns `"••••"`, otherwise first 4 + `••••` + last 4.
+- DB table `integrationSetting` (Prisma `IntegrationSetting`) has columns `provider` (unique), `publicId`, `secretEnc`, `meta` (json), `verifiedAt`, `updatedById`. Secrets are encrypted with `@/lib/crypto` encrypt/decrypt, which depends on `ENCRYPTION_KEY`.
+- Exported functions:
+  - `hydrateIntegrationEnv(): Promise<number>`: copies every row into `process.env`. Called at boot (instrumentation.ts) and on save. DB values override deployed env values. If decryption fails, env is left untouched.
+  - `getIntegrationStatuses(): Promise<Record<IntegrationKey, IntegrationStatus>>` (React `cache`). `IntegrationStatus = {key, configured, source: "db"|"env"|"none", publicId, secretMasked, meta, verifiedAt ISO|null}`.
+  - `saveIntegration(key, {publicId?, secret?, meta?, verifiedAt?, updatedById?})`: upserts, then applies to env. `secret === null` clears both the DB value and the env var. `publicId` null or `""` deletes the env var.
+  - `clearIntegration(key)`: deletes the row and both env vars.
+  - `getSetupState(): {completedAt, skippedAt}` and `markSetup(kind)` use the `appSetting` row with key `"setup"` (json value).
+- Other things in the same file:
+  - `META_PERMISSIONS` checklist: pages_show_list, pages_read_engagement, instagram_basic, instagram_manage_insights, business_management, ads_read, pages_manage_posts, instagram_content_publish (all required), plus instagram_manage_comments and pages_messaging (optional).
+  - DataForSEO cost estimator: `DEFAULT_SEO_PRICES` in USD = serpPerKeyword 0.002, backlinkSummaryPerDay 0.02, domainOverviewPerDomainPerDay 0.01, researchPerRun 0.05. Month fixed at 30 days. `totalIdr = totalUsd * usdIdr`.
+  - `APIFY_PRICES` in USD = serpPerKeyword 0.0035, instagramPerResult 0.0023, tiktokPerResult 0.004, facebookPerResult 0.003. The Apify monthly estimate prices every social account at the Instagram rate.
+
+## 3. verify.ts (connection checks in the setup wizard)
+- `VerifyResult = {ok: boolean, message: string (Indonesian), detail?: Record<string, string|number>}`.
+- Timeout is 12_000 ms via `AbortSignal.timeout`, `cache: no-store`.
+- `verifyMetaApp(appId, appSecret)`:
+  - `GET https://graph.facebook.com/v21.0/oauth/access_token?client_id=&client_secret=&grant_type=client_credentials`
+  - ok when the status is 200 and `access_token` is present. Otherwise the message comes from `error.message`.
+- `verifyGoogleClient(clientId, clientSecret)`:
+  - `POST https://oauth2.googleapis.com/token`, form-urlencoded, with `grant_type=authorization_code`, `code=white-analytics-probe`, `redirect_uri=http://localhost/probe`.
+  - `error` = `invalid_grant` or `redirect_uri_mismatch` → ok.
+  - `invalid_client` or `unauthorized_client` → fail.
+  - Anything else → fail with an "unexpected response" message.
+- `verifyDataForSeo(login, password)`:
+  - `GET https://api.dataforseo.com/v3/appendix/user_data` with header `Authorization: Basic base64(login:password)`.
+  - 401 → fail.
+  - 200 and `tasks[0].status_code === 20000` → ok, with balance `tasks[0].result[0].money.balance` returned as `detail.balanceUsd`.
+- `verifyOpenRouter(apiKey)`:
+  - `GET https://openrouter.ai/api/v1/auth/key` with `Authorization: Bearer`.
+  - 200 → ok, message includes `data.label`. 401 → rejected.
+- `verifyApify(token)`: calls `fetchApifyUsage(token)` (see Apify) and reports username, plan, monthly usage/limit, with `detail.monthlyUsageUsd`.
+
+## 4. oauth-state
+- `type OAuthState = {slug, nonce, ts}`
+- `OAUTH_STATE_MAX_AGE_MS = 10*60*1000`
+- `randomNonce(): string` = `randomBytes(16).toString("hex")`
+- `signOAuthState({slug, nonce}, secret, now=Date.now()): string` = `base64url(JSON{slug,nonce,ts}) + "." + base64url(HMAC-SHA256(body, secret))`. Throws if the secret is empty.
+- `verifyOAuthState(state, secret, {maxAgeMs?, now?}): OAuthState | null`:
+  - Splits on the last `.` and compares signatures with `timingSafeEqual` (length checked first).
+  - Checks: `slug` matches `/^[a-z0-9-]+$/`, `nonce` is a non-empty string, `ts` is a finite number.
+  - Rejects if `ts > now + 60_000` (clock skew) or `now - ts > maxAgeMs`.
+- Secret is env `AUTH_SECRET`, passed in by the route handlers.
+- Cookies (`src/app/api/connections/_lib/access.ts`):
+  - Names: `META_NONCE_COOKIE = "meta_oauth_nonce"`, `GOOGLE_NONCE_COOKIE = "google_oauth_nonce"`.
+  - Options: `{httpOnly: true, sameSite: "lax", secure: NODE_ENV==="production", path: "/", maxAge: 600}`.
+  - On callback the cookie nonce must equal `state.nonce`, otherwise redirect with `?error=oauth_state`. The cookie is deleted on success or error.
+- Routes:
+  - `GET /api/connections/{google|meta}/start?client=<slug>` and `/callback`.
+  - `redirect_uri = ${NEXT_PUBLIC_APP_URL || req.origin}/api/connections/{provider}/callback`.
+  - Only ADMIN, or a client member with role MANAGER, may connect.
+  - If the provider is not configured: redirect to `/clients/<slug>/settings?demo=1&provider=google|meta`.
+  - Provider error → `?error=oauth_denied`. Success → `?connected=google|meta`. Exception → `?error=<ProviderErrorCode>`.
+
+## 5. google-oauth
+- Endpoints:
+  - `AUTH_BASE = https://accounts.google.com/o/oauth2/v2/auth`
+  - `TOKEN_URL = https://oauth2.googleapis.com/token`
+  - `USERINFO_URL = https://openidconnect.googleapis.com/v1/userinfo`
+- `GOOGLE_SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly", "https://www.googleapis.com/auth/analytics.readonly", "openid", "email"]`, space-joined.
+- `googleConfigured(env=process.env): boolean`: needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
+- `buildGoogleAuthUrl({clientId, redirectUri, state, scopes?}): string`. Query params: client_id, redirect_uri, `response_type=code`, `access_type=offline`, `prompt=consent`, `include_granted_scopes=true`, scope, state.
+- `exchangeGoogleCode({clientId, clientSecret, redirectUri, code}): Promise<GoogleTokens>`:
+  - POST form `grant_type=authorization_code`, client_id, client_secret, redirect_uri, code.
+  - `GoogleTokens = {accessToken, refreshToken|null, expiresIn|null, scopes: string[]}`. `scope` is split on spaces.
+  - No timeout.
+- `fetchGoogleUserinfo(accessToken): {sub, email|null, name|null}` via `GET` with a Bearer header. The callback stores `displayName = email ?? name ?? "Akun Google"` and `accountId = sub`.
+- `refreshGoogleAccessToken({clientId, clientSecret, refreshToken}): {accessToken, expiresIn|null}`:
+  - POST form `grant_type=refresh_token`, 15_000 ms timeout.
+  - `invalid_grant` → TOKEN_EXPIRED, anything else → PERMISSION.
+- Error mapping (`mapGoogleError`):
+  - 429 or `RESOURCE_EXHAUSTED` → RATE_LIMIT
+  - `invalid_grant` or 401 → TOKEN_EXPIRED
+  - 403, `access_denied` or `PERMISSION_DENIED` → PERMISSION
+  - 404 → NOT_FOUND
+- Token storage (callback route and `src/lib/connections.ts`):
+  - `db.connection` upsert keyed on `(clientId, provider "GOOGLE", accountId)`.
+  - `accessTokenEnc`/`refreshTokenEnc` are encrypted. `expiresAt = now + expires_in`. `scopes` are the returned ones, falling back to GOOGLE_SCOPES.
+  - If Google returns no new refresh token, the old one is kept.
+  - `getConnectionToken(connectionId)` refreshes when the token expires within 60_000 ms (`REFRESH_SKEW_MS`) and saves the new access token and expiry.
+
+## 6. meta-oauth
+- `FB_VERSION = "v21.0"`, `GRAPH_BASE = https://graph.facebook.com/v21.0`, `DIALOG_BASE = https://www.facebook.com/v21.0/dialog/oauth`.
+- `META_SCOPES = ["pages_show_list","pages_read_engagement","instagram_basic","instagram_manage_insights","business_management","ads_read"]`, comma-joined.
+  - These do NOT include `pages_manage_posts` or `instagram_content_publish`, which the social-publisher needs. They are listed only in `META_PERMISSIONS`.
+- `metaConfigured(env=process.env)`: needs META_APP_ID and META_APP_SECRET.
+- `buildMetaAuthUrl({appId, redirectUri, state, scopes?})`. Query params: client_id, redirect_uri, state, `response_type=code`, scope.
+- `exchangeMetaCode({appId, appSecret, redirectUri, code}): MetaToken`: `GET /oauth/access_token?client_id&client_secret&redirect_uri&code` returns a short-lived token.
+- `exchangeMetaLongLivedToken({appId, appSecret, accessToken}): MetaToken`: `GET /oauth/access_token?grant_type=fb_exchange_token&client_id&client_secret&fb_exchange_token=<short>` returns a token valid for about 60 days.
+- `fetchMetaMe(token): {id, name}`: `GET /me?fields=id,name&access_token=`.
+- `MetaToken = {accessToken, expiresIn|null}`.
+- The callback stores the long-lived token in `accessTokenEnc` with `refreshTokenEnc: null`, `scopes: META_SCOPES`, `accountId = me.id`, `displayName = me.name`.
+- There is no refresh. When the token expires, `getConnectionToken` throws TOKEN_EXPIRED ("Hubungkan ulang", i.e. reconnect).
+- Error mapping:
+  - 429 or code 4/17/32/613 → RATE_LIMIT
+  - code 190 or `type === "OAuthException"` → TOKEN_EXPIRED
+  - 403, code 10 or 200–299 → PERMISSION
+  - 404 or code 803 → NOT_FOUND
+- No timeout.
+
+## 7. google-search (GSC and GA4)
+- `isGoogleConfigured()`: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
+- `getGoogleSearchProvider(): GoogleSearchProvider` returns real or mock.
+- Interface:
+  - `querySearchAnalytics(accessToken, GscQueryRequest): Promise<GscRow[]>`
+  - `runGa4Report(accessToken, Ga4ReportRequest): Promise<Ga4ReportRow[]>`
+- Types:
+  - `GscDimension = "date"|"query"|"page"|"country"|"device"`
+  - `GscQueryRequest = {siteUrl ("https://x/" or "sc-domain:x"), startDate, endDate (YYYY-MM-DD inclusive), dimensions, rowLimit?, startRow?}`
+  - `GscRow = {keys: string[], clicks, impressions, ctr (percent 0–100), position}`
+  - `Ga4ReportRequest = {propertyId ("properties/123" or bare), startDate, endDate, metrics: string[], dimensions: string[], limit?}`
+  - `Ga4ReportRow = {dimensions: string[], metrics: number[]}`
+- Real implementation:
+  - Auth: `Authorization: Bearer <token>`. Timeout `TIMEOUT_MS = 30_000` via AbortController.
+  - GSC: `POST https://www.googleapis.com/webmasters/v3/sites/{encodeURIComponent(siteUrl)}/searchAnalytics/query`.
+    - Body `{startDate, endDate, dimensions, rowLimit: rowLimit ?? 5000, startRow: startRow ?? 0}`.
+    - **ctr is multiplied by 100** (Google returns a 0–1 fraction).
+    - Pagination: one call only. The caller passes `startRow`.
+  - GA4: `POST https://analyticsdata.googleapis.com/v1beta/{properties/ID}:runReport` (adds the `properties/` prefix if missing).
+    - Body `{dateRanges:[{startDate,endDate}], metrics:[{name}], dimensions:[{name}], limit: limit ?? 10000}`.
+    - Maps `dimensionValues[].value` to strings and `metricValues[].value` to `Number`. One call, no offset paging.
+  - Error mapping: 401 TOKEN_EXPIRED, 403 PERMISSION, 429 RATE_LIMIT, 404 NOT_FOUND, otherwise UNKNOWN. `error.message` is appended. Fetch throw → NETWORK.
+  - GA4 names used: metrics `sessions, engagedSessions, totalUsers, conversions, userEngagementDuration`; dimensions `date, sessionDefaultChannelGroup`. GA4 returns `date` as `YYYYMMDD`.
+- Mock:
+  - Seeded with an xmur3-style hash + mulberry32.
+  - GSC: the row set is the cartesian product of keys per dimension, capped at `min(rowLimit ?? 1000, 5000)`.
+    - 20 Indonesian coffee queries (e.g. "kopi susu gula aren").
+    - 10 pages (`/`, `/menu`, ...) prefixed with siteUrl, where `sc-domain:` becomes `https://`.
+    - countries `idn, sgp, mys, aus, usa`; devices `MOBILE, DESKTOP, TABLET`; dates from startDate to endDate (max 500 days).
+    - Per row: impressions = base(20–420)×(5–35); position 1–31; ctr% = max(0.2, 30/position − rand×2); clicks derived from ctr.
+  - GA4: if requested, dates come out as `YYYYMMDD` and channels as `Organic Search` 0.45 / `Direct` 0.3 / `Paid Search` 0.15 / `Organic Social` 0.1 share.
+    - sessions = (800–1700)×share; engagedSessions 50–70%; totalUsers 75–90%; conversions 1.5–3.5%; userEngagementDuration sessions×40–100.
+    - Unknown dimensions return `"(other)"`. Unknown metrics return 0.
+
+## 8. meta-graph (organic IG/FB reads)
+- `isMetaConfigured()`: META_APP_ID and META_APP_SECRET. `metaGraph` is a lazyProvider (real or mock).
+- Base `https://graph.facebook.com/v21.0`. Auth: query `access_token=`. `cache: no-store`. **No timeout, no paging follow, no retry.**
+- Error mapping (`mapMetaError(status, body)`, exported and reused by the publisher):
+  - code 190 → TOKEN_EXPIRED
+  - 4/17/32/613 → RATE_LIMIT
+  - 10 or 200–299 → PERMISSION
+  - 100 → NOT_FOUND
+  - otherwise UNKNOWN
+  - Fetch throw → NETWORK. Any `body.error` throws, even with HTTP 200.
+- Methods (interface `MetaGraphProvider`):
+  - `getInstagramAccount(token, igUserId): IgAccount`
+    - `GET /{igUserId}?fields=id,username,name,biography,profile_picture_url,followers_count,follows_count,media_count`
+    - Maps to `{id, username, name (falls back to username), biography|null, profilePictureUrl, followersCount, followsCount, mediaCount}`.
+  - `getInstagramInsights(token, igUserId, since: Date, until: Date): IgDailyInsight[]`
+    - `GET /{igUserId}/insights?metric=reach,impressions,profile_views,follower_count&period=day&since=YYYY-MM-DD&until=YYYY-MM-DD`
+    - Date = `end_time.slice(0,10)`. A non-number value becomes 0. Rows are the union of dates, sorted.
+    - Fields: `{date, reach, impressions, profileViews, followerCount (net new per day)}`.
+  - `getInstagramMedia(token, igUserId, limit=50): IgMedia[]`
+    - `GET /{igUserId}/media?fields=id,caption,like_count,comments_count,media_type,media_product_type,permalink,media_url,thumbnail_url,timestamp&limit=50`
+    - mediaType is `VIDEO`|`CAROUSEL_ALBUM`|otherwise `IMAGE`. productType is `REELS`|`STORY`|`FEED`|null.
+    - `thumbnailUrl = thumbnail_url ?? media_url`. A missing timestamp becomes the epoch.
+    - Optional insights (saved/shares/reach/impressions/views) are only filled by the mock; the real call does not request per-media insights.
+  - `discoverBusiness(token, igUserId, username): IgBusinessDiscovery`
+    - Username is trimmed and leading `@` removed.
+    - `GET /{igUserId}?fields=business_discovery.username(<u>){followers_count,media_count,username,name,biography,profile_picture_url,media.limit(25){MEDIA_FIELDS}}`
+    - If `business_discovery` is missing → NOT_FOUND.
+  - `getFacebookPage(token, pageId): FbPage`
+    - `GET /{pageId}?fields=id,name,username,fan_count,followers_count`
+    - `followersCount = followers_count ?? fan_count`.
+  - `getPageInsights(token, pageId, since, until): FbPageDailyInsight[]`
+    - `GET /{pageId}/insights?metric=page_impressions_unique,page_post_engagements&period=day&since&until`
+    - Fields: `{date, impressionsUnique, postEngagements}`.
+  - `getPagePosts(token, pageId, limit=25): FbPost[]`
+    - `GET /{pageId}/posts?fields=id,message,created_time,permalink_url,shares,reactions.summary(true),comments.summary(true)&limit=25`
+    - `shares = shares.count`, `reactions = reactions.summary.total_count`, `comments = comments.summary.total_count`.
+- Mock:
+  - Uses FNV-1a `hashSeed` + `mulberry32`, both exported and reused by the dataforseo, apify and publisher mocks.
+  - `buildFollowerSeries(seedKey, days, endFollowers)` is also exported.
+  - IG account: followers 12k–192k, username `akun_<base36>`, dicebear avatar `https://api.dicebear.com/9.x/initials/svg?seed=...`.
+  - IG daily insights: reach 8–14% of followers; impressions reach×1.4–1.9; profileViews 5–9% of reach; followerCount followers×0.0008×(0.4–1.4).
+  - IG media: spread over the last 90 days at 08–20 WIB.
+    - Type mix: VIDEO 42% (REELS), CAROUSEL 30%, IMAGE.
+    - Engagement rate (ER): 3%/2.4%/1.8% × (0.5–1.5).
+    - Images `https://picsum.photos/seed/mg-.../800/800`. Insights (shares, saved, reach, impressions, views) only for own media.
+  - Business discovery: followers 8k–298k, 25 media.
+  - FB page: followers 5k–125k, fanCount 94% of followers. Insights: impressionsUnique 5–10% of followers, engagements 3–6% of that.
+  - FB posts: derived from IG mock media; shares = likes×0.05.
+
+## 9. meta-marketing (Ads)
+- `getMetaMarketing(accessToken?): MetaMarketingAdapter` returns real only if META_APP_ID+SECRET are set **and** a token is passed. Otherwise mock.
+- Interface:
+  - `listCampaigns(actId)`, `listAdSets(actId)`, `listAds(actId)`
+  - `getInsights(actId, InsightsQuery): MetaInsightRow[]`
+  - `actId` is used as given (expects the `act_123` form).
+- Base `https://graph.facebook.com/v21.0`. Every query string gets `access_token` and `limit=200`. **No timeout.**
+- Pagination: `fetchAll` follows `paging.next`, up to maxPages 25 for list calls and 100 for insights.
+- Error codes (provider id `"meta-marketing"`):
+  - 190 → TOKEN_EXPIRED
+  - 4/17/32/613 → RATE_LIMIT
+  - 10/200/272 → PERMISSION
+  - 803/100 → NOT_FOUND
+- Calls:
+  - `GET /{actId}/campaigns?fields=id,name,objective,status,daily_budget,start_time`
+    - `dailyBudget = daily_budget/100` (minor units; the comment says IDR is assumed safe).
+    - Defaults: objective `OUTCOME_TRAFFIC`, status `ACTIVE`.
+  - `GET /{actId}/adsets?fields=id,name,campaign_id,status,daily_budget` (same /100).
+  - `GET /{actId}/ads?fields=id,name,status,adset_id,campaign_id,creative{thumbnail_url}`
+  - `GET /{actId}/insights`
+    - Params: `level=ad` (or adset/campaign), `time_increment=1`, `time_range={"since","until"}` (JSON), `fields=campaign_id,adset_id,ad_id,spend,impressions,reach,clicks,inline_link_clicks,actions,action_values,frequency,date_start`, optional `breakdowns=age,gender`.
+- Mapping:
+  - Number strings → numbers. `linkClicks = inline_link_clicks`. `date = date_start`.
+  - `results`/`resultType` come from `actions` in priority order: `purchase` (action_type includes "purchase"), then `lead` (equals "lead", includes ".lead" or "lead_grouped"), then `messaging_conversation_started`, then `link_click` (exact). Values of matching actions are summed.
+  - `purchaseValue` = sum of `action_values` whose type includes "purchase", or null.
+  - `age` and `gender` are passed through when breakdowns are used.
+- Types:
+  - `InsightsQuery = {since, until, level?: "ad"|"adset"|"campaign", timeIncrement?, breakdowns?: ("age"|"gender")[]}`
+  - `MetaInsightRow = {campaignId, adSetId, adId, date, spend, impressions, reach, clicks, linkClicks, frequency, results, resultType|null, purchaseValue|null, age?, gender?}`
+- Mock: three campaigns built from a blueprint.
+  - `[Prospecting] Traffic – Demo`: OUTCOME_TRAFFIC, ACTIVE, 300_000/day, link_click, cpr 1_800, ctr 1.8.
+  - `[Retargeting] Sales – Demo`: OUTCOME_SALES, ACTIVE, 200_000/day, purchase, cpr 42_000, ctr 2.4.
+  - `[Leads] Form – Demo`: OUTCOME_LEADS, PAUSED, 150_000/day, lead, cpr 55_000, ctr 1.1.
+  - Ad sets and ads come from the blueprint. Campaign id = `120_000_000_000 + (hash(actId)%900_000)*100 + i*10`. Thumbnails from picsum.
+  - Daily rows per ad: spend = budget/2 × 0.7–1.3; CPM 25k–37k; reach = impressions/(1.5–2.5); clicks = linkClicks×1.3; purchaseValue = results×cpr×3 (purchase only).
+  - Breakdown is age × gender. Age weights 18-24 .12, 25-34 .36, 35-44 .28, 45-54 .14, 55-64 .07, 65+ .03. Gender weights female .55, male .43, unknown .02.
+
+## 10. social-publisher
+- `isPublisherConfigured()`: META_APP_ID and META_APP_SECRET. `socialPublisher` is a lazyProvider.
+- `publish(input: PublishInput): Promise<PublishResult>`
+  - `PublishInput = {platform: "INSTAGRAM"|"FACEBOOK"|"TIKTOK", accessToken (decrypted page/IG token), accountExternalId (IG user id / FB page id / TikTok open id), text, media: {url, kind: "IMAGE"|"VIDEO"}[], linkUrl?, firstComment?}`
+  - `PublishResult = {externalId, permalink|null}`
+- Transport: Graph v21.0. GET params go in the query string. POST params go in a form-urlencoded body with `access_token`. Errors go through `mapMetaError`.
+- Instagram:
+  - At least 1 media is required.
+  - Single media: `POST /{igUserId}/media` with `{image_url, caption}` or `{media_type: "REELS", video_url, caption}`.
+  - Carousel: each child is `POST /{ig}/media` with `{image_url | media_type:"VIDEO", video_url, is_carousel_item:"true"}`. Then `POST /{ig}/media` with `{media_type:"CAROUSEL", children: "id1,id2", caption}`.
+  - Video containers are polled with `GET /{containerId}?fields=status_code` every 3000 ms, up to 40 times (~2 min).
+    - `FINISHED` → continue. `ERROR`/`EXPIRED` → UNKNOWN. Timeout → NETWORK.
+  - Publish: `POST /{ig}/media_publish {creation_id}`, then `GET /{mediaId}?fields=permalink`.
+  - First comment: `POST /{mediaId}/comments {message}`. Errors are swallowed.
+- Facebook Page:
+  - Any video: `POST /{pageId}/videos {file_url, description}`.
+  - One image: `POST /{pageId}/photos {url, message}`. postId = `post_id ?? id`.
+  - Several images: each `POST /{pageId}/photos {url, published:"false"}`, then `POST /{pageId}/feed {message, attached_media[i]: JSON{media_fbid}}`.
+  - Text only: `POST /{pageId}/feed {message, link?}`.
+  - Then `GET /{postId}?fields=permalink_url` (errors swallowed). Optional `POST /{postId}/comments`.
+- TikTok: always throws `ProviderError("tiktok","PERMISSION","Publikasi TikTok belum tersedia — menunggu persetujuan Content Posting API")` (TikTok publishing is not available until the Content Posting API is approved).
+- Media URL requirement: Meta fetches `image_url`/`video_url`/`file_url`/`url` server-side, so URLs must be publicly reachable. There is no upload path.
+- Permissions needed (from META_PERMISSIONS): `pages_manage_posts`, `instagram_content_publish`; `instagram_manage_comments` for comments.
+- No timeouts other than the polling loop.
+- Mock: if `text` includes `"[fail]"` (`MOCK_FAIL_MARKER`), throws `ProviderError("mock-publisher","UNKNOWN",...)`.
+  - Otherwise `externalId = mock_<platform>_<base36(hash)><base36(hash%997)>`.
+  - Permalinks: IG `https://www.instagram.com/p/<last11>/`, FB `https://www.facebook.com/<acct>/posts/<id>`, TikTok `https://www.tiktok.com/@<acct>/video/<id>`.
+
+## 11. dataforseo
+- Mode selection (`seoDataMode()`): `"dataforseo"` if DATAFORSEO_LOGIN+PASSWORD are set, else `"apify"` if APIFY_TOKEN is set, else `"mock"`.
+- In apify mode the provider is the mock with `serpRanks` replaced by `apifySerpRanks`. `seoData` is a lazyProvider.
+- Interface `SeoDataProvider`:
+  - `keywordIdeas(seed, {locationCode, languageCode, mode: "ideas"|"questions"|"related", limit?}): KeywordIdea[]`
+  - `keywordMetrics(keywords[], locationCode, languageCode): KeywordIdea[]`
+  - `serpRanks(items: {keyword, device: "DESKTOP"|"MOBILE"}[], {locationCode, languageCode, targetDomain}): RankResult[]`
+  - `backlinkSummary(domain): BacklinkSummary`
+  - `backlinks(domain, {limit?, mode: "all"|"new"|"lost"}): BacklinkItem[]`
+  - `domainOverview(domain, loc, lang): DomainOverview`
+  - `domainKeywords(domain, loc, lang, limit?): DomainKeyword[]`
+  - `competitors(domain, loc, lang): CompetitorSuggestion[]`
+- Types (money in IDR, dates `YYYY-MM-DD`):
+  - `KeywordIdea {keyword, volume, difficulty 0–100, cpc IDR, competition 0–1, intent INFORMATIONAL|NAVIGATIONAL|COMMERCIAL|TRANSACTIONAL, trend number[12] oldest first, serpFeatures[]}`
+  - `RankResult {keyword, device, position|null, url|null, serpFeatures, top10: {domain, position, url}[]}`
+  - `BacklinkSummary {backlinks, referringDomains, dofollow, nofollow, domainRank, newLast30, lostLast30, toxicShare 0–1}`
+  - `BacklinkItem {sourceUrl, sourceDomain, targetUrl, anchor, dofollow, domainRank, spamScore, firstSeen, lastSeen, isLost}`
+  - `DomainOverview {domain, organicKeywords, organicTraffic, organicCost IDR, top3, top10, top100, backlinks, referringDomains, domainRank}`
+  - `DomainKeyword {keyword, position, volume, url}`
+  - `CompetitorSuggestion {domain, intersections, organicTraffic}`
+- Transport:
+  - Base `https://api.dataforseo.com`, every call is POST with a JSON array body of tasks.
+  - `Authorization: Basic base64(DATAFORSEO_LOGIN:DATAFORSEO_PASSWORD)`. Timeout 60_000 ms.
+  - Only `tasks[0].result` is read.
+- Error mapping:
+  - HTTP: 401 TOKEN_EXPIRED, 402/403 PERMISSION, 429 RATE_LIMIT, 404 NOT_FOUND.
+  - Top-level `status_code !== 20000`: 40200/40201 → PERMISSION, 40202 → RATE_LIMIT, otherwise UNKNOWN.
+  - Task `status_code`: 40402 → NOT_FOUND, 402xx → PERMISSION.
+- Cost handling: `USD_TO_IDR = Number(DATAFORSEO_USD_IDR ?? 16000)` is applied to `cpc` and `estimated_paid_traffic_cost`. The adapter does not track per-call cost; the cost estimator lives in the setup feature.
+- Endpoints by method (all `live`, nothing uses the task_post/task_get flow):
+  - `keywordIdeas`. Shared params: `location_code, language_code, limit (default 100), include_serp_info: true`.
+    - ideas: `/v3/dataforseo_labs/google/keyword_ideas/live` with `{keywords:[seed], include_clickstream_data:false}`.
+    - questions: `/v3/dataforseo_labs/google/keyword_suggestions/live` with `{keyword, filters:["keyword_info.search_volume",">",0]}`, then a client-side regex keeps keywords starting with `cara|apa|bagaimana|kenapa|mengapa|berapa|apakah|dimana|di mana|kapan|siapa|how|what|why|where|when|who`.
+    - related: `/v3/dataforseo_labs/google/related_keywords/live` with `{keyword, depth:2}`, reading `items[].keyword_data`.
+    - Results sorted by volume descending and sliced to limit.
+  - `keywordMetrics`, two calls in parallel:
+    - `/v3/dataforseo_labs/google/historical_search_volume/live` `{keywords, location_code, language_code, include_serp_info:true}`. On error falls back to `/v3/keywords_data/google_ads/search_volume/live`, which maps `competition_index/100` → competition.
+    - `/v3/dataforseo_labs/google/bulk_keyword_difficulty/live` (errors ignored).
+    - Output is in input order. Missing keywords become zeroed ideas.
+  - `ideaFrom` mapping:
+    - `keyword_info.search_volume` → volume
+    - `keyword_properties.keyword_difficulty` → difficulty (rounded)
+    - `keyword_info.cpc × USD_TO_IDR` → cpc (rounded)
+    - `keyword_info.competition` → competition
+    - `search_intent_info.main_intent` → intent (lowercased; default INFORMATIONAL)
+    - `monthly_searches`: sorted by year/month, last 12 taken, left-padded to 12 entries
+    - `serp_info.serp_item_types` → serpFeatures
+  - `serpRanks`: `/v3/serp/google/organic/live/regular`, one task per call, batches of 5 run in parallel.
+    - Task `{keyword, location_code, language_code, device: "desktop"|"mobile", depth: 100}`.
+    - Keeps only `type === "organic"` items. Own result matched by domain/subdomain (www stripped).
+    - `position = rank_group ?? rank_absolute`. `serpFeatures = item_types minus "organic"`. top10 from the first 10 organic results.
+  - `backlinkSummary`:
+    - `/v3/backlinks/summary/live` `{target, include_subdomains:true, backlinks_status_type:"live"}`
+    - `/v3/backlinks/timeseries_new_lost_summary/live` `{target, date_from: today−30d, group_range:"month"}` (errors tolerated).
+    - Mapping: `nofollow = referring_links_attributes.nofollow`; `dofollow = backlinks − nofollow`; `domainRank = round(rank/10)`; `toxicShare = min(1, backlinks_spam_score/100)`; new/lost = sums of `new_backlinks`/`lost_backlinks`.
+  - `backlinks`: `/v3/backlinks/backlinks/live`
+    - Body `{target, mode:"as_is", limit (default 200), order_by:["rank,desc"], backlinks_status_type: lost ? "all" : "live", filters: ["is_lost","=",true] | ["is_new","=",true]}`.
+    - Mapping: `url_from, domain_from, url_to, anchor, dofollow (default true), domain_from_rank/10, backlink_spam_score, first_seen/last_seen sliced to 10 chars, is_lost`.
+  - `domainOverview`: `/v3/dataforseo_labs/google/domain_rank_overview/live` `{target, location_code, language_code}`, plus `backlinkSummary` in parallel (errors tolerated).
+    - From `items[0].metrics.organic`: `top3 = pos_1 + pos_2_3`; `top10 = top3 + pos_4_10`; `top100 = count`; `organicTraffic = etv`; `organicCost = estimated_paid_traffic_cost × USD_TO_IDR`.
+  - `domainKeywords`: `/v3/dataforseo_labs/google/ranked_keywords/live` `{target, location_code, language_code, limit (default 200), order_by:["keyword_data.keyword_info.search_volume,desc"]}`.
+    - `position = ranked_serp_element.serp_item.rank_group ?? 100`.
+  - `competitors`: `/v3/dataforseo_labs/google/competitors_domain/live` `{target, location_code, language_code, limit:10, exclude_top_domains:true}`, mapped to `{domain, intersections, organicTraffic = metrics.organic.etv}`.
+- Mock (deterministic, Indonesian data):
+  - Keyword lists: modifiers (harga, terdekat, ...), question prefixes (cara, apa itu, ...), 10 cities, related suffixes.
+  - Log-normal volume (min 10, rounded). KD ≈ 12·log10(vol) ± 15.
+  - CPC base by intent: TRANS 6000 / COMM 4000 / NAV 1200 / INFO 1500 IDR; clamped 500–15000, rounded to 50.
+  - Intent comes from regex rules. 12-point trend from a sine wave plus slope.
+  - Industry detection from the domain: kopi, properti, villa, or generic, each with its own competitor list.
+  - `mockPositionOn(keyword, target, day)` (exported): brand keywords rank 1–3; other keywords drift as climbers, sliders or drop-outs, with sine drift and daily jitter. Returns null above 100.
+  - `rankKey(target, device)` (exported): DESKTOP adds a `#d` suffix.
+  - `mockTop10` and `mockBacklinkList` are exported. The backlink list has 70–120 links, including spam domains with spamScore ≥ 60; 14% lost; 68% dofollow.
+  - Mock default limits differ from real: ideas 60, domainKeywords 100. Mock uses locationCode 2360 and language "id".
+
+## 12. apify
+- Config:
+  - `isApifyConfigured()`: APIFY_TOKEN is set.
+  - `getApifyActors()`: `parseActorOverrides(APIFY_ACTORS)`. Input is JSON like `{"serp":"owner/name"}`. Values must match `/^[\w.-]+\/[\w.-]+$/`; unknown keys are ignored; invalid JSON falls back to the defaults.
+- `DEFAULT_ACTORS`:
+  - `serp: "apify/google-search-scraper"`
+  - `instagramProfile: "apify/instagram-profile-scraper"`
+  - `instagramPosts: "apify/instagram-scraper"`
+  - `tiktok: "clockworks/tiktok-scraper"`
+  - `facebookPage: "apify/facebook-pages-scraper"`
+  - `facebookPosts: "apify/facebook-posts-scraper"`
+- Client (`client.ts`), base `https://api.apify.com/v2`:
+  - `runActor<T>(actorId, input, {timeoutSecs=120, memoryMb=1024, maxItems?}): Promise<T[]>`
+    - `POST /acts/{owner~name}/run-sync-get-dataset-items?token=<APIFY_TOKEN>&timeout=&memory=&clean=true&format=json[&limit=maxItems]`. Body is the input JSON.
+    - Fetch timeout = (timeoutSecs + 15) s. Apify's sync window is 300 s.
+    - Auth is the `token` query parameter. A missing token throws PERMISSION.
+    - `actorPath` turns `/` into `~`.
+  - `fetchApifyUsage(token): ApifyUsage {username, plan, monthlyUsageUsd, monthlyLimitUsd}`
+    - `GET /users/me?token=` returns `data.username` and `data.plan.id`.
+    - `GET /users/me/limits?token=` (optional) returns `data.current.monthlyUsageUsd` and `data.limits.monthlyUsageUsd`. Timeout 12 s.
+  - Errors: 401/403 TOKEN_EXPIRED, 402 PERMISSION (credits exhausted, requiresReconnect false), 404 NOT_FOUND (bad actor), 408 NETWORK (sync timeout), 429 RATE_LIMIT, otherwise UNKNOWN with the first 200 chars of the body.
+- SERP (`serp.ts`): `apifySerpRanks(items, {locationCode, languageCode, targetDomain}): RankResult[]`
+  - One actor run per device. Input: `{queries: keywords joined by "\n", countryCode: countryForLocation(loc), languageCode, maxPagesPerQuery:1, resultsPerPage:100, mobileResults: device==="MOBILE", includeUnfilteredResults:false, saveHtml:false, saveHtmlToKeyValueStore:false}`, timeoutSecs 180.
+  - `LOCATION_COUNTRY`: 2360 id, 2840 us, 2702 sg, 2458 my, 2826 gb, 2036 au, 2392 jp, 2356 in. Unknown → "id".
+  - `normalizeSerpItems`: query term from `searchQuery.term ?? query ?? term`. Organic results from `organicResults[].url/position` (position defaults to index+1).
+  - Features: `paidResults`→"ads", `peopleAlsoAsk`→"people_also_ask", `relatedQueries`→"related_searches", `aiOverview`→"ai_overview", `paidProducts`→"shopping", a youtube.com result→"video".
+- Public social (`publicSocial`, lazy: real if APIFY_TOKEN, else mock):
+  - Interface: `profile(platform, username): PublicProfile` and `posts(platform, username, limit=30): PublicPost[]`. Username is lowercased with `@` removed.
+  - Types:
+    - `PublicProfile {platform, externalId, username, displayName, biography, avatarUrl, followers, following|null, mediaCount, totalLikes?}`
+    - `PublicPost {externalId, caption, mediaType IMAGE|VIDEO|CAROUSEL_ALBUM, productType FEED|REELS|STORY|null, permalink, mediaUrl, thumbnailUrl, publishedAt ISO, likes, comments, shares, saves, views}`
+  - Instagram profile: actor `instagramProfile`, input `{usernames:[u]}`, timeout 120, maxItems 1.
+    - Fields: id/pk, username, fullName, biography, profilePicUrlHD/profilePicUrl, followersCount, followsCount, postsCount.
+  - Instagram posts: actor `instagramPosts`, input `{directUrls:["https://www.instagram.com/<u>/"], resultsType:"posts", resultsLimit:limit, addParentData:false}`, timeout 180.
+    - Fields: id/shortCode; `type` (video/reel → VIDEO, sidecar/carousel → CAROUSEL_ALBUM); `productType` clips/reels → REELS; url or `/p/<shortCode>/`; videoUrl/displayUrl; timestamp/takenAt; likesCount; commentsCount; sharesCount/reshareCount; savesCount; videoPlayCount/videoViewCount/playCount.
+  - TikTok: actor `tiktok`, input `{profiles:[u], resultsPerPage: clamp(limit,1,100), profileSorting:"latest", profileScrapeSections:["videos"], shouldDownloadVideos/Covers/Subtitles/SlideshowImages:false}`, timeout 180, maxItems limit.
+    - Profile comes from `authorMeta`/`author` (`id, name/uniqueId, nickName, signature, avatar, fans, following, video, heart`). No profile → NOT_FOUND.
+    - Posts: `id, text/desc, webVideoUrl, videoMeta.downloadAddr/playAddr, videoMeta.coverUrl, createTimeISO/createTime, diggCount, commentCount, shareCount, collectCount, playCount`. Always VIDEO/REELS.
+  - Facebook page: actor `facebookPage`, input `{startUrls:[{url:"https://www.facebook.com/<u>"}]}`, timeout 120, maxItems 1.
+    - Fields: pageId/facebookId/id, pageName, title/name, intro/about, profilePictureUrl, followers, postsCount, likes.
+  - Facebook posts: actor `facebookPosts`, input `{startUrls:[...], resultsLimit}`, timeout 180.
+    - Fields: postId/id/legacyId, text/message, url/postUrl/topLevelUrl, media[0].url/photo_image/thumbnail, time/timestamp, likes/reactionsCount, comments, shares, viewsCount.
+    - Any media item whose `__typename` matches /video/ → VIDEO. More than one media item → CAROUSEL_ALBUM.
+  - Normalisation rules: numbers have non-digits stripped. Unix timestamps under 1e12 are treated as seconds. Bad dates become the epoch.
+  - Mock: followers 2k–182k; dicebear avatar; FB has following=null; TikTok totalLikes = followers×3–15.
+    - Posts are spaced 1–3 days apart, 35% video (100% on TikTok), ER 1–7%; picsum thumbnails; mediaUrl null.
+
+## 13. pagespeed
+- `isPagespeedConfigured()`: PAGESPEED_API_KEY is set. The key is optional; without it calls are keyless and quota-limited. There is no mock.
+- `runPagespeed(url, strategy: "mobile"|"desktop", {timeoutMs?, signal?}): Promise<PsiResult>`
+  - `GET https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=&strategy=&category=performance&category=seo&category=accessibility&category=best-practices[&key=]`
+  - Default timeout 60_000 ms. An external signal is chained.
+- Output:
+  - `scores = round(lighthouseResult.categories[id].score × 100)` for performance, seo, accessibility, best-practices (→ `bestPractices`).
+  - Metrics come from `audits[id].numericValue`, first match wins:
+    - lcpMs `largest-contentful-paint`
+    - inpMs `interaction-to-next-paint` | `experimental-interaction-to-next-paint`
+    - cls `cumulative-layout-shift`
+    - fcpMs `first-contentful-paint`
+    - ttfbMs `server-response-time`
+    - tbtMs `total-blocking-time`
+    - speedIndexMs `speed-index`
+  - `finalUrl = finalDisplayedUrl ?? finalUrl ?? url`.
+  - `raw = {categories (0–100 scores), audits (numericValue/displayValue for the metric audits only)}`.
+- Errors: 429 RATE_LIMIT, 403 PERMISSION, 404 NOT_FOUND, otherwise UNKNOWN. A missing `lighthouseResult` is treated as an error. Abort → NETWORK ("no response within 60 seconds").
+
+## 14. crawler (no external API, crawls the site directly)
+- `crawlSite(startUrl, {maxPages=30 (hard cap 60), timeBudgetMs=45_000, concurrency=4, requestTimeoutMs=10_000}): Promise<CrawlResult {pages, issues, pagesCrawled, durationMs}>`.
+- Also exports `analyzeHtml` and `CRAWLER_UA`.
+- User agent: `CRAWLER_UA = "WHITEAnalyticsBot/1.0 (+https://white.id/bot)"`, robots token `"whiteanalyticsbot"`. Accept header `text/html,application/xhtml+xml,*/*;q=0.8`.
+- Start URL: `sc-domain:x` becomes `https://x/`; a missing scheme becomes https; the hash is stripped. Same-origin only.
+- robots.txt (`robots.ts`):
+  - Fetches `{origin}/robots.txt` with a 5 s timeout, best effort.
+  - `parseRobots(txt, uaToken)`: a group naming the specific UA (substring match either way) beats `*` (RFC 9309).
+  - `isAllowed(rules, path+search)`: longest match wins; Allow wins ties. Supports `*` and a trailing `$`.
+- Sitemaps:
+  - Candidates are robots `Sitemap:` lines plus `{origin}/sitemap.xml`, at most 4 starting docs and at most 4 docs fetched in total (5 s each). Up to 3 child sitemaps per index.
+  - Seeds are capped at maxPages×2. Skipped if under 5 s of budget remains.
+  - `parseSitemap` reads `urlset > url > loc` and `sitemapindex > sitemap > loc`.
+- Fetching:
+  - Manual redirects, at most `MAX_REDIRECTS = 5`. Hops are counted.
+  - The body is read only for `text/html` or `application/xhtml`.
+  - Network error → status 0, skipped silently. Redirect off-site → skipped.
+  - Non-HTML responses with status ≥ 400 are recorded as status-only pages.
+  - Skips paths matching `BINARY_RE` (png, jpg, gif, webp, avif, svg, ico, css, js, mjs, json, pdf, zip, rar, 7z, gz, tar, mp3, mp4, webm, mov, avi, wmv, woff, woff2, ttf, otf, eot, txt, xml, rss, atom, exe, dmg, apk).
+  - Queue cap is maxPages×6. Workers stop when less than 1500 ms of budget remains or maxPages is reached; they poll every 60 ms while idle.
+- Broken links:
+  - Targets already crawled with status ≥ 400 are reported.
+  - Up to 15 uncrawled internal targets are HEAD-checked (re-tried with GET on 405/501), 5 s timeout, 4 workers.
+  - Issue `BROKEN_INTERNAL_LINK` is attached to the referring page.
+- If no pages were crawled → `ProviderError("crawler","NETWORK")`. An invalid URL → UNKNOWN.
+- Per-page data extracted with cheerio (`CrawlPageData`):
+  - url, statusCode, title (`head title`), metaDescription (`meta[name=description]`), h1Count
+  - wordCount: body text with script, style, noscript, template and svg removed
+  - canonical (`link[rel=canonical]`, resolved)
+  - indexable = no noindex in `meta robots` or the `X-Robots-Tag` header, and status < 400
+  - imagesTotal, imagesMissingAlt (no `alt` attribute)
+  - internalLinks/externalLinks: unique, hash stripped, skips mailto/tel/javascript/data/ftp
+  - loadMs (rounded), hasJsonLd (`script[type=application/ld+json]`), hasHreflang (`link[rel=alternate][hreflang]`)
+- Issue codes and severities (messages in Indonesian are in `ISSUE_DEFS`):
+  - Thresholds: TITLE_MAX 60, TITLE_MIN 30, META_DESC_MAX 160, THIN_WORDS 300, SLOW_MS 1500.
+  - Content checks run only when status < 400:
+    - MISSING_TITLE (ERROR), TITLE_TOO_LONG (WARNING), TITLE_TOO_SHORT (WARNING)
+    - MISSING_META_DESCRIPTION (WARNING), META_DESCRIPTION_TOO_LONG (NOTICE)
+    - MISSING_H1 (ERROR), MULTIPLE_H1 (WARNING)
+    - IMG_MISSING_ALT (WARNING, message includes the count)
+    - MISSING_CANONICAL (NOTICE), NOINDEX (WARNING), THIN_CONTENT (WARNING)
+    - NO_STRUCTURED_DATA (NOTICE)
+    - MIXED_CONTENT (ERROR): an https page with `http://` src/href on img, script, iframe, video, audio, source or stylesheet
+  - Always checked: SLOW_RESPONSE (WARNING, loadMs > 1500), REDIRECT_CHAIN (WARNING, hops > 1).
+  - BROKEN_INTERNAL_LINK (ERROR).
+  - Issues are de-duplicated by `code|url|message`.
+
+## 15. openrouter (AI insights)
+- `isOpenRouterConfigured()`: OPENROUTER_API_KEY is set.
+- `getInsightProvider()` returns real or mock.
+- `generateInsight(input): Promise<{content, model}>`. The model id is stored on AiInsight rows; it is `"mock"` for the mock.
+- Real:
+  - `POST https://openrouter.ai/api/v1/chat/completions`
+  - Headers: `Authorization: Bearer`, `HTTP-Referer: NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"`, `X-Title: "WHITE Analytics"`.
+  - Timeout 90_000 ms.
+  - Body: `{model: OPENROUTER_MODEL || "anthropic/claude-sonnet-4.5", max_tokens: 2500, temperature: 0.4, messages: [system, user]}`.
+  - Response: `choices[0].message.content` trimmed. Empty → UNKNOWN.
+  - Errors: 401 TOKEN_EXPIRED, 403 PERMISSION, 429 RATE_LIMIT, 404 NOT_FOUND (model), otherwise UNKNOWN with the first 300 chars of the body. Missing key → PERMISSION.
+- Exported: `openRouterModel()`, `generateRealInsight(input)`, and `realInsightProvider {id:"openrouter", model getter}`.
+- Prompts (purpose: a senior strategist at an Indonesian digital agency writing a client performance analysis):
+  - All system prompts (one per module):
+    - Use simple markdown (`##`, `-`, numbered lists, bold); no tables or HTML.
+    - Use only real numbers from the JSON; never invent figures.
+    - Never mention AI; no greetings or sign-offs.
+  - Required headings, in Indonesian and in this order: `## Ringkasan eksekutif`, `## Sorotan performa`, `## Area perbaikan`. Then the module section: SEO `## Peluang kata kunci` (positions 4–15 with high impressions), ADS `## Alokasi anggaran`. Then `## Rekomendasi 30 hari` with exactly 5 numbered items.
+  - Module focus: OVERVIEW is cross-channel (reach → traffic → conversion); SOCIAL is organic IG/FB/TikTok; SEO is GSC; ADS is Meta Ads.
+  - User message: client name, period vs comparison period, data notes (`*DeltaPct` is % change; engagementRate/ctr in percent; cpr/cpm in account currency), a language line (en = English body with Indonesian headings), then `JSON.stringify(input.data)`.
+- Input types:
+  - `GenerateInsightInput = {module: "OVERVIEW"|"SOCIAL"|"SEO"|"ADS", language: "id"|"en", clientName, range: {from, to, days, prevFrom, prevTo}, data: {social?, seo?, ads?}}`
+  - `social = {followers, followerGrowth, followerGrowthPct, engagementRate, engagementRateDeltaPct, posts, reach, reachDeltaPct, topPosts[{platform, caption, type, engagements, likes, comments}]}`
+  - `seo = {clicks, clicksDeltaPct, impressions, impressionsDeltaPct, ctr, position, positionDeltaAbs, health, topQueries[{query, clicks, impressions, ctr, position}]}`
+  - `ads = {currency, spend, spendDeltaPct, results, resultsDeltaPct, cpr, cprDeltaPct, ctr, cpm, roas, campaigns[{name, objective, spend, results, resultType, cpr}]}`
+- Mock: `generateMockInsight(input)` (exported) builds deterministic markdown from templates using the same headings.
+  - Trend words: ±1% threshold; "naik/turun/stabil" (up/down/flat).
+  - Best and worst campaign by CPR. Keyword opportunities = topQueries with position > 3 (up to 5). Budget lines for the top 5 campaigns.
+  - Always 5 recommendations, padded if needed.
+  - `{id: "openrouter-mock", model: "mock"}`.
+
+---
+
+## Env vars (src/lib/providers/** + src/lib/integrations.ts, plus the closely related ones they rely on)
+- `META_APP_ID` / `META_APP_SECRET`: Meta app credentials. Switch meta-graph, meta-marketing and social-publisher to real. Used by the OAuth dialog, code exchange and long-lived exchange, and by verify (client_credentials).
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: Google OAuth client. Switch google-search to real. Used by the OAuth code exchange and refresh.
+- `DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD`: Basic auth for DataForSEO v3. Selects seoData mode "dataforseo".
+- `DATAFORSEO_USD_IDR`: USD→IDR rate for cpc and organicCost (default 16000). Read once at module load in real.ts.
+- `APIFY_TOKEN`: Apify API token (`token` query param). Switches publicSocial to real and enables seoData mode "apify".
+- `APIFY_ACTORS`: optional JSON overrides for actor ids (stored as the "public" half of the APIFY integration).
+- `OPENROUTER_API_KEY`: OpenRouter bearer key. Switches insights to real.
+- `OPENROUTER_MODEL`: model override (default `anthropic/claude-sonnet-4.5`).
+- `PAGESPEED_API_KEY`: optional PSI `key` param.
+- `NEXT_PUBLIC_APP_URL`: OpenRouter `HTTP-Referer`. Outside providers it is also the base of the OAuth redirect_uri (`_lib/access.ts`).
+- Referenced indirectly:
+  - `AUTH_SECRET`: HMAC secret for the OAuth state, passed in by the routes.
+  - `ENCRYPTION_KEY`: used by `@/lib/crypto` for IntegrationSetting secrets and Connection tokens.
+  - `NODE_ENV`: secure flag on the nonce cookie.
+
+## Gaps worth knowing for the Go port
+- No retries or backoff anywhere.
+- No timeouts on meta-graph, meta-marketing, meta-oauth, the social-publisher HTTP calls, or the Google code-exchange/userinfo calls.
+- The OAuth scopes requested (`META_SCOPES`) do not include `pages_manage_posts` or `instagram_content_publish`, so real publishing would fail without changing scopes.
+- GSC and GA4 are fetched in one call; paging is left to the caller. meta-graph does not follow `paging.next`.
+- DataForSEO uses only `live` endpoints (no task_post/task_get) and reads only `tasks[0]`.
+- The publisher needs page/IG tokens and public media URLs. Where page tokens are obtained (`/me/accounts`) is not in src/lib/providers; it would be in the sync/feature code.

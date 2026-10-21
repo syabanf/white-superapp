@@ -151,7 +151,8 @@ Do not reintroduce crop marks, mono uppercase labels, hairline card borders, or 
 - Categorical hue = `slotColor(i)` in fixed order (**slot 1 is the brand blue**, 2 orange, 3 aqua, 4 yellow …). Color follows the entity, never its rank; ≥ 2 series → legend (built-in). ≤ 4 series per chart; more → "Lainnya"/facet.
 - Sequential (magnitude) → the brand-hue ramp `--seq-100..700` (`Heatmap`). It is **reversed in dark mode** (brighter = more), so just use the tokens in order and both themes read correctly.
 - Status colors (`--status-good/warning/critical`) only for real status (CWV rating, health) and always with icon + label (`StatusBadge`).
-- Lines 2px, areas 10% wash, bars ≤ 24px with 4px rounded data-end, hairline solid grid — all built into the primitives; don't override.
+- Lines 2px, areas a vertical gradient wash (24 % at the line down to 2 %), bars ≤ 24px with 4px rounded data-end, dashed hairline grid. All built into `TimeSeriesChart`; don't override.
+- Every `TimeSeriesChart` carries a keyboard data-point explorer (range slider plus live text). It stays visually hidden and appears when keyboard focus lands on it. Keep it; it is the screen-reader path through the chart.
 - Every chart has a table twin when it carries > a handful of values: pass `table={<DataTable bare … />}` to `ChartCard`.
 - Text never wears the series color. Values lead labels in tooltips (built-in).
 - No pies/donuts for comparisons; use `HBarChart`. Part-to-whole ≤ 6 segments → stacked bar (`TimeSeriesChart stacked`) or `HBarChart showShare`.
@@ -162,6 +163,8 @@ Do not reintroduce crop marks, mono uppercase labels, hairline card borders, or 
 ## Data facts (seed) you can rely on
 - 3 clients: `kopi-nusantara`, `adiharjo-property`, `bali-villa-escapes` (each with IG/FB/TikTok own accounts + 2–3 IG competitors, 120 days of `SocialSnapshot`, ~50–70 `SocialPost` per own account, 1 `SeoProperty` with 120 days `SeoDailyMetric` + `SeoDimensionMetric` (QUERY ~46 keys, PAGE 15, COUNTRY 5–8, DEVICE 3) + `Ga4DailyMetric`, 4 audit runs × MOBILE/DESKTOP in `SeoAudit`, 1 `SeoCrawl` with ~27 pages + issues, 1 `AdAccount` with 4 campaigns → adsets → ads and ad-level `AdDailyInsight` per day (`resultType` per campaign: link_click / purchase (+purchaseValue) / lead / messaging_conversation_started / reach), `AdDemographic` per campaign (age×gender), 2 `Report`s, 3 `SyncJob`s.
 - Users: `admin@white.id / admin12345` (ADMIN), `tim@white.id / member12345` (MEMBER of kopi-nusantara as MANAGER, adiharjo-property as VIEWER). Client `kopi-nusantara` has share PIN `123456`; others no PIN.
+- Demo data ages: the seed ends on the day it ran. `pnpm db:extend-demo` continues every active daily series (social snapshots, GSC daily and dimensions, GA4, ad insights, rank, backlink and domain snapshots) up to yesterday. It only inserts, skips rows that already exist, and is safe to re-run. Prefer it over `db:seed`, which wipes users and posts created since.
+- Query layers keep an unreported GSC/GA4 day as `null` all the way to the chart. Never coalesce it to `0` (`?? 0`) on the way.
 - Awareness campaigns report `resultType: "reach"`; exclude `NON_CONVERSION_RESULT_TYPES` (exported from `features/overview/queries.ts`) when summing "hasil"/CPR.
 - Ad-level rows have `adId` set; use `adId: { not: null }` when aggregating to avoid double counting if account/campaign-level rows are ever inserted.
 - Dates in DB are UTC-midnight `@db.Date`; posts use full timestamps. Query with `{ gte: range.from, lte: range.to }` for dates and `{ gte: range.from, lt: addDays(range.to, 1) }` for timestamps.

@@ -78,3 +78,49 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  white-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: white-backend
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: white_backend_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci -d white_backend_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      WHITE_TEST_DATABASE_URL: postgresql://ci:ci@localhost:5432/white_backend_test
+      AUTH_SECRET: ci-only-secret
+      ENCRYPTION_KEY: ci-only-encryption-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: white-backend/go.mod
+          cache-dependency-path: white-backend/go.sum
+
+      - name: Format
+        run: test -z "$(gofmt -l cmd internal pkg)"
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build every service
+        run: make build
+
+      - name: Tests (unit + Postgres integration)
+        run: go test -p 1 ./... -count=1

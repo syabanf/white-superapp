@@ -44,7 +44,7 @@ export default async function PublishCalendarPage(props: PageProps<"/clients/[sl
       <PageHeader
         eyebrow={t.nav.publish}
         title={p.calendarTitle}
-        description={`${p.calendarSubtitle} ${p.timezoneNote(tz)}`}
+        description={p.timezoneNote(tz)}
       />
       {!isPublisherConfigured() ? (
         <DemoBanner message={p.demoBanner} settingsHref={`/clients/${slug}/settings`} />

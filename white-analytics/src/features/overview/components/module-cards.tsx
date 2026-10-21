@@ -2,12 +2,13 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Clock3, Database, Megaphone, Search, Share2 } from "lucide-react";
+import { ArrowUpRight, Megaphone, Search, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TimeSeriesChart } from "@/components/dashboard/charts/time-series-chart";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { EmptyState } from "@/components/dashboard/empty-state";
+import { InfoHint } from "@/components/dashboard/info-hint";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { cn } from "@/lib/utils";
 import {
@@ -84,24 +85,16 @@ const QUALITY_COPY: Record<DataQuality["state"], { label: string; kind: "good" |
 
 function DataQualityLine({ quality, href }: { quality: DataQuality; href: string }) {
   const copy = QUALITY_COPY[quality.state];
+  const range =
+    quality.dataFrom && quality.dataTo ? `Data ${formatDateRange(new Date(quality.dataFrom), new Date(quality.dataTo))}` : null;
   return (
-    <div className="mx-6 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-b pb-3 text-xs text-muted-foreground">
+    <div className="mx-6 mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
       <StatusBadge kind={copy.kind}>{copy.label}</StatusBadge>
-      <span className="inline-flex items-center gap-1">
-        <Clock3 className="size-3.5" />
-        {quality.lastSyncedAt
-          ? `Sinkron ${formatRelative(quality.lastSyncedAt)}`
-          : "Belum pernah disinkronkan"}
-      </span>
-      {quality.dataFrom && quality.dataTo ? (
-        <span className="inline-flex items-center gap-1">
-          <Database className="size-3.5" />
-          Data {formatDateRange(new Date(quality.dataFrom), new Date(quality.dataTo))}
-        </span>
-      ) : null}
+      <span>{quality.lastSyncedAt ? `Sinkron ${formatRelative(quality.lastSyncedAt)}` : "Belum disinkronkan"}</span>
+      {range ? <InfoHint>{range}</InfoHint> : null}
       {quality.state === "failed" ? (
         <Link href={href} className="font-medium text-destructive underline-offset-4 hover:underline">
-          Periksa dan sinkronkan ulang
+          Sinkronkan ulang
         </Link>
       ) : null}
     </div>

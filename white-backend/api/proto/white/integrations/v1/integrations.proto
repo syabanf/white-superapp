@@ -1,0 +1,266 @@
+syntax = "proto3";
+
+package white.integrations.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "white/common/v1/common.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/integrations/v1;integrationsv1";
+
+// ─────────────────────────────────────────────────────────────
+// ConnectionService: per-client OAuth connections (tokens at rest)
+// ─────────────────────────────────────────────────────────────
+
+service ConnectionService {
+  rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/connections"};
+  }
+  rpc DisconnectConnection(DisconnectConnectionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/connections/{connection_id}"};
+  }
+  // Demo mode: stores a mock token so sync paths behave as "connected".
+  rpc SimulateConnection(SimulateConnectionRequest) returns (Connection) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/connections:simulate" body: "*"};
+  }
+  // Builds the provider consent URL and a signed state. The gateway stores
+  // `nonce` in an httpOnly cookie for 10 minutes.
+  rpc StartOAuth(StartOAuthRequest) returns (StartOAuthResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/connections:startOAuth" body: "*"};
+  }
+  // Exchanges the provider code, stores the token and returns where to send the browser.
+  rpc CompleteOAuth(CompleteOAuthRequest) returns (CompleteOAuthResponse) {
+    option (google.api.http) = {post: "/v1/connections:completeOAuth" body: "*"};
+  }
+
+  // Internal. Decrypted access token, refreshed when it expires within 60 s.
+  // Returns NOT_FOUND when the provider app is not configured or the
+  // connection is missing, FAILED_PRECONDITION (TOKEN_EXPIRED) when it
+  // cannot be refreshed.
+  rpc GetAccessToken(GetAccessTokenRequest) returns (AccessToken);
+  // Internal. First connection of a provider for a client, if any.
+  rpc FindClientConnection(FindClientConnectionRequest) returns (FindClientConnectionResponse);
+}
+
+message Connection {
+  string id = 1;
+  string client_id = 2;
+  white.common.v1.ConnectionProvider provider = 3;
+  string account_id = 4;
+  string display_name = 5;
+  optional google.protobuf.Timestamp expires_at = 6;
+  repeated string scopes = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message ListConnectionsRequest {
+  string client_id = 1;
+}
+
+message ListConnectionsResponse {
+  repeated Connection connections = 1;
+}
+
+message DisconnectConnectionRequest {
+  string client_id = 1;
+  string connection_id = 2;
+}
+
+message SimulateConnectionRequest {
+  string client_id = 1;
+  white.common.v1.ConnectionProvider provider = 2;
+}
+
+message StartOAuthRequest {
+  string client_id = 1;
+  white.common.v1.ConnectionProvider provider = 2;
+  // Public base URL of the app, e.g. https://app.example.com. The callback is
+  // `{base}/api/connections/{provider}/callback`.
+  string app_base_url = 3;
+}
+
+message StartOAuthResponse {
+  Outcome outcome = 1;
+  // Where to send the browser (provider consent page, or the settings page in demo mode).
+  string redirect_url = 2;
+  // Nonce to keep in the `{provider}_oauth_nonce` cookie. Empty when not needed.
+  string nonce = 3;
+
+  enum Outcome {
+    OUTCOME_UNSPECIFIED = 0;
+    REDIRECT_TO_PROVIDER = 1;
+    // Provider app is not configured; redirect carries `?demo=1&provider=`.
+    NOT_CONFIGURED = 2;
+  }
+}
+
+message CompleteOAuthRequest {
+  white.common.v1.ConnectionProvider provider = 1;
+  string code = 2;
+  string state = 3;
+  // Provider-side error query param, if any.
+  string provider_error = 4;
+  // Nonce read back from the cookie.
+  string cookie_nonce = 5;
+  string app_base_url = 6;
+  // Acting user, for the MANAGER/ADMIN check on the client in the state.
+  string user_id = 7;
+}
+
+message CompleteOAuthResponse {
+  // Settings page URL with `?connected=` or `?error=` already applied.
+  string redirect_url = 1;
+  optional Connection connection = 2;
+}
+
+message GetAccessTokenRequest {
+  string connection_id = 1;
+}
+
+message AccessToken {
+  string connection_id = 1;
+  string token = 2;
+  white.common.v1.ConnectionProvider provider = 3;
+}
+
+message FindClientConnectionRequest {
+  string client_id = 1;
+  white.common.v1.ConnectionProvider provider = 2;
+}
+
+message FindClientConnectionResponse {
+  optional Connection connection = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// SettingsService: workspace integration credentials (setup wizard, ADMIN)
+// ─────────────────────────────────────────────────────────────
+
+service SettingsService {
+  rpc ListIntegrationStatuses(google.protobuf.Empty) returns (ListIntegrationStatusesResponse) {
+    option (google.api.http) = {get: "/v1/integrations"};
+  }
+  rpc SaveCredential(SaveCredentialRequest) returns (SaveCredentialResponse) {
+    option (google.api.http) = {put: "/v1/integrations/{key}" body: "*"};
+  }
+  rpc ClearCredential(ClearCredentialRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/integrations/{key}"};
+  }
+  rpc SaveMetaReview(SaveMetaReviewRequest) returns (IntegrationStatus) {
+    option (google.api.http) = {put: "/v1/integrations/META/review" body: "*"};
+  }
+  // Pure estimators used by the wizard.
+  rpc EstimateCosts(EstimateCostsRequest) returns (EstimateCostsResponse) {
+    option (google.api.http) = {post: "/v1/integrations:estimateCosts" body: "*"};
+  }
+
+  // Internal. Effective credentials for a provider (DB wins over env).
+  // Services cache the result for a short time; an `integration.updated`
+  // event busts the cache.
+  rpc GetProviderCredentials(GetProviderCredentialsRequest) returns (ProviderCredentials);
+}
+
+enum IntegrationKey {
+  INTEGRATION_KEY_UNSPECIFIED = 0;
+  META = 1;
+  GOOGLE = 2;
+  DATAFORSEO = 3;
+  APIFY = 4;
+  OPENROUTER = 5;
+}
+
+message IntegrationStatus {
+  IntegrationKey key = 1;
+  bool configured = 2;
+  Source source = 3;
+  optional string public_id = 4;
+  optional string secret_masked = 5;
+  // Non-secret state, e.g. the Meta App Review checklist.
+  google.protobuf.Struct meta = 6;
+  optional google.protobuf.Timestamp verified_at = 7;
+
+  enum Source {
+    SOURCE_UNSPECIFIED = 0;
+    DB = 1;
+    ENV = 2;
+    NONE = 3;
+  }
+}
+
+message ListIntegrationStatusesResponse {
+  repeated IntegrationStatus statuses = 1;
+  MetaReview meta_review = 2;
+}
+
+message MetaReview {
+  map<string, string> permissions = 1; // permission -> NOT_REQUESTED | SUBMITTED | APPROVED
+  bool app_live = 2;
+  bool business_verified = 3;
+  int32 approved_required = 4;
+  int32 total_required = 5;
+  bool publish_ready = 6;
+  bool ads_ready = 7;
+}
+
+message SaveCredentialRequest {
+  IntegrationKey key = 1;
+  // Absent keeps the stored value; empty string clears it.
+  optional string public_id = 2;
+  // Absent or empty keeps the stored secret.
+  optional string secret = 3;
+  bool verify = 4;
+}
+
+message VerifyResult {
+  bool ok = 1;
+  string message = 2;
+  map<string, string> detail = 3;
+}
+
+message SaveCredentialResponse {
+  IntegrationStatus status = 1;
+  optional VerifyResult verified = 2;
+}
+
+message ClearCredentialRequest {
+  IntegrationKey key = 1;
+}
+
+message SaveMetaReviewRequest {
+  map<string, string> permissions = 1;
+  bool app_live = 2;
+  bool business_verified = 3;
+}
+
+message EstimateCostsRequest {
+  int32 tracked_keywords = 1;
+  int32 competitor_domains = 2;
+  int32 research_runs_per_month = 3;
+  int32 social_accounts = 4;
+  int32 posts_per_account = 5;
+  double usd_idr = 6;
+}
+
+message EstimateCostsResponse {
+  CostEstimate dataforseo = 1;
+  CostEstimate apify = 2;
+
+  message CostEstimate {
+    map<string, double> lines_usd = 1;
+    double total_usd = 2;
+    double total_idr = 3;
+  }
+}
+
+message GetProviderCredentialsRequest {
+  IntegrationKey key = 1;
+}
+
+message ProviderCredentials {
+  IntegrationKey key = 1;
+  bool configured = 2;
+  string public_id = 3;
+  string secret = 4;
+}

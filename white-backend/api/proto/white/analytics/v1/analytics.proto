@@ -1,0 +1,1094 @@
+syntax = "proto3";
+
+package white.analytics.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "white/common/v1/common.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/analytics/v1;analyticsv1";
+
+// NOTE: this file starts with the internal RPCs other services depend on.
+// The analytics service adds its public RPCs (overview, social, seo, ads,
+// reports) below; keep the messages here stable.
+
+// ─────────────────────────────────────────────────────────────
+// SourceService: data sources registered per client
+// ─────────────────────────────────────────────────────────────
+
+service SourceService {
+  rpc ListSocialAccounts(ListSocialAccountsRequest) returns (ListSocialAccountsResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/social-accounts"};
+  }
+  rpc ListSeoProperties(ListSeoPropertiesRequest) returns (ListSeoPropertiesResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/seo-properties"};
+  }
+  rpc ListAdAccounts(ListAdAccountsRequest) returns (ListAdAccountsResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/ad-accounts"};
+  }
+
+  // Own social account (MANAGER/ADMIN). Duplicate -> VALIDATION on `username`.
+  rpc AddSocialAccount(AddSocialAccountRequest) returns (SocialAccount) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/social-accounts" body: "*"};
+  }
+  rpc RemoveSocialAccount(RemoveSocialAccountRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/social-accounts/{account_id}"};
+  }
+  // Instagram competitor (MANAGER/ADMIN): profile discovery + 120 days of synthetic history.
+  rpc AddCompetitor(AddCompetitorRequest) returns (AddCompetitorResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/competitors" body: "*"};
+  }
+  rpc RemoveCompetitor(RemoveCompetitorRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/competitors/{account_id}"};
+  }
+  rpc AddSeoProperty(AddSeoPropertyRequest) returns (SeoProperty) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/seo-properties" body: "*"};
+  }
+  rpc RemoveSeoProperty(RemoveSeoPropertyRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/seo-properties/{property_id}"};
+  }
+  // Any member may change how often the daily job re-runs the audit.
+  rpc SetAuditCadence(SetAuditCadenceRequest) returns (SetAuditCadenceResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/seo-properties/{property_id}:setAuditCadence" body: "*"};
+  }
+  rpc AddAdAccount(AddAdAccountRequest) returns (AdAccount) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/ad-accounts" body: "*"};
+  }
+  rpc RemoveAdAccount(RemoveAdAccountRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/ad-accounts/{account_id}"};
+  }
+  // Every source of a client for the settings page (connections live in integrations).
+  rpc GetClientSources(GetClientSourcesRequest) returns (GetClientSourcesResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/sources"};
+  }
+
+  // Internal. One property by id (seosuite).
+  rpc GetSeoProperty(GetSeoPropertyRequest) returns (SeoProperty);
+}
+
+message SocialAccount {
+  string id = 1;
+  string client_id = 2;
+  white.common.v1.SocialPlatform platform = 3;
+  string external_id = 4;
+  string username = 5;
+  string display_name = 6;
+  optional string avatar_url = 7;
+  optional string biography = 8;
+  bool is_competitor = 9;
+  optional string connection_id = 10;
+  // Latest snapshot followers (0 when none).
+  int32 followers = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
+
+message ListSocialAccountsRequest {
+  string client_id = 1;
+  // Default false: own accounts only.
+  bool include_competitors = 2;
+  // Optional platform filter.
+  white.common.v1.SocialPlatform platform = 3;
+}
+
+message ListSocialAccountsResponse {
+  repeated SocialAccount accounts = 1;
+}
+
+enum AuditCadence {
+  AUDIT_CADENCE_UNSPECIFIED = 0;
+  NONE = 1;
+  WEEKLY = 2;
+  DAILY = 3;
+}
+
+message SeoProperty {
+  string id = 1;
+  string client_id = 2;
+  string site_url = 3;
+  optional string ga4_property_id = 4;
+  optional string connection_id = 5;
+  int32 location_code = 6;
+  string language_code = 7;
+  AuditCadence audit_cadence = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ListSeoPropertiesRequest {
+  string client_id = 1;
+}
+
+message ListSeoPropertiesResponse {
+  repeated SeoProperty properties = 1;
+}
+
+message AdAccount {
+  string id = 1;
+  string client_id = 2;
+  string external_id = 3;
+  string name = 4;
+  string currency = 5;
+  optional string connection_id = 6;
+  optional google.protobuf.Timestamp last_synced_at = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message ListAdAccountsRequest {
+  string client_id = 1;
+}
+
+message ListAdAccountsResponse {
+  repeated AdAccount accounts = 1;
+}
+
+message AddSocialAccountRequest {
+  string client_id = 1;
+  white.common.v1.SocialPlatform platform = 2;
+  string username = 3;
+  string display_name = 4;
+}
+
+message RemoveSocialAccountRequest {
+  string client_id = 1;
+  string account_id = 2;
+}
+
+message AddCompetitorRequest {
+  string client_id = 1;
+  string username = 2;
+}
+
+message AddCompetitorResponse {
+  string account_id = 1;
+  string username = 2;
+}
+
+message RemoveCompetitorRequest {
+  string client_id = 1;
+  string account_id = 2;
+}
+
+message AddSeoPropertyRequest {
+  string client_id = 1;
+  string site_url = 2;
+  string ga4_property_id = 3;
+}
+
+message RemoveSeoPropertyRequest {
+  string client_id = 1;
+  string property_id = 2;
+}
+
+message SetAuditCadenceRequest {
+  string client_id = 1;
+  string property_id = 2;
+  AuditCadence cadence = 3;
+}
+
+message SetAuditCadenceResponse {
+  AuditCadence cadence = 1;
+}
+
+message AddAdAccountRequest {
+  string client_id = 1;
+  string external_id = 2;
+  string name = 3;
+}
+
+message RemoveAdAccountRequest {
+  string client_id = 1;
+  string account_id = 2;
+}
+
+message GetClientSourcesRequest {
+  string client_id = 1;
+}
+
+message GetClientSourcesResponse {
+  repeated SocialAccount social_accounts = 1;
+  repeated SeoProperty seo_properties = 2;
+  repeated AdAccount ad_accounts = 3;
+}
+
+message GetSeoPropertyRequest {
+  string property_id = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Shared metric messages
+// ─────────────────────────────────────────────────────────────
+
+// Freshness of one module for one client.
+message DataQuality {
+  white.common.v1.DataState state = 1;
+  // startedAt of the latest sync job of the module.
+  optional google.protobuf.Timestamp last_synced_at = 2;
+  // Earliest and latest data point inside the current range.
+  optional google.protobuf.Timestamp data_from = 3;
+  optional google.protobuf.Timestamp data_to = 4;
+}
+
+message AdKpis {
+  double spend = 1;
+  int64 impressions = 2;
+  int64 reach = 3;
+  int64 clicks = 4;
+  int64 link_clicks = 5;
+  int64 results = 6;
+  double cpr = 7;
+  double ctr = 8;
+  double cpc = 9;
+  double cpm = 10;
+  double frequency = 11;
+  // Absent when no row carries a purchase value.
+  optional double roas = 12;
+}
+
+message OverviewSocialAccount {
+  white.common.v1.SocialPlatform platform = 1;
+  string username = 2;
+  int64 followers = 3;
+}
+
+message OverviewSocial {
+  bool has_source = 1;
+  bool has_data = 2;
+  bool is_demo = 3;
+  DataQuality quality = 4;
+  int64 followers = 5;
+  // Growth this period vs growth the previous period.
+  white.common.v1.Delta followers_delta = 6;
+  repeated double followers_spark = 7;
+  int64 posts = 8;
+  white.common.v1.Delta posts_delta = 9;
+  double engagement_rate = 10;
+  white.common.v1.Delta engagement_rate_delta = 11;
+  int64 reach = 12;
+  white.common.v1.Delta reach_delta = 13;
+  repeated OverviewSocialAccount accounts = 14;
+}
+
+// A day GSC did not report keeps clicks/impressions absent, never 0.
+message SeoDailyPoint {
+  string date = 1;
+  optional int64 clicks = 2;
+  optional int64 impressions = 3;
+}
+
+message OverviewSeo {
+  bool has_source = 1;
+  bool has_data = 2;
+  bool is_demo = 3;
+  DataQuality quality = 4;
+  int64 clicks = 5;
+  white.common.v1.Delta clicks_delta = 6;
+  repeated double clicks_spark = 7;
+  int64 impressions = 8;
+  white.common.v1.Delta impressions_delta = 9;
+  double ctr = 10;
+  white.common.v1.Delta ctr_delta = 11;
+  double position = 12;
+  white.common.v1.Delta position_delta = 13;
+  optional int32 health = 14;
+  repeated SeoDailyPoint daily = 15;
+}
+
+message AdsDailyPoint {
+  string date = 1;
+  double spend = 2;
+  int64 results = 3;
+  optional double spend_prev = 4;
+  optional int64 results_prev = 5;
+}
+
+message OverviewAds {
+  bool has_source = 1;
+  bool has_data = 2;
+  bool is_demo = 3;
+  DataQuality quality = 4;
+  AdKpis kpis = 5;
+  AdKpis prev = 6;
+  white.common.v1.Delta spend_delta = 7;
+  white.common.v1.Delta results_delta = 8;
+  white.common.v1.Delta cpr_delta = 9;
+  repeated double spend_spark = 10;
+  repeated AdsDailyPoint daily = 11;
+}
+
+// ─────────────────────────────────────────────────────────────
+// OverviewService
+// ─────────────────────────────────────────────────────────────
+
+service OverviewService {
+  rpc GetOverview(GetOverviewRequest) returns (Overview) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/overview"};
+  }
+  // Portfolio totals across the given clients (the caller checks access to each).
+  rpc GetPortfolioTotals(GetPortfolioTotalsRequest) returns (PortfolioTotals) {
+    option (google.api.http) = {post: "/v1/portfolio:totals" body: "*"};
+  }
+  rpc ListSyncJobs(ListSyncJobsRequest) returns (ListSyncJobsResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/sync-jobs"};
+  }
+  // Internal. Latest sync job start per client (clients list page).
+  rpc GetLatestSyncByClients(GetLatestSyncByClientsRequest) returns (GetLatestSyncByClientsResponse);
+}
+
+message GetOverviewRequest {
+  string client_id = 1;
+  white.common.v1.RangeQuery range = 2;
+}
+
+message Overview {
+  white.common.v1.ResolvedRange range = 1;
+  OverviewSocial social = 2;
+  OverviewSeo seo = 3;
+  OverviewAds ads = 4;
+}
+
+message GetPortfolioTotalsRequest {
+  repeated string client_ids = 1;
+  white.common.v1.RangeQuery range = 2;
+}
+
+message PortfolioTotals {
+  white.common.v1.ResolvedRange range = 1;
+  int64 followers = 2;
+  white.common.v1.Delta followers_delta = 3;
+  int64 clicks = 4;
+  white.common.v1.Delta clicks_delta = 5;
+  double spend = 6;
+  white.common.v1.Delta spend_delta = 7;
+}
+
+message SyncJob {
+  string id = 1;
+  string client_id = 2;
+  string kind = 3;
+  white.common.v1.JobStatus status = 4;
+  google.protobuf.Timestamp started_at = 5;
+  optional google.protobuf.Timestamp finished_at = 6;
+  optional string message = 7;
+  optional string error = 8;
+}
+
+message ListSyncJobsRequest {
+  string client_id = 1;
+  // Default 6.
+  int32 limit = 2;
+}
+
+message ListSyncJobsResponse {
+  repeated SyncJob jobs = 1;
+}
+
+message GetLatestSyncByClientsRequest {
+  repeated string client_ids = 1;
+}
+
+message GetLatestSyncByClientsResponse {
+  map<string, google.protobuf.Timestamp> latest = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// SocialService
+// ─────────────────────────────────────────────────────────────
+
+service SocialService {
+  rpc GetSocialDashboard(GetSocialDashboardRequest) returns (SocialDashboard) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/social/dashboard"};
+  }
+  rpc GetCompetitorDashboard(GetCompetitorDashboardRequest) returns (CompetitorDashboard) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/social/competitors"};
+  }
+  // Any member. Meta -> Apify -> demo extrapolation.
+  rpc SyncSocial(SyncSocialRequest) returns (SyncSocialResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/social:sync" body: "*"};
+  }
+}
+
+message SocialPostRow {
+  string id = 1;
+  string caption = 2;
+  string caption_short = 3;
+  optional string thumbnail_url = 4;
+  optional string permalink = 5;
+  // Reels | Video | Carousel | Foto | Story
+  string type = 6;
+  google.protobuf.Timestamp published_at = 7;
+  int64 likes = 8;
+  int64 comments = 9;
+  int64 shares = 10;
+  int64 saves = 11;
+  int64 views = 12;
+  int64 reach = 13;
+  int64 engagements = 14;
+  double er = 15;
+  // Only on competitor post cards.
+  optional string username = 16;
+}
+
+message SocialKpis {
+  int64 followers = 1;
+  white.common.v1.Delta followers_delta = 2;
+  repeated double followers_spark = 3;
+  int64 growth_abs = 4;
+  optional double growth_pct = 5;
+  double er = 6;
+  white.common.v1.Delta er_delta = 7;
+  int64 reach = 8;
+  white.common.v1.Delta reach_delta = 9;
+  int64 impressions = 10;
+  white.common.v1.Delta impressions_delta = 11;
+  int64 posts = 12;
+  white.common.v1.Delta posts_delta = 13;
+  double posts_per_week = 14;
+}
+
+message GrowthPoint {
+  string date = 1;
+  optional int64 followers = 2;
+  optional int64 followers_prev = 3;
+}
+
+message ReachPoint {
+  string date = 1;
+  int64 reach = 2;
+  int64 impressions = 3;
+}
+
+message ErByType {
+  string type = 1;
+  double avg_er = 2;
+  int32 count = 3;
+}
+
+message HeatCell {
+  // 0 = Monday.
+  int32 day = 1;
+  int32 hour = 2;
+  int32 posts = 3;
+  double avg_engagement = 4;
+}
+
+message SocialDashboardAccount {
+  string id = 1;
+  string username = 2;
+  string display_name = 3;
+  optional string avatar_url = 4;
+}
+
+message GetSocialDashboardRequest {
+  string client_id = 1;
+  white.common.v1.SocialPlatform platform = 2;
+  white.common.v1.RangeQuery range = 3;
+}
+
+message SocialDashboard {
+  white.common.v1.ResolvedRange range = 1;
+  bool is_demo = 2;
+  optional SocialDashboardAccount account = 3;
+  optional SocialKpis kpis = 4;
+  repeated GrowthPoint growth_series = 5;
+  repeated ReachPoint reach_series = 6;
+  repeated ErByType er_by_type = 7;
+  repeated HeatCell heatmap = 8;
+  repeated SocialPostRow top_posts = 9;
+  repeated SocialPostRow posts = 10;
+}
+
+message CompetitorRow {
+  string account_id = 1;
+  string username = 2;
+  string display_name = 3;
+  optional string avatar_url = 4;
+  bool is_own = 5;
+  int64 followers = 6;
+  int64 growth_abs = 7;
+  optional double growth_pct = 8;
+  white.common.v1.Delta growth_delta = 9;
+  double avg_er = 10;
+  double posts_per_week = 11;
+  int64 media_count = 12;
+}
+
+message CompetitorChartValue {
+  string key = 1;
+  optional double value = 2;
+}
+
+message CompetitorChartPoint {
+  string date = 1;
+  repeated CompetitorChartValue values = 2;
+}
+
+message CompetitorSeries {
+  string key = 1;
+  string label = 2;
+}
+
+message GetCompetitorDashboardRequest {
+  string client_id = 1;
+  white.common.v1.RangeQuery range = 2;
+}
+
+message CompetitorDashboard {
+  white.common.v1.ResolvedRange range = 1;
+  bool has_own = 2;
+  repeated CompetitorRow rows = 3;
+  repeated CompetitorChartPoint chart = 4;
+  repeated CompetitorSeries series = 5;
+  repeated SocialPostRow top_posts = 6;
+}
+
+message SyncSocialRequest {
+  string client_id = 1;
+  white.common.v1.SocialPlatform platform = 2;
+}
+
+message SyncSocialResponse {
+  int32 updated = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// SeoService
+// ─────────────────────────────────────────────────────────────
+
+service SeoService {
+  rpc GetSeoOverview(SeoPropertyRangeRequest) returns (SeoOverview) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/seo-properties/{property_id}/overview"};
+  }
+  rpc GetQueryStats(SeoPropertyRangeRequest) returns (QueryStats) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/seo-properties/{property_id}/queries"};
+  }
+  rpc GetPageStats(SeoPropertyRangeRequest) returns (PageStats) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/seo-properties/{property_id}/pages"};
+  }
+  rpc GetDimBreakdown(SeoPropertyRangeRequest) returns (DimBreakdown) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/seo-properties/{property_id}/breakdown"};
+  }
+  rpc GetAuditData(SeoPropertyRequest) returns (AuditData) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/seo-properties/{property_id}/audit"};
+  }
+  rpc GetIssueTrend(SeoPropertyRequest) returns (IssueTrend) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/seo-properties/{property_id}/issue-trend"};
+  }
+  // Any member. 10 minute cooldown after the last audit of the property.
+  rpc RunAudit(RunAuditRequest) returns (RunAuditResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/seo-properties/{property_id}:runAudit" body: "*"};
+  }
+  // Any member. GSC/GA4 pull (90 days) for every property with a Google connection.
+  rpc SyncSeo(SyncSeoRequest) returns (SyncSeoResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/seo:sync" body: "*"};
+  }
+}
+
+message SeoPropertyRangeRequest {
+  string client_id = 1;
+  string property_id = 2;
+  white.common.v1.RangeQuery range = 3;
+}
+
+message SeoPropertyRequest {
+  string client_id = 1;
+  string property_id = 2;
+}
+
+message SearchDailyPoint {
+  string date = 1;
+  optional int64 clicks = 2;
+  optional int64 impressions = 3;
+  optional double position = 4;
+  optional int64 clicks_prev = 5;
+  optional int64 impressions_prev = 6;
+  optional double position_prev = 7;
+}
+
+message Ga4DailyPoint {
+  string date = 1;
+  int64 organik = 2;
+  int64 lainnya = 3;
+}
+
+message SeoKpis {
+  int64 clicks = 1;
+  int64 impressions = 2;
+  double ctr = 3;
+  double position = 4;
+}
+
+message SeoDeltas {
+  white.common.v1.Delta clicks = 1;
+  white.common.v1.Delta impressions = 2;
+  white.common.v1.Delta ctr = 3;
+  white.common.v1.Delta position = 4;
+}
+
+message Ga4Summary {
+  bool has_data = 1;
+  int64 organic_sessions = 2;
+  int64 sessions = 3;
+  int64 conversions = 4;
+  white.common.v1.Delta organic_delta = 5;
+  white.common.v1.Delta conversions_delta = 6;
+  repeated double organic_spark = 7;
+}
+
+message SeoOverview {
+  white.common.v1.ResolvedRange range = 1;
+  bool has_data = 2;
+  SeoKpis kpis = 3;
+  SeoDeltas deltas = 4;
+  repeated double clicks_spark = 5;
+  repeated double impressions_spark = 6;
+  repeated SearchDailyPoint daily = 7;
+  Ga4Summary ga4 = 8;
+  repeated Ga4DailyPoint ga4_daily = 9;
+  optional int32 health = 10;
+}
+
+message DimAgg {
+  string key = 1;
+  int64 clicks = 2;
+  int64 impressions = 3;
+  double ctr = 4;
+  double position = 5;
+}
+
+message QueryAgg {
+  string key = 1;
+  int64 clicks = 2;
+  int64 impressions = 3;
+  double ctr = 4;
+  double position = 5;
+  optional int64 prev_clicks = 6;
+  optional double prev_position = 7;
+  optional int64 prev_impressions = 8;
+  // Pages only: pathname + search of the key.
+  string path = 9;
+}
+
+message PositionBucketRow {
+  // 1-3 | 4-10 | 11-20 | 21+
+  string bucket = 1;
+  int32 queries = 2;
+  int64 clicks = 3;
+  int64 impressions = 4;
+}
+
+message Opportunity {
+  // striking_distance | low_ctr | declining | rising
+  string kind = 1;
+  string key = 2;
+  int64 clicks = 3;
+  int64 impressions = 4;
+  double position = 5;
+  double ctr = 6;
+  optional double expected_ctr = 7;
+  optional int64 prev_clicks = 8;
+  int64 potential_clicks = 9;
+}
+
+message KeywordOpportunities {
+  repeated Opportunity striking = 1;
+  repeated Opportunity low_ctr = 2;
+  repeated Opportunity declining = 3;
+  repeated Opportunity rising = 4;
+}
+
+message QueryStats {
+  white.common.v1.ResolvedRange range = 1;
+  repeated QueryAgg rows = 2;
+  repeated PositionBucketRow distribution = 3;
+  KeywordOpportunities opportunities = 4;
+}
+
+message PageStats {
+  white.common.v1.ResolvedRange range = 1;
+  repeated QueryAgg rows = 2;
+}
+
+message DimBreakdown {
+  white.common.v1.ResolvedRange range = 1;
+  repeated DimAgg devices = 2;
+  repeated DimAgg countries = 3;
+}
+
+enum AuditStrategy {
+  AUDIT_STRATEGY_UNSPECIFIED = 0;
+  MOBILE = 1;
+  DESKTOP = 2;
+}
+
+enum IssueSeverity {
+  ISSUE_SEVERITY_UNSPECIFIED = 0;
+  ERROR = 1;
+  WARNING = 2;
+  NOTICE = 3;
+}
+
+message AuditRow {
+  string id = 1;
+  string url = 2;
+  AuditStrategy strategy = 3;
+  google.protobuf.Timestamp run_at = 4;
+  int32 performance = 5;
+  int32 seo = 6;
+  int32 accessibility = 7;
+  int32 best_practices = 8;
+  optional double lcp_ms = 9;
+  optional double inp_ms = 10;
+  optional double cls = 11;
+  optional double fcp_ms = 12;
+  optional double ttfb_ms = 13;
+  optional double tbt_ms = 14;
+  optional double speed_index_ms = 15;
+}
+
+message ScoreHistoryPoint {
+  string date = 1;
+  int32 performance = 2;
+  int32 seo = 3;
+  int32 accessibility = 4;
+  int32 best_practices = 5;
+}
+
+message CrawlSummary {
+  string id = 1;
+  white.common.v1.JobStatus status = 2;
+  google.protobuf.Timestamp started_at = 3;
+  optional google.protobuf.Timestamp finished_at = 4;
+  int32 pages_crawled = 5;
+  int32 max_pages = 6;
+  optional string error = 7;
+}
+
+message CrawlPageRow {
+  string id = 1;
+  string url = 2;
+  string path = 3;
+  int32 status_code = 4;
+  int32 title_length = 5;
+  int32 meta_length = 6;
+  int32 h1_count = 7;
+  int32 word_count = 8;
+  int32 images_missing_alt = 9;
+  bool indexable = 10;
+  optional int32 load_ms = 11;
+}
+
+message IssueRow {
+  string id = 1;
+  IssueSeverity severity = 2;
+  string code = 3;
+  string message = 4;
+  string url = 5;
+}
+
+message SeverityCounts {
+  int32 errors = 1;
+  int32 warnings = 2;
+  int32 notices = 3;
+}
+
+message CodeCount {
+  string code = 1;
+  int32 count = 2;
+}
+
+message AuditData {
+  optional AuditRow latest_mobile = 1;
+  optional AuditRow latest_desktop = 2;
+  optional google.protobuf.Timestamp last_run_at = 3;
+  repeated ScoreHistoryPoint history = 4;
+  optional CrawlSummary crawl = 5;
+  repeated CrawlPageRow pages = 6;
+  repeated IssueRow issues = 7;
+  SeverityCounts severity_counts = 8;
+  repeated CodeCount code_counts = 9;
+}
+
+message IssueTrendPoint {
+  string date = 1;
+  int32 errors = 2;
+  int32 warnings = 3;
+  int32 notices = 4;
+  int32 pages = 5;
+}
+
+message IssueTrend {
+  repeated IssueTrendPoint points = 1;
+}
+
+message RunAuditRequest {
+  string client_id = 1;
+  string property_id = 2;
+  // Optional override of the audited URL.
+  string url = 3;
+}
+
+message RunAuditResponse {
+  string message = 1;
+  int32 audits = 2;
+  int32 pages_crawled = 3;
+  int32 issues = 4;
+}
+
+message SyncSeoRequest {
+  string client_id = 1;
+}
+
+message SyncSeoResponse {
+  // real | demo
+  string mode = 1;
+  int32 daily = 2;
+  int32 ga4 = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AdsService
+// ─────────────────────────────────────────────────────────────
+
+service AdsService {
+  rpc GetAdsDashboard(GetAdsDashboardRequest) returns (AdsDashboard) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/ads/dashboard"};
+  }
+  // MANAGER/ADMIN. Meta Ads Manager CSV export, 10 MB max.
+  rpc ImportAdsCsv(ImportAdsCsvRequest) returns (ImportSummary) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/ads:importCsv" body: "*"};
+  }
+  // MANAGER/ADMIN. Marketing API pull (90 days) or the demo touch.
+  rpc SyncAds(SyncAdsRequest) returns (SyncAdsResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/ads:sync" body: "*"};
+  }
+}
+
+message GetAdsDashboardRequest {
+  string client_id = 1;
+  white.common.v1.RangeQuery range = 2;
+  // Unknown ids are ignored.
+  string campaign_id = 3;
+}
+
+message AdsDeltas {
+  white.common.v1.Delta spend = 1;
+  white.common.v1.Delta results = 2;
+  white.common.v1.Delta cpr = 3;
+  white.common.v1.Delta impressions = 4;
+  white.common.v1.Delta reach = 5;
+  white.common.v1.Delta link_clicks = 6;
+  white.common.v1.Delta ctr = 7;
+  white.common.v1.Delta cpc = 8;
+  white.common.v1.Delta cpm = 9;
+  white.common.v1.Delta frequency = 10;
+  optional white.common.v1.Delta roas = 11;
+}
+
+message AdsNodeKpis {
+  double spend = 1;
+  int64 results = 2;
+  optional string result_type = 3;
+  double cpr = 4;
+  int64 impressions = 5;
+  int64 reach = 6;
+  int64 link_clicks = 7;
+  double ctr = 8;
+  double cpc = 9;
+  double frequency = 10;
+}
+
+message AdsAdNode {
+  string id = 1;
+  string name = 2;
+  string status = 3;
+  optional string thumbnail_url = 4;
+  AdsNodeKpis kpis = 5;
+}
+
+message AdsAdSetNode {
+  string id = 1;
+  string name = 2;
+  string status = 3;
+  AdsNodeKpis kpis = 4;
+  repeated AdsAdNode ads = 5;
+}
+
+message AdsCampaignNode {
+  string id = 1;
+  string name = 2;
+  string status = 3;
+  string objective = 4;
+  AdsNodeKpis kpis = 5;
+  repeated AdsAdSetNode ad_sets = 6;
+}
+
+message AdsCampaignShare {
+  string id = 1;
+  string name = 2;
+  double spend = 3;
+  int64 results = 4;
+  optional string result_type = 5;
+}
+
+message AdsTopAd {
+  string id = 1;
+  string name = 2;
+  string campaign_name = 3;
+  string status = 4;
+  optional string thumbnail_url = 5;
+  double spend = 6;
+  int64 results = 7;
+  optional string result_type = 8;
+  double cpr = 9;
+  double ctr = 10;
+}
+
+message AdsDemographicRow {
+  string age = 1;
+  string gender = 2;
+  double spend = 3;
+  int64 results = 4;
+}
+
+message AdsDemographics {
+  bool has_data = 1;
+  repeated AdsDemographicRow by_age = 2;
+  repeated AdsDemographicRow by_gender = 3;
+  repeated AdsDemographicRow matrix = 4;
+}
+
+message CampaignOption {
+  string id = 1;
+  string name = 2;
+}
+
+message AdsDashboard {
+  white.common.v1.ResolvedRange range = 1;
+  bool has_data = 2;
+  bool is_demo = 3;
+  optional AdAccount account = 4;
+  repeated CampaignOption campaign_options = 5;
+  AdKpis kpis = 6;
+  AdKpis prev = 7;
+  AdsDeltas deltas = 8;
+  optional string dominant_result_type = 9;
+  repeated double spend_spark = 10;
+  repeated double results_spark = 11;
+  repeated AdsDailyPoint daily = 12;
+  repeated AdsCampaignShare campaign_share = 13;
+  repeated AdsCampaignNode breakdown = 14;
+  AdsDemographics demographics = 15;
+  repeated AdsTopAd top_ads = 16;
+}
+
+message ImportAdsCsvRequest {
+  string client_id = 1;
+  string filename = 2;
+  string content_type = 3;
+  bytes content = 4;
+}
+
+message ImportSummary {
+  int32 campaigns = 1;
+  int32 ad_sets = 2;
+  int32 ads = 3;
+  int32 days = 4;
+  int32 demographics = 5;
+  repeated string warnings = 6;
+}
+
+message SyncAdsRequest {
+  string client_id = 1;
+}
+
+message SyncAdsResponse {
+  google.protobuf.Timestamp last_synced_at = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ReportDataService (internal): numbers the reports and share services compose
+// ─────────────────────────────────────────────────────────────
+
+service ReportDataService {
+  rpc GetReportData(GetReportDataRequest) returns (ReportData);
+}
+
+message GetReportDataRequest {
+  string client_id = 1;
+  white.common.v1.DateRange current = 2;
+  // Derived server-side from `current` when absent.
+  white.common.v1.DateRange previous = 3;
+  // Empty means every module.
+  repeated white.common.v1.ModuleKey modules = 4;
+  // Top posts / top queries per block. Default 5.
+  int32 top_n = 5;
+}
+
+message DailyFollowersPoint {
+  string date = 1;
+  int64 followers = 2;
+}
+
+message TopPostRow {
+  string id = 1;
+  white.common.v1.SocialPlatform platform = 2;
+  string username = 3;
+  string caption = 4;
+  string media_type = 5;
+  optional string product_type = 6;
+  optional string permalink = 7;
+  google.protobuf.Timestamp published_at = 8;
+  int64 likes = 9;
+  int64 comments = 10;
+  int64 shares = 11;
+  int64 saves = 12;
+  int64 engagements = 13;
+  int64 reach = 14;
+}
+
+message TopQueryRow {
+  string query = 1;
+  int64 clicks = 2;
+  int64 impressions = 3;
+  double ctr = 4;
+  double position = 5;
+}
+
+message CampaignRow {
+  string id = 1;
+  string name = 2;
+  string objective = 3;
+  string status = 4;
+  double spend = 5;
+  int64 impressions = 6;
+  int64 results = 7;
+  optional string result_type = 8;
+  // 0 for awareness campaigns.
+  double cpr = 9;
+  bool is_conversion = 10;
+}
+
+message ReportSocial {
+  OverviewSocial overview = 1;
+  // Over [from-1, to] so the first net-growth bar has a baseline.
+  repeated DailyFollowersPoint daily_followers = 2;
+  repeated TopPostRow top_posts = 3;
+}
+
+message ReportSeo {
+  OverviewSeo overview = 1;
+  repeated TopQueryRow top_queries = 2;
+}
+
+message ReportAds {
+  OverviewAds overview = 1;
+  repeated CampaignRow campaigns = 2;
+}
+
+message ReportData {
+  white.common.v1.DateRange current = 1;
+  white.common.v1.DateRange previous = 2;
+  optional ReportSocial social = 3;
+  optional ReportSeo seo = 4;
+  optional ReportAds ads = 5;
+}

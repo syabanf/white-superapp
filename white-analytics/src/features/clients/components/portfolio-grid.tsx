@@ -4,7 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowUpRight, CircleAlert, Clock, Megaphone, Search, Share2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -142,37 +141,29 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
     <Card className="lift flex flex-col gap-4 p-6 hover:ring-brand/25">
       <div className="flex items-start justify-between gap-3">
         <Link href={href()} className="group flex min-w-0 items-center gap-3">
-          <Avatar className="size-10 rounded-lg">
+          <Avatar className="size-11 rounded-full">
             {data.logoUrl ? <AvatarImage src={data.logoUrl} alt={data.name} /> : null}
-            <AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+            <AvatarFallback className="rounded-full bg-accent text-sm font-semibold text-accent-foreground">
               {initials(data.name)}
             </AvatarFallback>
           </Avatar>
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold group-hover:underline">{data.name}</span>
+            <span className="line-clamp-2 text-[15px] leading-snug font-semibold tracking-[-0.015em] group-hover:underline">
+              {data.name}
+            </span>
             <span className="block truncate text-xs text-muted-foreground">{data.industry ?? "–"}</span>
           </span>
         </Link>
         {data.health != null ? (
-          <StatusBadge kind={ratingToKind(rateScore(data.health))}>
-            {tc.portfolio.scoreLabel} {formatNumber(data.health)}
-          </StatusBadge>
-        ) : (
-          <StatusBadge kind="neutral">{tc.portfolio.noAudit}</StatusBadge>
-        )}
+          <span title={tc.portfolio.scoreLabel} className="shrink-0">
+            <StatusBadge kind={ratingToKind(rateScore(data.health))}>{formatNumber(data.health)}</StatusBadge>
+          </span>
+        ) : null}
       </div>
 
-      <div className="divide-y rounded-lg border bg-muted/25">
-        <MiniMetric
-          label={tc.portfolio.metricFollowers}
-          value={formatCompact(data.followers)}
-          delta={data.followersDelta}
-        />
-        <MiniMetric
-          label={tc.portfolio.metricClicks}
-          value={formatCompact(data.clicks)}
-          delta={data.clicksDelta}
-        />
+      <div className="space-y-0.5 rounded-2xl bg-muted/70 p-1.5">
+        <MiniMetric label={tc.portfolio.metricFollowers} value={formatCompact(data.followers)} delta={data.followersDelta} />
+        <MiniMetric label={tc.portfolio.metricClicks} value={formatCompact(data.clicks)} delta={data.clicksDelta} />
         <MiniMetric
           label={tc.portfolio.metricSpend}
           value={formatCurrency(data.spend, data.currency, { compact: true })}
@@ -180,18 +171,15 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">{t.portfolio.modulesActive}:</span>
-        {activeModules.length === 0 ? (
-          <span className="text-xs text-muted-foreground">{tc.portfolio.noModules}</span>
-        ) : (
-          activeModules.map((m) => (
-            <Badge key={m.key} variant="secondary" className="gap-1 px-1.5 py-0 text-xs font-medium">
+      {activeModules.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5" aria-label={t.portfolio.modulesActive}>
+          {activeModules.map((m) => (
+            <span key={m.key} className="inline-flex h-6 items-center gap-1 rounded-full bg-muted px-2.5 text-xs text-muted-foreground">
               <m.icon className="size-3" /> {m.label}
-            </Badge>
-          ))
-        )}
-      </div>
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       {data.attention.length > 0 ? (
         <div className="space-y-1.5 border-t pt-3" aria-label="Perlu perhatian">
@@ -226,13 +214,13 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
   );
 }
 
-/** One spec row: label left, value + delta right. Stays legible at any card width. */
+/** One metric row: label left, value (and delta when comparing) right. */
 function MiniMetric({ label, value, delta }: { label: string; value: string; delta: Delta | null }) {
   return (
-    <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
-      <span className="label-mono truncate text-xs text-muted-foreground">{label}</span>
-      <span className="flex shrink-0 items-center gap-1.5">
-        <span className="text-[13px] font-bold tracking-[-0.02em] tabular">{value}</span>
+    <div className="flex items-center justify-between gap-3 rounded-xl px-3 py-2">
+      <span className="label-mono truncate text-muted-foreground">{label}</span>
+      <span className="flex shrink-0 items-center gap-2">
+        <span className="text-[15px] font-semibold tracking-[-0.02em] tabular">{value}</span>
         {delta ? <DeltaBadge delta={delta} /> : null}
       </span>
     </div>

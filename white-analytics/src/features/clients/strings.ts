@@ -24,7 +24,6 @@ export const tc = {
     moduleSocial: "Social",
     moduleSeo: "SEO",
     moduleAds: "Ads",
-    noModules: "Belum ada modul aktif",
     lastSync: "Sinkron terakhir",
     metricFollowers: "Followers",
     metricClicks: "Klik organik",

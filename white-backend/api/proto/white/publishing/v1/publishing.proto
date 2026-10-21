@@ -1,0 +1,525 @@
+syntax = "proto3";
+
+package white.publishing.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "white/common/v1/common.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/publishing/v1;publishingv1";
+
+// ─────────────────────────────────────────────────────────────
+// Shared enums and messages
+// ─────────────────────────────────────────────────────────────
+
+enum PostStatus {
+  POST_STATUS_UNSPECIFIED = 0;
+  DRAFT = 1;
+  IN_REVIEW = 2;
+  APPROVED = 3;
+  SCHEDULED = 4;
+  PUBLISHING = 5;
+  PUBLISHED = 6;
+  FAILED = 7;
+  REJECTED = 8;
+}
+
+enum MediaKind {
+  MEDIA_KIND_UNSPECIFIED = 0;
+  IMAGE = 1;
+  VIDEO = 2;
+}
+
+// Tabs of the posts list. REJECTED sits with drafts, PUBLISHING with scheduled.
+enum PostsTab {
+  POSTS_TAB_UNSPECIFIED = 0;
+  POSTS_TAB_ALL = 1;
+  POSTS_TAB_DRAFT = 2;
+  POSTS_TAB_IN_REVIEW = 3;
+  POSTS_TAB_APPROVED = 4;
+  POSTS_TAB_SCHEDULED = 5;
+  POSTS_TAB_PUBLISHED = 6;
+  POSTS_TAB_FAILED = 7;
+}
+
+message MediaAsset {
+  string id = 1;
+  string client_id = 2;
+  MediaKind kind = 3;
+  string url = 4;
+  optional string thumbnail_url = 5;
+  string filename = 6;
+  string mime_type = 7;
+  int32 size_bytes = 8;
+  optional int32 width = 9;
+  optional int32 height = 10;
+  optional string alt_text = 11;
+  repeated string tags = 12;
+  google.protobuf.Timestamp created_at = 13;
+  // Posts that reference this asset.
+  int32 usage_count = 14;
+}
+
+message Utm {
+  string source = 1;
+  string medium = 2;
+  string campaign = 3;
+  string term = 4;
+  string content = 5;
+}
+
+// ─────────────────────────────────────────────────────────────
+// MediaService: the client's media library
+// ─────────────────────────────────────────────────────────────
+
+service MediaService {
+  rpc ListMedia(ListMediaRequest) returns (ListMediaResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/media"};
+  }
+  // Every file is validated (25 MiB, magic bytes) before any is stored.
+  rpc UploadMedia(UploadMediaRequest) returns (UploadMediaResponse) {
+    option (google.api.http) = {
+      post: "/v1/clients/{client_id}/media:upload"
+      body: "*"
+    };
+  }
+  rpc AddExternalMedia(AddExternalMediaRequest) returns (MediaAsset) {
+    option (google.api.http) = {
+      post: "/v1/clients/{client_id}/media:external"
+      body: "*"
+    };
+  }
+  rpc UpdateMedia(UpdateMediaRequest) returns (MediaAsset) {
+    option (google.api.http) = {
+      patch: "/v1/clients/{client_id}/media/{media_id}"
+      body: "*"
+    };
+  }
+  // Refused while a post still references the asset.
+  rpc DeleteMedia(DeleteMediaRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/media/{media_id}"};
+  }
+  // Internal. Bytes of a stored object for the gateway's GET /api/media/{key}.
+  // The gateway handles If-None-Match / 304 with the returned etag.
+  rpc GetMediaObject(GetMediaObjectRequest) returns (MediaObject);
+}
+
+message ListMediaRequest {
+  string client_id = 1;
+}
+
+message ListMediaResponse {
+  repeated MediaAsset assets = 1;
+}
+
+message UploadMediaRequest {
+  string client_id = 1;
+  repeated File files = 2;
+
+  message File {
+    string filename = 1;
+    bytes content = 2;
+  }
+}
+
+message UploadMediaResponse {
+  repeated MediaAsset assets = 1;
+}
+
+message AddExternalMediaRequest {
+  string client_id = 1;
+  // https only; the remote file is not fetched.
+  string url = 2;
+  MediaKind kind = 3;
+  string alt_text = 4;
+  repeated string tags = 5;
+}
+
+message UpdateMediaRequest {
+  string client_id = 1;
+  string media_id = 2;
+  // Present: set (empty clears). Absent: unchanged.
+  optional string alt_text = 3;
+  // Present: replace the tag list. Absent: unchanged.
+  optional TagList tags = 4;
+
+  message TagList {
+    repeated string values = 1;
+  }
+}
+
+message DeleteMediaRequest {
+  string client_id = 1;
+  string media_id = 2;
+}
+
+message GetMediaObjectRequest {
+  // `{clientId}/{uuid}.{ext}` as it appears after /api/media/.
+  string key = 1;
+}
+
+message MediaObject {
+  bytes content = 1;
+  string content_type = 2;
+  // sha1("{size}-{mtimeMs}") hex, as the Next.js route produced.
+  string etag = 3;
+  int64 size = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PostService: composer, approvals, scheduling, calendar
+// ─────────────────────────────────────────────────────────────
+
+service PostService {
+  // Create (no id) or update (id). Updating resets the post to DRAFT.
+  rpc SavePost(SavePostRequest) returns (SavePostResponse) {
+    option (google.api.http) = {
+      post: "/v1/clients/{client_id}/posts"
+      body: "*"
+    };
+  }
+  rpc SubmitForReview(PostRef) returns (PostStatusResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/posts/{post_id}:submit"};
+  }
+  rpc ApprovePost(PostRef) returns (PostStatusResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/posts/{post_id}:approve"};
+  }
+  rpc RejectPost(RejectPostRequest) returns (PostStatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/clients/{client_id}/posts/{post_id}:reject"
+      body: "*"
+    };
+  }
+  rpc SchedulePost(SchedulePostRequest) returns (PostStatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/clients/{client_id}/posts/{post_id}:schedule"
+      body: "*"
+    };
+  }
+  rpc UnschedulePost(PostRef) returns (PostStatusResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/posts/{post_id}:unschedule"};
+  }
+  // Moves the planned instant without changing the status (calendar drag).
+  rpc ReschedulePost(SchedulePostRequest) returns (PostStatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/clients/{client_id}/posts/{post_id}:reschedule"
+      body: "*"
+    };
+  }
+  rpc BackToDraft(PostRef) returns (PostStatusResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/posts/{post_id}:backToDraft"};
+  }
+  rpc PublishNow(PostRef) returns (PublishResult) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/posts/{post_id}:publish"};
+  }
+  rpc RetryPost(PostRef) returns (PublishResult) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/posts/{post_id}:retry"};
+  }
+  rpc DuplicatePost(PostRef) returns (SavePostResponse) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/posts/{post_id}:duplicate"};
+  }
+  rpc DeletePost(PostRef) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/posts/{post_id}"};
+  }
+  // Any member, VIEWER included.
+  rpc AddPostComment(AddPostCommentRequest) returns (PostComment) {
+    option (google.api.http) = {
+      post: "/v1/clients/{client_id}/posts/{post_id}/comments"
+      body: "*"
+    };
+  }
+  rpc GetPost(PostRef) returns (PostDetail) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/posts/{post_id}"};
+  }
+  rpc ListPosts(ListPostsRequest) returns (ListPostsResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/posts"};
+  }
+  // Posts placed on client-timezone calendar days `from_day..to_day`
+  // (inclusive, YYYY-MM-DD). The server converts the days to UTC bounds
+  // with the client's timezone (time.ts rangeForDays).
+  rpc GetCalendar(GetCalendarRequest) returns (GetCalendarResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/calendar"};
+  }
+  rpc GetPublishingStats(ClientRequest) returns (PublishingStats) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/publishing-stats"};
+  }
+  rpc GetBestTimes(GetBestTimesRequest) returns (GetBestTimesResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/best-times"};
+  }
+  rpc ListSyncJobs(ListSyncJobsRequest) returns (ListSyncJobsResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/publishing-sync-jobs"};
+  }
+}
+
+message ClientRequest {
+  string client_id = 1;
+}
+
+message PostRef {
+  string client_id = 1;
+  string post_id = 2;
+}
+
+message SavePostRequest {
+  string client_id = 1;
+  // Empty creates a new post.
+  string id = 2;
+  string title = 3;
+  string body = 4;
+  repeated TargetInput targets = 5;
+  repeated string media_ids = 6;
+  // Alt text updates keyed by media id (only ids in media_ids are applied).
+  map<string, string> media_alt = 7;
+  string link_url = 8;
+  Utm utm = 9;
+  string first_comment = 10;
+  repeated string labels = 11;
+  optional google.protobuf.Timestamp scheduled_at = 12;
+
+  message TargetInput {
+    string social_account_id = 1;
+    string body_override = 2;
+  }
+}
+
+message SavePostResponse {
+  string id = 1;
+  PostStatus status = 2;
+}
+
+message PostStatusResponse {
+  string id = 1;
+  PostStatus status = 2;
+}
+
+message RejectPostRequest {
+  string client_id = 1;
+  string post_id = 2;
+  string note = 3;
+}
+
+message SchedulePostRequest {
+  string client_id = 1;
+  string post_id = 2;
+  google.protobuf.Timestamp scheduled_at = 3;
+}
+
+message PublishResult {
+  // PUBLISHED, FAILED or SCHEDULED (partial, retried by the next tick).
+  PostStatus status = 1;
+  int32 published = 2;
+  int32 failed = 3;
+  repeated PublishError errors = 4;
+
+  message PublishError {
+    // "{platform} @{username}"
+    string target = 1;
+    string error = 2;
+  }
+}
+
+message AddPostCommentRequest {
+  string client_id = 1;
+  string post_id = 2;
+  string body = 3;
+}
+
+message PostComment {
+  string id = 1;
+  string body = 2;
+  google.protobuf.Timestamp created_at = 3;
+  optional string user_id = 4;
+  optional string user_name = 5;
+}
+
+message PostActivity {
+  string id = 1;
+  string type = 2;
+  // JSON object, empty when none.
+  string meta_json = 3;
+  google.protobuf.Timestamp created_at = 4;
+  optional string user_name = 5;
+}
+
+message PostTargetView {
+  string id = 1;
+  string social_account_id = 2;
+  white.common.v1.SocialPlatform platform = 3;
+  string username = 4;
+  string display_name = 5;
+  optional string avatar_url = 6;
+  optional string body_override = 7;
+  PostStatus status = 8;
+  optional string external_id = 9;
+  optional string permalink = 10;
+  optional string error = 11;
+  int32 attempts = 12;
+  optional google.protobuf.Timestamp published_at = 13;
+}
+
+message PostDetail {
+  string id = 1;
+  string client_id = 2;
+  string title = 3;
+  string body = 4;
+  PostStatus status = 5;
+  optional google.protobuf.Timestamp scheduled_at = 6;
+  optional google.protobuf.Timestamp published_at = 7;
+  optional string link_url = 8;
+  optional string first_comment = 9;
+  repeated string labels = 10;
+  Utm utm = 11;
+  optional string review_note = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  optional string created_by_id = 15;
+  optional string created_by = 16;
+  optional string approved_by = 17;
+  optional google.protobuf.Timestamp approved_at = 18;
+  repeated PostTargetView targets = 19;
+  repeated MediaAsset media = 20;
+  repeated PostComment comments = 21;
+  repeated PostActivity activities = 22;
+}
+
+message PostRow {
+  string id = 1;
+  string title = 2;
+  string body = 3;
+  string body_short = 4;
+  PostStatus status = 5;
+  // publishedAt ?? scheduledAt ?? createdAt
+  google.protobuf.Timestamp at = 6;
+  optional google.protobuf.Timestamp scheduled_at = 7;
+  optional google.protobuf.Timestamp published_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  repeated white.common.v1.SocialPlatform platforms = 10;
+  optional string author = 11;
+  optional string thumbnail_url = 12;
+  int32 failed_targets = 13;
+}
+
+message ListPostsRequest {
+  string client_id = 1;
+  PostsTab tab = 2;
+}
+
+message ListPostsResponse {
+  repeated PostRow rows = 1;
+  // One entry per status, zero when empty.
+  repeated StatusCount counts = 2;
+
+  message StatusCount {
+    PostStatus status = 1;
+    int32 count = 2;
+  }
+}
+
+message GetCalendarRequest {
+  string client_id = 1;
+  string from_day = 2;
+  string to_day = 3;
+}
+
+message CalendarPost {
+  string id = 1;
+  string title = 2;
+  string body_short = 3;
+  PostStatus status = 4;
+  google.protobuf.Timestamp at = 5;
+  repeated white.common.v1.SocialPlatform platforms = 6;
+  optional string thumbnail_url = 7;
+}
+
+message GetCalendarResponse {
+  repeated CalendarPost posts = 1;
+  // UTC bounds that were queried, [from, to).
+  google.protobuf.Timestamp from = 2;
+  google.protobuf.Timestamp to = 3;
+}
+
+message PublishingStats {
+  int32 scheduled_7d = 1;
+  int32 in_review = 2;
+  int32 published_30d = 3;
+  int32 failed = 4;
+  int32 drafts = 5;
+}
+
+message GetBestTimesRequest {
+  string client_id = 1;
+  // Defaults to the client's timezone.
+  string timezone = 2;
+}
+
+message BestTimeSlot {
+  // Monday = 0.
+  int32 day = 1;
+  int32 hour = 2;
+  google.protobuf.Timestamp at = 3;
+  bool from_history = 4;
+}
+
+message GetBestTimesResponse {
+  repeated BestTimeSlot slots = 1;
+}
+
+message SyncJob {
+  string id = 1;
+  string kind = 2;
+  white.common.v1.JobStatus status = 3;
+  google.protobuf.Timestamp started_at = 4;
+  optional google.protobuf.Timestamp finished_at = 5;
+  optional string message = 6;
+  optional string error = 7;
+}
+
+message ListSyncJobsRequest {
+  string client_id = 1;
+  int32 limit = 2;
+}
+
+message ListSyncJobsResponse {
+  repeated SyncJob jobs = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ReportDataService: internal, consumed by the reports builder
+// ─────────────────────────────────────────────────────────────
+
+service ReportDataService {
+  // Published targets in the window (summarizePublishing). `mode` is
+  // "recent" until analytics exposes synced post engagement.
+  rpc GetPublishingSummary(GetPublishingSummaryRequest) returns (PublishingSummary);
+}
+
+message GetPublishingSummaryRequest {
+  string client_id = 1;
+  white.common.v1.DateRange range = 2;
+}
+
+message PublishingSummary {
+  int32 posts = 1;
+  repeated PlatformCount per_platform = 2;
+  int32 failed = 3;
+  // "engagement" | "recent"
+  string mode = 4;
+  repeated PublishedTarget top = 5;
+
+  message PlatformCount {
+    white.common.v1.SocialPlatform platform = 1;
+    int32 count = 2;
+  }
+
+  message PublishedTarget {
+    string post_id = 1;
+    string title = 2;
+    string body = 3;
+    white.common.v1.SocialPlatform platform = 4;
+    string social_account_id = 5;
+    optional string external_id = 6;
+    google.protobuf.Timestamp published_at = 7;
+    optional int64 engagements = 8;
+  }
+}

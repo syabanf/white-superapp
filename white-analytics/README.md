@@ -65,7 +65,8 @@ Klien demo: **Kopi Nusantara** (link klien ber-PIN `123456`), **Adiharjo Propert
 | `pnpm test` | Unit test (Vitest) |
 | `pnpm sync:smoke` | Uji pipeline sinkronisasi terhadap Postgres dengan adapter mock |
 | `pnpm db:migrate` | Migrasi Prisma (dev) |
-| `pnpm db:seed` | Isi ulang data demo |
+| `pnpm db:seed` | Isi ulang data demo (menghapus semua data) |
+| `pnpm db:extend-demo` | Teruskan data demo sampai kemarin tanpa menghapus apa pun |
 | `pnpm db:studio` | Prisma Studio |
 | `pnpm db:reset` | Reset database + seed |
 

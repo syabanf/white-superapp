@@ -1,0 +1,4 @@
+bin/
+.env
+.uploads/
+coverage.out

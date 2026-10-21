@@ -38,8 +38,9 @@ export const hasGoogleConnection = cache(async (clientId: string): Promise<boole
 
 export type SearchDailyPoint = {
   date: string;
-  clicks: number;
-  impressions: number;
+  /** null = GSC reported nothing that day (a gap in the chart, never a zero) */
+  clicks: number | null;
+  impressions: number | null;
   position: number | null;
   clicksPrev: number | null;
   impressionsPrev: number | null;
@@ -91,8 +92,8 @@ export const getSeoOverview = cache(async (propertyId: string, range: DateRange,
 
   const merged: SearchDailyPoint[] = daily.map((p, i) => ({
     date: p.date,
-    clicks: (p.clicks as number) ?? 0,
-    impressions: (p.impressions as number) ?? 0,
+    clicks: (p.clicks as number | null) ?? null,
+    impressions: (p.impressions as number | null) ?? null,
     position: (dailyPos[i]?.position as number | null) ?? null,
     clicksPrev: (prevDaily[i]?.clicks as number | null) ?? null,
     impressionsPrev: (prevDaily[i]?.impressions as number | null) ?? null,

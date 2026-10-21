@@ -62,6 +62,7 @@ export function TimeSeriesChart({
   summary?: string;
 }) {
   const chartPointId = React.useId();
+  const gradientId = `area${chartPointId.replace(/[^a-zA-Z0-9]/g, "")}`;
   const [activeIndex, setActiveIndex] = React.useState(0);
   const safeActiveIndex = Math.min(activeIndex, Math.max(0, data.length - 1));
   const resolved = React.useMemo(
@@ -124,7 +125,17 @@ export function TimeSeriesChart({
             barGap={2}
             barCategoryGap="20%"
           >
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeWidth={1} />
+            <defs>
+              {resolved.map((s, i) =>
+                s.type === "area" ? (
+                  <linearGradient key={s.key} id={`${gradientId}-${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={s.color} stopOpacity={0.24} />
+                    <stop offset="100%" stopColor={s.color} stopOpacity={0.02} />
+                  </linearGradient>
+                ) : null,
+              )}
+            </defs>
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeWidth={1} strokeDasharray="3 4" />
             <XAxis
               dataKey="date"
               tickLine={false}
@@ -175,8 +186,8 @@ export function TimeSeriesChart({
                     type="monotone"
                     dataKey={s.key}
                     stroke={s.color}
-                    fill={s.color}
-                    fillOpacity={0.1}
+                    fill={`url(#${gradientId}-${i})`}
+                    fillOpacity={1}
                     strokeWidth={2}
                     dot={false}
                     activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
@@ -223,7 +234,9 @@ export function TimeSeriesChart({
         <SeriesLegend series={legendSeries} className="mt-2" />
       ) : null}
       {data.length > 0 ? (
-        <div className="mt-3 rounded-md border bg-muted/20 px-3 py-2.5">
+        // Keyboard and screen-reader access to every point. Hidden for pointer users,
+        // it slides in when focus lands on the slider (Tab from the chart).
+        <div className="sr-only focus-within:not-sr-only focus-within:mt-3 focus-within:block focus-within:rounded-2xl focus-within:bg-muted/50 focus-within:px-3 focus-within:py-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label htmlFor={chartPointId} className="text-xs font-medium">
               Jelajahi titik data

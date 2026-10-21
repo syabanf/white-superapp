@@ -6,7 +6,6 @@
 export const p = {
   eyebrow: "Publikasi",
   calendarTitle: "Kalender konten",
-  calendarSubtitle: "Rencanakan, setujui, dan jadwalkan post untuk semua akun klien.",
   postsTitle: "Semua post",
   postsSubtitle: "Semua post yang dibuat di aplikasi — dari draf sampai terbit.",
   mediaTitle: "Pustaka media",
@@ -44,7 +43,7 @@ export const p = {
   allStatuses: "Semua status",
   dragHint: "Seret chip ke hari lain untuk mengubah jadwal.",
   rescheduled: "Jadwal diperbarui",
-  timezoneNote: (tz: string) => `Waktu ditampilkan dalam zona klien (${tz}).`,
+  timezoneNote: (tz: string) => `Zona waktu klien: ${tz}`,
   statScheduled7d: "Terjadwal 7 hari ke depan",
   statInReview: "Menunggu review",
   statPublished30d: "Terbit 30 hari terakhir",

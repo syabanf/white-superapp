@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package white.common.v1;
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/common/v1;commonv1";
+
+// Calendar day in UTC, formatted YYYY-MM-DD. Every daily metric is keyed by one.
+message Day {
+  string value = 1;
+}
+
+// Inclusive day range. Comparison periods are derived server-side
+// (same length, ending the day before `from`).
+message DateRange {
+  string from = 1; // YYYY-MM-DD
+  string to = 2;   // YYYY-MM-DD
+}
+
+// Range request as the UI sends it: a preset or a custom window.
+// Presets: 7d, 28d, 90d, 12m. `compare` toggles the previous-period delta.
+message RangeQuery {
+  string preset = 1;
+  string from = 2;
+  string to = 3;
+  bool compare = 4;
+}
+
+// Resolved range echoed back with every analytics response.
+message ResolvedRange {
+  DateRange current = 1;
+  DateRange previous = 2;
+  int32 days = 3;
+  string preset = 4;
+  bool compare = 5;
+}
+
+// Change between the current and the previous period.
+// `pct` is absent when the previous value is zero.
+message Delta {
+  double current = 1;
+  double previous = 2;
+  double abs = 3;
+  optional double pct = 4;
+  Direction direction = 5;
+
+  enum Direction {
+    DIRECTION_UNSPECIFIED = 0;
+    UP = 1;
+    DOWN = 2;
+    FLAT = 3;
+  }
+}
+
+message PageRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message PageResponse {
+  string next_page_token = 1;
+  int32 total = 2;
+}
+
+enum ModuleKey {
+  MODULE_KEY_UNSPECIFIED = 0;
+  SOCIAL = 1;
+  SEO = 2;
+  ADS = 3;
+}
+
+enum SocialPlatform {
+  SOCIAL_PLATFORM_UNSPECIFIED = 0;
+  INSTAGRAM = 1;
+  FACEBOOK = 2;
+  TIKTOK = 3;
+}
+
+enum ConnectionProvider {
+  CONNECTION_PROVIDER_UNSPECIFIED = 0;
+  META = 1;
+  GOOGLE = 2;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  RUNNING = 2;
+  SUCCESS = 3;
+  FAILED = 4;
+}
+
+// Data-quality state of one module for one client (see analytics overview).
+enum DataState {
+  DATA_STATE_UNSPECIFIED = 0;
+  HEALTHY = 1;
+  STALE = 2;
+  FAILED_SYNC = 3;
+  DEMO = 4;
+  EMPTY = 5;
+  NOT_CONNECTED = 6;
+}
