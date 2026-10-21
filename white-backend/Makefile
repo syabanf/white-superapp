@@ -2,7 +2,7 @@ SHELL := /bin/bash
 GOBIN := $(shell go env GOPATH)/bin
 export PATH := $(PATH):$(GOBIN)
 
-SERVICES := identity integrations analytics publishing seosuite scheduler gateway
+SERVICES := identity integrations publishing seosuite scheduler gateway
 
 .PHONY: tools proto sqlc generate build test lint vet migrate-% run-% up down fmt
 

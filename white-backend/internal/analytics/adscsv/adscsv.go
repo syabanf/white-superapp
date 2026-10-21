@@ -98,7 +98,7 @@ const MaxWarnings = 8
 var spaceRe = regexp.MustCompile(`\s+`)
 
 func normalizeHeader(h string) string {
-	return spaceRe.ReplaceAllString(strings.ToLower(strings.TrimSpace(strings.TrimPrefix(h, "﻿"))), " ")
+	return spaceRe.ReplaceAllString(strings.ToLower(strings.TrimSpace(strings.TrimPrefix(h, "\ufeff"))), " ")
 }
 
 // DetectColumns maps fields to header names using the EN/ID aliases.
@@ -322,7 +322,7 @@ func jsRound(x float64) int { return int(math.Floor(x + 0.5)) }
 // subtotal/footer lines and are skipped; daily rows need a date.
 func Parse(content string) Result {
 	warnings := []string{}
-	content = strings.TrimPrefix(content, "﻿")
+	content = strings.TrimPrefix(content, "\ufeff")
 	reader := csv.NewReader(strings.NewReader(content))
 	reader.FieldsPerRecord = -1
 	reader.LazyQuotes = true
@@ -356,7 +356,7 @@ func Parse(content string) Result {
 		if headers == nil {
 			headers = make([]string, 0, len(rec))
 			for _, h := range rec {
-				headers = append(headers, strings.TrimSpace(strings.TrimPrefix(h, "﻿")))
+				headers = append(headers, strings.TrimSpace(strings.TrimPrefix(h, "\ufeff")))
 			}
 			continue
 		}

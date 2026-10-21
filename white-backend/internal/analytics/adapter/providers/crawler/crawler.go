@@ -73,8 +73,8 @@ type fetchOutcome struct {
 
 func (c *Crawler) client(timeout time.Duration) *http.Client {
 	return &http.Client{
-		Timeout:   timeout,
-		Transport: c.Transport,
+		Timeout:       timeout,
+		Transport:     c.Transport,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse },
 	}
 }

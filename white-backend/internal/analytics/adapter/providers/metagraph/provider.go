@@ -64,9 +64,9 @@ type FbPage struct {
 }
 
 type FbPageDailyInsight struct {
-	Date             string
+	Date              string
 	ImpressionsUnique int
-	PostEngagements  int
+	PostEngagements   int
 }
 
 type FbPost struct {

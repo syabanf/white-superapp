@@ -60,7 +60,9 @@ func (s *Syncer) configured(ctx context.Context, key string) bool {
 	return err == nil && c.Configured
 }
 
-func (s *Syncer) MetaConfigured(ctx context.Context) bool { return s.configured(ctx, domain.IntegrationMeta) }
+func (s *Syncer) MetaConfigured(ctx context.Context) bool {
+	return s.configured(ctx, domain.IntegrationMeta)
+}
 
 func (s *Syncer) GoogleConfigured(ctx context.Context) bool {
 	return s.configured(ctx, domain.IntegrationGoogle)

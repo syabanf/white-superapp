@@ -127,7 +127,9 @@ type resultRule struct {
 // resultPriority picks the "result" from Meta's actions list.
 var resultPriority = []resultRule{
 	{"purchase", func(t string) bool { return strings.Contains(t, "purchase") }},
-	{"lead", func(t string) bool { return t == "lead" || strings.Contains(t, ".lead") || strings.Contains(t, "lead_grouped") }},
+	{"lead", func(t string) bool {
+		return t == "lead" || strings.Contains(t, ".lead") || strings.Contains(t, "lead_grouped")
+	}},
 	{"messaging_conversation_started", func(t string) bool { return strings.Contains(t, "messaging_conversation_started") }},
 	{"link_click", func(t string) bool { return t == "link_click" }},
 }

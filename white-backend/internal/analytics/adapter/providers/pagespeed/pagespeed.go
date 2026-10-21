@@ -66,10 +66,10 @@ type rawAudit struct {
 
 type rawResponse struct {
 	LighthouseResult *struct {
-		FinalDisplayedURL *string                      `json:"finalDisplayedUrl"`
-		FinalURL          *string                      `json:"finalUrl"`
+		FinalDisplayedURL *string                             `json:"finalDisplayedUrl"`
+		FinalURL          *string                             `json:"finalUrl"`
 		Categories        map[string]struct{ Score *float64 } `json:"categories"`
-		Audits            map[string]rawAudit          `json:"audits"`
+		Audits            map[string]rawAudit                 `json:"audits"`
 	} `json:"lighthouseResult"`
 	Error *struct {
 		Message string `json:"message"`

@@ -82,7 +82,9 @@ func (Mock) ListCampaigns(_ context.Context, actID string) ([]Campaign, error) {
 	return build(actID).campaigns, nil
 }
 
-func (Mock) ListAdSets(_ context.Context, actID string) ([]AdSet, error) { return build(actID).adSets, nil }
+func (Mock) ListAdSets(_ context.Context, actID string) ([]AdSet, error) {
+	return build(actID).adSets, nil
+}
 
 func (Mock) ListAds(_ context.Context, actID string) ([]Ad, error) { return build(actID).ads, nil }
 
