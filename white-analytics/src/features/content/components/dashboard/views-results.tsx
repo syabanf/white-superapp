@@ -14,7 +14,11 @@ import { contentFiles, FORMATS, num } from "@/features/content/lib";
 import { c, cd } from "@/features/content/strings";
 import type { AssetKind, ContentFormat } from "@/features/content/types";
 import { formatCompact, formatDateTime, formatDecimal, formatNumber, formatPercent } from "@/lib/format";
+import { useRouter } from "next/navigation";
 import { CategoryBars, PeriodChart, PostScatter } from "./charts";
+import { useContentDrill } from "./drill";
+import { contentBoardHref, periodRange } from "./links";
+import { bucketRange } from "@/features/erp/shared/drill/time";
 import { DetailTable, TextLink, bucketLabel, overviewHref, personName, spark, useDelta, type DashCtx, type TabProps } from "./shared";
 
 const pct = (v: number) => formatPercent(v, 1);
@@ -138,20 +142,27 @@ export function PerformanceTab({ data, ctx }: TabProps) {
   const perPostNow = perPost(k.engagements, k.measuredPosts);
   const perPostPrev = perPost(p.engagements, p.measuredPosts);
   const bottom = measured.toSorted((a, b) => num(a.engagements) - num(b.engagements)).slice(0, 5);
+  const drill = useContentDrill(ctx);
+  const publishedBoard = contentBoardHref(ctx, { ...periodRange(ctx), status: ["PUBLISHED"] });
+  const openBucket = (row: Record<string, unknown>) => {
+    const { from, to } = bucketRange(String(row.start), gran);
+    drill({ dateFrom: from, dateTo: to, dateBy: "published", status: ["PUBLISHED"] });
+  };
 
   return (
     <div className="space-y-6">
       <KpiGrid>
-        <KpiTile label={cd.engagement} value={formatCompact(num(k.engagements))} delta={d(k.engagements, p.engagements)} previous={formatCompact(num(p.engagements))} spark={spark(buckets, (b) => b.engagements)} hint={cd.hEngagement} />
-        <KpiTile label={cd.reach} value={formatCompact(num(k.reach))} delta={d(k.reach, p.reach)} previous={formatCompact(num(p.reach))} spark={spark(buckets, (b) => b.reach)} hint={cd.hReach} />
-        <KpiTile label={cd.er} value={pct(k.engagementRate)} delta={d(k.engagementRate, p.engagementRate)} previous={pct(p.engagementRate)} spark={spark(buckets, (b) => engagementRate(b.engagements, b.reach))} hint={cd.hEr} />
-        <KpiTile label={cd.perPost} value={formatNumber(Math.round(perPostNow))} delta={d(perPostNow, perPostPrev)} caption={cd.measuredPosts(k.measuredPosts)} hint={cd.hPerPost} />
+        <KpiTile label={cd.engagement} value={formatCompact(num(k.engagements))} delta={d(k.engagements, p.engagements)} previous={formatCompact(num(p.engagements))} spark={spark(buckets, (b) => b.engagements)} href={publishedBoard} hint={cd.hEngagement} />
+        <KpiTile label={cd.reach} value={formatCompact(num(k.reach))} delta={d(k.reach, p.reach)} previous={formatCompact(num(p.reach))} spark={spark(buckets, (b) => b.reach)} href={publishedBoard} hint={cd.hReach} />
+        <KpiTile label={cd.er} value={pct(k.engagementRate)} delta={d(k.engagementRate, p.engagementRate)} previous={pct(p.engagementRate)} spark={spark(buckets, (b) => engagementRate(b.engagements, b.reach))} href={publishedBoard} hint={cd.hEr} />
+        <KpiTile label={cd.perPost} value={formatNumber(Math.round(perPostNow))} delta={d(perPostNow, perPostPrev)} caption={cd.measuredPosts(k.measuredPosts)} href={publishedBoard} hint={cd.hPerPost} />
       </KpiGrid>
 
       <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-2">
         <ChartCard title={cd.engagementTrend} description={cd.engagementTrendDesc}>
           <PeriodChart
-            data={buckets.map((b, i) => ({ label: bucketLabel(b.start, gran), engagements: num(b.engagements), previous: ctx.compare ? num(prevBuckets[i]?.engagements) : null }))}
+            onSelect={openBucket}
+            data={buckets.map((b, i) => ({ start: b.start, label: bucketLabel(b.start, gran), engagements: num(b.engagements), previous: ctx.compare ? num(prevBuckets[i]?.engagements) : null }))}
             series={[{ key: "engagements", label: cd.engagement, type: "bar", format: (v) => formatNumber(v) }]}
             previousKey={ctx.compare ? "previous" : undefined}
             summary={cd.engagementTrend}
@@ -159,7 +170,9 @@ export function PerformanceTab({ data, ctx }: TabProps) {
         </ChartCard>
         <ChartCard title={cd.erTrend} description={cd.erTrendDesc}>
           <PeriodChart
+            onSelect={openBucket}
             data={buckets.map((b, i) => ({
+              start: b.start,
               label: bucketLabel(b.start, gran),
               er: Number(engagementRate(b.engagements, b.reach).toFixed(2)),
               previous: ctx.compare && prevBuckets[i] ? Number(engagementRate(prevBuckets[i]!.engagements, prevBuckets[i]!.reach).toFixed(2)) : null,
@@ -218,11 +231,14 @@ export function AssetsTab({ data, ctx }: TabProps) {
   const buckets = cur.buckets ?? [];
   const designers = (cur.people ?? []).filter((x) => x.role === "DESIGNER" && x.designTasks > 0);
   const kinds = cur.assetUploadsByKind ?? [];
+  const router = useRouter();
+  const designHref = `${ctx.base}/design`;
+  const assetsHref = `${ctx.base}/assets`;
 
   return (
     <div className="space-y-6">
       <KpiGrid>
-        <KpiTile label={cd.designTasks} value={formatNumber(k.designTasks)} delta={d(k.designTasks, p.designTasks)} caption={cd.approvedOf(k.designApproved)} href={`${ctx.base}/design`} hint={cd.hDesignTasks} />
+        <KpiTile label={cd.designTasks} value={formatNumber(k.designTasks)} delta={d(k.designTasks, p.designTasks)} caption={cd.approvedOf(k.designApproved)} href={designHref} hint={cd.hDesignTasks} />
         <KpiTile
           label={cd.turnaround}
           value={cd.days(formatDecimal(k.designTurnaroundDays))}
@@ -230,15 +246,17 @@ export function AssetsTab({ data, ctx }: TabProps) {
           lowerIsBetter
           previous={cd.days(formatDecimal(p.designTurnaroundDays))}
           spark={spark(buckets, (b) => b.designTurnaroundDays)}
+          href={designHref}
           hint={cd.hTurnaround}
         />
-        <KpiTile label={cd.firstPass} value={pct(k.firstPassRate)} delta={d(k.firstPassRate, p.firstPassRate)} previous={pct(p.firstPassRate)} hint={cd.hFirstPass} />
-        <KpiTile label={cd.assetUploads} value={formatNumber(k.assetUploads)} delta={d(k.assetUploads, p.assetUploads)} spark={spark(buckets, (b) => b.assetUploads)} href={`${ctx.base}/assets`} hint={cd.hAssetUploads} />
+        <KpiTile label={cd.firstPass} value={pct(k.firstPassRate)} delta={d(k.firstPassRate, p.firstPassRate)} previous={pct(p.firstPassRate)} href={designHref} hint={cd.hFirstPass} />
+        <KpiTile label={cd.assetUploads} value={formatNumber(k.assetUploads)} delta={d(k.assetUploads, p.assetUploads)} spark={spark(buckets, (b) => b.assetUploads)} href={assetsHref} hint={cd.hAssetUploads} />
       </KpiGrid>
 
       <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-5">
         <ChartCard className="lg:col-span-3" title={cd.turnaroundTrend} description={cd.turnaroundTrendDesc}>
           <PeriodChart
+            onSelect={() => router.push(designHref)}
             data={buckets.map((b) => ({ label: bucketLabel(b.start, gran), turnaround: b.designTurnaroundDays || null }))}
             series={[{ key: "turnaround", label: cd.turnaround, type: "line", format: (v) => cd.days(formatDecimal(v)) }]}
             yFormat={(v) => formatDecimal(v)}
@@ -247,7 +265,7 @@ export function AssetsTab({ data, ctx }: TabProps) {
         </ChartCard>
         <ChartCard className="lg:col-span-2" title={cd.versionsTitle} description={cd.versionsDesc}>
           <CategoryBars
-            data={(cur.designVersions ?? []).map((r) => ({ label: cd.versionsLabel(r.key), value: r.count, href: `${ctx.base}/design` }))}
+            data={(cur.designVersions ?? []).map((r) => ({ label: cd.versionsLabel(r.key), value: r.count, href: designHref }))}
             label={cd.designTasks}
             color={slotColor(2)}
             summary={cd.versionsTitle}
@@ -258,6 +276,7 @@ export function AssetsTab({ data, ctx }: TabProps) {
       <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-5">
         <ChartCard className="lg:col-span-3" title={cd.uploadsTrend} description={cd.uploadsTrendDesc}>
           <PeriodChart
+            onSelect={() => router.push(assetsHref)}
             data={buckets.map((b) => ({ label: bucketLabel(b.start, gran), uploads: b.assetUploads }))}
             series={[{ key: "uploads", label: cd.assetUploads, type: "bar", color: slotColor(3), format: (v) => formatNumber(v) }]}
             yFormat={(v) => formatNumber(v)}

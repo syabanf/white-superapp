@@ -672,14 +672,20 @@ func (x *LeadInput) GetAttribution() *Attribution {
 }
 
 type ListLeadsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Q             string                 `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	Temperature   string                 `protobuf:"bytes,3,opt,name=temperature,proto3" json:"temperature,omitempty"`
-	Source        string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
-	OwnerUserId   string                 `protobuf:"bytes,5,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
-	Page          int32                  `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Q           string                 `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
+	Status      string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Temperature string                 `protobuf:"bytes,3,opt,name=temperature,proto3" json:"temperature,omitempty"`
+	Source      string                 `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	OwnerUserId string                 `protobuf:"bytes,5,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
+	Page        int32                  `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize    int32                  `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// Created day range (YYYY-MM-DD, WIB, inclusive).
+	DateFrom string `protobuf:"bytes,8,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo   string `protobuf:"bytes,9,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
+	// Score range, inclusive; unset bounds are open.
+	ScoreMin      *int32 `protobuf:"varint,10,opt,name=score_min,json=scoreMin,proto3,oneof" json:"score_min,omitempty"`
+	ScoreMax      *int32 `protobuf:"varint,11,opt,name=score_max,json=scoreMax,proto3,oneof" json:"score_max,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -759,6 +765,34 @@ func (x *ListLeadsRequest) GetPage() int32 {
 func (x *ListLeadsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListLeadsRequest) GetDateFrom() string {
+	if x != nil {
+		return x.DateFrom
+	}
+	return ""
+}
+
+func (x *ListLeadsRequest) GetDateTo() string {
+	if x != nil {
+		return x.DateTo
+	}
+	return ""
+}
+
+func (x *ListLeadsRequest) GetScoreMin() int32 {
+	if x != nil && x.ScoreMin != nil {
+		return *x.ScoreMin
+	}
+	return 0
+}
+
+func (x *ListLeadsRequest) GetScoreMax() int32 {
+	if x != nil && x.ScoreMax != nil {
+		return *x.ScoreMax
 	}
 	return 0
 }
@@ -2880,10 +2914,23 @@ type ListDealsRequest struct {
 	OwnerUserId string                 `protobuf:"bytes,3,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
 	LeadId      string                 `protobuf:"bytes,4,opt,name=lead_id,json=leadId,proto3" json:"lead_id,omitempty"`
 	// open | won | lost
-	Status        string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
-	Q             string `protobuf:"bytes,6,opt,name=q,proto3" json:"q,omitempty"`
-	Page          int32  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Status   string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	Q        string `protobuf:"bytes,6,opt,name=q,proto3" json:"q,omitempty"`
+	Page     int32  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize int32  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// A service line the deal covers (social_media_management, seo, ...).
+	ServiceLine string `protobuf:"bytes,9,opt,name=service_line,json=serviceLine,proto3" json:"service_line,omitempty"`
+	// Account industry; "Lainnya" matches deals without one.
+	Industry string `protobuf:"bytes,10,opt,name=industry,proto3" json:"industry,omitempty"`
+	// Lead source of the deal's lead.
+	Source string `protobuf:"bytes,11,opt,name=source,proto3" json:"source,omitempty"`
+	// A lost reason id; "none" matches lost deals without a reason.
+	LostReasonId string `protobuf:"bytes,12,opt,name=lost_reason_id,json=lostReasonId,proto3" json:"lost_reason_id,omitempty"`
+	// Day range (YYYY-MM-DD, WIB, inclusive) on date_field.
+	DateFrom string `protobuf:"bytes,13,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo   string `protobuf:"bytes,14,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
+	// created (default) | closed
+	DateField     string `protobuf:"bytes,15,opt,name=date_field,json=dateField,proto3" json:"date_field,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2972,6 +3019,55 @@ func (x *ListDealsRequest) GetPageSize() int32 {
 		return x.PageSize
 	}
 	return 0
+}
+
+func (x *ListDealsRequest) GetServiceLine() string {
+	if x != nil {
+		return x.ServiceLine
+	}
+	return ""
+}
+
+func (x *ListDealsRequest) GetIndustry() string {
+	if x != nil {
+		return x.Industry
+	}
+	return ""
+}
+
+func (x *ListDealsRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *ListDealsRequest) GetLostReasonId() string {
+	if x != nil {
+		return x.LostReasonId
+	}
+	return ""
+}
+
+func (x *ListDealsRequest) GetDateFrom() string {
+	if x != nil {
+		return x.DateFrom
+	}
+	return ""
+}
+
+func (x *ListDealsRequest) GetDateTo() string {
+	if x != nil {
+		return x.DateTo
+	}
+	return ""
+}
+
+func (x *ListDealsRequest) GetDateField() string {
+	if x != nil {
+		return x.DateField
+	}
+	return ""
 }
 
 type ListDealsResponse struct {
@@ -6209,10 +6305,13 @@ func (x *Invoice) GetCreatedAt() *timestamppb.Timestamp {
 }
 
 type ListInvoicesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DealId        string                 `protobuf:"bytes,1,opt,name=deal_id,json=dealId,proto3" json:"deal_id,omitempty"`
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	DealId string                 `protobuf:"bytes,1,opt,name=deal_id,json=dealId,proto3" json:"deal_id,omitempty"`
+	Status string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Limit  int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	// Issue day range (sent, else created; YYYY-MM-DD, WIB, inclusive).
+	DateFrom      string `protobuf:"bytes,4,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo        string `protobuf:"bytes,5,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6266,6 +6365,20 @@ func (x *ListInvoicesRequest) GetLimit() int32 {
 		return x.Limit
 	}
 	return 0
+}
+
+func (x *ListInvoicesRequest) GetDateFrom() string {
+	if x != nil {
+		return x.DateFrom
+	}
+	return ""
+}
+
+func (x *ListInvoicesRequest) GetDateTo() string {
+	if x != nil {
+		return x.DateTo
+	}
+	return ""
 }
 
 type ListInvoicesResponse struct {
@@ -14783,7 +14896,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\n" +
 	"contact_id\x18\x0f \x01(\tR\tcontactId\x12/\n" +
 	"\x06custom\x18\x10 \x01(\v2\x17.google.protobuf.StructR\x06custom\x12=\n" +
-	"\vattribution\x18\x11 \x01(\v2\x1b.white.sales.v1.AttributionR\vattribution\"\xc7\x01\n" +
+	"\vattribution\x18\x11 \x01(\v2\x1b.white.sales.v1.AttributionR\vattribution\"\xdd\x02\n" +
 	"\x10ListLeadsRequest\x12\f\n" +
 	"\x01q\x18\x01 \x01(\tR\x01q\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12 \n" +
@@ -14791,7 +14904,16 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x06source\x18\x04 \x01(\tR\x06source\x12\"\n" +
 	"\rowner_user_id\x18\x05 \x01(\tR\vownerUserId\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\a \x01(\x05R\bpageSize\"U\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x1b\n" +
+	"\tdate_from\x18\b \x01(\tR\bdateFrom\x12\x17\n" +
+	"\adate_to\x18\t \x01(\tR\x06dateTo\x12 \n" +
+	"\tscore_min\x18\n" +
+	" \x01(\x05H\x00R\bscoreMin\x88\x01\x01\x12 \n" +
+	"\tscore_max\x18\v \x01(\x05H\x01R\bscoreMax\x88\x01\x01B\f\n" +
+	"\n" +
+	"_score_minB\f\n" +
+	"\n" +
+	"_score_max\"U\n" +
 	"\x11ListLeadsResponse\x12*\n" +
 	"\x05leads\x18\x01 \x03(\v2\x14.white.sales.v1.LeadR\x05leads\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"\xe0\x01\n" +
@@ -15000,7 +15122,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	" \x01(\tR\x11expectedCloseDate\x12\x14\n" +
 	"\x05notes\x18\v \x01(\tR\x05notes\x12+\n" +
 	"\x11forecast_category\x18\f \x01(\tR\x10forecastCategory\x12/\n" +
-	"\x06custom\x18\r \x01(\v2\x17.google.protobuf.StructR\x06custom\"\xe2\x01\n" +
+	"\x06custom\x18\r \x01(\v2\x17.google.protobuf.StructR\x06custom\"\xb4\x03\n" +
 	"\x10ListDealsRequest\x12\x1f\n" +
 	"\vpipeline_id\x18\x01 \x01(\tR\n" +
 	"pipelineId\x12\x19\n" +
@@ -15010,7 +15132,16 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12\f\n" +
 	"\x01q\x18\x06 \x01(\tR\x01q\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"U\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\x12!\n" +
+	"\fservice_line\x18\t \x01(\tR\vserviceLine\x12\x1a\n" +
+	"\bindustry\x18\n" +
+	" \x01(\tR\bindustry\x12\x16\n" +
+	"\x06source\x18\v \x01(\tR\x06source\x12$\n" +
+	"\x0elost_reason_id\x18\f \x01(\tR\flostReasonId\x12\x1b\n" +
+	"\tdate_from\x18\r \x01(\tR\bdateFrom\x12\x17\n" +
+	"\adate_to\x18\x0e \x01(\tR\x06dateTo\x12\x1d\n" +
+	"\n" +
+	"date_field\x18\x0f \x01(\tR\tdateField\"U\n" +
 	"\x11ListDealsResponse\x12*\n" +
 	"\x05deals\x18\x01 \x03(\v2\x14.white.sales.v1.DealR\x05deals\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"\x88\x01\n" +
@@ -15337,11 +15468,13 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\n" +
 	"paid_total\x18\x0f \x01(\tR\tpaidTotal\x129\n" +
 	"\n" +
-	"created_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\\\n" +
+	"created_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x92\x01\n" +
 	"\x13ListInvoicesRequest\x12\x17\n" +
 	"\adeal_id\x18\x01 \x01(\tR\x06dealId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\x05R\x05limit\"K\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x1b\n" +
+	"\tdate_from\x18\x04 \x01(\tR\bdateFrom\x12\x17\n" +
+	"\adate_to\x18\x05 \x01(\tR\x06dateTo\"K\n" +
 	"\x14ListInvoicesResponse\x123\n" +
 	"\binvoices\x18\x01 \x03(\v2\x17.white.sales.v1.InvoiceR\binvoices\"\xb4\x01\n" +
 	"\x14SubmitInvoiceRequest\x12\x17\n" +
@@ -16941,6 +17074,7 @@ func file_white_sales_v1_sales_proto_init() {
 	if File_white_sales_v1_sales_proto != nil {
 		return
 	}
+	file_white_sales_v1_sales_proto_msgTypes[6].OneofWrappers = []any{}
 	file_white_sales_v1_sales_proto_msgTypes[62].OneofWrappers = []any{}
 	file_white_sales_v1_sales_proto_msgTypes[153].OneofWrappers = []any{}
 	type x struct{}

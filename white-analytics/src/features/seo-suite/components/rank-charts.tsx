@@ -7,6 +7,9 @@ import { HBarChart } from "@/components/dashboard/charts/hbar-chart";
 import { DataTable, type ColMeta } from "@/components/dashboard/data-table";
 import { formatDate, formatNumber, formatPercent } from "@/lib/format";
 import type { RankBucket } from "@/lib/metrics/seo-suite";
+import { withParam } from "@/lib/drill-query";
+import { useDrill } from "@/features/erp/shared/drill";
+import { RANK_DRILL } from "@/features/seo-suite/components/rank-drill";
 import { t } from "@/i18n/id";
 import type { RankDailyPoint } from "@/features/seo-suite/rank-aggregate";
 import { BUCKET_LABELS } from "@/features/seo-suite/lib";
@@ -15,6 +18,8 @@ import { s } from "@/features/seo-suite/strings";
 const right: ColMeta = { align: "right" };
 
 export function RankTrendCards({ daily, compare }: { daily: RankDailyPoint[]; compare: boolean }) {
+  const { open } = useDrill();
+  const drill = { onSelect: (p: { date: string }) => open(RANK_DRILL.day, p.date), selectLabel: s.rankPointLabel };
   const columns: ColumnDef<RankDailyPoint, unknown>[] = [
     { accessorKey: "date", header: t.common.date, cell: ({ row }) => formatDate(row.original.date) },
     { accessorKey: "visibility", header: s.visibility, meta: right, cell: ({ row }) => formatPercent(row.original.visibility, 1) },
@@ -30,6 +35,7 @@ export function RankTrendCards({ daily, compare }: { daily: RankDailyPoint[]; co
           previousKey={compare ? "visibilityPrev" : undefined}
           yFormat={(v) => formatPercent(v, 0)}
           height={220}
+          {...drill}
         />
       </ChartCard>
       <ChartCard title={t.seo.positionChart} description={s.positionChartDesc} table={table}>
@@ -40,13 +46,23 @@ export function RankTrendCards({ daily, compare }: { daily: RankDailyPoint[]; co
           yFormat={(v) => formatNumber(v, 0)}
           reverseY
           height={220}
+          {...drill}
         />
       </ChartCard>
     </div>
   );
 }
 
-export function RankBreakdownCards({ distribution, sov }: { distribution: { bucket: RankBucket; count: number }[]; sov: { domain: string; weight: number; share: number }[] }) {
+export function RankBreakdownCards({
+  distribution,
+  sov,
+  bucketHref,
+}: {
+  distribution: { bucket: RankBucket; count: number }[];
+  sov: { domain: string; weight: number; share: number }[];
+  /** rank table href; each bucket bar adds `bucket=` */
+  bucketHref?: string;
+}) {
   const distColumns: ColumnDef<{ bucket: RankBucket; count: number }, unknown>[] = [
     { accessorKey: "bucket", header: t.seo.position, cell: ({ row }) => BUCKET_LABELS[row.original.bucket] },
     { accessorKey: "count", header: s.keywordsTable, meta: right },
@@ -58,7 +74,12 @@ export function RankBreakdownCards({ distribution, sov }: { distribution: { buck
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <ChartCard title={s.distributionTitle} description={s.distributionDesc} table={<DataTable bare dense data={distribution} columns={distColumns} paginate={false} />}>
-        <HBarChart items={distribution.map((d) => ({ label: BUCKET_LABELS[d.bucket], value: d.count, muted: d.bucket === "unranked" }))} format={(v) => formatNumber(v)} className="py-1" emptyLabel={t.common.noData} />
+        <HBarChart items={distribution.map((d) => ({
+            label: BUCKET_LABELS[d.bucket],
+            value: d.count,
+            muted: d.bucket === "unranked",
+            href: bucketHref ? withParam(bucketHref, "bucket", d.bucket) : undefined,
+          }))} format={(v) => formatNumber(v)} className="py-1" emptyLabel={t.common.noData} />
       </ChartCard>
       <ChartCard title={s.sovTitle} description={s.sovDesc} table={<DataTable bare dense data={sov} columns={sovColumns} paginate={false} />}>
         <HBarChart items={sov.map((r) => ({ label: r.domain, value: r.share, muted: r.domain === s.others }))} format={(v) => formatPercent(v, 1)} className="py-1" emptyLabel={t.common.noData} />

@@ -44,16 +44,29 @@ WHERE d.deleted_at IS NULL
        OR ($6 = 'won' AND s.is_won)
        OR ($6 = 'lost' AND s.is_lost))
   AND ($7::text IS NULL OR d.title ILIKE '%' || $7 || '%' OR l.org_name ILIKE '%' || $7 || '%' OR a.name ILIKE '%' || $7 || '%')
+  AND ($8::text IS NULL OR $8::text = ANY(d.service_lines))
+  AND ($9::text IS NULL OR coalesce(nullif(a.industry, ''), 'Lainnya') = $9)
+  AND ($10::text IS NULL OR l.source = $10)
+  AND ($11::text IS NULL OR coalesce(d.lost_reason_id, 'none') = $11)
+  AND ($12::timestamptz IS NULL OR (CASE WHEN $13::bool THEN d.closed_at ELSE d.created_at END) >= $12)
+  AND ($14::timestamptz IS NULL OR (CASE WHEN $13::bool THEN d.closed_at ELSE d.created_at END) < $14)
 `
 
 type CountDealsParams struct {
-	Pipeline *string
-	Stage    *string
-	Owner    *string
-	Lead     *string
-	Account  *string
-	Status   *string
-	Q        *string
+	Pipeline   *string
+	Stage      *string
+	Owner      *string
+	Lead       *string
+	Account    *string
+	Status     *string
+	Q          *string
+	Line       *string
+	Industry   *string
+	Source     *string
+	LostReason *string
+	FromAt     *time.Time
+	ByClosed   bool
+	ToAt       *time.Time
 }
 
 func (q *Queries) CountDeals(ctx context.Context, arg CountDealsParams) (int64, error) {
@@ -65,6 +78,13 @@ func (q *Queries) CountDeals(ctx context.Context, arg CountDealsParams) (int64, 
 		arg.Account,
 		arg.Status,
 		arg.Q,
+		arg.Line,
+		arg.Industry,
+		arg.Source,
+		arg.LostReason,
+		arg.FromAt,
+		arg.ByClosed,
+		arg.ToAt,
 	)
 	var count int64
 	err := row.Scan(&count)
@@ -486,20 +506,33 @@ WHERE d.deleted_at IS NULL
        OR ($6 = 'won' AND s.is_won)
        OR ($6 = 'lost' AND s.is_lost))
   AND ($7::text IS NULL OR d.title ILIKE '%' || $7 || '%' OR l.org_name ILIKE '%' || $7 || '%' OR a.name ILIKE '%' || $7 || '%')
+  AND ($8::text IS NULL OR $8::text = ANY(d.service_lines))
+  AND ($9::text IS NULL OR coalesce(nullif(a.industry, ''), 'Lainnya') = $9)
+  AND ($10::text IS NULL OR l.source = $10)
+  AND ($11::text IS NULL OR coalesce(d.lost_reason_id, 'none') = $11)
+  AND ($12::timestamptz IS NULL OR (CASE WHEN $13::bool THEN d.closed_at ELSE d.created_at END) >= $12)
+  AND ($14::timestamptz IS NULL OR (CASE WHEN $13::bool THEN d.closed_at ELSE d.created_at END) < $14)
 ORDER BY d.updated_at DESC, d.id DESC
-LIMIT $9 OFFSET $8
+LIMIT $16 OFFSET $15
 `
 
 type ListDealsParams struct {
-	Pipeline *string
-	Stage    *string
-	Owner    *string
-	Lead     *string
-	Account  *string
-	Status   *string
-	Q        *string
-	Off      int32
-	Lim      int32
+	Pipeline   *string
+	Stage      *string
+	Owner      *string
+	Lead       *string
+	Account    *string
+	Status     *string
+	Q          *string
+	Line       *string
+	Industry   *string
+	Source     *string
+	LostReason *string
+	FromAt     *time.Time
+	ByClosed   bool
+	ToAt       *time.Time
+	Off        int32
+	Lim        int32
 }
 
 type ListDealsRow struct {
@@ -525,6 +558,13 @@ func (q *Queries) ListDeals(ctx context.Context, arg ListDealsParams) ([]ListDea
 		arg.Account,
 		arg.Status,
 		arg.Q,
+		arg.Line,
+		arg.Industry,
+		arg.Source,
+		arg.LostReason,
+		arg.FromAt,
+		arg.ByClosed,
+		arg.ToAt,
 		arg.Off,
 		arg.Lim,
 	)

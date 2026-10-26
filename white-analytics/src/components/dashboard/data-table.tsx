@@ -20,12 +20,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
+import { DeltaText } from "@/components/dashboard/delta-badge";
+import { computeDelta, type Delta } from "@/lib/metrics";
 
 export type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   /** column id to apply the search box to (client-side contains filter) */
   searchKey?: string;
+  /** prefill for the search box, e.g. from a `?q=` URL param */
+  initialSearch?: string;
   searchPlaceholder?: string;
   pageSize?: number;
   /** enable pagination controls (default true when data > pageSize) */
@@ -53,6 +57,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  initialSearch,
   searchPlaceholder,
   pageSize = 10,
   paginate,
@@ -71,7 +76,9 @@ export function DataTable<TData, TValue>({
   mobileCardBreakpoint = "sm",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    searchKey && initialSearch ? [{ id: searchKey, value: initialSearch }] : [],
+  );
   const shouldPaginate = paginate ?? data.length > pageSize;
   const useMobileCards = mobileCards ?? !bare;
 
@@ -295,4 +302,44 @@ export type ColMeta = { align?: "left" | "right"; mono?: boolean; className?: st
 function csvEscape(s: string): string {
   if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
+}
+
+/**
+ * "vs" column: colored change between two numbers of a row, sortable by the
+ * percentage (or absolute) change. Use `lowerIsBetter` for costs, late rates,
+ * positions and the like.
+ */
+export function deltaColumn<TData>({
+  id,
+  header,
+  current,
+  previous,
+  lowerIsBetter,
+  mode = "pct",
+  format,
+}: {
+  id: string;
+  header: string;
+  current: (row: TData) => number | null | undefined;
+  previous: (row: TData) => number | null | undefined;
+  lowerIsBetter?: boolean;
+  mode?: "pct" | "abs";
+  format?: (delta: Delta) => string;
+}): ColumnDef<TData, number | null> {
+  const deltaOf = (row: TData) => {
+    const cur = current(row);
+    const prev = previous(row);
+    return cur == null || prev == null ? null : computeDelta(cur, prev);
+  };
+  return {
+    id,
+    header,
+    accessorFn: (row) => {
+      const d = deltaOf(row);
+      return d == null ? null : mode === "pct" ? d.pct : d.abs;
+    },
+    sortUndefined: "last",
+    cell: ({ row }) => <DeltaText delta={deltaOf(row.original)} lowerIsBetter={lowerIsBetter} mode={mode} format={format} />,
+    meta: { align: "right" } satisfies ColMeta,
+  };
 }

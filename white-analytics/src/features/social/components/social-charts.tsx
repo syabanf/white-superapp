@@ -11,6 +11,8 @@ import { formatCompact, formatDate, formatNumber, formatPercent } from "@/lib/fo
 import type { ErByType } from "@/features/social/lib";
 import type { GrowthPoint, HeatCellData, ReachPoint } from "@/features/social/queries";
 import { s } from "@/features/social/strings";
+import { useDrill } from "@/features/erp/shared/drill";
+import { SOCIAL_DRILL } from "@/features/social/components/social-drill";
 import { t } from "@/i18n/id";
 
 const num = (v: unknown, digits = 0) => (v == null ? "–" : formatNumber(Number(v), digits));
@@ -18,6 +20,7 @@ const num = (v: unknown, digits = 0) => (v == null ? "–" : formatNumber(Number
 // ── Pertumbuhan followers ────────────────────────────────────
 
 export function GrowthChartCard({ data }: { data: GrowthPoint[] }) {
+  const { open } = useDrill();
   const columns = React.useMemo<ColumnDef<GrowthPoint, unknown>[]>(
     () => [
       { accessorKey: "date", header: t.common.date, cell: ({ getValue }) => formatDate(String(getValue())) },
@@ -38,6 +41,8 @@ export function GrowthChartCard({ data }: { data: GrowthPoint[] }) {
         previousKey="followersPrev"
         yDomain={["auto", "auto"]}
         height={260}
+        onSelect={(p) => open(SOCIAL_DRILL.day, p.date)}
+        selectLabel={s.drillPointLabel}
       />
     </ChartCard>
   );
@@ -46,6 +51,7 @@ export function GrowthChartCard({ data }: { data: GrowthPoint[] }) {
 // ── Jangkauan & impresi harian ───────────────────────────────
 
 export function ReachChartCard({ data }: { data: ReachPoint[] }) {
+  const { open } = useDrill();
   const columns = React.useMemo<ColumnDef<ReachPoint, unknown>[]>(
     () => [
       { accessorKey: "date", header: t.common.date, cell: ({ getValue }) => formatDate(String(getValue())) },
@@ -67,6 +73,8 @@ export function ReachChartCard({ data }: { data: ReachPoint[] }) {
           { key: "impressions", label: t.social.impressions, type: "line", format: (v) => formatNumber(v) },
         ]}
         height={260}
+        onSelect={(p) => open(SOCIAL_DRILL.day, p.date)}
+        selectLabel={s.drillPointLabel}
       />
     </ChartCard>
   );
@@ -75,6 +83,7 @@ export function ReachChartCard({ data }: { data: ReachPoint[] }) {
 // ── Engagement per tipe konten ───────────────────────────────
 
 export function ErByTypeCard({ items }: { items: ErByType[] }) {
+  const { open } = useDrill();
   const columns = React.useMemo<ColumnDef<ErByType, unknown>[]>(
     () => [
       { accessorKey: "type", header: t.social.type },
@@ -98,6 +107,7 @@ export function ErByTypeCard({ items }: { items: ErByType[] }) {
         format={(v) => formatPercent(v)}
         emptyLabel={s.noPosts}
         className="py-1"
+        onSelect={(it) => open(SOCIAL_DRILL.type, it.label)}
       />
     </ChartCard>
   );
@@ -106,6 +116,7 @@ export function ErByTypeCard({ items }: { items: ErByType[] }) {
 // ── Waktu posting terbaik (heatmap hari × jam) ───────────────
 
 export function PostingHeatmapCard({ cells }: { cells: HeatCellData[] }) {
+  const { open } = useDrill();
   const active = React.useMemo(
     () =>
       cells
@@ -143,6 +154,7 @@ export function PostingHeatmapCard({ cells }: { cells: HeatCellData[] }) {
         format={(v) => formatCompact(v)}
         valueLabel={s.heatmapValue}
         countLabel={s.heatmapCount}
+        onSelect={(c) => open(SOCIAL_DRILL.slot, `${c.row}-${c.col}`)}
       />
     </ChartCard>
   );

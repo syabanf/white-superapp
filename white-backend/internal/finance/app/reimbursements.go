@@ -527,14 +527,20 @@ func (r *Reimbursements) Reject(ctx context.Context, p authn.Principal, id, reas
 // ─── finance ────────────────────────────────────────────────
 
 func (r *Reimbursements) List(ctx context.Context, f domain.ClaimFilter, month string) ([]domain.Claim, int, domain.Money, error) {
+	var err error
 	if month != "" {
-		from, to, err := r.monthRange(month)
-		if err != nil {
+		if f.MonthFrom, f.MonthTo, err = r.monthRange(month); err != nil {
 			return nil, 0, 0, err
 		}
-		f.MonthFrom, f.MonthTo = from, to
+	} else {
+		if f.MonthFrom, err = optionalDay("date_from", f.MonthFrom); err != nil {
+			return nil, 0, 0, err
+		}
+		if f.MonthTo, err = optionalDay("date_to", f.MonthTo); err != nil {
+			return nil, 0, 0, err
+		}
 	}
-	f.Search = trim(f.Search)
+	f.Search, f.Department = trim(f.Search), trim(f.Department)
 	return r.Store.ListClaims(ctx, f)
 }
 

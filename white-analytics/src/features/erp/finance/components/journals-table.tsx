@@ -80,7 +80,7 @@ export function JournalsTable({ entries, page }: { entries: JournalEntry[]; page
             options={Object.entries(fs.entryType).map(([value, label]) => ({ value, label }))}
           />
           <DateRangeFilter />
-          <ResetFilters params={["q", "status", "type", "from", "to"]} />
+          <ResetFilters params={["q", "status", "type", "from", "to", "account"]} />
         </>
       }
     />

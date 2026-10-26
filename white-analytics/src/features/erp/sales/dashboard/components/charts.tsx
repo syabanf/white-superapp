@@ -4,15 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bar, CartesianGrid, Cell, ComposedChart, Line, Pie, PieChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from "recharts";
-import {
-  AXIS_TICK,
-  GRID_STROKE,
-  MUTED_SERIES,
-  SeriesLegend,
-  TooltipBox,
-  slotColor,
-  type SeriesDef,
-} from "@/components/dashboard/charts/chart-primitives";
+import { AXIS_TICK, GRID_STROKE, MarkButtons, MUTED_SERIES, SeriesLegend, TooltipBox, slotColor, type SeriesDef } from "@/components/dashboard/charts/chart-primitives";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCompact, formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -56,7 +48,13 @@ export function MonthlyChart({
     return row;
   });
   const seriesMap: Record<string, SeriesDef & { color: string }> = Object.fromEntries(resolved.map((s) => [s.key, s]));
-  if (previous) seriesMap.__prev = { key: "__prev", label: previous.label, color: MUTED_SERIES, format: previous.format ?? resolved[0]?.format };
+  if (previous)
+    seriesMap.__prev = {
+      key: "__prev",
+      label: previous.label,
+      color: MUTED_SERIES,
+      format: previous.format ?? resolved[0]?.format,
+    };
   const legend = previous ? [...resolved, { key: "__prev", label: previous.label, color: MUTED_SERIES, type: "line" as const }] : resolved;
   const total = resolved.reduce((a, s) => a + s.values.reduce<number>((x, y) => x + (y ?? 0), 0), 0);
   if (!months.length || (total === 0 && !previous?.values.some(Boolean))) return <Empty />;
@@ -77,7 +75,16 @@ export function MonthlyChart({
             className={onMonth ? "cursor-pointer" : undefined}
           >
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-            <XAxis dataKey="month" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickFormatter={monthLabel} interval="preserveStartEnd" minTickGap={16} tickMargin={8} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={{ stroke: "var(--axis)" }}
+              tick={AXIS_TICK}
+              tickFormatter={monthLabel}
+              interval="preserveStartEnd"
+              minTickGap={16}
+              tickMargin={8}
+            />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => yFormat(v)} width={66} domain={[0, yMax ?? "auto"]} allowDecimals={false} />
             <ChartTooltip
               cursor={bars.length ? { fill: "var(--muted)", fillOpacity: 0.5 } : { stroke: "var(--axis)" }}
@@ -99,25 +106,51 @@ export function MonthlyChart({
                   isAnimationActive={false}
                 />
               ) : (
-                <Line key={s.key} dataKey={s.key} type="monotone" stroke={s.color} strokeWidth={2} dot={{ r: 3, strokeWidth: 0, fill: s.color }} activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2 }} isAnimationActive={false} />
+                <Line
+                  key={s.key}
+                  dataKey={s.key}
+                  type="monotone"
+                  stroke={s.color}
+                  strokeWidth={2}
+                  dot={{ r: 3, strokeWidth: 0, fill: s.color }}
+                  activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2 }}
+                  isAnimationActive={false}
+                />
               ),
             )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
       <SeriesLegend series={legend} className="mt-2" />
+      {onMonth ? <MarkButtons marks={months} label={monthLabel} onSelect={(_m, i) => onMonth(i)} /> : null}
     </div>
   );
 }
 
-export type StackRow = { key: string; label: string; href?: string; segments: { key: string; value: number }[] };
+export type StackRow = {
+  key: string;
+  label: string;
+  href?: string;
+  segments: { key: string; value: number }[];
+};
 export type StackGroup = { key: string; label: string; color: string };
 
 /**
  * Horizontal stacked bars (one row per category), scaled to the largest row
  * total. Each segment has its own tooltip; a row links to its drill-down.
  */
-export function StackedBars({ rows, groups, format = formatCompact }: { rows: StackRow[]; groups: StackGroup[]; format?: (v: number) => string }) {
+export function StackedBars({
+  rows,
+  groups,
+  format = formatCompact,
+  onSelect,
+}: {
+  rows: StackRow[];
+  groups: StackGroup[];
+  format?: (v: number) => string;
+  /** a segment click passes its group; the row label passes null */
+  onSelect?: (row: StackRow, group: string | null) => void;
+}) {
   const totals = rows.map((r) => r.segments.reduce((a, s) => a + s.value, 0));
   const max = Math.max(0, ...totals);
   if (!rows.length || max === 0) return <Empty />;
@@ -129,7 +162,17 @@ export function StackedBars({ rows, groups, format = formatCompact }: { rows: St
           const body = (
             <>
               <div className="mb-1 flex items-center justify-between gap-3 text-xs">
-                <span className="truncate text-foreground/90">{r.label}</span>
+                {onSelect ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelect(r, null)}
+                    className="min-w-0 cursor-pointer truncate rounded-sm text-left text-foreground/90 underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {r.label}
+                  </button>
+                ) : (
+                  <span className="truncate text-foreground/90">{r.label}</span>
+                )}
                 <span className="shrink-0 font-medium tabular">{format(totals[i]!)}</span>
               </div>
               <div className="flex h-3 w-full gap-[2px] rounded-r-[4px] bg-muted/50" style={{ width: "100%" }}>
@@ -140,7 +183,17 @@ export function StackedBars({ rows, groups, format = formatCompact }: { rows: St
                     return (
                       <Tooltip key={g.key}>
                         <TooltipTrigger asChild>
-                          <span className="block h-3 min-w-[3px] last:rounded-r-[4px] hover:brightness-110" style={{ flexGrow: v, flexBasis: 0, background: g.color }} />
+                          {onSelect ? (
+                            <button
+                              type="button"
+                              aria-label={`${r.label} · ${g.label}: ${format(v)}`}
+                              onClick={() => onSelect(r, g.key)}
+                              className="block h-3 min-w-[3px] cursor-pointer outline-none last:rounded-r-[4px] hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring"
+                              style={{ flexGrow: v, flexBasis: 0, background: g.color }}
+                            />
+                          ) : (
+                            <span className="block h-3 min-w-[3px] last:rounded-r-[4px] hover:brightness-110" style={{ flexGrow: v, flexBasis: 0, background: g.color }} />
+                          )}
                         </TooltipTrigger>
                         <TooltipContent className="text-xs">
                           {r.label} · {g.label}: <span className="font-semibold tabular">{format(v)}</span>
@@ -173,7 +226,7 @@ export function StackedBars({ rows, groups, format = formatCompact }: { rows: St
 export type FunnelStep = { key: string; label: string; count: number; value: number; href?: string };
 
 /** Funnel with stage-to-stage conversion and drop-off between the bars. */
-export function FunnelChart({ steps, valueFormat }: { steps: FunnelStep[]; valueFormat: (v: number) => string }) {
+export function FunnelChart({ steps, valueFormat, onSelect }: { steps: FunnelStep[]; valueFormat: (v: number) => string; onSelect?: (step: FunnelStep) => void }) {
   const first = steps[0]?.count ?? 0;
   if (!first) return <Empty />;
   return (
@@ -215,7 +268,15 @@ export function FunnelChart({ steps, valueFormat }: { steps: FunnelStep[]; value
                 </span>
               </div>
             ) : null}
-            {s.href ? (
+            {onSelect ? (
+              <button
+                type="button"
+                onClick={() => onSelect(s)}
+                className="block w-full cursor-pointer rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {bar}
+              </button>
+            ) : s.href ? (
               <Link href={s.href} className="block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 {bar}
               </Link>
@@ -278,7 +339,17 @@ export function Donut({ items, format = formatNumber, centerLabel }: { items: Do
               <span className="w-10 text-right text-muted-foreground tabular">{formatPercent((it.value / total) * 100, 0)}</span>
             </span>
           );
-          return <li key={it.key}>{it.href ? <Link href={it.href} className="block rounded-sm hover:bg-muted/60">{row}</Link> : row}</li>;
+          return (
+            <li key={it.key}>
+              {it.href ? (
+                <Link href={it.href} className="block rounded-sm hover:bg-muted/60">
+                  {row}
+                </Link>
+              ) : (
+                row
+              )}
+            </li>
+          );
         })}
       </ul>
     </div>
@@ -288,7 +359,7 @@ export function Donut({ items, format = formatNumber, centerLabel }: { items: Do
 export type BulletRow = { key: string; label: string; value: number; target: number; href?: string };
 
 /** Bullet bars: actual as the bar, target as a tick, attainment at the right. */
-export function BulletList({ rows, format, noTarget }: { rows: BulletRow[]; format: (v: number) => string; noTarget: string }) {
+export function BulletList({ rows, format, noTarget, onSelect }: { rows: BulletRow[]; format: (v: number) => string; noTarget: string; onSelect?: (row: BulletRow) => void }) {
   const max = Math.max(0, ...rows.flatMap((r) => [r.value, r.target]));
   if (!rows.length || !max) return <Empty />;
   return (
@@ -301,7 +372,12 @@ export function BulletList({ rows, format, noTarget }: { rows: BulletRow[]; form
               <span className="truncate font-medium">{r.label}</span>
               <span className="shrink-0 text-muted-foreground tabular">
                 <span className="font-medium text-foreground">{format(r.value)}</span> / {r.target ? format(r.target) : noTarget}
-                {pct != null ? <span className={cn("ml-2 font-semibold", pct >= 100 ? "text-positive" : "text-foreground")}>{formatPercent(pct, 0)}</span> : null}
+                {pct != null ? (
+                  <span className={cn("ml-2 font-semibold", pct >= 100 ? "text-positive" : "text-negative")}>
+                    {pct >= 100 ? "▲ " : "▼ "}
+                    {formatPercent(pct, 0)}
+                  </span>
+                ) : null}
               </span>
             </div>
             <div className="relative h-4 rounded-r-[4px] bg-muted/60">
@@ -310,7 +386,25 @@ export function BulletList({ rows, format, noTarget }: { rows: BulletRow[]; form
             </div>
           </>
         );
-        return <li key={r.key}>{r.href ? <Link href={r.href} className="block rounded-sm hover:bg-muted/30">{body}</Link> : body}</li>;
+        return (
+          <li key={r.key}>
+            {onSelect ? (
+              <button
+                type="button"
+                onClick={() => onSelect(r)}
+                className="block w-full cursor-pointer rounded-sm text-left outline-none hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {body}
+              </button>
+            ) : r.href ? (
+              <Link href={r.href} className="block rounded-sm hover:bg-muted/30">
+                {body}
+              </Link>
+            ) : (
+              body
+            )}
+          </li>
+        );
       })}
     </ul>
   );
@@ -319,34 +413,48 @@ export function BulletList({ rows, format, noTarget }: { rows: BulletRow[]; form
 export type ColumnItem = { key: string; label: string; value: number; color?: string; href?: string };
 
 /** Vertical columns for ordered categories (score buckets, aging buckets). */
-export function ColumnChart({ items, format = formatNumber, height = 220, seriesLabel }: { items: ColumnItem[]; format?: (v: number) => string; height?: number; seriesLabel: string }) {
+export function ColumnChart({
+  items,
+  format = formatNumber,
+  height = 220,
+  seriesLabel,
+  onSelect,
+}: {
+  items: ColumnItem[];
+  format?: (v: number) => string;
+  height?: number;
+  seriesLabel: string;
+  onSelect?: (item: ColumnItem) => void;
+}) {
   const router = useRouter();
   if (!items.some((i) => i.value > 0)) return <Empty />;
+  const pick = (it?: ColumnItem) => {
+    if (!it) return;
+    if (onSelect) onSelect(it);
+    else if (it.href) router.push(it.href);
+  };
   return (
-    <div style={{ height }} className="w-full" role="img" aria-label={`${seriesLabel}: ${items.map((i) => `${i.label} ${format(i.value)}`).join(", ")}`}>
-      <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 400, height }}>
-        <ComposedChart data={items} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%">
-          <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-          <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} interval={0} tickMargin={8} />
-          <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => format(v)} width={66} allowDecimals={false} />
-          <ChartTooltip
-            cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
-            content={<TooltipBox seriesMap={{ value: { key: "value", label: seriesLabel, color: slotColor(0), format } }} />}
-            isAnimationActive={false}
-          />
-          <Bar
-            dataKey="value"
-            radius={[4, 4, 0, 0]}
-            maxBarSize={48}
-            isAnimationActive={false}
-            onClick={(d: { payload?: ColumnItem }) => d.payload?.href && router.push(d.payload.href)}
-          >
-            {items.map((it) => (
-              <Cell key={it.key} fill={it.color ?? slotColor(0)} className={it.href ? "cursor-pointer" : undefined} />
-            ))}
-          </Bar>
-        </ComposedChart>
-      </ResponsiveContainer>
+    <div>
+      <div style={{ height }} className="w-full" role="img" aria-label={`${seriesLabel}: ${items.map((i) => `${i.label} ${format(i.value)}`).join(", ")}`}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 400, height }}>
+          <ComposedChart data={items} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%">
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
+            <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} interval={0} tickMargin={8} />
+            <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => format(v)} width={66} allowDecimals={false} />
+            <ChartTooltip
+              cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
+              content={<TooltipBox seriesMap={{ value: { key: "value", label: seriesLabel, color: slotColor(0), format } }} />}
+              isAnimationActive={false}
+            />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={48} isAnimationActive={false} onClick={(d: { payload?: ColumnItem }) => pick(d.payload)}>
+              {items.map((it) => (
+                <Cell key={it.key} fill={it.color ?? slotColor(0)} className={it.href || onSelect ? "cursor-pointer" : undefined} />
+              ))}
+            </Bar>
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      {onSelect ? <MarkButtons marks={items.filter((i) => i.value > 0)} label={(i) => `${i.label}: ${format(i.value)}`} onSelect={(i) => onSelect(i)} /> : null}
     </div>
   );
 }

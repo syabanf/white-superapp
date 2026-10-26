@@ -19,12 +19,17 @@ import { AuditDetailTabs } from "@/features/seo/components/audit-detail-tabs";
 import { RunAuditButton } from "@/features/seo/components/run-audit-button";
 import { AuditCadenceSelect } from "@/features/seo/components/audit-cadence-select";
 import { IssueTrendChart } from "@/features/seo/components/issue-trend-chart";
+import { FilterChips } from "@/features/seo/components/filter-chips";
+import { pickQuery, withQuery } from "@/lib/drill-query";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/audit">): Promise<Metadata> {
   const { slug } = await props.params;
   const { client } = await requireClientAccess(slug);
   return { title: `${client.name} · ${t.seo.audit}` };
 }
+
+const SEVERITIES = ["ERROR", "WARNING", "NOTICE"];
+const SEVERITY_LABEL: Record<string, string> = { ERROR: "Error", WARNING: t.common.warning, NOTICE: t.common.notice };
 
 const CRAWL_STATUS: Record<string, { kind: StatusKind; label: string }> = {
   SUCCESS: { kind: "good", label: "Sukses" },
@@ -34,8 +39,13 @@ const CRAWL_STATUS: Record<string, { kind: StatusKind; label: string }> = {
 };
 
 export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo/audit">) {
-  const { slug } = await props.params;
+  const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
+  const basePath = `/clients/${slug}/seo/audit`;
+  const code = typeof sp.code === "string" ? sp.code : null;
+  const severity = typeof sp.severity === "string" && SEVERITIES.includes(sp.severity) ? sp.severity : null;
+  const issuesHref = (extra: Record<string, string | null>) =>
+    withQuery(basePath, pickQuery(sp, ["code", "severity"]), extra, "issues");
 
   const property = await getSeoProperty(client.id);
   if (!property) {
@@ -57,6 +67,11 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
   }
 
   const [data, issueTrend] = await Promise.all([getAuditData(property.id), getIssueTrend(property.id)]);
+  const issues = data.issues.filter((i) => (!code || i.code === code) && (!severity || i.severity === severity));
+  const chips = [
+    code ? { label: s.codeCol, value: code, removeHref: issuesHref({ code: null }) } : null,
+    severity ? { label: t.seo.severity, value: SEVERITY_LABEL[severity] ?? severity, removeHref: issuesHref({ severity: null }) } : null,
+  ].filter((c) => c != null);
   const hasAudit = Boolean(data.latestMobile || data.latestDesktop);
   const crawlStatus = data.crawl ? (CRAWL_STATUS[data.crawl.status] ?? CRAWL_STATUS.PENDING!) : null;
   const crawlDurationSec =
@@ -94,13 +109,19 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
         description={t.seo.issuesDesc}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge kind="critical">{formatNumber(data.severityCounts.errors)} Error</StatusBadge>
-            <StatusBadge kind="warning">
-              {formatNumber(data.severityCounts.warnings)} {t.common.warning}
-            </StatusBadge>
-            <StatusBadge kind="neutral">
-              {formatNumber(data.severityCounts.notices)} {t.common.notice}
-            </StatusBadge>
+            <Link href={issuesHref({ severity: "ERROR" })} scroll={false} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <StatusBadge kind="critical">{formatNumber(data.severityCounts.errors)} Error</StatusBadge>
+            </Link>
+            <Link href={issuesHref({ severity: "WARNING" })} scroll={false} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <StatusBadge kind="warning">
+                {formatNumber(data.severityCounts.warnings)} {t.common.warning}
+              </StatusBadge>
+            </Link>
+            <Link href={issuesHref({ severity: "NOTICE" })} scroll={false} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <StatusBadge kind="neutral">
+                {formatNumber(data.severityCounts.notices)} {t.common.notice}
+              </StatusBadge>
+            </Link>
           </div>
         }
       >
@@ -138,14 +159,17 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
           </Card>
           <div className="lg:col-span-2">
             <ChartCard title={s.topCodes} description={s.topCodesDesc}>
-              <HBarChart items={data.codeCounts.slice(0, 8).map((c) => ({ label: c.code, value: c.count }))} className="py-1" emptyLabel={t.common.noData} />
+              <HBarChart items={data.codeCounts.slice(0, 8).map((c) => ({ label: c.code, value: c.count, href: issuesHref({ code: c.code }) }))} className="py-1" emptyLabel={t.common.noData} />
             </ChartCard>
           </div>
         </div>
 
         {issueTrend.length > 1 ? <IssueTrendChart history={issueTrend} /> : null}
 
-        <AuditDetailTabs issues={data.issues} pages={data.pages} />
+        <div id="issues" className="scroll-mt-24 space-y-3">
+          <FilterChips chips={chips} clearHref={withQuery(basePath, "", {}, "issues")} />
+          <AuditDetailTabs issues={issues} pages={data.pages} />
+        </div>
       </Section>
     </>
   );

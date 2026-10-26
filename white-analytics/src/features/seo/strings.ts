@@ -29,6 +29,16 @@ export const s = {
   searchQuery: "Cari kata kunci…",
   searchPage: "Cari halaman…",
   searchUrl: "Cari URL…",
+  drillDayDesc: "Kata kunci dengan klik terbanyak pada hari ini (Search Console).",
+  drillZoomDay: "Fokuskan dasbor ke hari ini",
+  drillPointLabel: "Lihat kata kunci",
+  dimensionFocusDesc:
+    "Total dan rincian harian untuk filter ini. Search Console menyimpan data per dimensi, jadi daftar kata kunci di bawah tidak dipilah per perangkat atau negara.",
+  filterQuery: "Kata kunci",
+  filterPage: "Halaman",
+  filterBucket: "Posisi",
+  filterDevice: "Perangkat",
+  filterCountry: "Negara",
   deltaVsPrev: "Δ vs periode sebelumnya",
 
   // ── Halaman ────────────────────────────────────────────────

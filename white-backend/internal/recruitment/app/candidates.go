@@ -29,6 +29,7 @@ type ListQuery struct {
 	Status       string
 	JobOpeningID string
 	Search       string
+	Source       string
 	DateFrom     string
 	DateTo       string
 	Sort         string
@@ -48,7 +49,7 @@ type Page struct {
 
 func (q ListQuery) filter() (domain.CandidateFilter, error) {
 	v := validate.New()
-	f := domain.CandidateFilter{JobOpeningID: q.JobOpeningID, Search: strings.TrimSpace(q.Search)}
+	f := domain.CandidateFilter{JobOpeningID: q.JobOpeningID, Search: strings.TrimSpace(q.Search), Source: q.Source}
 	if q.Status != "" {
 		if !domain.IsCandidateStatus(q.Status) {
 			v.Add("status", "Status tidak valid")

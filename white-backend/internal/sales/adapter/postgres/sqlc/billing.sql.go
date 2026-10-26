@@ -179,13 +179,17 @@ LEFT JOIN sales.accounts a ON a.id = d.account_id
 WHERE d.deleted_at IS NULL
   AND ($1::text IS NULL OR i.deal_id = $1)
   AND ($2::text IS NULL OR i.status = $2)
+  AND ($3::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) >= $3)
+  AND ($4::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) < $4)
 ORDER BY i.created_at DESC, i.id
-LIMIT $3
+LIMIT $5
 `
 
 type ListInvoicesParams struct {
 	Deal   *string
 	Status *string
+	FromAt *time.Time
+	ToAt   *time.Time
 	Lim    int32
 }
 
@@ -197,7 +201,13 @@ type ListInvoicesRow struct {
 }
 
 func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]ListInvoicesRow, error) {
-	rows, err := q.db.Query(ctx, listInvoices, arg.Deal, arg.Status, arg.Lim)
+	rows, err := q.db.Query(ctx, listInvoices,
+		arg.Deal,
+		arg.Status,
+		arg.FromAt,
+		arg.ToAt,
+		arg.Lim,
+	)
 	if err != nil {
 		return nil, err
 	}

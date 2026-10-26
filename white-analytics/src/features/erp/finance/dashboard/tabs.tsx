@@ -9,6 +9,9 @@ import { StatusBadge } from "@/components/dashboard/status-badge";
 import { HBarChart, type HBarItem } from "@/components/dashboard/charts/hbar-chart";
 import { WaterfallChart } from "@/components/dashboard/charts/waterfall-chart";
 import { formatDate, formatNumber, formatPercent } from "@/lib/format";
+import { trendTextClass } from "@/lib/metrics";
+import { DeltaText } from "@/components/dashboard/delta-badge";
+import { useDrillParams } from "@/features/erp/shared/drill";
 import { formatMonth } from "@/features/erp/shared/period-picker";
 import { SelectFilter } from "@/features/erp/shared/url-filters";
 import {
@@ -22,7 +25,8 @@ import {
   type MonthSeries,
   type StackSegment,
 } from "./charts";
-import { compactIdr, exactIdr, journalsHref, kpiMap, ledgerHref, monthBounds, num, nums, rangeQs } from "./lib";
+import { claimsHref, compactIdr, exactIdr, invoicesHref, journalsHref, kpiMap, ledgerHref, monthBounds, num, nums, rangeQs } from "./lib";
+import { useFinanceDrill, useMonthDrill } from "./drill";
 import type {
   AnalyticsAmount,
   AnalyticsSeries,
@@ -71,16 +75,6 @@ function topSeries(list: AnalyticsSeries[], n: number, type: "bar" | "line" = "b
   return top;
 }
 
-function useMonthJournals(months: string[]) {
-  const router = useRouter();
-  return (i: number) => {
-    const m = months[i];
-    if (!m) return;
-    const { from, to } = monthBounds(m);
-    router.push(journalsHref(from, to));
-  };
-}
-
 const pctOf = (n: number, d: number) => (d === 0 ? null : (n / d) * 100);
 
 // ─── Ringkasan ──────────────────────────────────────────────
@@ -88,7 +82,9 @@ const pctOf = (n: number, d: number) => (d === 0 ? null : (n / d) * 100);
 export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
   const k = kpiMap(data.kpis);
   const w = data.window;
-  const onMonth = useMonthJournals(w.months);
+  const onMonth = useMonthDrill(w.months);
+  const onCashMonth = useMonthDrill(w.months, "cash");
+  const isHref = `/erp/finance/reports?r=income-statement&${rangeQs(filters.from, filters.to)}`;
   const rev = seriesOf(data.pnl, "revenue");
   const exp = seriesOf(data.pnl, "expense");
   const net = seriesOf(data.pnl, "net_income");
@@ -113,7 +109,7 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
       key: "net",
       label: ds.kpi.net_income,
       align: "right",
-      render: (r) => <span className={r.net < 0 ? "text-negative" : undefined}>{exactIdr(r.net)}</span>,
+      render: (r) => <span className={trendTextClass(r.net)}>{exactIdr(r.net)}</span>,
       sort: (r) => r.net,
       total: exactIdr(rows.reduce((s, r) => s + r.net, 0)),
     },
@@ -123,14 +119,14 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
   return (
     <>
       <KpiGrid cols={4}>
-        <FinanceKpi kpi={k.revenue} href={`/erp/finance/reports?r=income-statement&${rangeQs(filters.from, filters.to)}`} />
-        <FinanceKpi kpi={k.expense} lowerIsBetter href={`/erp/finance/reports?r=income-statement&${rangeQs(filters.from, filters.to)}`} />
-        <FinanceKpi kpi={k.net_income} />
-        <FinanceKpi kpi={k.net_margin} unit="pct" />
+        <FinanceKpi kpi={k.revenue} href={isHref} />
+        <FinanceKpi kpi={k.expense} lowerIsBetter href={isHref} />
+        <FinanceKpi kpi={k.net_income} href={isHref} />
+        <FinanceKpi kpi={k.net_margin} unit="pct" href={isHref} />
         <FinanceKpi kpi={k.cash} href="/erp/finance/cash-bank" />
-        <FinanceKpi kpi={k.receivable} lowerIsBetter href="/erp/finance/receivables?tab=aging" />
-        <FinanceKpi kpi={k.payable} href="/erp/finance/payables?tab=aging" />
-        <FinanceKpi kpi={k.pending_reimbursement} href="/erp/finance/reimbursements" />
+        <FinanceKpi kpi={k.receivable} lowerIsBetter href={`/erp/finance/receivables?tab=aging&asOf=${filters.to}`} />
+        <FinanceKpi kpi={k.payable} neutral href={`/erp/finance/payables?tab=aging&asOf=${filters.to}`} />
+        <FinanceKpi kpi={k.pending_reimbursement} lowerIsBetter href="/erp/finance/reimbursements" />
       </KpiGrid>
       <div className="grid gap-5 lg:grid-cols-3">
         <ChartCard title={ds.summary.trend} description={ds.summary.trendQ} className="lg:col-span-2">
@@ -161,6 +157,7 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
             months={w.months}
             compareMonths={w.compareMonths}
             height={240}
+            onMonthClick={onCashMonth}
             series={[{ key: "cash", label: ds.kpi.cash, color: slotColor(0), type: "line", values: nums(cash?.values ?? []), compare: nums(cash?.compareValues ?? []) }]}
           />
         </ChartCard>
@@ -172,14 +169,15 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
               {
                 label: ds.summary.tbDiff,
                 value: exactIdr(tbDiff),
+                href: `/erp/finance/reports?r=trial-balance&asOf=${filters.to}`,
                 caption: (
                   <StatusBadge kind={Math.abs(tbDiff) < 0.01 ? "good" : "warning"}>
                     {Math.abs(tbDiff) < 0.01 ? ds.summary.balanced : ds.summary.unbalanced}
                   </StatusBadge>
                 ),
               },
-              { label: ds.summary.posted, value: formatNumber(data.postedEntries) },
-              { label: ds.summary.drafts, value: formatNumber(data.draftEntries) },
+              { label: ds.summary.posted, value: formatNumber(data.postedEntries), href: `${journalsHref(filters.from, filters.to)}&status=POSTED` },
+              { label: ds.summary.drafts, value: formatNumber(data.draftEntries), href: `${journalsHref(filters.from, filters.to)}&status=DRAFT` },
             ]}
           />
         </div>
@@ -203,6 +201,8 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
 
 export function ProfitTab({ data, filters }: Props<FinanceProfitability>) {
   const router = useRouter();
+  const { hrefWith } = useDrillParams();
+  const onMonth = useMonthDrill(data.window.months);
   const k = kpiMap(data.kpis);
   const w = data.window;
   const get = (key: string) => seriesOf(data.pnl, key);
@@ -237,7 +237,14 @@ export function ProfitTab({ data, filters }: Props<FinanceProfitability>) {
       align: "right",
       render: (a) => {
         const d = money(a.value) - money(a.previous);
-        return <span className={d > 0 ? "text-negative" : d < 0 ? "text-positive" : undefined}>{`${d > 0 ? "+" : ""}${compactIdr(d)}`}</span>;
+        return (
+          <DeltaText
+            current={money(a.value)}
+            previous={money(a.previous)}
+            lowerIsBetter
+            format={() => `${d > 0 ? "+" : d < 0 ? "−" : ""}${compactIdr(Math.abs(d))}`}
+          />
+        );
       },
       sort: (a) => money(a.value) - money(a.previous),
     },
@@ -247,10 +254,10 @@ export function ProfitTab({ data, filters }: Props<FinanceProfitability>) {
       <KpiGrid cols={6}>
         <FinanceKpi kpi={k.revenue} href={isHref} />
         <FinanceKpi kpi={k.gross_profit} href={isHref} />
-        <FinanceKpi kpi={k.gross_margin} unit="pct" />
-        <FinanceKpi kpi={k.operating_margin} unit="pct" />
-        <FinanceKpi kpi={k.net_margin} unit="pct" />
-        <FinanceKpi kpi={k.opex_ratio} unit="pct" lowerIsBetter />
+        <FinanceKpi kpi={k.gross_margin} unit="pct" href={isHref} />
+        <FinanceKpi kpi={k.operating_margin} unit="pct" href={isHref} />
+        <FinanceKpi kpi={k.net_margin} unit="pct" href={isHref} />
+        <FinanceKpi kpi={k.opex_ratio} unit="pct" lowerIsBetter href={isHref} />
       </KpiGrid>
       <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title={ds.profit.waterfall} description={ds.profit.waterfallQ}>
@@ -266,6 +273,7 @@ export function ProfitTab({ data, filters }: Props<FinanceProfitability>) {
             compareMonths={w.compareMonths}
             yFormat={(v) => `${formatNumber(v, 0)}%`}
             valueFormat={(v) => formatPercent(v, 1)}
+            onMonthClick={onMonth}
             series={[
               { key: "gross", label: ds.kpi.gross_margin, color: slotColor(0), type: "line", values: margin("gross_profit") },
               { key: "operating", label: ds.kpi.operating_margin, color: slotColor(1), type: "line", values: margin("operating_income") },
@@ -277,14 +285,20 @@ export function ProfitTab({ data, filters }: Props<FinanceProfitability>) {
       <div className="grid gap-5 lg:grid-cols-3">
         <ChartCard title={ds.profit.revenueClients} description={ds.profit.revenueClientsQ}>
           <HBarChart
-            items={ranked(data.revenueClients, 8, (a) => `/erp/finance/receivables?q=${encodeURIComponent(a.key)}`)}
+            items={ranked(data.revenueClients, 8, (a) => invoicesHref("AR", { party: a.label, from: filters.from, to: filters.to }))}
             format={(v) => compactIdr(v)}
             showShare
             emptyLabel={ds.noData}
           />
         </ChartCard>
         <ChartCard title={ds.profit.expenseGroups} description={ds.profit.expenseGroupsQ}>
-          <HBarChart items={ranked(data.expenseGroups, 7)} format={(v) => compactIdr(v)} showShare color={slotColor(1)} emptyLabel={ds.noMatch} />
+          <HBarChart
+            items={ranked(data.expenseGroups, 7, (a) => hrefWith({ accountGroup: a.key }))}
+            format={(v) => compactIdr(v)}
+            showShare
+            color={slotColor(1)}
+            emptyLabel={ds.noMatch}
+          />
         </ChartCard>
         <ChartCard title={ds.profit.expenseAccounts}>
           <HBarChart
@@ -324,7 +338,7 @@ export function CashTab({ data, filters }: Props<FinanceCash>) {
   const router = useRouter();
   const k = kpiMap(data.kpis);
   const w = data.window;
-  const onMonth = useMonthJournals(w.months);
+  const onMonth = useMonthDrill(w.months, "cash");
   const cfHref = `/erp/finance/reports?r=cash-flow&${rangeQs(filters.from, filters.to)}`;
   const flow = (key: string, i: number, compare = false): MonthSeries => {
     const s = seriesOf(data.flows, key);
@@ -347,12 +361,12 @@ export function CashTab({ data, filters }: Props<FinanceCash>) {
     <>
       <KpiGrid cols={4}>
         <FinanceKpi kpi={k.cash} href="/erp/finance/cash-bank" />
-        <FinanceKpi kpi={k.net_change} />
+        <FinanceKpi kpi={k.net_change} href={cfHref} />
         <FinanceKpi kpi={k.operating} href={cfHref} />
         <FinanceKpi kpi={k.investing} href={cfHref} />
         <FinanceKpi kpi={k.financing} href={cfHref} />
-        <FinanceKpi kpi={k.burn_rate} lowerIsBetter />
-        <FinanceKpi kpi={k.runway} unit="months" />
+        <FinanceKpi kpi={k.burn_rate} lowerIsBetter href={cfHref} />
+        <FinanceKpi kpi={k.runway} unit="months" href="/erp/finance/cash-bank" />
       </KpiGrid>
       <div className="grid gap-5 xl:grid-cols-2">
         <ChartCard title={ds.cash.flows} description={ds.cash.flowsQ}>
@@ -379,7 +393,7 @@ export function CashTab({ data, filters }: Props<FinanceCash>) {
         </ChartCard>
       </div>
       <ChartCard title={ds.cash.balances} description={ds.cash.balancesQ}>
-        <MonthlyChart months={w.months} height={240} series={topSeries(data.balances, 7, "line")} />
+        <MonthlyChart months={w.months} height={240} onMonthClick={onMonth} series={topSeries(data.balances, 7, "line")} />
       </ChartCard>
       <ChartCard title={ds.cash.accounts}>
         <SortTable
@@ -415,12 +429,11 @@ function partyCols(kindLabel: string): Column<PartyBalance>[] {
   ];
 }
 
-const invoiceHref = (kind: "AR" | "AP", q: string) =>
-  `/erp/finance/${kind === "AR" ? "receivables" : "payables"}?q=${encodeURIComponent(q)}`;
-
 export function ArApTab({ data }: Props<FinanceArAp>) {
   const k = kpiMap(data.kpis);
   const w = data.window;
+  const onArMonth = useMonthDrill(w.months, "invoices", { kind: "AR" });
+  const onApMonth = useMonthDrill(w.months, "invoices", { kind: "AP" });
   const bucketColor = (b: string) => rampColor(BUCKETS.indexOf(b), BUCKETS.length);
   const agingRow = (kind: "AR" | "AP") => {
     const segs = data.aging
@@ -465,12 +478,12 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
   return (
     <>
       <KpiGrid cols={6}>
-        <FinanceKpi kpi={k.receivable} lowerIsBetter href="/erp/finance/receivables?tab=aging" />
-        <FinanceKpi kpi={k.overdue_receivable} lowerIsBetter href="/erp/finance/receivables?tab=aging" />
-        <FinanceKpi kpi={k.dso} unit="days" lowerIsBetter />
-        <FinanceKpi kpi={k.payable} href="/erp/finance/payables?tab=aging" />
-        <FinanceKpi kpi={k.overdue_payable} lowerIsBetter href="/erp/finance/payables?tab=aging" />
-        <FinanceKpi kpi={k.dpo} unit="days" />
+        <FinanceKpi kpi={k.receivable} lowerIsBetter href={`/erp/finance/receivables?tab=aging&asOf=${w.to}`} />
+        <FinanceKpi kpi={k.overdue_receivable} lowerIsBetter href={invoicesHref("AR", { pay: "overdue" })} />
+        <FinanceKpi kpi={k.dso} unit="days" lowerIsBetter href={`/erp/finance/receivables?tab=aging&asOf=${w.to}`} />
+        <FinanceKpi kpi={k.payable} neutral href={`/erp/finance/payables?tab=aging&asOf=${w.to}`} />
+        <FinanceKpi kpi={k.overdue_payable} lowerIsBetter href={invoicesHref("AP", { pay: "overdue" })} />
+        <FinanceKpi kpi={k.dpo} unit="days" neutral href={`/erp/finance/payables?tab=aging&asOf=${w.to}`} />
       </KpiGrid>
       <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title={ds.arap.aging} description={ds.arap.agingQ}>
@@ -481,6 +494,7 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
             months={w.months}
             compareMonths={w.compareMonths}
             height={240}
+            onMonthClick={onArMonth}
             yFormat={(v) => `${formatNumber(v, 0)}`}
             valueFormat={(v) => ds.arap.days(Math.round(v))}
             series={[
@@ -492,10 +506,10 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title={ds.arap.agingTrend} description={ds.arap.agingTrendQ}>
-          <MonthlyChart months={w.months} stacked height={240} series={agingSeries(data.arAgingTrend)} />
+          <MonthlyChart months={w.months} stacked height={240} onMonthClick={onArMonth} series={agingSeries(data.arAgingTrend)} />
         </ChartCard>
         <ChartCard title={ds.arap.apTrend}>
-          <MonthlyChart months={w.months} stacked height={240} series={agingSeries(data.apAgingTrend)} />
+          <MonthlyChart months={w.months} stacked height={240} onMonthClick={onApMonth} series={agingSeries(data.apAgingTrend)} />
         </ChartCard>
       </div>
       <div className="grid gap-5 xl:grid-cols-2">
@@ -504,7 +518,7 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
             rows={data.customers}
             columns={partyCols(ds.arap.party)}
             rowKey={(p) => p.partyName}
-            rowHref={(p) => invoiceHref("AR", p.partyName)}
+            rowHref={(p) => invoicesHref("AR", { party: p.partyName })}
             initialSort={{ key: "outstanding", desc: true }}
             limit={10}
           />
@@ -514,7 +528,7 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
             rows={data.vendors}
             columns={partyCols(ds.arap.party)}
             rowKey={(p) => p.partyName}
-            rowHref={(p) => invoiceHref("AP", p.partyName)}
+            rowHref={(p) => invoicesHref("AP", { party: p.partyName })}
             initialSort={{ key: "outstanding", desc: true }}
             limit={10}
           />
@@ -525,7 +539,7 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
           rows={data.overdue}
           columns={overdueCols}
           rowKey={(o) => o.id}
-          rowHref={(o) => invoiceHref(o.kind, o.invoiceNo)}
+          rowHref={(o) => invoicesHref(o.kind, { q: o.invoiceNo })}
           initialSort={{ key: "late", desc: true }}
         />
       </ChartCard>
@@ -538,20 +552,19 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
 export function SpendTab({ data, filters }: Props<FinanceSpend>) {
   const k = kpiMap(data.kpis);
   const w = data.window;
-  const onMonth = useMonthJournals(w.months);
-  const month = filters.from.slice(0, 7) === filters.to.slice(0, 7) ? filters.from.slice(0, 7) : undefined;
-  const claimsHref = (extra: Record<string, string | undefined>) => {
-    const sp = new URLSearchParams({ tab: "all" });
-    for (const [key, v] of Object.entries({ ...extra, month })) if (v) sp.set(key, v);
-    return `/erp/finance/reimbursements?${sp}`;
-  };
+  const drill = useFinanceDrill();
+  const onMonth = useMonthDrill(w.months);
+  const scope = { from: filters.from, to: filters.to, department: filters.department };
+  const onClaimMonth = useMonthDrill(w.months, "claims", { department: filters.department });
+  const onPaidMonth = useMonthDrill(w.months, "claims", { department: filters.department, status: "PAID" });
+  const claims = (extra: { category?: string; status?: string } = {}) => claimsHref({ ...scope, ...extra });
   const named = (list: AnalyticsAmount[], names: Record<string, string>) => list.map((a) => ({ ...a, label: names[a.key] ?? a.label }));
   const statusSegs: StackSegment[] = named(data.byStatus, ds.spend.statusNames).map((a, i) => ({
     key: a.key,
     label: `${a.label} (${a.count})`,
     value: money(a.value),
     color: slotColor(i),
-    href: claimsHref({ status: a.key }),
+    href: claims({ status: a.key }),
   }));
   const lead = seriesOf(data.leadTimeTrend, "lead_days");
   const leadBench = data.leadTime.find((l) => l.key === "total");
@@ -582,12 +595,12 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
         />
       </div>
       <KpiGrid cols={6}>
-        <FinanceKpi kpi={k.expense} lowerIsBetter />
-        <FinanceKpi kpi={k.reimburse_paid} href={claimsHref({ status: "PAID" })} />
-        <FinanceKpi kpi={k.reimburse_pending} href="/erp/finance/reimbursements" />
-        <FinanceKpi kpi={k.claims} unit="count" />
-        <FinanceKpi kpi={k.approval_days} unit="days" lowerIsBetter />
-        <FinanceKpi kpi={k.rejection_rate} unit="pct" lowerIsBetter />
+        <FinanceKpi kpi={k.expense} lowerIsBetter href={`/erp/finance/reports?r=income-statement&${rangeQs(filters.from, filters.to)}`} />
+        <FinanceKpi kpi={k.reimburse_paid} href={claims({ status: "PAID" })} />
+        <FinanceKpi kpi={k.reimburse_pending} lowerIsBetter href="/erp/finance/reimbursements" />
+        <FinanceKpi kpi={k.claims} unit="count" href={claims()} />
+        <FinanceKpi kpi={k.approval_days} unit="days" lowerIsBetter href={claims({ status: "PAID" })} />
+        <FinanceKpi kpi={k.rejection_rate} unit="pct" lowerIsBetter href={claims({ status: "REJECTED" })} />
       </KpiGrid>
       <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title={ds.spend.groups} description={ds.spend.groupsQ}>
@@ -597,6 +610,7 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
           <MonthlyChart
             months={w.months}
             stacked
+            onMonthClick={onClaimMonth}
             series={data.claimCategories.map((s, i) => ({ key: s.key, label: ds.spend.categoryNames[s.key] ?? s.label, color: slotColor(i), type: "bar" as const, values: nums(s.values) }))}
           />
         </ChartCard>
@@ -604,7 +618,7 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
       <div className="grid gap-5 lg:grid-cols-3">
         <ChartCard title={ds.spend.byCategory}>
           <HBarChart
-            items={named(data.byCategory, ds.spend.categoryNames).map((a) => ({ label: `${a.label} · ${a.count}`, value: money(a.value), href: claimsHref({ category: a.key }) }))}
+            items={named(data.byCategory, ds.spend.categoryNames).map((a) => ({ label: `${a.label} · ${a.count}`, value: money(a.value), href: claims({ category: a.key }) }))}
             format={(v) => compactIdr(v)}
             showShare
             emptyLabel={ds.noData}
@@ -612,7 +626,8 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
         </ChartCard>
         <ChartCard title={ds.spend.byDepartment}>
           <HBarChart
-            items={data.byDepartment.map((a) => ({ label: `${a.label} · ${a.count}`, value: money(a.value) }))}
+            items={data.byDepartment.map((a) => ({ label: `${a.label} · ${a.count}`, value: money(a.value), key: a.label }))}
+            onSelect={(item) => drill("claims", { from: filters.from, to: filters.to, department: item.key })}
             format={(v) => compactIdr(v)}
             showShare
             color={slotColor(1)}
@@ -629,7 +644,12 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
       <div className="grid gap-5 lg:grid-cols-2">
         <ChartCard title={ds.spend.leadTime} description={ds.spend.leadTimeQ}>
           <HBarChart
-            items={data.leadTime.map((l) => ({ label: `${l.label} · ${l.count}`, value: num(l.value) ?? 0, color: l.key === "total" ? slotColor(0) : undefined }))}
+            items={data.leadTime.map((l) => ({
+              label: `${l.label} · ${l.count}`,
+              value: num(l.value) ?? 0,
+              color: l.key === "total" ? slotColor(0) : undefined,
+              href: claims({ status: "PAID" }),
+            }))}
             format={(v) => `${formatNumber(v, 1)} ${ds.units.days}`}
             color={slotColor(3)}
             emptyLabel={ds.noData}
@@ -639,6 +659,7 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
           <MonthlyChart
             months={w.months}
             height={220}
+            onMonthClick={onPaidMonth}
             yFormat={(v) => formatNumber(v, 0)}
             valueFormat={(v) => `${formatNumber(v, 1)} ${ds.units.days}`}
             referenceY={num(leadBench?.value)}

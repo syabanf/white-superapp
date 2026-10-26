@@ -14,6 +14,9 @@ import { CampaignShareCard, ResultsDailyCard, SpendDailyCard } from "@/features/
 import { DemographicsCard } from "@/features/ads/components/demographics-card";
 import { CampaignBreakdown } from "@/features/ads/components/campaign-breakdown";
 import { TopAds } from "@/features/ads/components/top-ads";
+import { AdsDrillSheet } from "@/features/ads/components/ads-drill";
+import { DrillBreadcrumb } from "@/features/erp/shared/drill";
+import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
 import { getAdsDashboard } from "@/features/ads/queries";
 import { resultTypeLabel, s } from "@/features/ads/strings";
 import { requireClientAccess } from "@/lib/rbac";
@@ -40,9 +43,15 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
   const { range, previous, compare } = getRange(sp);
   const campaignParam = Array.isArray(sp.campaign) ? sp.campaign[0] : sp.campaign;
   const base = `/clients/${slug}`;
+  const keep = pickQuery(sp, [...PERIOD_KEYS, "campaign"]);
+  const section = (hash: string, extra: Record<string, string | null> = {}) => withQuery(`${base}/ads`, keep, extra, hash);
+  const breakdownHref = section("breakdown", { sort: null });
+  const cheapestHref = section("breakdown", { sort: "cpr" });
+  const sort = sp.sort === "cpr" ? "cpr" : "spend";
 
   const data = await getAdsDashboard(client.id, range, previous, campaignParam);
   const { kpis, deltas } = data;
+  const activeCampaign = data.campaignOptions.find((c) => c.id === campaignParam);
 
   const d = (x: { pct: number | null; abs: number; direction: "up" | "down" | "flat" }) =>
     compare && !data.isDemo ? x : null;
@@ -80,6 +89,15 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
         />
       ) : (
         <>
+          <AdsDrillSheet slug={slug} currency={client.currency} matrix={data.demographics.matrix} />
+          {activeCampaign ? (
+            <DrillBreadcrumb
+              items={[
+                { label: s.allCampaignsCrumb, href: withQuery(`${base}/ads`, pickQuery(sp)) },
+                { label: activeCampaign.name },
+              ]}
+            />
+          ) : null}
           {/* Baris filter (satu baris, di bawah header, di atas KPI) */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CampaignFilter options={data.campaignOptions} />
@@ -97,6 +115,7 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
               value={formatCurrency(kpis.spend, client.currency, { compact: true })}
               delta={d(deltas.spend)}
               spark={data.spendSpark}
+              href={breakdownHref}
             />
             <KpiTile
               label={t.ads.results}
@@ -109,6 +128,7 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
                   : s.noConversionResults
               }
               hint={s.resultsHint}
+              href={breakdownHref}
             />
             <KpiTile
               label={t.ads.cpr}
@@ -116,12 +136,14 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
               delta={kpis.results > 0 ? d(deltas.cpr) : null}
               lowerIsBetter
               hint={s.cprHint}
+              href={cheapestHref}
             />
             <KpiTile
               label={t.ads.ctr}
               value={formatPercent(kpis.ctr)}
               delta={d(deltas.ctr)}
               hint={s.ctrHint}
+              href={section("top-ads")}
             />
           </KpiGrid>
 
@@ -131,20 +153,23 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
                 label: t.ads.impressions,
                 value: formatCompact(kpis.impressions),
                 delta: d(deltas.impressions),
+                href: breakdownHref,
               },
               {
                 label: t.ads.reach,
                 value: formatCompact(kpis.reach),
                 delta: d(deltas.reach),
                 hint: s.reachHint,
+                href: breakdownHref,
               },
-              { label: t.ads.linkClicks, value: formatCompact(kpis.linkClicks), delta: d(deltas.linkClicks) },
+              { label: t.ads.linkClicks, value: formatCompact(kpis.linkClicks), delta: d(deltas.linkClicks), href: breakdownHref },
               {
                 label: t.ads.cpc,
                 value: kpis.linkClicks > 0 ? formatCurrency(kpis.cpc, client.currency) : "–",
                 delta: kpis.linkClicks > 0 ? d(deltas.cpc) : null,
                 lowerIsBetter: true,
                 hint: s.cpcHint,
+                href: breakdownHref,
               },
               {
                 label: t.ads.cpm,
@@ -152,6 +177,7 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
                 delta: kpis.impressions > 0 ? d(deltas.cpm) : null,
                 lowerIsBetter: true,
                 hint: s.cpmHint,
+                href: breakdownHref,
               },
               {
                 label: t.ads.frequency,
@@ -159,6 +185,7 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
                 delta: d(deltas.frequency),
                 lowerIsBetter: true,
                 hint: s.frequencyHint,
+                href: breakdownHref,
               },
               ...(kpis.roas != null
                 ? [
@@ -167,6 +194,7 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
                       value: `${formatNumber(kpis.roas, 2)}×`,
                       delta: deltas.roas ? d(deltas.roas) : null,
                       hint: s.roasHint,
+                      href: breakdownHref,
                     },
                   ]
                 : []),
@@ -190,13 +218,17 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
             />
           </div>
 
-          <Section title={t.ads.breakdown} description={t.ads.breakdownDesc}>
-            <CampaignBreakdown campaigns={data.breakdown} currency={client.currency} />
-          </Section>
+          <div id="breakdown" className="scroll-mt-24">
+            <Section title={t.ads.breakdown} description={t.ads.breakdownDesc}>
+              <CampaignBreakdown key={sort} campaigns={data.breakdown} currency={client.currency} initialSort={sort} />
+            </Section>
+          </div>
 
-          <Section title={t.ads.topAds} description={t.ads.topAdsDesc}>
-            <TopAds ads={data.topAds} currency={client.currency} />
-          </Section>
+          <div id="top-ads" className="scroll-mt-24">
+            <Section title={t.ads.topAds} description={t.ads.topAdsDesc}>
+              <TopAds ads={data.topAds} currency={client.currency} />
+            </Section>
+          </div>
         </>
       )}
     </>

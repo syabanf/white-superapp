@@ -8,7 +8,8 @@ import { formatNumber, formatPercent } from "@/lib/format";
 import type { PositionBucket } from "@/lib/metrics";
 import { t } from "@/i18n/id";
 import { s } from "@/features/seo/strings";
-import { countryLabel } from "@/features/seo/aggregate";
+import { countryLabel, deviceLabel } from "@/features/seo/aggregate";
+import { withParam } from "@/lib/drill-query";
 import { BUCKET_COLORS, BUCKET_LABELS } from "./buckets";
 
 type DistributionRow = { bucket: PositionBucket; queries: number; clicks: number; impressions: number };
@@ -16,7 +17,7 @@ type DistributionRow = { bucket: PositionBucket; queries: number; clicks: number
 const right: ColMeta = { align: "right" };
 
 /** (c) Distribusi posisi — ordinal seq ramp, jumlah kata kunci per bucket. */
-export function PositionDistributionCard({ distribution }: { distribution: DistributionRow[] }) {
+export function PositionDistributionCard({ distribution, keywordsHref }: { distribution: DistributionRow[]; keywordsHref?: string }) {
   const columns: ColumnDef<DistributionRow, unknown>[] = [
     { accessorKey: "bucket", header: t.seo.positionDist, cell: ({ row }) => BUCKET_LABELS[row.original.bucket] },
     { accessorKey: "queries", header: t.seo.keywords, meta: right, cell: ({ row }) => formatNumber(row.original.queries) },
@@ -34,6 +35,7 @@ export function PositionDistributionCard({ distribution }: { distribution: Distr
           label: BUCKET_LABELS[d.bucket],
           value: d.queries,
           color: BUCKET_COLORS[d.bucket],
+          href: keywordsHref ? withParam(keywordsHref, "bucket", d.bucket) : undefined,
           secondary: `${formatNumber(d.clicks)} ${t.seo.clicks.toLowerCase()}`,
         }))}
         format={(v) => `${formatNumber(v)} ${s.queriesUnit}`}
@@ -54,16 +56,17 @@ function shareColumns(nameHeader: string, labelFor: (key: string) => string): Co
   ];
 }
 
-function deviceLabel(key: string): string {
-  const k = key.toUpperCase();
-  if (k === "MOBILE") return t.seo.mobile;
-  if (k === "DESKTOP") return t.seo.desktop;
-  if (k === "TABLET") return s.tablet;
-  return key;
-}
-
 /** (d) Perangkat & Negara — clicks share per category. */
-export function DeviceCountryCards({ devices, countries }: { devices: ShareRow[]; countries: ShareRow[] }) {
+export function DeviceCountryCards({
+  devices,
+  countries,
+  keywordsHref,
+}: {
+  devices: ShareRow[];
+  countries: ShareRow[];
+  keywordsHref?: string;
+}) {
+  const to = (k: "device" | "country", v: string) => (keywordsHref ? withParam(keywordsHref, k, v) : undefined);
   return (
     <>
       <ChartCard
@@ -71,14 +74,14 @@ export function DeviceCountryCards({ devices, countries }: { devices: ShareRow[]
         description={s.deviceDesc}
         table={<DataTable bare dense data={devices} columns={shareColumns(t.seo.devices, deviceLabel)} paginate={false} />}
       >
-        <HBarChart items={devices.map((d) => ({ label: deviceLabel(d.key), value: d.clicks }))} showShare className="py-1" />
+        <HBarChart items={devices.map((d) => ({ label: deviceLabel(d.key), value: d.clicks, href: to("device", d.key) }))} showShare className="py-1" />
       </ChartCard>
       <ChartCard
         title={t.seo.countries}
         description={s.countryDesc}
         table={<DataTable bare dense data={countries} columns={shareColumns(t.seo.countries, countryLabel)} paginate={false} />}
       >
-        <HBarChart items={countries.map((c) => ({ label: countryLabel(c.key), value: c.clicks }))} showShare maxItems={8} className="py-1" />
+        <HBarChart items={countries.map((c) => ({ label: countryLabel(c.key), value: c.clicks, href: to("country", c.key) }))} showShare maxItems={8} className="py-1" />
       </ChartCard>
     </>
   );

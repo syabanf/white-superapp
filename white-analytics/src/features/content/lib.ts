@@ -176,6 +176,7 @@ export const contentFiles = {
     `${proxyClient(clientId)}/assets/${encodeURIComponent(assetId)}/download${version ? `?version=${version}` : ""}`,
   reportPdf: (clientId: string, reportId: string) => `${proxyClient(clientId)}/reports/${encodeURIComponent(reportId)}/pdf`,
   item: (clientId: string, itemId: string) => `${proxyClient(clientId)}/items/${encodeURIComponent(itemId)}`,
+  items: (clientId: string, query = "") => `${proxyClient(clientId)}/items${query ? `?${query}` : ""}`,
   uploadDesign: (clientId: string, taskId: string) => `${uploadClient(clientId)}/design-tasks/${encodeURIComponent(taskId)}/files`,
   createAsset: (clientId: string) => `${uploadClient(clientId)}/assets`,
   assetVersion: (clientId: string, assetId: string) => `${uploadClient(clientId)}/assets/${encodeURIComponent(assetId)}/versions`,

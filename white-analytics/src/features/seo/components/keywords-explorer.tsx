@@ -39,11 +39,19 @@ function ViewTabs({
   view,
   counts,
   basePath,
+  query,
 }: {
   view: KeywordViewKey;
   counts: Record<KeywordViewKey, number>;
   basePath: string;
+  query: string;
 }) {
+  const hrefFor = (v: KeywordViewKey) => {
+    const q = new URLSearchParams(query);
+    if (v !== "all") q.set("view", v);
+    const qs = q.toString();
+    return qs ? `${basePath}?${qs}` : basePath;
+  };
   const views: KeywordViewKey[] = ["all", "striking", "low_ctr", "declining", "rising"];
   return (
     <div className="flex w-fit max-w-full flex-wrap items-center gap-1 rounded-lg bg-muted p-1">
@@ -52,7 +60,8 @@ function ViewTabs({
         return (
           <Link
             key={v}
-            href={v === "all" ? basePath : `${basePath}?view=${v}`}
+            href={hrefFor(v)}
+            scroll={false}
             aria-current={active ? "page" : undefined}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
@@ -112,6 +121,7 @@ export function KeywordsExplorer({
   distribution,
   compare,
   basePath,
+  query = "",
 }: {
   view: KeywordViewKey;
   rows: KeywordTableRow[];
@@ -119,6 +129,8 @@ export function KeywordsExplorer({
   distribution: DistributionRow[];
   compare: boolean;
   basePath: string;
+  /** period and drill filters the view tabs keep */
+  query?: string;
 }) {
   const showExpected = view === "striking" || view === "low_ctr";
   const showPotential = view === "striking" || view === "low_ctr";
@@ -218,7 +230,7 @@ export function KeywordsExplorer({
     <Card className="gap-0 py-0">
       <CardContent className="space-y-4 p-6">
         <div className="flex flex-col gap-3">
-          <ViewTabs view={view} counts={counts} basePath={basePath} />
+          <ViewTabs view={view} counts={counts} basePath={basePath} query={query} />
           <p className="text-sm text-muted-foreground">{VIEW_DESCRIPTIONS[view]}</p>
           <DistributionStrip distribution={distribution} />
           <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">

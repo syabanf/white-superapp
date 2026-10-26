@@ -17,7 +17,8 @@ import { HR_PRESETS, type HrRange } from "@/features/erp/hr/dashboard/range";
 import { rangeLabel } from "@/features/erp/hr/dashboard/format";
 import { thd } from "@/features/erp/hr/dashboard/strings";
 
-const KEYS = ["preset", "from", "to", "compare", "dept", "status", "position"] as const;
+// `back` is the range a chart drill zoomed in from; a new period drops it.
+const KEYS = ["preset", "from", "to", "compare", "dept", "status", "position", "back"] as const;
 const ALL = "__all__";
 const f = thd.filters;
 
@@ -78,7 +79,7 @@ export function HrFilterBar({
   return (
     <div className="flex flex-col gap-3 rounded-[1.25rem] bg-card p-3 shadow-(--card-shadow) sm:p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <PeriodPicker range={range} pending={isPending} onChange={set} />
+        <PeriodPicker range={range} pending={isPending} onChange={(patch) => set({ ...patch, back: null })} />
         <ToggleGroup
           type="single"
           value={range.compare}

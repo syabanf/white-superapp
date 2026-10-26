@@ -83,6 +83,10 @@ WHERE e.deleted_at IS NULL
   AND (cardinality(sqlc.arg(ids)::text[]) = 0 OR e.id = ANY (sqlc.arg(ids)::text[]))
   AND (sqlc.arg(search)::text = '' OR e.full_name ILIKE '%' || sqlc.arg(search)::text || '%'
        OR e.employee_no ILIKE '%' || sqlc.arg(search)::text || '%' OR e.email ILIKE '%' || sqlc.arg(search)::text || '%')
+  AND (sqlc.arg(position_id)::text = '' OR e.position_id = sqlc.arg(position_id)::text)
+  AND (sqlc.arg(level)::text = '' OR p.level = sqlc.arg(level)::text)
+  AND (sqlc.arg(gender)::text = '' OR e.gender = sqlc.arg(gender)::text)
+  AND (sqlc.arg(employment_status)::text = '' OR e.employment_status = sqlc.arg(employment_status)::text)
 ORDER BY e.full_name
 LIMIT sqlc.arg(row_limit)::int OFFSET sqlc.arg(row_offset)::int;
 

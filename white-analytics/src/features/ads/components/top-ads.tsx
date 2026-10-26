@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { ImageOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/dashboard/status-badge";
@@ -8,6 +9,7 @@ import { formatCurrency, formatNumber, formatPercent } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { resultTypeLabel, s } from "@/features/ads/strings";
 import type { AdsTopAd } from "@/features/ads/queries-breakdown";
+import { useDrillParams } from "@/features/erp/shared/drill";
 
 function Thumb({ src, alt }: { src: string | null; alt: string }) {
   const [failed, setFailed] = React.useState(false);
@@ -35,6 +37,7 @@ function Thumb({ src, alt }: { src: string | null; alt: string }) {
 
 /** Kartu "Iklan terbaik" — 6 iklan dengan biaya per hasil terendah bervolume memadai. */
 export function TopAds({ ads, currency }: { ads: AdsTopAd[]; currency: string }) {
+  const { hrefWith } = useDrillParams();
   if (ads.length === 0) {
     return (
       <p className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
@@ -64,9 +67,20 @@ export function TopAds({ ads, currency }: { ads: AdsTopAd[]; currency: string })
                       : ad.status}
                 </StatusBadge>
               </div>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground" title={ad.campaignName}>
-                {ad.campaignName}
-              </p>
+              {ad.campaignId ? (
+                <Link
+                  href={hrefWith({ campaign: ad.campaignId })}
+                  scroll={false}
+                  className="mt-0.5 block truncate rounded-sm text-xs text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                  title={`${s.filterByCampaign}: ${ad.campaignName}`}
+                >
+                  {ad.campaignName}
+                </Link>
+              ) : (
+                <p className="mt-0.5 truncate text-xs text-muted-foreground" title={ad.campaignName}>
+                  {ad.campaignName}
+                </p>
+              )}
             </div>
           </div>
           <dl className="mt-3 grid grid-cols-4 gap-2 border-t pt-3 text-xs">

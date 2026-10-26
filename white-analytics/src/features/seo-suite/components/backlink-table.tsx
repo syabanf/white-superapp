@@ -28,8 +28,16 @@ const DESCS: Record<BacklinkView, string | null> = {
   toxic: s.tabToxicDesc,
 };
 
-export function BacklinkTable({ rows, today }: { rows: BacklinkRow[]; today: string }) {
-  const [view, setView] = React.useState<BacklinkView>("all");
+export function BacklinkTable({
+  rows,
+  today,
+  initialView = "all",
+}: {
+  rows: BacklinkRow[];
+  today: string;
+  initialView?: BacklinkView;
+}) {
+  const [view, setView] = React.useState<BacklinkView>(initialView);
   const now = React.useMemo(() => new Date(today), [today]);
   const counts = React.useMemo(
     () =>

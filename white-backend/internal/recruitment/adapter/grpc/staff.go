@@ -74,7 +74,7 @@ type candidateServer struct {
 }
 
 func (s *candidateServer) ListCandidates(ctx context.Context, req *pb.ListCandidatesRequest) (*pb.ListCandidatesResponse, error) {
-	p, err := s.svc.Candidates.List(ctx, app.ListQuery{Status: req.GetStatus(), JobOpeningID: req.GetJobOpeningId(), Search: req.GetSearch(),
+	p, err := s.svc.Candidates.List(ctx, app.ListQuery{Status: req.GetStatus(), JobOpeningID: req.GetJobOpeningId(), Search: req.GetSearch(), Source: req.GetSource(),
 		DateFrom: req.GetDateFrom(), DateTo: req.GetDateTo(), Sort: req.GetSort(), Page: int(req.GetPage()), Limit: int(req.GetLimit()),
 		All: req.GetAll()})
 	if err != nil {

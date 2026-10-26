@@ -10,6 +10,8 @@ import { kpiDelta } from "@/features/content/dashboard";
 import { cd } from "@/features/content/strings";
 import type { Delta } from "@/lib/metrics";
 
+export { overviewHref } from "./links";
+
 /** What every tab needs besides the numbers. All plain data (client props). */
 export type DashCtx = {
   base: string;
@@ -20,6 +22,12 @@ export type DashCtx = {
   /** comparison switch of the top bar picker */
   compare: boolean;
   plans: { id: string; month: string }[];
+  /** dashboard period (WIB days) and its label */
+  from: string;
+  to: string;
+  periodLabel: string;
+  /** today in the client's time zone, for overdue checks */
+  today: string;
 };
 
 export type TabProps = { data: ContentDashboard; ctx: DashCtx };
@@ -34,26 +42,6 @@ export function bucketLabel(start: string, granularity: "week" | "month"): strin
 
 export function bucketRangeLabel(start: string, granularity: "week" | "month"): string {
   return granularity === "week" ? cd.weekOf(dayLabel(start, true)) : `${MONTH_SHORT[Number(start.slice(5, 7)) - 1]} ${start.slice(0, 4)}`;
-}
-
-/** Overview URL with one filter changed (drill-down within the page). */
-export function overviewHref(ctx: DashCtx, patch: Record<string, string | null>, tab?: string): string {
-  const q = new URLSearchParams(ctx.query);
-  for (const [k, v] of Object.entries(patch)) {
-    if (v) q.set(k, v);
-    else q.delete(k);
-  }
-  if (tab) q.set("tab", tab);
-  const s = q.toString();
-  return s ? `${ctx.base}?${s}` : ctx.base;
-}
-
-export function boardHref(ctx: DashCtx, params: { plan?: string; assignee?: string }): string {
-  const q = new URLSearchParams();
-  if (params.plan) q.set("plan", params.plan);
-  if (params.assignee) q.set("assignee", params.assignee);
-  const s = q.toString();
-  return `${ctx.base}/board${s ? `?${s}` : ""}`;
 }
 
 /** The plan of the month a bucket starts in, when one exists. */
@@ -170,5 +158,14 @@ export function TextLink({ href, children, className }: { href: string; children
     <Link href={href} className={cn("font-medium hover:underline", className)}>
       {children}
     </Link>
+  );
+}
+
+/** Table cell that opens a drill (looks like TextLink). */
+export function TextButton({ onClick, children, className }: { onClick: () => void; children: React.ReactNode; className?: string }) {
+  return (
+    <button type="button" onClick={onClick} className={cn("cursor-pointer text-left font-medium outline-none hover:underline focus-visible:underline", className)}>
+      {children}
+    </button>
   );
 }

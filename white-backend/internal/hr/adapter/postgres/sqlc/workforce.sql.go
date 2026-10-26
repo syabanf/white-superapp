@@ -884,8 +884,9 @@ WHERE (cardinality($1::text[]) = 0 OR a.employee_id = ANY ($1::text[]))
   AND ($4::text = '' OR a.status::text = $4::text)
   AND (NOT $5::boolean OR a.is_late)
   AND (NOT $6::boolean OR a.validated_at IS NULL)
+  AND ($7::text = '' OR e.department_id = $7::text)
 ORDER BY a.date DESC, e.full_name
-LIMIT $8::int OFFSET $7::int
+LIMIT $9::int OFFSET $8::int
 `
 
 type ListAttendanceParams struct {
@@ -895,6 +896,7 @@ type ListAttendanceParams struct {
 	Status          string
 	OnlyLate        bool
 	OnlyUnvalidated bool
+	DepartmentID    string
 	RowOffset       int32
 	RowLimit        int32
 }
@@ -918,6 +920,7 @@ func (q *Queries) ListAttendance(ctx context.Context, arg ListAttendanceParams) 
 		arg.Status,
 		arg.OnlyLate,
 		arg.OnlyUnvalidated,
+		arg.DepartmentID,
 		arg.RowOffset,
 		arg.RowLimit,
 	)
@@ -1033,18 +1036,20 @@ WHERE (cardinality($1::text[]) = 0 OR l.employee_id = ANY ($1::text[]))
   AND ($3::text = '' OR l.leave_type = $3::text)
   AND ($4::date IS NULL OR l.end_date >= $4::date)
   AND ($5::date IS NULL OR l.start_date <= $5::date)
+  AND ($6::text = '' OR e.department_id = $6::text)
 ORDER BY l.created_at DESC
-LIMIT $7::int OFFSET $6::int
+LIMIT $8::int OFFSET $7::int
 `
 
 type ListLeavesParams struct {
-	EmployeeIds []string
-	Statuses    []string
-	LeaveType   string
-	DateFrom    *time.Time
-	DateTo      *time.Time
-	RowOffset   int32
-	RowLimit    int32
+	EmployeeIds  []string
+	Statuses     []string
+	LeaveType    string
+	DateFrom     *time.Time
+	DateTo       *time.Time
+	DepartmentID string
+	RowOffset    int32
+	RowLimit     int32
 }
 
 type ListLeavesRow struct {
@@ -1065,6 +1070,7 @@ func (q *Queries) ListLeaves(ctx context.Context, arg ListLeavesParams) ([]ListL
 		arg.LeaveType,
 		arg.DateFrom,
 		arg.DateTo,
+		arg.DepartmentID,
 		arg.RowOffset,
 		arg.RowLimit,
 	)
@@ -1128,16 +1134,18 @@ WHERE (cardinality($1::text[]) = 0 OR o.employee_id = ANY ($1::text[]))
   AND ($3::text = '' OR o.status = $3::text)
   AND ($4::date IS NULL OR o.date >= $4::date)
   AND ($5::date IS NULL OR o.date <= $5::date)
+  AND ($6::text = '' OR e.department_id = $6::text)
 ORDER BY o.date DESC, o.created_at DESC
 LIMIT 500
 `
 
 type ListOvertimeParams struct {
-	EmployeeIds []string
-	Source      string
-	Status      string
-	DateFrom    *time.Time
-	DateTo      *time.Time
+	EmployeeIds  []string
+	Source       string
+	Status       string
+	DateFrom     *time.Time
+	DateTo       *time.Time
+	DepartmentID string
 }
 
 type ListOvertimeRow struct {
@@ -1159,6 +1167,7 @@ func (q *Queries) ListOvertime(ctx context.Context, arg ListOvertimeParams) ([]L
 		arg.Status,
 		arg.DateFrom,
 		arg.DateTo,
+		arg.DepartmentID,
 	)
 	if err != nil {
 		return nil, err

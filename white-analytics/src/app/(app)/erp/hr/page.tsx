@@ -7,6 +7,8 @@ import { DownloadButton } from "@/features/erp/shared/download-button";
 import { load, sp1 } from "@/features/erp/shared/load";
 import { ErpError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
+import { DrillBreadcrumb, withParams, type DrillCrumb } from "@/features/erp/shared/drill";
+import { rangeLabel } from "@/features/erp/hr/dashboard/format";
 import { HrFilterBar } from "@/features/erp/hr/components/dashboard/filter-bar";
 import { HrDashboardTab, type HrDashTab } from "@/features/erp/hr/components/dashboard/dashboard-tabs";
 import { DashboardBodySkeleton } from "@/features/erp/hr/components/dashboard/skeleton";
@@ -64,12 +66,28 @@ export default async function HrDashboardPage(props: PageProps<"/erp/hr">) {
         statuses={(statuses.data ?? []).filter((s) => s.isActive).map((s) => ({ value: s.code, label: s.name }))}
         positions={(positions.data ?? []).map((p) => ({ value: p.id, label: p.title }))}
       />
+      <DrillBreadcrumb
+        items={drillTrail(sp, range, (depts.data ?? []).find((d) => d.id === dims.departmentId)?.name)}
+      />
       <UrlTabs tabs={tabs} label={thd.title} />
       <Suspense key={JSON.stringify([range, dims, tab])} fallback={<DashboardBodySkeleton />}>
         <DashboardBody tab={tab} range={range} dims={dims} leaveTypes={leaveNames} />
       </Suspense>
     </>
   );
+}
+
+/**
+ * "Semua > 1 Okt – 31 Okt 2026 > Creative": a zoomed range (`back` holds the
+ * range it came from) and the department filter, each level linking up.
+ */
+function drillTrail(sp: Record<string, string | string[] | undefined>, range: HrRange, deptName?: string): DrillCrumb[] {
+  const back = sp1(sp.back)?.split("_");
+  const top = back?.length === 2 ? { from: back[0], to: back[1], back: null } : {};
+  const items: DrillCrumb[] = [{ label: thd.drill.all, href: withParams("/erp/hr", sp, { ...top, dept: null }, ["drill"]) }];
+  if (back) items.push({ label: rangeLabel(range.from, range.to), href: withParams("/erp/hr", sp, { dept: null }, ["drill"]) });
+  if (deptName) items.push({ label: deptName });
+  return items;
 }
 
 async function DashboardBody({

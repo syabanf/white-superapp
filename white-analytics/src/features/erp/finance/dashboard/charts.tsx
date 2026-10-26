@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { Tooltip as UiTooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { KpiTile } from "@/components/dashboard/kpi-tile";
+import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import {
   AXIS_TICK,
   GRID_STROKE,
@@ -284,6 +285,7 @@ export function FinanceKpi({
   href,
   hint,
   label,
+  neutral = false,
 }: {
   kpi: AnalyticsKpi | undefined;
   unit?: KpiUnit;
@@ -291,20 +293,32 @@ export function FinanceKpi({
   href?: string;
   hint?: string;
   label?: string;
+  /** neither direction is good or bad (DPO, payables): the change stays muted */
+  neutral?: boolean;
 }) {
   if (!kpi) return null;
   const cur = num(kpi.value);
   const prev = num(kpi.previous);
   const d = delta(cur, prev);
   const exact = unit === "idr" && cur != null ? ds.exact(exactIdr(cur)) : undefined;
-  const hintText = [hint ?? ds.kpiHint[kpi.key], exact].filter(Boolean).join(" ");
+  const hintText = [hint ?? ds.kpiHint[kpi.key], exact, neutral ? ds.drill.neutral : undefined].filter(Boolean).join(" ");
+  const shown = unit === "pct" && d ? { ...d, pct: d.abs } : d;
+  const previous = kpi.previous !== "" && prev != null ? formatUnit(prev, unit) : undefined;
   return (
     <KpiTile
       label={label ?? ds.kpi[kpi.key] ?? kpi.key}
       value={formatUnit(cur, unit)}
-      delta={unit === "pct" && d ? { ...d, pct: d.abs } : d}
+      delta={neutral ? undefined : shown}
       lowerIsBetter={lowerIsBetter}
-      previous={kpi.previous !== "" && prev != null ? formatUnit(prev, unit) : undefined}
+      caption={
+        neutral && shown ? (
+          <span className="inline-flex items-center gap-2">
+            <DeltaBadge delta={shown} className="border-border bg-muted text-muted-foreground" />
+            {previous ? `${ds.previous}: ${previous}` : null}
+          </span>
+        ) : undefined
+      }
+      previous={previous}
       spark={kpi.trend.length > 1 ? nums(kpi.trend) : undefined}
       hint={hintText || undefined}
       href={href}

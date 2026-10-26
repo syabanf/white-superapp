@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { InfoHint } from "@/components/dashboard/info-hint";
 import { Sparkline } from "@/components/dashboard/sparkline";
-import { computeDelta } from "@/lib/metrics/delta";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { computeDelta, trendTextClass } from "@/lib/metrics/delta";
 import { cn } from "@/lib/utils";
 import { LOWER_IS_BETTER, NO_COMPARE, findKpi, formatKpi, formatKpiExact, kpiKind } from "../format";
 import { dd } from "../strings";
@@ -21,6 +22,7 @@ export function KpiCard({ kpi, compare, href }: { kpi: DashboardKpi; compare: st
   const compared = !NO_COMPARE.has(kpi.key);
   const showDelta = compared && (rate || kpi.previous !== 0);
   const exact = formatKpiExact(kpi.key, kpi.value);
+  const lower = LOWER_IS_BETTER.has(kpi.key);
   const compareLabel = compare === "year" ? dd.compare.year : dd.compare.previous;
   return (
     <Card className="lift group/kpi relative min-w-0 gap-0 overflow-hidden py-0 hover:ring-brand/25">
@@ -37,24 +39,20 @@ export function KpiCard({ kpi, compare, href }: { kpi: DashboardKpi; compare: st
           <span className="min-w-0 truncate text-[24px] leading-none font-bold tracking-[-0.035em]">{value}</span>
         )}
         <div className="flex min-w-0 items-center justify-between gap-2">
-          {showDelta ? (
-            <DeltaBadge
-              delta={delta}
-              lowerIsBetter={LOWER_IS_BETTER.has(kpi.key)}
-              mode={rate ? "abs" : "pct"}
-              digits={1}
-              suffix={rate ? dd.points : undefined}
-            />
-          ) : (
-            <span />
-          )}
+          {showDelta ? <DeltaBadge delta={delta} lowerIsBetter={lower} mode={rate ? "abs" : "pct"} digits={1} suffix={rate ? dd.points : undefined} /> : <span />}
           {kpi.spark.length > 1 ? (
-            <Sparkline values={kpi.spark} width={64} height={22} className="hidden shrink-0 opacity-70 group-hover/kpi:opacity-100 min-[420px]:block" />
+            <Sparkline values={kpi.spark} lowerIsBetter={lower} width={64} height={22} className="hidden shrink-0 opacity-70 group-hover/kpi:opacity-100 min-[420px]:block" />
           ) : null}
         </div>
         {compared ? (
-          <p className="truncate text-xs text-muted-foreground">
+          <p className={cn("truncate text-xs", showDelta ? trendTextClass(delta, lower) : "text-muted-foreground")}>
             {compareLabel}: <span className="tabular">{formatKpi(kpi.key, kpi.previous)}</span>
+            {showDelta && delta.direction !== "flat"
+              ? (() => {
+                  const Icon = delta.direction === "up" ? ArrowUpRight : ArrowDownRight;
+                  return <Icon aria-hidden className="ml-0.5 inline size-3 align-[-2px]" strokeWidth={2.5} />;
+                })()
+              : null}
           </p>
         ) : null}
       </div>

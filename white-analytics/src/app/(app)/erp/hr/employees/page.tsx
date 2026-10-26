@@ -82,22 +82,32 @@ async function TabBody({
     const res = await load(listEmploymentStatuses);
     return res.data ? <StatusesPanel statuses={res.data} canWrite={canWrite} /> : <ErpError message={res.error.message} />;
   }
-  const [list, deps] = await Promise.all([
+  const [list, deps, positions, statuses] = await Promise.all([
     load(() =>
       listEmployees({
         search: sp1(sp.q),
         departmentId: sp1(sp.dept),
+        positionId: sp1(sp.position),
+        level: sp1(sp.level),
+        gender: sp1(sp.gender),
+        employmentStatus: sp1(sp.status),
         includeInactive: sp1(sp.inactive) === "1",
         pageSize: 500,
       }),
     ),
     load(() => listDepartments()),
+    load(() => listPositions()),
+    load(listEmploymentStatuses),
   ]);
   if (!list.data) return <ErpError message={list.error.message} />;
   return (
     <EmployeesTable
       employees={list.data.employees}
-      departments={(deps.data ?? []).map((d) => ({ value: d.id, label: d.name }))}
+      options={{
+        departments: (deps.data ?? []).map((d) => ({ value: d.id, label: d.name })),
+        positions: (positions.data ?? []).map((p) => ({ value: p.id, label: p.title })),
+        statuses: (statuses.data ?? []).map((s) => ({ value: s.code, label: s.name })),
+      }}
     />
   );
 }

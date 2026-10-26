@@ -171,12 +171,12 @@ func (s *Store) GetLead(ctx context.Context, id string) (*domain.Lead, error) {
 }
 
 func (s *Store) ListLeads(ctx context.Context, f domain.LeadFilter) ([]domain.Lead, int, error) {
-	rows, err := s.q.ListLeads(ctx, sqlc.ListLeadsParams{Status: nz(f.Status), Temperature: nz(f.Temperature), Source: nz(f.Source), Owner: nz(f.OwnerUserID), Q: nz(f.Query), Off: int32(f.Offset), Lim: limitOr(f.Limit, 50)})
+	rows, err := s.q.ListLeads(ctx, sqlc.ListLeadsParams{Status: nz(f.Status), Temperature: nz(f.Temperature), Source: nz(f.Source), Owner: nz(f.OwnerUserID), Q: nz(f.Query), FromAt: f.From, ToAt: f.To, ScoreMin: f.ScoreMin, ScoreMax: f.ScoreMax, Off: int32(f.Offset), Lim: limitOr(f.Limit, 50)})
 	leads, err := many(rows, err, toLead)
 	if err != nil {
 		return nil, 0, err
 	}
-	n, err := s.q.CountLeads(ctx, sqlc.CountLeadsParams{Status: nz(f.Status), Temperature: nz(f.Temperature), Source: nz(f.Source), Owner: nz(f.OwnerUserID), Q: nz(f.Query)})
+	n, err := s.q.CountLeads(ctx, sqlc.CountLeadsParams{Status: nz(f.Status), Temperature: nz(f.Temperature), Source: nz(f.Source), Owner: nz(f.OwnerUserID), Q: nz(f.Query), FromAt: f.From, ToAt: f.To, ScoreMin: f.ScoreMin, ScoreMax: f.ScoreMax})
 	return leads, int(n), err
 }
 
@@ -309,12 +309,15 @@ func (s *Store) GetDeal(ctx context.Context, id string) (*domain.Deal, error) {
 }
 
 func (s *Store) ListDeals(ctx context.Context, f domain.DealFilter) ([]domain.Deal, int, error) {
-	rows, err := s.q.ListDeals(ctx, sqlc.ListDealsParams{Pipeline: nz(f.PipelineID), Stage: nz(f.StageID), Owner: nz(f.OwnerUserID), Lead: nz(f.LeadID), Account: nz(f.AccountID), Status: nz(f.Status), Q: nz(f.Query), Off: int32(f.Offset), Lim: limitOr(f.Limit, 200)})
+	c := sqlc.CountDealsParams{Pipeline: nz(f.PipelineID), Stage: nz(f.StageID), Owner: nz(f.OwnerUserID), Lead: nz(f.LeadID), Account: nz(f.AccountID), Status: nz(f.Status), Q: nz(f.Query),
+		Line: nz(f.ServiceLine), Industry: nz(f.Industry), Source: nz(f.Source), LostReason: nz(f.LostReason), FromAt: f.From, ToAt: f.To, ByClosed: f.ByClosed}
+	rows, err := s.q.ListDeals(ctx, sqlc.ListDealsParams{Pipeline: c.Pipeline, Stage: c.Stage, Owner: c.Owner, Lead: c.Lead, Account: c.Account, Status: c.Status, Q: c.Q,
+		Line: c.Line, Industry: c.Industry, Source: c.Source, LostReason: c.LostReason, FromAt: c.FromAt, ToAt: c.ToAt, ByClosed: c.ByClosed, Off: int32(f.Offset), Lim: limitOr(f.Limit, 200)})
 	deals, err := many(rows, err, func(r sqlc.ListDealsRow) domain.Deal { return dealRow(sqlc.GetDealRow(r)) })
 	if err != nil {
 		return nil, 0, err
 	}
-	n, err := s.q.CountDeals(ctx, sqlc.CountDealsParams{Pipeline: nz(f.PipelineID), Stage: nz(f.StageID), Owner: nz(f.OwnerUserID), Lead: nz(f.LeadID), Account: nz(f.AccountID), Status: nz(f.Status), Q: nz(f.Query)})
+	n, err := s.q.CountDeals(ctx, c)
 	return deals, int(n), err
 }
 

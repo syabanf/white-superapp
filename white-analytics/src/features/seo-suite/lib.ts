@@ -2,7 +2,7 @@
  * SEO suite — pure helpers shared by server and client code (no DB, no React).
  * Tested in tests/seo-suite.test.ts.
  */
-import type { DifficultyBand, RankBucket } from "@/lib/metrics/seo-suite";
+import { RANK_BUCKETS, rankBucket, type DifficultyBand, type RankBucket } from "@/lib/metrics/seo-suite";
 import type { KeywordIdea, KeywordIntentKey, ResearchMode } from "@/lib/providers/dataforseo/types";
 import { s } from "./strings";
 
@@ -149,4 +149,27 @@ export function pickSeriesDomains(own: string, latestByDomain: Record<string, nu
     .sort((a, b) => (latestByDomain[b] ?? 0) - (latestByDomain[a] ?? 0))
     .slice(0, n);
   return [own, ...others];
+}
+
+export type RankChangeFilter = "improved" | "declined";
+
+export function parseRankBucket(raw: unknown): RankBucket | null {
+  return typeof raw === "string" && (RANK_BUCKETS as string[]).includes(raw) ? (raw as RankBucket) : null;
+}
+
+export function parseRankChange(raw: unknown): RankChangeFilter | null {
+  return raw === "improved" || raw === "declined" ? raw : null;
+}
+
+/** Rank table drill filters: `?bucket=` (rank bucket) and `?change=improved|declined`. */
+export function filterRankRows<T extends { position: number | null; change: { kind: string } }>(
+  rows: T[],
+  f: { bucket?: RankBucket | null; change?: RankChangeFilter | null },
+): T[] {
+  return rows.filter(
+    (r) =>
+      (!f.bucket || rankBucket(r.position) === f.bucket) &&
+      (!f.change ||
+        (f.change === "improved" ? r.change.kind === "up" || r.change.kind === "new" : r.change.kind === "down" || r.change.kind === "lost")),
+  );
 }

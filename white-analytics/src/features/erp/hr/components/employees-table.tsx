@@ -12,7 +12,15 @@ import { employeeStatusLabels, kinds, th } from "../strings";
 import type { Employee } from "../types";
 import { UrlSwitch } from "./ui";
 
-export function EmployeesTable({ employees, departments }: { employees: Employee[]; departments: FilterOption[] }) {
+export type EmployeeFilterOptions = {
+  departments: FilterOption[];
+  positions: FilterOption[];
+  statuses: FilterOption[];
+};
+
+const PARAMS = ["q", "dept", "position", "level", "gender", "status", "inactive"];
+
+export function EmployeesTable({ employees, options }: { employees: Employee[]; options: EmployeeFilterOptions }) {
   const router = useRouter();
   const e = th.employees;
   const columns: ColumnDef<Employee, unknown>[] = [
@@ -62,9 +70,23 @@ export function EmployeesTable({ employees, departments }: { employees: Employee
       toolbar={
         <>
           <SearchFilter placeholder={e.search} />
-          <SelectFilter param="dept" options={departments} allLabel={th.allDepartments} label={th.department} />
+          <SelectFilter param="dept" options={options.departments} allLabel={th.allDepartments} label={th.department} />
+          <SelectFilter param="position" options={options.positions} allLabel={e.allPositions} label={th.position} />
+          <SelectFilter
+            param="level"
+            options={Object.entries(th.masters.levels).map(([value, label]) => ({ value, label }))}
+            allLabel={e.allLevels}
+            label={th.masters.level}
+          />
+          <SelectFilter
+            param="gender"
+            options={Object.entries(th.genders).map(([value, label]) => ({ value, label }))}
+            allLabel={e.allGenders}
+            label={e.gender}
+          />
+          <SelectFilter param="status" options={options.statuses} allLabel={th.allStatus} label={th.status} />
           <UrlSwitch param="inactive" label={e.includeInactive} />
-          <ResetFilters params={["q", "dept", "inactive"]} />
+          <ResetFilters params={PARAMS} />
         </>
       }
     />

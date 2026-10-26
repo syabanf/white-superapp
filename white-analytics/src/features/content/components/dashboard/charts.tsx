@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Bar,
@@ -23,8 +24,10 @@ import {
   CURSOR_STROKE,
   GRID_STROKE,
   MUTED_SERIES,
+  MarkButtons,
   SeriesLegend,
   TooltipBox,
+  activeIndexOf,
   slotColor,
   type SeriesDef,
 } from "@/components/dashboard/charts/chart-primitives";
@@ -53,8 +56,8 @@ function useGo() {
 
 /**
  * Bars, lines and areas over weekly or monthly buckets on one y axis, with an
- * optional comparison-period line in the muted gray. Clicking a bucket opens
- * its `href` (drill-down).
+ * optional comparison-period line in the muted gray. Clicking a bucket calls
+ * `onSelect` (with the series key when a bar segment was hit) or opens its `href`.
  */
 export function PeriodChart({
   data,
@@ -65,6 +68,7 @@ export function PeriodChart({
   previousLabel = cd.comparison,
   stacked,
   summary,
+  onSelect,
 }: {
   data: Row[];
   series: SeriesDef[];
@@ -74,8 +78,17 @@ export function PeriodChart({
   previousLabel?: string;
   stacked?: boolean;
   summary: string;
+  onSelect?: (row: Row, index: number, seriesKey: string | null) => void;
 }) {
   const go = useGo();
+  const segmentHit = React.useRef(false);
+  const select = (idx: number, seriesKey: string | null) => {
+    const row = data[idx];
+    if (!row) return;
+    if (onSelect) onSelect(row, idx, seriesKey);
+    else go(row.href);
+  };
+  const clickable = Boolean(onSelect) || data.some((d) => d.href);
   const resolved = series.map((s, i) => ({ ...s, color: s.color ?? slotColor(i), type: s.type ?? "bar" }));
   const map: Record<string, SeriesDef & { color: string }> = Object.fromEntries(resolved.map((s) => [s.key, s]));
   if (previousKey) map[previousKey] = { key: previousKey, label: previousLabel, color: MUTED_SERIES, format: resolved[0]?.format };
@@ -87,7 +100,21 @@ export function PeriodChart({
     <div>
       <div style={{ height }} role="img" aria-label={summary} className="w-full">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 560, height }}>
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={2} barCategoryGap="22%">
+          <ComposedChart
+            data={data}
+            margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+            barGap={2}
+            barCategoryGap="22%"
+            style={clickable ? { cursor: "pointer" } : undefined}
+            onClick={(state) => {
+              if (segmentHit.current) {
+                segmentHit.current = false;
+                return;
+              }
+              const idx = activeIndexOf(state);
+              if (idx != null) select(idx, null);
+            }}
+          >
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
             <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} interval="preserveStartEnd" minTickGap={18} tickMargin={8} />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => yFormat(v)} width={48} allowDecimals={false} />
@@ -109,8 +136,11 @@ export function PeriodChart({
                   stroke="var(--card)"
                   strokeWidth={stacked ? 2 : 0}
                   isAnimationActive={false}
-                  className={data.some((d) => d.href) ? "cursor-pointer" : undefined}
-                  onClick={(e: { payload?: Row }) => go(e?.payload?.href)}
+                  onClick={(_e, idx) => {
+                    segmentHit.current = true;
+                    setTimeout(() => (segmentHit.current = false), 0);
+                    select(idx, s.key);
+                  }}
                 />
               ) : (
                 <Line key={s.key} type="monotone" dataKey={s.key} stroke={s.color} strokeWidth={2} dot={data.length < 16 ? { r: 3, strokeWidth: 0, fill: s.color } : false} activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }} isAnimationActive={false} connectNulls />
@@ -123,6 +153,7 @@ export function PeriodChart({
         </ResponsiveContainer>
       </div>
       {legend.length > 1 ? <SeriesLegend series={legend} className="mt-2" /> : null}
+      {clickable ? <MarkButtons marks={data} label={(r) => r.label} onSelect={(_r, i) => select(i, null)} /> : null}
     </div>
   );
 }
@@ -135,21 +166,39 @@ export function CategoryBars({
   color = slotColor(0),
   format = formatNumber,
   summary,
+  onSelect,
 }: {
-  data: { label: string; value: number; href?: string }[];
+  data: { label: string; value: number; href?: string; key?: string }[];
   label: string;
   height?: number;
   color?: string;
   format?: (v: number) => string;
   summary: string;
+  onSelect?: (row: { label: string; value: number; key?: string }, index: number) => void;
 }) {
   const go = useGo();
   if (data.every((d) => d.value === 0)) return <Empty height={height} />;
   const map = { value: { key: "value", label, color, format } };
+  const clickable = Boolean(onSelect) || data.some((d) => d.href);
+  const select = (idx: number) => {
+    const row = data[idx];
+    if (!row) return;
+    if (onSelect) onSelect(row, idx);
+    else go(row.href);
+  };
   return (
+    <div>
     <div style={{ height }} role="img" aria-label={summary}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 360, height }}>
-        <BarChart data={data} margin={{ top: 16, right: 8, bottom: 0, left: 0 }}>
+        <BarChart
+          data={data}
+          margin={{ top: 16, right: 8, bottom: 0, left: 0 }}
+          style={clickable ? { cursor: "pointer" } : undefined}
+          onClick={(state) => {
+            const idx = activeIndexOf(state);
+            if (idx != null) select(idx);
+          }}
+        >
           <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
           <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickMargin={8} interval={0} />
           <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={36} allowDecimals={false} />
@@ -161,11 +210,11 @@ export function CategoryBars({
             maxBarSize={44}
             isAnimationActive={false}
             label={{ position: "top", fill: "var(--muted-foreground)", fontSize: 11 }}
-            className={data.some((d) => d.href) ? "cursor-pointer" : undefined}
-            onClick={(e: { payload?: { href?: string } }) => go(e?.payload?.href)}
           />
         </BarChart>
       </ResponsiveContainer>
+    </div>
+    {clickable ? <MarkButtons marks={data} label={(r) => r.label} onSelect={(_r, i) => select(i)} /> : null}
     </div>
   );
 }
@@ -175,11 +224,15 @@ export function GroupedBars({
   data,
   height = 220,
   summary,
+  onSelect,
 }: {
-  data: { label: string; planned: number; published: number }[];
+  data: { label: string; planned: number; published: number; key?: string }[];
   height?: number;
   summary: string;
+  /** category click, with "planned" or "published" when a bar was hit */
+  onSelect?: (row: { label: string; key?: string }, seriesKey: string | null) => void;
 }) {
+  const segmentHit = React.useRef(false);
   if (data.length === 0) return <Empty height={height} />;
   const series = [
     { key: "planned", label: cd.planned, color: MUTED_SERIES, type: "bar" as const, format: (v: number) => formatNumber(v) },
@@ -190,18 +243,46 @@ export function GroupedBars({
     <div>
       <div style={{ height }} role="img" aria-label={summary}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 360, height }}>
-          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={2} barCategoryGap="28%">
+          <BarChart
+            data={data}
+            margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+            barGap={2}
+            barCategoryGap="28%"
+            style={onSelect ? { cursor: "pointer" } : undefined}
+            onClick={(state) => {
+              if (segmentHit.current) {
+                segmentHit.current = false;
+                return;
+              }
+              const idx = activeIndexOf(state);
+              if (onSelect && idx != null && data[idx]) onSelect(data[idx], null);
+            }}
+          >
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
             <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickMargin={8} interval={0} />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={32} allowDecimals={false} />
             <Tooltip cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
             {series.map((s) => (
-              <Bar key={s.key} dataKey={s.key} fill={s.color} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false} />
+              <Bar
+                key={s.key}
+                dataKey={s.key}
+                fill={s.color}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={28}
+                isAnimationActive={false}
+                onClick={(_e, idx) => {
+                  if (!onSelect || !data[idx]) return;
+                  segmentHit.current = true;
+                  setTimeout(() => (segmentHit.current = false), 0);
+                  onSelect(data[idx], s.key);
+                }}
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>
       </div>
       <SeriesLegend series={series} className="mt-2" />
+      {onSelect ? <MarkButtons marks={data} label={(r) => r.label} onSelect={(r) => onSelect(r, null)} /> : null}
     </div>
   );
 }
@@ -210,26 +291,49 @@ export function GroupedBars({
  * Bridge from planned to published: totals stand on the baseline, each loss
  * floats down from the running total. One axis, values labelled on the bars.
  */
-export function WaterfallChart({ steps, height = 240, summary }: { steps: WaterfallStep[]; height?: number; summary: string }) {
-  const data = waterfallBars(steps);
+export function WaterfallChart({
+  steps,
+  height = 240,
+  summary,
+  onSelect,
+}: {
+  steps: WaterfallStep[];
+  height?: number;
+  summary: string;
+  onSelect?: (step: WaterfallStep, index: number) => void;
+}) {
+  // losses carry a minus sign so the red is never the only cue
+  const data = waterfallBars(steps).map((d) => ({ ...d, text: `${d.kind === "minus" ? "−" : ""}${formatNumber(d.value)}` }));
   const map = { value: { key: "value", label: cd.items, color: slotColor(0), format: (v: number) => formatNumber(v) } };
   return (
+    <div>
     <div style={{ height }} role="img" aria-label={summary}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 420, height }}>
-        <BarChart data={data} margin={{ top: 18, right: 8, bottom: 0, left: 0 }} barCategoryGap="24%">
+        <BarChart
+          data={data}
+          margin={{ top: 18, right: 8, bottom: 0, left: 0 }}
+          barCategoryGap="24%"
+          style={onSelect ? { cursor: "pointer" } : undefined}
+          onClick={(state) => {
+            const idx = activeIndexOf(state);
+            if (onSelect && idx != null && steps[idx]) onSelect(steps[idx], idx);
+          }}
+        >
           <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
           <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickMargin={8} interval={0} />
           <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={32} allowDecimals={false} />
           <Tooltip cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
           <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" isAnimationActive={false} />
           <Bar dataKey="value" stackId="w" radius={[4, 4, 4, 4]} maxBarSize={48} isAnimationActive={false}>
-            <LabelList dataKey="value" position="top" fill="var(--muted-foreground)" fontSize={11} />
+            <LabelList dataKey="text" position="top" fill="var(--muted-foreground)" fontSize={11} />
             {data.map((d) => (
-              <Cell key={d.label} fill={d.kind === "total" ? slotColor(0) : "var(--status-critical)"} />
+              <Cell key={d.label} fill={d.kind === "total" ? slotColor(0) : "var(--negative)"} />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+    </div>
+    {onSelect ? <MarkButtons marks={steps} label={(st) => st.label} onSelect={(st, i) => onSelect(st, i)} /> : null}
     </div>
   );
 }
@@ -238,9 +342,11 @@ export function WaterfallChart({ steps, height = 240, summary }: { steps: Waterf
 export function FunnelBars({
   steps,
   label,
+  onSelect,
 }: {
   steps: { key: string; count: number; ofFirst: number; ofPrev: number; href?: string }[];
   label: (key: string) => string;
+  onSelect?: (key: string) => void;
 }) {
   if (!steps.length || steps[0]!.count === 0) return <Empty height={200} />;
   return (
@@ -267,10 +373,18 @@ export function FunnelBars({
           <li key={s.key}>
             <UiTooltip>
               <TooltipTrigger asChild>
-                {s.href ? (
-                  <a href={s.href} className="block rounded-md hover:bg-muted/40">
+                {onSelect ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelect(s.key)}
+                    className="block w-full cursor-pointer rounded-md text-left outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring"
+                  >
                     {body}
-                  </a>
+                  </button>
+                ) : s.href ? (
+                  <Link href={s.href} className="block rounded-md outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring">
+                    {body}
+                  </Link>
                 ) : (
                   <div>{body}</div>
                 )}
@@ -360,7 +474,16 @@ export type CalendarMonth = { key: string; label: string; href?: string; weeks: 
  * Month calendars as small multiples. Cell shade = the chosen measure
  * (sequential, one hue); days outside the window stay blank.
  */
-export function MonthCalendars({ months, weekdays }: { months: CalendarMonth[]; weekdays: string[] }) {
+export function MonthCalendars({
+  months,
+  weekdays,
+  onSelectDay,
+}: {
+  months: CalendarMonth[];
+  weekdays: string[];
+  /** day click with the measure on screen */
+  onSelectDay?: (date: string, measure: "published" | "planned") => void;
+}) {
   const [measure, setMeasure] = React.useState<"published" | "planned">("published");
   const max = Math.max(1, ...months.flatMap((m) => m.weeks.flat().map((d) => (d ? d[measure] : 0))));
   if (months.length === 0) return <Empty height={200} />;
@@ -394,9 +517,9 @@ export function MonthCalendars({ months, weekdays }: { months: CalendarMonth[]; 
           <figure key={m.key} className="min-w-0">
             <figcaption className="mb-1.5 text-xs font-medium">
               {m.href ? (
-                <a href={m.href} className="hover:underline">
+                <Link href={m.href} className="hover:underline">
                   {m.label}
-                </a>
+                </Link>
               ) : (
                 m.label
               )}
@@ -416,14 +539,29 @@ export function MonthCalendars({ months, weekdays }: { months: CalendarMonth[]; 
                 return (
                   <UiTooltip key={d.date}>
                     <TooltipTrigger asChild>
-                      <span
-                        role="img"
-                        aria-label={`${d.date}: ${d.planned} ${cd.planned.toLowerCase()}, ${d.published} ${cd.published.toLowerCase()}`}
-                        className={cn("flex aspect-square items-center justify-center rounded-[4px] text-[10px] tabular", dark ? "text-white" : "text-muted-foreground")}
-                        style={{ background: bg }}
-                      >
-                        {Number(d.date.slice(8))}
-                      </span>
+                      {onSelectDay ? (
+                        <button
+                          type="button"
+                          aria-label={`${d.date}: ${d.planned} ${cd.planned.toLowerCase()}, ${d.published} ${cd.published.toLowerCase()}`}
+                          onClick={() => onSelectDay(d.date, measure)}
+                          className={cn(
+                            "flex aspect-square cursor-pointer items-center justify-center rounded-[4px] text-[10px] tabular outline-none hover:ring-2 hover:ring-foreground/40 focus-visible:ring-2 focus-visible:ring-ring",
+                            dark ? "text-white" : "text-muted-foreground",
+                          )}
+                          style={{ background: bg }}
+                        >
+                          {Number(d.date.slice(8))}
+                        </button>
+                      ) : (
+                        <span
+                          role="img"
+                          aria-label={`${d.date}: ${d.planned} ${cd.planned.toLowerCase()}, ${d.published} ${cd.published.toLowerCase()}`}
+                          className={cn("flex aspect-square items-center justify-center rounded-[4px] text-[10px] tabular", dark ? "text-white" : "text-muted-foreground")}
+                          style={{ background: bg }}
+                        >
+                          {Number(d.date.slice(8))}
+                        </span>
+                      )}
                     </TooltipTrigger>
                     <TooltipContent className="text-xs">
                       <span className="font-medium">{d.date}</span> · {cd.planned} {d.planned} · {cd.published} {d.published}

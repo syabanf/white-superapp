@@ -14,17 +14,20 @@ import { dayLabelLong, delta, monthLabel, num0, pct1 } from "@/features/erp/hr/d
 import { thd } from "@/features/erp/hr/dashboard/strings";
 import type { HrDashSlice } from "@/features/erp/hr/dashboard/types";
 import { ChartEmpty, ComboChart, Donut } from "./charts";
+import { useHrDrill, useHrScope } from "./drill";
 import { deptPalette, Grid, type TabProps } from "./shared";
 
 const c = thd.charts;
 const k = thd.kpi;
 
 function bands(rows: HrDashSlice[], labels: Record<string, string>) {
-  return rows.map((r) => ({ label: labels[r.key] ?? r.key, tip: labels[r.key] ?? r.key, count: r.count }));
+  return rows.map((r) => ({ key: r.key, label: labels[r.key] ?? r.key, tip: labels[r.key] ?? r.key, count: r.count }));
 }
 
 export function PeopleTab({ data }: TabProps) {
   const router = useRouter();
+  const drill = useHrDrill();
+  const { dept } = useHrScope();
   const cur = data.current;
   const prev = data.previous;
   const depts = deptPalette(data);
@@ -34,10 +37,29 @@ export function PeopleTab({ data }: TabProps) {
     <div className="space-y-5">
       <StatStrip
         items={[
-          { label: k.headcount, value: num0(cur.headcount), delta: delta(cur.headcount, prev.headcount), hint: k.headcountHint },
-          { label: k.joiners, value: num0(cur.joiners), delta: delta(cur.joiners, prev.joiners) },
-          { label: k.leavers, value: num0(cur.leavers), delta: delta(cur.leavers, prev.leavers), lowerIsBetter: true },
-          { label: k.turnover, value: pct1(cur.turnoverRate), delta: delta(cur.turnoverRate, prev.turnoverRate), lowerIsBetter: true, hint: k.turnoverHint },
+          {
+            label: k.headcount,
+            value: num0(cur.headcount),
+            delta: delta(cur.headcount, prev.headcount),
+            hint: k.headcountHint,
+            href: hrLinks.employees({ dept }),
+          },
+          { label: k.joiners, value: num0(cur.joiners), delta: delta(cur.joiners, prev.joiners), href: hrLinks.employees({ dept }) },
+          {
+            label: k.leavers,
+            value: num0(cur.leavers),
+            delta: delta(cur.leavers, prev.leavers),
+            lowerIsBetter: true,
+            href: hrLinks.employees({ dept, inactive: true }),
+          },
+          {
+            label: k.turnover,
+            value: pct1(cur.turnoverRate),
+            delta: delta(cur.turnoverRate, prev.turnoverRate),
+            lowerIsBetter: true,
+            hint: k.turnoverHint,
+            href: hrLinks.employees({ dept, inactive: true }),
+          },
         ]}
       />
 
@@ -47,7 +69,8 @@ export function PeopleTab({ data }: TabProps) {
             items={[...data.departments]
               .filter((d) => d.headcount > 0)
               .sort((a, b) => b.headcount - a.headcount)
-              .map((d) => ({ label: depts.name(d.departmentId), value: d.headcount, href: d.departmentId ? hrLinks.employees(d.departmentId) : undefined }))}
+              .map((d) => ({ label: depts.name(d.departmentId), value: d.headcount, key: d.departmentId }))}
+            onSelect={(item) => drill("emp", { dept: item.key })}
             format={num0}
             showShare
             emptyLabel={thd.empty}
@@ -58,7 +81,7 @@ export function PeopleTab({ data }: TabProps) {
             slices={data.byStatus.map((s) => ({ key: s.key, label: s.label || s.key, value: s.count }))}
             format={num0}
             centerLabel={thd.units.people}
-            onSelect={() => router.push(hrLinks.employees())}
+            onSelect={(sl) => drill("emp", { status: sl.key, label: sl.label })}
           />
         </ChartCard>
         <ChartCard title={c.byContract} description={c.compositionQ}>
@@ -74,7 +97,8 @@ export function PeopleTab({ data }: TabProps) {
       <Grid>
         <ChartCard title={c.byLevel} description={c.compositionQ}>
           <HBarChart
-            items={data.byLevel.map((s) => ({ label: levels[s.key] ?? (s.key || "–"), value: s.count }))}
+            items={data.byLevel.map((s) => ({ label: levels[s.key] ?? (s.key || "–"), value: s.count, key: s.key }))}
+            onSelect={(item) => item.key && drill("emp", { level: item.key })}
             format={num0}
             showShare
             emptyLabel={thd.empty}
@@ -82,7 +106,8 @@ export function PeopleTab({ data }: TabProps) {
         </ChartCard>
         <ChartCard title={c.byPosition} description={c.compositionQ}>
           <HBarChart
-            items={data.byPosition.slice(0, 8).map((s) => ({ label: s.label || "–", value: s.count }))}
+            items={data.byPosition.slice(0, 8).map((s) => ({ label: s.label || "–", value: s.count, key: s.key }))}
+            onSelect={(item) => item.key && drill("emp", { position: item.key })}
             format={num0}
             emptyLabel={thd.empty}
           />
@@ -92,6 +117,7 @@ export function PeopleTab({ data }: TabProps) {
             slices={data.byGender.map((s) => ({ key: s.key, label: th.genders[s.key] ?? (s.key || "–"), value: s.count }))}
             format={num0}
             centerLabel={thd.units.people}
+            onSelect={(sl) => sl.key && drill("emp", { gender: sl.key })}
           />
         </ChartCard>
       </Grid>
@@ -104,6 +130,7 @@ export function PeopleTab({ data }: TabProps) {
             yFormat={num0}
             legend={false}
             summary={c.tenure}
+            onSelect={(r) => drill("emp", { tenure: String(r.key) })}
             height={220}
           />
         </ChartCard>
@@ -119,7 +146,8 @@ export function PeopleTab({ data }: TabProps) {
         </ChartCard>
         <ChartCard title={c.turnoverTrend} description={`${c.turnoverTrendQ} ${thd.monthsWindow}.`}>
           <ComboChart
-            data={data.months.map((b) => ({ label: monthLabel(b.date), tip: monthLabel(b.date), rate: b.turnoverRate }))}
+            data={data.months.map((b) => ({ label: monthLabel(b.date), tip: monthLabel(b.date), date: b.date, rate: b.turnoverRate }))}
+            onSelect={(r) => drill("emp", { left: String(r.date).slice(0, 7) })}
             series={[{ key: "rate", label: thd.series.turnover, color: slotColor(7), format: pct1 }]}
             yFormat={(v) => `${v}%`}
             legend={false}

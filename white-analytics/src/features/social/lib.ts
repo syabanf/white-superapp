@@ -2,7 +2,7 @@
  * Pure helpers khusus modul Social (client-safe, tanpa akses server).
  * Rumus umum tetap di `@/lib/metrics` — di sini hanya komposisi/utilitas modul.
  */
-import { avgEngagementRate, contentType, type PostLike } from "@/lib/metrics";
+import { avgEngagementRate, contentType, type Delta, type PostLike } from "@/lib/metrics";
 import { dayKey, eachDay, type DateRange } from "@/lib/dates";
 
 export const PLATFORMS = ["INSTAGRAM", "FACEBOOK", "TIKTOK"] as const;
@@ -97,4 +97,9 @@ export function normalizeIgUsername(raw: string): string | null {
   if (!/^[a-z0-9._]+$/.test(u)) return null;
   if (u.startsWith(".") || u.endsWith(".")) return null;
   return u;
+}
+
+/** Follower growth (end minus start) as a Delta, so it renders with the growth/decline colors. */
+export function growthAsDelta(abs: number, pct: number | null): Delta {
+  return { abs, pct, direction: abs > 0 ? "up" : abs < 0 ? "down" : "flat" };
 }

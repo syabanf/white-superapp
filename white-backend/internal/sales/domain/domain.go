@@ -114,6 +114,9 @@ type LeadFilter struct {
 	Temperature string
 	Source      string
 	OwnerUserID string
+	From, To    *time.Time // created_at range, [From, To)
+	ScoreMin    *int32
+	ScoreMax    *int32
 	Limit       int
 	Offset      int
 }
@@ -169,6 +172,12 @@ type DealFilter struct {
 	AccountID   string
 	Status      string // open | won | lost
 	Query       string
+	ServiceLine string
+	Industry    string     // "Lainnya" matches deals without one
+	Source      string     // lead source
+	LostReason  string     // a reason id or "none"
+	From, To    *time.Time // [From, To) on created_at, or closed_at when ByClosed
+	ByClosed    bool
 	Limit       int
 	Offset      int
 }
@@ -337,9 +346,10 @@ type Invoice struct {
 }
 
 type InvoiceFilter struct {
-	DealID string
-	Status string
-	Limit  int
+	DealID   string
+	Status   string
+	From, To *time.Time // issue time (sent, else created), [From, To)
+	Limit    int
 }
 
 type Payment struct {

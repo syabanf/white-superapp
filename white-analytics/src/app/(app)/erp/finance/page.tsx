@@ -8,6 +8,8 @@ import { load, sp1 } from "@/features/erp/shared/load";
 import { resolvePeriod } from "@/features/erp/shared/dashboard-period";
 import { ErpLoadError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
+import { DrillBreadcrumb, withParams, type DrillCrumb } from "@/features/erp/shared/drill";
+import { FinanceDrill } from "@/features/erp/finance/dashboard/drill";
 import { listAccounts, listCashBankAccounts } from "@/features/erp/finance/queries";
 import { fs } from "@/features/erp/finance/strings";
 import { FinanceFilters } from "@/features/erp/finance/dashboard/filters";
@@ -73,13 +75,31 @@ export default async function FinanceDashboardPage(props: PageProps<"/erp/financ
       {header}
       <div className="flex flex-col gap-3">
         <FinanceFilters period={period} tab={tab} groups={groups} cashAccounts={cashAccounts} />
+        <DrillBreadcrumb items={drillTrail(sp, period, groups.find((g) => g.value === filters.accountGroup)?.label, filters.department)} />
         <UrlTabs tabs={TABS} label={ds.tabsLabel} />
       </div>
       <Suspense key={`${tab}|${JSON.stringify(filters)}`} fallback={<TabSkeleton />}>
         <TabBody tab={tab} filters={filters} />
       </Suspense>
+      <FinanceDrill period={{ from: period.from, to: period.to }} />
     </>
   );
+}
+
+/** "Semua > 1 Mar – 31 Mar 2026 > 6100 Beban > Creative": custom range and dimension drills, each linking up. */
+function drillTrail(
+  sp: Record<string, string | string[] | undefined>,
+  period: { preset: string; label: string },
+  group?: string,
+  department?: string,
+): DrillCrumb[] {
+  const items: DrillCrumb[] = [
+    { label: ds.drill.all, href: withParams("/erp/finance", sp, { from: null, to: null, accountGroup: null, department: null }, ["drill"]) },
+  ];
+  if (period.preset === "custom") items.push({ label: period.label, href: withParams("/erp/finance", sp, { accountGroup: null, department: null }, ["drill"]) });
+  if (group) items.push({ label: group, href: withParams("/erp/finance", sp, { department: null }, ["drill"]) });
+  if (department) items.push({ label: department });
+  return items;
 }
 
 async function TabBody({ tab, filters }: { tab: string; filters: DashboardFilters }) {

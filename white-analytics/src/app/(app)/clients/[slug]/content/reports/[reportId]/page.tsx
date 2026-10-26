@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, Section } from "@/components/dashboard/page-header";
 import { KpiGrid, KpiTile } from "@/components/dashboard/kpi-tile";
 import { MarkdownLite } from "@/features/reports/components/ai-insight-card";
-import { monthLabel } from "@/features/publishing/time";
+import { monthLabel, todayIn } from "@/features/publishing/time";
+import type { DashCtx } from "@/features/content/components/dashboard/shared";
+import { contentBoardHref } from "@/features/content/components/dashboard/links";
+import { ContentDrillSheet } from "@/features/content/components/dashboard/drill";
+import { bucketRange } from "@/features/erp/shared/drill/time";
 import { RegenerateButton } from "@/features/content/components/reports/report-list";
 import { ReportPostsTable } from "@/features/content/components/reports/report-parts";
 import { ReportCharts } from "@/features/content/components/reports/report-charts";
@@ -27,7 +31,7 @@ const card = "rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)";
 
 export default async function ContentReportPage(props: PageProps<"/clients/[slug]/content/reports/[reportId]">) {
   const { slug, reportId } = await props.params;
-  const { client, canWrite } = await contentContext(slug);
+  const { client, canWrite, names } = await contentContext(slug);
   const back = (
     <Button asChild variant="outline" size="sm" className="group/nudge">
       <Link href={`/clients/${slug}/content/reports`}>
@@ -50,6 +54,21 @@ export default async function ContentReportPage(props: PageProps<"/clients/[slug
   const prev = reports.find((x) => x.month === prevMonth);
   const d = (cur: number | string, before: number | string | undefined) => (prev && before !== undefined ? kpiDelta(cur, before) : null);
   const prevNote = prev ? cd.vsPrevMonth(monthLabel(prevMonth)) : undefined;
+  const { from, to } = bucketRange(r.month, "month");
+  // drill scope: the report month (items planned in it, like the report counts)
+  const ctx: DashCtx = {
+    base: `/clients/${slug}/content`,
+    clientId: client.id,
+    query: "",
+    names,
+    compare: false,
+    plans: [],
+    from,
+    to,
+    periodLabel: monthLabel(r.month),
+    today: todayIn(client.timezone),
+  };
+  const board = (patch: Parameters<typeof contentBoardHref>[1] = {}) => contentBoardHref(ctx, { dateFrom: from, dateTo: to, ...patch });
 
   return (
     <>
@@ -75,32 +94,36 @@ export default async function ContentReportPage(props: PageProps<"/clients/[slug
           label={c.published}
           value={`${r.published} / ${r.planned}`}
           delta={d(r.published, prev?.published)}
+          href={board({ status: ["PUBLISHED"] })}
           caption={r.planned ? `${formatDecimal((r.published / r.planned) * 100)}% · ${prevNote ?? ""}` : prevNote}
         />
-        <KpiTile label={c.onTime} value={`${formatDecimal(r.onTimeRate)}%`} delta={d(r.onTimeRate, prev?.onTimeRate)} caption={c.onTimeCaption(r.deadlinesMet, r.deadlinesTotal)} />
+        <KpiTile label={c.onTime} value={`${formatDecimal(r.onTimeRate)}%`} delta={d(r.onTimeRate, prev?.onTimeRate)} href={board()} caption={c.onTimeCaption(r.deadlinesMet, r.deadlinesTotal)} />
         <KpiTile
           label={c.revisionsTotal}
           value={formatNumber(r.revisionsTotal)}
           delta={d(r.revisionsTotal, prev?.revisionsTotal)}
           lowerIsBetter
+          href={board({ rounds: "any" })}
           caption={c.revisionAvg(formatDecimal(r.revisionAvg))}
         />
-        <KpiTile label={c.failed} value={formatNumber(r.failed)} delta={d(r.failed, prev?.failed)} lowerIsBetter caption={`${c.captionVersions}: ${r.captionVersions}`} />
+        <KpiTile label={c.failed} value={formatNumber(r.failed)} delta={d(r.failed, prev?.failed)} lowerIsBetter href={board({ status: ["FAILED"] })} caption={`${c.captionVersions}: ${r.captionVersions}`} />
         {r.engagementAvailable ? (
           <>
-            <KpiTile label={c.engagement} value={formatCompact(num(r.totalEngagements))} delta={d(r.totalEngagements, prev?.totalEngagements)} caption={prevNote} />
-            <KpiTile label={c.reach} value={formatCompact(num(r.totalReach))} delta={d(r.totalReach, prev?.totalReach)} caption={prevNote} />
+            <KpiTile label={c.engagement} value={formatCompact(num(r.totalEngagements))} delta={d(r.totalEngagements, prev?.totalEngagements)} href={board({ status: ["PUBLISHED"] })} caption={prevNote} />
+            <KpiTile label={c.reach} value={formatCompact(num(r.totalReach))} delta={d(r.totalReach, prev?.totalReach)} href={board({ status: ["PUBLISHED"] })} caption={prevNote} />
             <KpiTile
               label={cd.er}
               value={`${formatDecimal(num(r.totalReach) ? (num(r.totalEngagements) / num(r.totalReach)) * 100 : 0)}%`}
               caption={cd.measuredPosts((r.posts ?? []).filter((p) => p.hasMetrics).length)}
+              href={board({ status: ["PUBLISHED"] })}
             />
-            <KpiTile label={c.scheduledCount} value={formatNumber(r.scheduled)} caption={`${c.inProgress} ${r.inProgress}`} />
+            <KpiTile label={c.scheduledCount} value={formatNumber(r.scheduled)} href={board({ status: ["SCHEDULED"] })} caption={`${c.inProgress} ${r.inProgress}`} />
           </>
         ) : null}
       </KpiGrid>
 
-      <ReportCharts report={r} />
+      <ReportCharts report={r} ctx={ctx} />
+      <ContentDrillSheet ctx={ctx} posts={r.posts ?? []} granularity="week" />
 
       <div className="grid gap-6 [&>*]:min-w-0">
         <div className="min-w-0 space-y-6">

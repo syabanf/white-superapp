@@ -20,8 +20,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/dashboard/data-table";
-import { DeltaBadge } from "@/components/dashboard/delta-badge";
-import { formatDeltaNumber, formatDeltaPercent, formatNumber, formatPercent, initials } from "@/lib/format";
+import { DeltaBadge, DeltaText } from "@/components/dashboard/delta-badge";
+import { growthAsDelta } from "@/features/social/lib";
+import { formatDeltaPercent, formatNumber, formatPercent, initials } from "@/lib/format";
 import { removeCompetitor } from "@/features/social/actions";
 import type { CompetitorRow } from "@/features/social/queries";
 import { s } from "@/features/social/strings";
@@ -109,7 +110,7 @@ export function CompetitorTable({
           return (
             <span className="inline-flex flex-col items-end gap-0.5">
               <span className="tabular">
-                {formatDeltaNumber(r.growthAbs)}
+                <DeltaText delta={growthAsDelta(r.growthAbs, r.growthPct)} mode="abs" />
                 <span className="ml-1 text-xs text-muted-foreground">
                   {r.growthPct == null ? "" : `(${formatDeltaPercent(r.growthPct)})`}
                 </span>

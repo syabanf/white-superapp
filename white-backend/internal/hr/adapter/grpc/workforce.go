@@ -57,7 +57,7 @@ func (h *attendanceServer) ListAttendance(ctx context.Context, req *hrv1.ListAtt
 	}
 	limit, offset := pageOf(req.Page, req.PageSize)
 	f := domain.AttendanceFilter{From: req.StartDate, To: req.EndDate, Status: req.Status, OnlyLate: req.OnlyLate,
-		OnlyUnvalidated: req.OnlyUnvalidated, Limit: limit, Offset: offset}
+		OnlyUnvalidated: req.OnlyUnvalidated, DepartmentID: req.DepartmentId, Limit: limit, Offset: offset}
 	if req.EmployeeId != "" {
 		f.EmployeeIDs = []string{req.EmployeeId}
 	}
@@ -339,7 +339,7 @@ func (s *Services) leaveList(ctx context.Context, a app.Actor, rows []domain.Lea
 func leaveQuery(req *hrv1.ListLeavesRequest) app.LeaveQuery {
 	limit, offset := pageOf(req.Page, req.PageSize)
 	return app.LeaveQuery{EmployeeID: req.EmployeeId, Scope: req.Scope, LeaveFilter: domain.LeaveFilter{Status: req.Status,
-		LeaveType: req.LeaveType, From: req.StartDate, To: req.EndDate, Limit: limit, Offset: offset}}
+		LeaveType: req.LeaveType, From: req.StartDate, To: req.EndDate, DepartmentID: req.DepartmentId, Limit: limit, Offset: offset}}
 }
 
 func (h *leaveServer) ListLeaveTypes(ctx context.Context, _ *emptypb.Empty) (*hrv1.ListLeaveTypesResponse, error) {
@@ -474,7 +474,8 @@ func (h *overtimeServer) ListOvertime(ctx context.Context, req *hrv1.ListOvertim
 	if err != nil {
 		return nil, err
 	}
-	rows, err := h.s.Overtime.List(ctx, a, app.OvertimeQuery{EmployeeID: req.EmployeeId, Status: req.Status, Month: req.Month, Scope: req.Scope})
+	rows, err := h.s.Overtime.List(ctx, a, app.OvertimeQuery{EmployeeID: req.EmployeeId, Status: req.Status, Month: req.Month, Scope: req.Scope,
+		DepartmentID: req.DepartmentId})
 	if err != nil {
 		return nil, err
 	}

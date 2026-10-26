@@ -29,6 +29,12 @@ WHERE d.deleted_at IS NULL
        OR (sqlc.narg('status') = 'won' AND s.is_won)
        OR (sqlc.narg('status') = 'lost' AND s.is_lost))
   AND (sqlc.narg('q')::text IS NULL OR d.title ILIKE '%' || sqlc.narg('q') || '%' OR l.org_name ILIKE '%' || sqlc.narg('q') || '%' OR a.name ILIKE '%' || sqlc.narg('q') || '%')
+  AND (sqlc.narg('line')::text IS NULL OR sqlc.narg('line')::text = ANY(d.service_lines))
+  AND (sqlc.narg('industry')::text IS NULL OR coalesce(nullif(a.industry, ''), 'Lainnya') = sqlc.narg('industry'))
+  AND (sqlc.narg('source')::text IS NULL OR l.source = sqlc.narg('source'))
+  AND (sqlc.narg('lost_reason')::text IS NULL OR coalesce(d.lost_reason_id, 'none') = sqlc.narg('lost_reason'))
+  AND (sqlc.narg('from_at')::timestamptz IS NULL OR (CASE WHEN sqlc.arg('by_closed')::bool THEN d.closed_at ELSE d.created_at END) >= sqlc.narg('from_at'))
+  AND (sqlc.narg('to_at')::timestamptz IS NULL OR (CASE WHEN sqlc.arg('by_closed')::bool THEN d.closed_at ELSE d.created_at END) < sqlc.narg('to_at'))
 ORDER BY d.updated_at DESC, d.id DESC
 LIMIT sqlc.arg('lim') OFFSET sqlc.arg('off');
 
@@ -48,7 +54,13 @@ WHERE d.deleted_at IS NULL
        OR (sqlc.narg('status') = 'open' AND NOT s.is_won AND NOT s.is_lost)
        OR (sqlc.narg('status') = 'won' AND s.is_won)
        OR (sqlc.narg('status') = 'lost' AND s.is_lost))
-  AND (sqlc.narg('q')::text IS NULL OR d.title ILIKE '%' || sqlc.narg('q') || '%' OR l.org_name ILIKE '%' || sqlc.narg('q') || '%' OR a.name ILIKE '%' || sqlc.narg('q') || '%');
+  AND (sqlc.narg('q')::text IS NULL OR d.title ILIKE '%' || sqlc.narg('q') || '%' OR l.org_name ILIKE '%' || sqlc.narg('q') || '%' OR a.name ILIKE '%' || sqlc.narg('q') || '%')
+  AND (sqlc.narg('line')::text IS NULL OR sqlc.narg('line')::text = ANY(d.service_lines))
+  AND (sqlc.narg('industry')::text IS NULL OR coalesce(nullif(a.industry, ''), 'Lainnya') = sqlc.narg('industry'))
+  AND (sqlc.narg('source')::text IS NULL OR l.source = sqlc.narg('source'))
+  AND (sqlc.narg('lost_reason')::text IS NULL OR coalesce(d.lost_reason_id, 'none') = sqlc.narg('lost_reason'))
+  AND (sqlc.narg('from_at')::timestamptz IS NULL OR (CASE WHEN sqlc.arg('by_closed')::bool THEN d.closed_at ELSE d.created_at END) >= sqlc.narg('from_at'))
+  AND (sqlc.narg('to_at')::timestamptz IS NULL OR (CASE WHEN sqlc.arg('by_closed')::bool THEN d.closed_at ELSE d.created_at END) < sqlc.narg('to_at'));
 
 -- name: UpsertDeal :exec
 INSERT INTO sales.deals (id, lead_id, account_id, title, service_lines, pipeline_id, stage_id, value_estimate, value_final,

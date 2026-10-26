@@ -26,6 +26,13 @@ export const s = {
   indexBase: "Awal periode = 100",
   noPosts: "Tidak ada postingan pada periode ini.",
   post: "postingan",
+  resetFilters: "Hapus filter",
+  drillDayDesc: "Postingan yang terbit pada hari ini, urut interaksi terbanyak.",
+  drillPostsDesc: "Postingan periode ini pada bagian grafik yang dipilih, urut interaksi terbanyak.",
+  drillZoomDay: "Fokuskan dasbor ke hari ini",
+  drillPointLabel: "Lihat postingan",
+  allPosts: "Postingan periode ini",
+  allPostsDesc: "Filter tipe, hari, dan jam. Grafik dan kartu di atas membuka daftar ini dengan filter yang sesuai.",
 
   // Sync
   syncSuccess: "Sinkronisasi selesai",

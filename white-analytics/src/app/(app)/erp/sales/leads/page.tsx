@@ -23,6 +23,10 @@ export default async function LeadsPage(props: PageProps<"/erp/sales/leads">) {
   const tab = sp1(sp.tab) ?? "leads";
   const page = spInt(sp.page, 1);
   const pageSize = spInt(sp.pageSize, 20);
+  const score = (v: string | string[] | undefined) => (sp1(v) != null && /^\d+$/.test(sp1(v)!) ? Number(sp1(v)) : undefined);
+  const scoreMin = score(sp.scoreMin);
+  const scoreMax = score(sp.scoreMax);
+  const scoreRange = scoreMin != null || scoreMax != null ? (scoreMax != null ? `${scoreMin ?? 0}-${scoreMax}` : `${scoreMin}+`) : undefined;
 
   const [owners, accounts] = await Promise.all([ownerOptions(), load(() => listAccounts({ q: sp1(sp.aq), limit: 500 }))]);
   const accountOptions = (accounts.data ?? []).map((a) => ({ value: a.id, label: a.name }));
@@ -50,6 +54,10 @@ export default async function LeadsPage(props: PageProps<"/erp/sales/leads">) {
           temperature: sp1(sp.temperature),
           source: sp1(sp.source),
           ownerUserId: sp1(sp.owner),
+          dateFrom: sp1(sp.from),
+          dateTo: sp1(sp.to),
+          scoreMin: scoreMin,
+          scoreMax: scoreMax,
           page,
           pageSize,
         }),
@@ -64,6 +72,7 @@ export default async function LeadsPage(props: PageProps<"/erp/sales/leads">) {
         accounts={accountOptions}
         customFields={fields.data ?? []}
         caps={caps}
+        scoreRange={scoreRange}
       />
     ) : (
       <ErpError message={leads.error?.message} />
@@ -80,7 +89,7 @@ export default async function LeadsPage(props: PageProps<"/erp/sales/leads">) {
           { value: "accounts", label: s.tabs.accounts },
           { value: "contacts", label: s.tabs.contacts },
         ]}
-        reset={["q", "status", "temperature", "source", "owner", "page", "aq", "cq"]}
+        reset={["q", "status", "temperature", "source", "owner", "from", "to", "scoreMin", "scoreMax", "page", "aq", "cq"]}
       />
       {body}
     </>

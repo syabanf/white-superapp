@@ -288,16 +288,22 @@ SELECT i.id, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.r
    AND ($2::text IS NULL OR i.status = $2)
    AND ($3::text IS NULL OR i.invoice_no ILIKE '%' || $3 || '%'
         OR i.party_name ILIKE '%' || $3 || '%' OR i.reference ILIKE '%' || $3 || '%')
+   AND ($4::date IS NULL OR i.invoice_date >= $4)
+   AND ($5::date IS NULL OR i.invoice_date <= $5)
+   AND ($6::text IS NULL OR i.party_name = $6)
  ORDER BY i.invoice_date DESC, i.created_at DESC
- LIMIT $5 OFFSET $4
+ LIMIT $8 OFFSET $7
 `
 
 type ListInvoicesParams struct {
-	Kind   string
-	Status *string
-	Search *string
-	Off    int32
-	Lim    int32
+	Kind      string
+	Status    *string
+	Search    *string
+	DateFrom  *time.Time
+	DateTo    *time.Time
+	PartyName *string
+	Off       int32
+	Lim       int32
 }
 
 type ListInvoicesRow struct {
@@ -332,6 +338,9 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 		arg.Kind,
 		arg.Status,
 		arg.Search,
+		arg.DateFrom,
+		arg.DateTo,
+		arg.PartyName,
 		arg.Off,
 		arg.Lim,
 	)

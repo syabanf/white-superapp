@@ -67,4 +67,24 @@ export function rangeQs(from: string, to: string, extra: Record<string, string |
 export const ledgerHref = (accountId: string, from: string, to: string) =>
   `/erp/finance/reports?r=general-ledger&${rangeQs(from, to, { account: accountId })}`;
 
-export const journalsHref = (from: string, to: string, q?: string) => `/erp/finance/journals?${rangeQs(from, to, { q })}`;
+export const journalsHref = (from: string, to: string, q?: string, account?: string) =>
+  `/erp/finance/journals?${rangeQs(from, to, { q, account })}`;
+
+/** Decimal string → number, 0 when not computable. */
+export const money = (v: string) => num(v) ?? 0;
+
+const listQs = (params: Record<string, string | undefined>) => {
+  const sp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v) sp.set(k, v);
+  return sp.toString();
+};
+
+/** Receivables or payables invoice list with a date range, party or payment status. */
+export const invoicesHref = (kind: "AR" | "AP", p: { from?: string; to?: string; party?: string; pay?: string; q?: string } = {}) => {
+  const qs = listQs(p);
+  return `/erp/finance/${kind === "AR" ? "receivables" : "payables"}${qs ? `?${qs}` : ""}`;
+};
+
+/** All-claims tab of reimbursements with the given filters. */
+export const claimsHref = (p: { from?: string; to?: string; department?: string; category?: string; status?: string } = {}) =>
+  `/erp/finance/reimbursements?${listQs({ tab: "all", ...p })}`;

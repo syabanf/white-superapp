@@ -216,7 +216,7 @@ func (s *Store) ListCandidates(ctx context.Context, f domain.CandidateFilter) ([
 		statuses = []string{}
 	}
 	rows, err := s.q.ListCandidates(ctx, sqlc.ListCandidatesParams{Statuses: statuses, JobOpeningID: nilIfEmpty(f.JobOpeningID),
-		Search: searchPattern(f.Search), DateFrom: f.DateFrom, DateTo: f.DateTo, SortUpdated: f.SortUpdated,
+		Search: searchPattern(f.Search), Source: nilIfEmpty(f.Source), DateFrom: f.DateFrom, DateTo: f.DateTo, SortUpdated: f.SortUpdated,
 		Lim: i32(f.Limit), Off: i32(f.Offset)})
 	if err != nil {
 		return nil, 0, err

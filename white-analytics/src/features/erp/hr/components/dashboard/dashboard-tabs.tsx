@@ -1,6 +1,7 @@
 "use client";
 
 import type { HrDashboard } from "@/features/erp/hr/dashboard/types";
+import { HrDrill } from "./drill";
 import { AttendanceTab } from "./tab-attendance";
 import { LeaveTab } from "./tab-leave";
 import { PayrollTab } from "./tab-payroll";
@@ -11,6 +12,15 @@ export type HrDashTab = "summary" | "attendance" | "leave" | "people" | "payroll
 
 /** Renders the selected dashboard tab from one payload. */
 export function HrDashboardTab({ tab, data, leaveTypes }: { tab: HrDashTab; data: HrDashboard; leaveTypes: Record<string, string> }) {
+  return (
+    <>
+      <TabBody tab={tab} data={data} leaveTypes={leaveTypes} />
+      <HrDrill data={data} leaveTypes={leaveTypes} />
+    </>
+  );
+}
+
+function TabBody({ tab, data, leaveTypes }: { tab: HrDashTab; data: HrDashboard; leaveTypes: Record<string, string> }) {
   const props = { data, leaveTypes };
   switch (tab) {
     case "attendance":

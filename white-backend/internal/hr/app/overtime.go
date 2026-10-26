@@ -19,13 +19,13 @@ func NewOvertime(d Deps) *Overtime { return &Overtime{d: d} }
 const overtimeDuplicate = "Sudah ada pengajuan lembur pending/approved di tanggal tersebut."
 
 type OvertimeQuery struct {
-	EmployeeID, Status, Month, Scope string
+	EmployeeID, Status, Month, Scope, DepartmentID string
 }
 
 // List: scope=approvals lists the direct reports' own requests; hr.read
 // sees everyone; otherwise own rows.
 func (o *Overtime) List(ctx context.Context, a Actor, q OvertimeQuery) ([]domain.Overtime, error) {
-	f := domain.OvertimeFilter{Status: q.Status}
+	f := domain.OvertimeFilter{Status: q.Status, DepartmentID: q.DepartmentID}
 	switch {
 	case q.Scope == "approvals":
 		if a.EmployeeID == "" {

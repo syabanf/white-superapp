@@ -7,7 +7,7 @@ import { ErpError } from "@/features/erp/shared/states";
 import { OvertimeTable } from "@/features/erp/hr/components/overtime";
 import { UrlTabs } from "@/features/erp/hr/components/ui";
 import { hrPerms, monthParam } from "@/features/erp/hr/perms";
-import { listEmployeeOptions, listOvertime } from "@/features/erp/hr/queries";
+import { listDepartments, listEmployeeOptions, listOvertime } from "@/features/erp/hr/queries";
 import { th } from "@/features/erp/hr/strings";
 
 export const metadata: Metadata = { title: th.overtime.title };
@@ -23,11 +23,16 @@ export default async function OvertimePage(props: PageProps<"/erp/hr/overtime">)
   const { ym } = monthParam(sp1(sp.month));
   const header = <PageHeader eyebrow={th.eyebrow} title={o.title} description={o.subtitle} />;
   if (offline) return <>{header}<OfflineNotice message={offline.message} /></>;
-  const [rows, employees] = await Promise.all([
+  const [rows, employees, deps] = await Promise.all([
     load(() =>
-      listOvertime(approvals ? { scope: "approvals", status: "pending" } : { month: ym, status: sp1(sp.status) }),
+      listOvertime(
+        approvals
+          ? { scope: "approvals", status: "pending" }
+          : { month: ym, status: sp1(sp.status), departmentId: sp1(sp.dept), employeeId: sp1(sp.employee) },
+      ),
     ),
-    perms.write ? load(listEmployeeOptions) : Promise.resolve({ data: [], error: null }),
+    load(listEmployeeOptions),
+    load(() => listDepartments()),
   ]);
   return (
     <>
@@ -37,6 +42,7 @@ export default async function OvertimePage(props: PageProps<"/erp/hr/overtime">)
         <OvertimeTable
           rows={rows.data}
           employees={employees.data ?? []}
+          departments={(deps.data ?? []).map((d) => ({ value: d.id, label: d.name }))}
           canWrite={perms.write}
           canDecide={perms.approve}
           month={ym}

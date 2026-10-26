@@ -7,7 +7,7 @@ import { ErpError } from "@/features/erp/shared/states";
 import { BalancesTable, LeaveTable } from "@/features/erp/hr/components/leave";
 import { UrlTabs } from "@/features/erp/hr/components/ui";
 import { hrPerms } from "@/features/erp/hr/perms";
-import { getLeaveBalance, listEmployeeOptions, listLeaveTypes, listLeaves } from "@/features/erp/hr/queries";
+import { getLeaveBalance, listDepartments, listEmployeeOptions, listLeaveTypes, listLeaves } from "@/features/erp/hr/queries";
 import { th } from "@/features/erp/hr/strings";
 
 export const metadata: Metadata = { title: th.leave.title };
@@ -23,7 +23,7 @@ export default async function LeavePage(props: PageProps<"/erp/hr/leave">) {
   const header = <PageHeader eyebrow={th.eyebrow} title={l.title} description={l.subtitle} />;
   if (offline) return <>{header}<OfflineNotice message={offline.message} /></>;
 
-  const [types, employees] = await Promise.all([load(listLeaveTypes), load(listEmployeeOptions)]);
+  const [types, employees, deps] = await Promise.all([load(listLeaveTypes), load(listEmployeeOptions), load(() => listDepartments())]);
   let body: React.ReactNode;
 
   if (tab === "balances") {
@@ -40,7 +40,14 @@ export default async function LeavePage(props: PageProps<"/erp/hr/leave">) {
     const approvals = tab === "approvals";
     const page = spInt(sp.page, 1);
     const pageSize = spInt(sp.pageSize, 20);
-    const filters = { status: sp1(sp.status), type: sp1(sp.type), from: sp1(sp.from), to: sp1(sp.to) };
+    const filters = {
+      status: sp1(sp.status),
+      type: sp1(sp.type),
+      from: sp1(sp.from),
+      to: sp1(sp.to),
+      dept: sp1(sp.dept),
+      employee: sp1(sp.employee),
+    };
     const res = await load(() =>
       listLeaves(
         approvals
@@ -50,6 +57,8 @@ export default async function LeavePage(props: PageProps<"/erp/hr/leave">) {
               leaveType: filters.type,
               startDate: filters.from,
               endDate: filters.to,
+              departmentId: filters.dept,
+              employeeId: filters.employee,
               page,
               pageSize,
             },
@@ -61,6 +70,7 @@ export default async function LeavePage(props: PageProps<"/erp/hr/leave">) {
         page={approvals ? undefined : { page, pageSize, total: res.data.total }}
         types={types.data ?? []}
         employees={employees.data ?? []}
+        departments={(deps.data ?? []).map((d) => ({ value: d.id, label: d.name }))}
         canWrite={perms.write}
         filters={filters}
         approvals={approvals}

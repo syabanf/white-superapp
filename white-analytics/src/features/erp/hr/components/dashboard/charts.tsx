@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Area,
   Bar,
@@ -28,6 +29,7 @@ import {
   type SeriesDef,
 } from "@/components/dashboard/charts/chart-primitives";
 import { cn } from "@/lib/utils";
+import { trendColor } from "@/lib/metrics";
 import { formatCompact, formatPercent } from "@/lib/format";
 import { thd } from "@/features/erp/hr/dashboard/strings";
 
@@ -44,7 +46,9 @@ export function ChartEmpty({ height = 220, children }: { height?: number; childr
 /**
  * Category chart on one y-axis: bars (grouped or stacked), lines and areas.
  * Each row is one x category (`label`, optional longer `tip` for the tooltip).
- * `onSelect` makes every bar and point a drill-down target.
+ * `onSelect` makes every category a drill-down target (bars, points, the
+ * hovered column); the clicked bar series comes as `seriesKey`. A `signed`
+ * bar series is colored by sign (good vs bad), not by its slot.
  */
 export function ComboChart({
   data,
@@ -66,7 +70,7 @@ export function ComboChart({
   yFormat?: (v: number) => string;
   /** "percent" fits a 0-100 scale to the data and stops at 100 */
   yDomain?: [number | "auto" | "dataMin" | "dataMax", number | "auto" | "dataMin" | "dataMax"] | "percent";
-  onSelect?: (row: ChartRow, index: number) => void;
+  onSelect?: (row: ChartRow, index: number, seriesKey?: string) => void;
   /** vertical marker on a category label, e.g. the late tolerance */
   reference?: { x: string; label: string };
   summary: string;
@@ -81,20 +85,32 @@ export function ComboChart({
   const hasBars = resolved.some((s) => s.type === "bar");
   const bars = resolved.filter((s) => s.type === "bar");
   const topBar = bars.at(-1)?.key;
+  // A bar click runs before the chart click; it leaves its series here.
+  const clickedSeries = React.useRef<string | undefined>(undefined);
   if (data.length === 0) return <ChartEmpty height={height} />;
   const domain = yDomain === "percent" ? percentDomain(data, resolved.map((s) => s.key)) : (yDomain ?? [0, "auto"]);
-  const select = onSelect
-    ? (_: unknown, index: number) => {
-        const row = data[index];
-        if (row) onSelect(row, index);
+  const selectColumn = onSelect
+    ? (e: { activeTooltipIndex?: number | string | null } | null) => {
+        const index = Number(e?.activeTooltipIndex);
+        const row = Number.isInteger(index) ? data[index] : undefined;
+        const key = clickedSeries.current;
+        clickedSeries.current = undefined;
+        if (row) onSelect(row, index, key);
       }
     : undefined;
   return (
     <div className={className}>
       <p className="sr-only">{summary}</p>
-      <div style={{ height }} role="img" aria-label={summary} className={cn("w-full", onSelect && "[&_.recharts-bar-rectangle]:cursor-pointer")}>
+      <div style={{ height }} role="img" aria-label={summary} className={cn("w-full", onSelect && "cursor-pointer")}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 520, height }}>
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={2} barCategoryGap="22%">
+          <ComposedChart
+            data={data}
+            margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+            barGap={2}
+            barCategoryGap="22%"
+            stackOffset={resolved.some((s) => s.signed) ? "sign" : undefined}
+            onClick={selectColumn}
+          >
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
             <XAxis
               dataKey="label"
@@ -162,8 +178,12 @@ export function ComboChart({
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
                   isAnimationActive={false}
-                  onClick={select}
-                />
+                  onClick={onSelect ? () => (clickedSeries.current = s.key) : undefined}
+                >
+                  {s.signed
+                    ? data.map((r, i) => <Cell key={i} fill={trendColor(Number(r[s.key] ?? 0), s.lowerIsBetter)} />)
+                    : null}
+                </Bar>
               );
             })}
           </ComposedChart>
@@ -391,25 +411,33 @@ export function Waterfall({
   format,
   height = 260,
   summary,
+  onSelect,
 }: {
   steps: WaterfallStep[];
   format: (v: number) => string;
   height?: number;
   summary: string;
+  onSelect?: (step: WaterfallStep, index: number) => void;
 }) {
   const data = bridgeRows(steps);
   if (steps.every((s) => s.value === 0)) return <ChartEmpty height={height} />;
   const series = [
     { key: "total", label: thd.series.subtotal, color: slotColor(0) },
-    { key: "minus", label: thd.series.decrease, color: slotColor(1) },
-    { key: "plus", label: thd.series.increase, color: slotColor(2) },
+    { key: "minus", label: thd.series.decrease, color: "var(--negative)" },
+    { key: "plus", label: thd.series.increase, color: "var(--positive)" },
   ];
+  const select = onSelect
+    ? (e: { activeTooltipIndex?: number | string | null } | null) => {
+        const i = Number(e?.activeTooltipIndex);
+        if (Number.isInteger(i) && steps[i]) onSelect(steps[i], i);
+      }
+    : undefined;
   return (
     <div>
       <p className="sr-only">{summary}</p>
-      <div style={{ height }} role="img" aria-label={summary}>
+      <div style={{ height }} role="img" aria-label={summary} className={onSelect ? "cursor-pointer" : undefined}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 520, height }}>
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%">
+          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%" onClick={select}>
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
             <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} interval={0} tickMargin={8} />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => format(v)} width={66} />
@@ -471,9 +499,9 @@ export function BulletList({
         return (
           <li key={it.key}>
             {it.href ? (
-              <a href={it.href} className="block rounded-md hover:bg-muted/40">
+              <Link href={it.href} className="block rounded-md outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring">
                 {body}
-              </a>
+              </Link>
             ) : (
               body
             )}
@@ -489,7 +517,7 @@ export function RangeBars({
   items,
   format,
 }: {
-  items: { key: string; label: string; min: number; max: number; avg: number; count: number }[];
+  items: { key: string; label: string; min: number; max: number; avg: number; count: number; href?: string }[];
   format: (v: number) => string;
 }) {
   if (items.length === 0) return <ChartEmpty height={160} />;
@@ -499,9 +527,15 @@ export function RangeBars({
       {items.map((it) => (
         <li key={it.key} className="text-xs">
           <div className="mb-1.5 flex items-center justify-between gap-3">
-            <span className="truncate text-foreground/90">
-              {it.label} <span className="text-muted-foreground">· {it.count} orang</span>
-            </span>
+            {it.href ? (
+              <Link href={it.href} className="truncate text-foreground/90 underline-offset-4 hover:underline">
+                {it.label} <span className="text-muted-foreground">· {it.count} orang</span>
+              </Link>
+            ) : (
+              <span className="truncate text-foreground/90">
+                {it.label} <span className="text-muted-foreground">· {it.count} orang</span>
+              </span>
+            )}
             <span className="shrink-0 tabular">
               <span className="text-muted-foreground">{thd.series.average} </span>
               <span className="font-semibold">{format(it.avg)}</span>

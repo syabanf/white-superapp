@@ -19,6 +19,10 @@ WHERE deleted_at IS NULL
   AND ($4::text IS NULL OR owner_user_id = $4)
   AND ($5::text IS NULL OR org_name ILIKE '%' || $5 || '%' OR pic_name ILIKE '%' || $5 || '%'
        OR pic_phone ILIKE '%' || $5 || '%' OR pic_email ILIKE '%' || $5 || '%')
+  AND ($6::timestamptz IS NULL OR created_at >= $6)
+  AND ($7::timestamptz IS NULL OR created_at < $7)
+  AND ($8::int IS NULL OR score >= $8)
+  AND ($9::int IS NULL OR score <= $9)
 `
 
 type CountLeadsParams struct {
@@ -27,6 +31,10 @@ type CountLeadsParams struct {
 	Source      *string
 	Owner       *string
 	Q           *string
+	FromAt      *time.Time
+	ToAt        *time.Time
+	ScoreMin    *int32
+	ScoreMax    *int32
 }
 
 func (q *Queries) CountLeads(ctx context.Context, arg CountLeadsParams) (int64, error) {
@@ -36,6 +44,10 @@ func (q *Queries) CountLeads(ctx context.Context, arg CountLeadsParams) (int64, 
 		arg.Source,
 		arg.Owner,
 		arg.Q,
+		arg.FromAt,
+		arg.ToAt,
+		arg.ScoreMin,
+		arg.ScoreMax,
 	)
 	var count int64
 	err := row.Scan(&count)
@@ -442,8 +454,12 @@ WHERE deleted_at IS NULL
   AND ($4::text IS NULL OR owner_user_id = $4)
   AND ($5::text IS NULL OR org_name ILIKE '%' || $5 || '%' OR pic_name ILIKE '%' || $5 || '%'
        OR pic_phone ILIKE '%' || $5 || '%' OR pic_email ILIKE '%' || $5 || '%')
+  AND ($6::timestamptz IS NULL OR created_at >= $6)
+  AND ($7::timestamptz IS NULL OR created_at < $7)
+  AND ($8::int IS NULL OR score >= $8)
+  AND ($9::int IS NULL OR score <= $9)
 ORDER BY created_at DESC, id DESC
-LIMIT $7 OFFSET $6
+LIMIT $11 OFFSET $10
 `
 
 type ListLeadsParams struct {
@@ -452,6 +468,10 @@ type ListLeadsParams struct {
 	Source      *string
 	Owner       *string
 	Q           *string
+	FromAt      *time.Time
+	ToAt        *time.Time
+	ScoreMin    *int32
+	ScoreMax    *int32
 	Off         int32
 	Lim         int32
 }
@@ -463,6 +483,10 @@ func (q *Queries) ListLeads(ctx context.Context, arg ListLeadsParams) ([]SalesLe
 		arg.Source,
 		arg.Owner,
 		arg.Q,
+		arg.FromAt,
+		arg.ToAt,
+		arg.ScoreMin,
+		arg.ScoreMax,
 		arg.Off,
 		arg.Lim,
 	)

@@ -11,7 +11,7 @@ import type { SearchOption } from "@/features/erp/shared/searchable-select";
 import { ss } from "@/features/erp/shared/strings";
 import { ResetFilters, SearchFilter, SearchSelectFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
-import { CANDIDATE_STATUS, SOURCE, STAGE_ORDER, rs } from "../strings";
+import { CANDIDATE_STATUS, SOURCE, STAGE_ORDER, ra, rs } from "../strings";
 import type { Candidate } from "../types";
 import { CandidateBadge } from "./ui";
 
@@ -78,6 +78,12 @@ export function CandidatesTable({
             options={STAGE_ORDER.map((s) => ({ value: s, label: CANDIDATE_STATUS[s] }))}
           />
           <SearchSelectFilter param="job" options={jobs} placeholder={c.allJobs} className="w-56" />
+          <SelectFilter
+            param="source"
+            label={ra.filters.source}
+            allLabel={ra.filters.allSources}
+            options={Object.entries(SOURCE).map(([value, label]) => ({ value, label }))}
+          />
           <DateRangeFilter />
           <SelectFilter
             param="sort"
@@ -85,7 +91,7 @@ export function CandidatesTable({
             allLabel={c.sortCreated}
             options={[{ value: "updated_at", label: c.sortUpdated }]}
           />
-          <ResetFilters params={["q", "status", "job", "from", "to", "sort"]} />
+          <ResetFilters params={["q", "status", "job", "source", "from", "to", "sort"]} />
         </div>
       }
     />

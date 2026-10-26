@@ -18,7 +18,17 @@ function numCol(key: keyof SocialPostRow, header: string): ColumnDef<SocialPostR
 }
 
 /** Tabel "Postingan terbaru" — sortable, cari caption, ekspor CSV. */
-export function PostsTable({ rows, exportName }: { rows: SocialPostRow[]; exportName: string }) {
+export function PostsTable({
+  rows,
+  exportName,
+  toolbar,
+  initialSort = "publishedAt",
+}: {
+  rows: SocialPostRow[];
+  exportName: string;
+  toolbar?: React.ReactNode;
+  initialSort?: keyof SocialPostRow;
+}) {
   const columns = React.useMemo<ColumnDef<SocialPostRow, unknown>[]>(
     () => [
       {
@@ -44,9 +54,21 @@ export function PostsTable({ rows, exportName }: { rows: SocialPostRow[]; export
                   />
                 ) : null}
               </span>
-              <span className="max-w-[260px] truncate" title={p.caption}>
-                {truncate(p.caption, 70)}
-              </span>
+              {p.permalink ? (
+                <a
+                  href={p.permalink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="max-w-[260px] truncate underline-offset-4 hover:underline"
+                  title={p.caption}
+                >
+                  {truncate(p.caption, 70)}
+                </a>
+              ) : (
+                <span className="max-w-[260px] truncate" title={p.caption}>
+                  {truncate(p.caption, 70)}
+                </span>
+              )}
             </span>
           );
         },
@@ -83,7 +105,8 @@ export function PostsTable({ rows, exportName }: { rows: SocialPostRow[]; export
       data={rows}
       searchKey="caption"
       exportName={exportName}
-      initialSorting={[{ id: "publishedAt", desc: true }]}
+      initialSorting={[{ id: initialSort, desc: true }]}
+      toolbar={toolbar}
       dense
       getRowId={(r) => r.id}
       emptyMessage={t.common.noData}

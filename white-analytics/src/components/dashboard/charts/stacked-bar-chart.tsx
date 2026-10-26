@@ -2,9 +2,19 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatCompact } from "@/lib/format";
-import { AXIS_TICK, GRID_STROKE, SeriesLegend, TooltipBox, slotColor, type SeriesDef } from "./chart-primitives";
+import {
+  AXIS_TICK,
+  GRID_STROKE,
+  MarkButtons,
+  SeriesLegend,
+  TooltipBox,
+  activeIndexOf,
+  signedFill,
+  slotColor,
+  type SeriesDef,
+} from "./chart-primitives";
 
 export type CategoryRow = { label: string; href?: string; [key: string]: number | string | undefined };
 
@@ -12,7 +22,8 @@ export type CategoryRow = { label: string; href?: string; [key: string]: number 
  * Categorical bars, stacked or grouped, on one axis. `horizontal` lays the
  * categories down the y-axis for long names. Stacked segments are split by a
  * 2px surface gap; only the outer end is rounded. A row with `href` opens it
- * on click.
+ * on click; `onSelect` receives the row and, when a segment was hit, its
+ * series key. `onSeriesSelect` makes the legend a filter toggle.
  */
 export function StackedBarChart({
   data,
@@ -26,6 +37,9 @@ export function StackedBarChart({
   valueDomain,
   summary,
   className,
+  onSelect,
+  onSeriesSelect,
+  activeSeries,
 }: {
   data: CategoryRow[];
   series: SeriesDef[];
@@ -41,18 +55,33 @@ export function StackedBarChart({
   valueDomain?: [number, number];
   summary?: string;
   className?: string;
+  onSelect?: (row: CategoryRow, seriesKey: string | null, index: number) => void;
+  onSeriesSelect?: (series: SeriesDef) => void;
+  activeSeries?: string | null;
 }) {
   const router = useRouter();
-  const resolved = React.useMemo(() => series.map((s, i) => ({ ...s, color: s.color ?? slotColor(i), type: "bar" as const })), [series]);
+  // a segment click bubbles to the chart click; remember it so the row fires once
+  const segmentHit = React.useRef(false);
+  const resolved = React.useMemo(
+    () => series.map((s, i) => ({ ...s, color: s.color ?? slotColor(i), type: "bar" as const })),
+    [series],
+  );
   const seriesMap = React.useMemo(() => Object.fromEntries(resolved.map((s) => [s.key, s])), [resolved]);
-  if (data.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data pada periode ini</p>;
+  if (data.length === 0)
+    return <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data pada periode ini</p>;
   const h = height ?? (horizontal ? Math.max(160, data.length * 34 + 40) : 260);
   const tickLabel = (v: string) => {
     const s = labelFormat ? labelFormat(v) : v;
     const max = Math.floor(categoryWidth / 7);
     return horizontal && s.length > max ? `${s.slice(0, max - 1)}…` : s;
   };
-  const clickable = data.some((d) => d.href);
+  const clickable = Boolean(onSelect) || data.some((d) => d.href);
+  const select = (idx: number, seriesKey: string | null) => {
+    const row = data[idx];
+    if (!row) return;
+    if (onSelect) onSelect(row, seriesKey, idx);
+    else if (row.href) router.push(row.href);
+  };
   const valueAxis = {
     type: "number" as const,
     tick: AXIS_TICK,
@@ -73,8 +102,18 @@ export function StackedBarChart({
   };
   return (
     <div className={className}>
-      <div role="img" aria-label={summary ?? resolved.map((s) => s.label).join(", ")} style={{ height: h }} className="w-full">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 560, height: h }}>
+      <div
+        role="img"
+        aria-label={summary ?? resolved.map((s) => s.label).join(", ")}
+        style={{ height: h }}
+        className="w-full"
+      >
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={0}
+          initialDimension={{ width: 560, height: h }}
+        >
           <BarChart
             data={data}
             layout={horizontal ? "vertical" : "horizontal"}
@@ -82,13 +121,21 @@ export function StackedBarChart({
             barCategoryGap="24%"
             barGap={2}
             onClick={(state) => {
-              const idx = typeof state?.activeTooltipIndex === "number" ? state.activeTooltipIndex : Number(state?.activeTooltipIndex);
-              const href = Number.isInteger(idx) ? data[idx]?.href : undefined;
-              if (href) router.push(href);
+              if (segmentHit.current) {
+                segmentHit.current = false;
+                return;
+              }
+              const idx = activeIndexOf(state);
+              if (idx != null) select(idx, null);
             }}
             style={clickable ? { cursor: "pointer" } : undefined}
           >
-            <CartesianGrid horizontal={!horizontal} vertical={horizontal} stroke={GRID_STROKE} strokeWidth={1} />
+            <CartesianGrid
+              horizontal={!horizontal}
+              vertical={horizontal}
+              stroke={GRID_STROKE}
+              strokeWidth={1}
+            />
             {horizontal ? (
               <>
                 <XAxis {...valueAxis} />
@@ -97,7 +144,14 @@ export function StackedBarChart({
                   width={categoryWidth}
                   // one line per category: recharts would wrap long names
                   tick={({ x, y, payload }) => (
-                    <text x={x} y={y} dy={4} textAnchor="end" fill={AXIS_TICK.fill} fontSize={AXIS_TICK.fontSize}>
+                    <text
+                      x={x}
+                      y={y}
+                      dy={4}
+                      textAnchor="end"
+                      fill={AXIS_TICK.fill}
+                      fontSize={AXIS_TICK.fontSize}
+                    >
                       {tickLabel(String(payload?.value ?? ""))}
                     </text>
                   )}
@@ -111,13 +165,22 @@ export function StackedBarChart({
             )}
             <Tooltip
               cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
-              content={<TooltipBox seriesMap={seriesMap} labelFormatter={(l) => (labelFormat ? labelFormat(String(l)) : String(l))} />}
+              content={
+                <TooltipBox
+                  seriesMap={seriesMap}
+                  labelFormatter={(l) => (labelFormat ? labelFormat(String(l)) : String(l))}
+                />
+              }
               isAnimationActive={false}
               wrapperStyle={{ outline: "none" }}
             />
             {resolved.map((s, i) => {
               const outer = !stacked || i === resolved.length - 1;
-              const radius: [number, number, number, number] = outer ? (horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]) : [0, 0, 0, 0];
+              const radius: [number, number, number, number] = outer
+                ? horizontal
+                  ? [0, 4, 4, 0]
+                  : [4, 4, 0, 0]
+                : [0, 0, 0, 0];
               return (
                 <Bar
                   key={s.key}
@@ -130,13 +193,35 @@ export function StackedBarChart({
                   stroke="var(--card)"
                   strokeWidth={stacked ? 2 : 0}
                   isAnimationActive={false}
-                />
+                  onClick={
+                    onSelect
+                      ? (_entry, idx) => {
+                          segmentHit.current = true;
+                          setTimeout(() => (segmentHit.current = false), 0);
+                          select(idx, s.key);
+                        }
+                      : undefined
+                  }
+                >
+                  {s.signed && !stacked
+                    ? data.map((d, j) => (
+                        <Cell key={j} fill={signedFill(Number(d[s.key] ?? 0), s.lowerIsBetter)} />
+                      ))
+                    : null}
+                </Bar>
               );
             })}
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <SeriesLegend series={resolved} className="mt-2" />
+      <SeriesLegend series={resolved} className="mt-2" onSelect={onSeriesSelect} activeKey={activeSeries} />
+      {clickable ? (
+        <MarkButtons
+          marks={data}
+          label={(row) => (labelFormat ? labelFormat(row.label) : row.label)}
+          onSelect={(_row, idx) => select(idx, null)}
+        />
+      ) : null}
     </div>
   );
 }

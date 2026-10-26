@@ -4,6 +4,12 @@
  * string BARU modul ini (i18n/id.ts tidak diedit agar tidak bentrok antar-agen).
  */
 export const s = {
+  drillDayDesc: "Belanja dan hasil per kampanye pada hari ini. Pilih kampanye untuk menyaring dasbor.",
+  drillDemoDesc: "Rincian silang usia dan gender untuk bagian yang dipilih.",
+  drillZoomDay: "Fokuskan dasbor ke hari ini",
+  drillPointLabel: "Lihat kampanye",
+  allCampaignsCrumb: "Semua kampanye",
+  filterByCampaign: "Saring dasbor ke kampanye ini",
   // Filter
   allCampaigns: "Semua kampanye",
   filterCampaign: "Filter kampanye",

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Ban, ChevronDown, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import { Money } from "@/features/erp/shared/money-display";
 import { formatRupiah, parseMoney } from "@/features/erp/shared/money";
 import { ErpEmpty } from "@/features/erp/shared/states";
 import { generateInsightAction } from "../actions";
+import { ledgerHref } from "../dashboard/lib";
 import type { ApiDelta, ExpenseItem, FinancialAnalysis, FinancialInsight, Metric } from "../types";
 import { fs } from "../strings";
 
@@ -113,6 +115,7 @@ export function AnalysisView({ data }: { data: FinancialAnalysis }) {
               label: `${e.accountCode} ${e.accountName}`,
               value: parseMoney(e.amount),
               secondary: formatPercent(e.sharePct, 1),
+              href: data.current ? ledgerHref(e.accountId, data.current.from, data.current.to) : undefined,
             }))}
             format={(v) => formatRupiah(v)}
             maxItems={10}
@@ -120,14 +123,14 @@ export function AnalysisView({ data }: { data: FinancialAnalysis }) {
           />
         </ChartCard>
         <ChartCard title={an.topMovers} description={an.topMoversHint}>
-          <MoversTable items={data.topMovers} />
+          <MoversTable items={data.topMovers} range={data.current} />
         </ChartCard>
       </div>
     </div>
   );
 }
 
-function MoversTable({ items }: { items: ExpenseItem[] }) {
+function MoversTable({ items, range }: { items: ExpenseItem[]; range: { from: string; to: string } | null }) {
   if (items.length === 0) return <p className="py-6 text-center text-sm text-muted-foreground">{an.empty}</p>;
   return (
     <table className="w-full text-sm">
@@ -146,7 +149,13 @@ function MoversTable({ items }: { items: ExpenseItem[] }) {
             <tr key={e.accountId} className="border-b border-border/50">
               <td className="py-1.5 pr-2">
                 <span className="mr-1.5 font-mono text-xs text-muted-foreground">{e.accountCode}</span>
-                {e.accountName}
+                {range ? (
+                  <Link href={ledgerHref(e.accountId, range.from, range.to)} className="underline-offset-4 hover:underline">
+                    {e.accountName}
+                  </Link>
+                ) : (
+                  e.accountName
+                )}
               </td>
               <td className="py-1.5 text-right text-muted-foreground">
                 <Money value={e.previousAmount} />

@@ -15,6 +15,7 @@ import { sumMoney } from "@/features/erp/shared/money";
 import { MoneyInput } from "@/features/erp/shared/money-input";
 import { DatePicker } from "@/features/erp/shared/period-picker";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
+import { ResetFilters, type FilterOption } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
 import {
   createPayrollAdditionAction,
@@ -25,6 +26,7 @@ import {
 } from "../actions";
 import { monthLabel, PTKP_STATUSES, th } from "../strings";
 import type { PayrollAddition, PayrollSettings, Salary } from "../types";
+import { PEOPLE_PARAMS, PeopleFilters } from "./list-filters";
 import { ConfirmAction, UrlSwitch, EmployeePicker, Fld, FormDialog, FormFooter, SimpleSelect, useFieldErrors, type EmployeeOption } from "./ui";
 
 const s = th.salary;
@@ -34,7 +36,17 @@ const ALLOWANCES = ["fixedAllowance", "variableAllowance", "transportAllowance",
 
 // Salaries
 
-export function SalariesTable({ salaries, employees, canWrite }: { salaries: Salary[]; employees: EmployeeOption[]; canWrite: boolean }) {
+export function SalariesTable({
+  salaries,
+  employees,
+  departments,
+  canWrite,
+}: {
+  salaries: Salary[];
+  employees: EmployeeOption[];
+  departments: FilterOption[];
+  canWrite: boolean;
+}) {
   const columns: ColumnDef<Salary, unknown>[] = [
     {
       id: "employee",
@@ -121,6 +133,8 @@ export function SalariesTable({ salaries, employees, canWrite }: { salaries: Sal
       toolbar={
         <>
           <UrlSwitch param="all" label={th.employees.includeInactive} />
+          <PeopleFilters departments={departments} employees={employees} />
+          <ResetFilters params={PEOPLE_PARAMS} />
           {canWrite ? (
             <div className="ml-auto">
               <FormDialog

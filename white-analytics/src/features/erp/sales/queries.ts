@@ -49,6 +49,10 @@ export const listLeads = (p: {
   temperature?: string;
   source?: string;
   ownerUserId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  scoreMin?: number;
+  scoreMax?: number;
   page?: number;
   pageSize?: number;
 }) => get<ListLeadsResponse>(`/leads${qs(p)}`);
@@ -73,6 +77,13 @@ export const listDeals = (p: {
   leadId?: string;
   status?: string;
   q?: string;
+  serviceLine?: string;
+  industry?: string;
+  source?: string;
+  lostReasonId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  dateField?: "created" | "closed";
   page?: number;
   pageSize?: number;
 }) => get<ListDealsResponse>(`/deals${qs(p)}`);
@@ -102,7 +113,9 @@ export const listApprovals = async (p: { view?: string; status?: string } = {}) 
 
 // Billing and insight
 
-export const listInvoices = async (p: { dealId?: string; status?: string; limit?: number } = {}) =>
+export const listInvoices = async (
+  p: { dealId?: string; status?: string; dateFrom?: string; dateTo?: string; limit?: number } = {},
+) =>
   (await get<{ invoices: Invoice[] }>(`/invoices${qs(p)}`)).invoices;
 export const listTargets = (month?: string) => get<ListTargetsResponse>(`/targets${qs({ month })}`);
 export const getForecast = (month?: string) => get<Forecast>(`/forecast${qs({ month })}`);

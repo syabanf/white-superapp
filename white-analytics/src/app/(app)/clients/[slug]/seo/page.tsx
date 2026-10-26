@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
 import { formatCompact, formatDateRange, formatNumber, formatPercent } from "@/lib/format";
+import { pickQuery, withQuery } from "@/lib/drill-query";
 import { t } from "@/i18n/id";
 import { s } from "@/features/seo/strings";
 import {
@@ -28,6 +29,7 @@ import {
 } from "@/features/seo/components/overview-charts";
 import { PositionDistributionCard, DeviceCountryCards } from "@/features/seo/components/breakdown-cards";
 import { TopQueriesCard, TopPagesCard } from "@/features/seo/components/top-tables";
+import { SeoDrillSheet } from "@/features/seo/components/seo-drill";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -41,6 +43,8 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
   const { range, previous, compare } = getRange(sp);
   const base = `/clients/${slug}/seo`;
   const settingsHref = `/clients/${slug}/settings`;
+  const keep = pickQuery(sp);
+  const kw = (extra: Record<string, string> = {}) => withQuery(`${base}/keywords`, keep, extra);
 
   const property = await getSeoProperty(client.id);
   if (!property) {
@@ -82,6 +86,7 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
       />
 
       {!connected ? <DemoBanner message={t.seo.demoBanner} settingsHref={settingsHref} /> : null}
+      <SeoDrillSheet slug={slug} />
 
       <KpiGrid>
         <KpiTile
@@ -90,6 +95,7 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
           delta={d(overview.deltas.clicks)}
           spark={overview.sparks.clicks}
           hint={s.clicksHint}
+          href={kw()}
         />
         <KpiTile
           label={t.seo.impressions}
@@ -97,14 +103,21 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
           delta={d(overview.deltas.impressions)}
           spark={overview.sparks.impressions}
           hint={s.impressionsHint}
+          href={kw()}
         />
-        <KpiTile label={t.seo.ctr} value={formatPercent(overview.kpis.ctr)} delta={d(overview.deltas.ctr)} />
+        <KpiTile
+          label={t.seo.ctr}
+          value={formatPercent(overview.kpis.ctr)}
+          delta={d(overview.deltas.ctr)}
+          href={kw({ view: "low_ctr" })}
+        />
         <KpiTile
           label={t.seo.position}
           value={formatNumber(overview.kpis.position, 1)}
           delta={d(overview.deltas.position)}
           lowerIsBetter
           hint={s.positionHint}
+          href={kw({ view: "striking" })}
         />
       </KpiGrid>
 
@@ -126,6 +139,7 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
             label: t.seo.healthScore,
             value: overview.health == null ? "–" : `${formatNumber(overview.health)} / 100`,
             hint: s.healthHint,
+            href: `${base}/audit`,
           },
         ]}
       />
@@ -134,18 +148,18 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
 
       <div className="grid gap-5 lg:grid-cols-2">
         <PositionTrendCard daily={overview.daily} compare={compare} />
-        <PositionDistributionCard distribution={queryStats.distribution} />
+        <PositionDistributionCard distribution={queryStats.distribution} keywordsHref={kw()} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <DeviceCountryCards devices={breakdown.devices} countries={breakdown.countries} />
+        <DeviceCountryCards devices={breakdown.devices} countries={breakdown.countries} keywordsHref={kw()} />
       </div>
 
       <Ga4SessionsCard daily={overview.ga4Daily} />
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <TopQueriesCard rows={queryStats.rows} href={`${base}/keywords`} compare={compare} />
-        <TopPagesCard rows={pageStats} href={`${base}/pages`} compare={compare} />
+        <TopQueriesCard rows={queryStats.rows} href={kw()} compare={compare} />
+        <TopPagesCard rows={pageStats} href={withQuery(`${base}/pages`, keep)} compare={compare} />
       </div>
     </>
   );

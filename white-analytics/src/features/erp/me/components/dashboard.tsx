@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Download } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { StatStrip } from "@/components/dashboard/stat-strip";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
+import { DrillSheet, useDrill, useDrillParams, type DrillResult } from "@/features/erp/shared/drill";
 import { parseMoney } from "@/features/erp/shared/money";
 import { ChartEmpty, ComboChart } from "@/features/erp/hr/components/dashboard/charts";
 import { dayLabel, dayLabelLong, delta, monthLabel, num0, pct1, rp, rpCompact } from "@/features/erp/hr/dashboard/format";
@@ -22,19 +24,51 @@ export function MyKpis({ data }: { data: MyDashboard }) {
   const s = data.stats;
   const p = data.previous;
   const b = data.leaveBalance;
+  const ym = data.month.slice(0, 7);
+  const attendance = `/erp/me/attendance?month=${ym}`;
   return (
     <StatStrip
       scrollOnMobile
       minWidth={150}
       items={[
-        { label: d.kpi.present, value: d.days(s.presentDays), delta: delta(s.presentDays, p.presentDays), caption: `${d.vsPrev}: ${p.presentDays}` },
-        { label: d.kpi.onTime, value: pct1(s.onTimeRate), delta: delta(s.onTimeRate, p.onTimeRate), caption: `${d.vsPrev}: ${pct1(p.onTimeRate)}` },
-        { label: d.kpi.late, value: d.days(s.lateDays), delta: delta(s.lateDays, p.lateDays), lowerIsBetter: true, caption: `${s.lateMinutes} mnt` },
-        { label: d.kpi.absent, value: d.days(s.absentDays), delta: delta(s.absentDays, p.absentDays), lowerIsBetter: true },
-        { label: d.kpi.hours, value: d.hours(s.workHours), delta: delta(s.workHours, p.workHours) },
-        { label: d.kpi.overtime, value: d.hours(s.overtimeHours), delta: delta(s.overtimeHours, p.overtimeHours) },
-        { label: d.kpi.avgIn, value: s.avgClockIn || "–", caption: p.avgClockIn ? `${d.vsPrev}: ${p.avgClockIn}` : undefined },
-        { label: d.kpi.leaveLeft, value: d.days(b.annualLeaveRemaining), caption: `${b.annualLeaveUsed} / ${b.annualLeaveTotal}` },
+        {
+          label: d.kpi.present,
+          value: d.days(s.presentDays),
+          delta: delta(s.presentDays, p.presentDays),
+          caption: `${d.vsPrev}: ${p.presentDays}`,
+          href: attendance,
+        },
+        {
+          label: d.kpi.onTime,
+          value: pct1(s.onTimeRate),
+          delta: delta(s.onTimeRate, p.onTimeRate),
+          caption: `${d.vsPrev}: ${pct1(p.onTimeRate)}`,
+          href: attendance,
+        },
+        {
+          label: d.kpi.late,
+          value: d.days(s.lateDays),
+          delta: delta(s.lateDays, p.lateDays),
+          lowerIsBetter: true,
+          caption: `${s.lateMinutes} mnt`,
+          href: attendance,
+        },
+        { label: d.kpi.absent, value: d.days(s.absentDays), delta: delta(s.absentDays, p.absentDays), lowerIsBetter: true, href: attendance },
+        { label: d.kpi.hours, value: d.hours(s.workHours), delta: delta(s.workHours, p.workHours), href: attendance },
+        {
+          label: d.kpi.overtime,
+          value: d.hours(s.overtimeHours),
+          delta: delta(s.overtimeHours, p.overtimeHours),
+          lowerIsBetter: true,
+          href: `/erp/me/overtime?month=${ym}`,
+        },
+        {
+          label: d.kpi.avgIn,
+          value: s.avgClockIn || "–",
+          caption: p.avgClockIn ? `${d.vsPrev}: ${p.avgClockIn}` : undefined,
+          href: attendance,
+        },
+        { label: d.kpi.leaveLeft, value: d.days(b.annualLeaveRemaining), caption: `${b.annualLeaveUsed} / ${b.annualLeaveTotal}`, href: "/erp/me/leave" },
       ]}
     />
   );
@@ -55,6 +89,7 @@ const LEGEND = ["present", "late", "absent", "leave", "holiday"];
 
 /** Month grid (Monday first), each day tinted by its attendance status. */
 export function AttendanceCalendar({ data, leaveTypes }: { data: MyDashboard; leaveTypes: Record<string, string> }) {
+  const { open } = useDrill();
   const first = data.days[0];
   const lead = first ? (new Date(`${first.date}T00:00:00Z`).getUTCDay() + 6) % 7 : 0;
   return (
@@ -69,7 +104,7 @@ export function AttendanceCalendar({ data, leaveTypes }: { data: MyDashboard; le
           <div key={`lead-${i}`} />
         ))}
         {data.days.map((day) => (
-          <DayCell key={day.date} day={day} today={day.date === data.today} leaveTypes={leaveTypes} />
+          <DayCell key={day.date} day={day} today={day.date === data.today} leaveTypes={leaveTypes} onOpen={() => open("day", day.date)} />
         ))}
       </div>
       <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
@@ -80,11 +115,65 @@ export function AttendanceCalendar({ data, leaveTypes }: { data: MyDashboard; le
           </li>
         ))}
       </ul>
+      <MyDaysDrill data={data} leaveTypes={leaveTypes} />
     </ChartCard>
   );
 }
 
-function DayCell({ day, today, leaveTypes }: { day: MyDashboardDay; today: boolean; leaveTypes: Record<string, string> }) {
+function dayItems(days: MyDashboardDay[], leaveTypes: Record<string, string>): DrillResult {
+  const worked = days.reduce((a, x) => a + x.workHours, 0);
+  const late = days.reduce((a, x) => a + x.lateMinutes, 0);
+  return {
+    summary: [
+      { label: d.kpi.hours, value: d.hours(Math.round(worked * 10) / 10) },
+      { label: d.kpi.late, value: d.lateBy(late) },
+    ],
+    items: days.map((x) => ({
+      id: x.date,
+      title: dayLabelLong(x.date),
+      subtitle: [
+        x.clockIn ? `${x.clockIn}${x.clockOut ? `–${x.clockOut}` : ""}` : "",
+        x.lateMinutes ? d.lateBy(x.lateMinutes) : "",
+        x.overtimeHours ? `${d.kpi.overtime} ${d.hours(x.overtimeHours)}` : "",
+        x.status === "leave" ? (leaveTypes[x.note] ?? x.note) : x.note,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      value: x.workHours ? d.hours(x.workHours) : undefined,
+      meta: d.status[x.status],
+      href: x.status === "leave" ? "/erp/me/leave" : x.overtimeHours ? `/erp/me/overtime?month=${x.date.slice(0, 7)}` : undefined,
+    })),
+  };
+}
+
+/** Day (calendar cell) and week (weekly hours bar) sheets, from the dashboard payload. */
+function MyDaysDrill({ data, leaveTypes }: { data: MyDashboard; leaveTypes: Record<string, string> }) {
+  const ym = data.month.slice(0, 7);
+  const week = (start: string) => {
+    const end = new Date(Date.parse(`${start}T00:00:00Z`) + 6 * 86_400_000).toISOString().slice(0, 10);
+    return data.days.filter((x) => x.date >= start && x.date <= end);
+  };
+  return (
+    <DrillSheet
+      kind={["day", "week"]}
+      title={({ kind, key }) => (kind === "week" ? d.week(dayLabel(key)) : dayLabelLong(key))}
+      load={({ kind, key }) => dayItems(kind === "week" ? week(key) : data.days.filter((x) => x.date === key), leaveTypes)}
+      fullListHref={() => `/erp/me/attendance?month=${ym}`}
+    />
+  );
+}
+
+function DayCell({
+  day,
+  today,
+  leaveTypes,
+  onOpen,
+}: {
+  day: MyDashboardDay;
+  today: boolean;
+  leaveTypes: Record<string, string>;
+  onOpen: () => void;
+}) {
   const color = STATUS_COLOR[day.status] ?? "transparent";
   const tinted = color !== "transparent";
   const note = day.status === "leave" ? (leaveTypes[day.note] ?? day.note) : day.note;
@@ -103,8 +192,10 @@ function DayCell({ day, today, leaveTypes }: { day: MyDashboardDay; today: boole
         <button
           type="button"
           aria-label={label}
+          onClick={day.status === "upcoming" ? undefined : onOpen}
           className={cn(
-            "relative flex aspect-square min-h-9 flex-col items-center justify-center rounded-xl text-sm tabular transition-transform hover:scale-105",
+            "relative flex aspect-square min-h-9 cursor-pointer flex-col items-center justify-center rounded-xl text-sm tabular transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+            day.status === "upcoming" && "cursor-default",
             day.status === "upcoming" && "border border-dashed text-muted-foreground",
             day.status === "off" && "text-muted-foreground/60",
             today && "ring-2 ring-brand ring-offset-1 ring-offset-card",
@@ -121,9 +212,11 @@ function DayCell({ day, today, leaveTypes }: { day: MyDashboardDay; today: boole
 }
 
 export function OnTimeTrend({ data }: { data: MyDashboard }) {
+  const { apply } = useDrillParams();
   const rows = data.trend.map((m) => ({
     label: monthLabel(m.month),
     tip: monthLabel(m.month),
+    month: m.month.slice(0, 7),
     me: m.presentDays ? m.onTimeRate : null,
     team: m.teamOnTimeRate || null,
   }));
@@ -137,6 +230,7 @@ export function OnTimeTrend({ data }: { data: MyDashboard }) {
         ]}
         yFormat={(v) => `${v}%`}
         yDomain="percent"
+        onSelect={(r) => apply({ month: String(r.month) })}
         summary={`${d.onTimeTrend}: ${pct1(data.stats.onTimeRate)}`}
         height={220}
       />
@@ -145,7 +239,14 @@ export function OnTimeTrend({ data }: { data: MyDashboard }) {
 }
 
 export function WeeklyHours({ data }: { data: MyDashboard }) {
-  const rows = data.weeks.map((w) => ({ label: dayLabel(w.weekStart), tip: d.week(dayLabel(w.weekStart)), worked: w.workHours, target: w.targetHours }));
+  const { open } = useDrill();
+  const rows = data.weeks.map((w) => ({
+    label: dayLabel(w.weekStart),
+    tip: d.week(dayLabel(w.weekStart)),
+    week: w.weekStart,
+    worked: w.workHours,
+    target: w.targetHours,
+  }));
   return (
     <ChartCard title={d.weekly} description={d.weeklyQ}>
       <ComboChart
@@ -155,6 +256,7 @@ export function WeeklyHours({ data }: { data: MyDashboard }) {
           { key: "target", label: d.target, color: MUTED_SERIES, format: d.hours },
         ]}
         yFormat={num0}
+        onSelect={(r) => open("week", String(r.week))}
         summary={d.weekly}
         height={220}
       />
@@ -228,7 +330,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export function PayslipCard({ data }: { data: MyDashboard }) {
   const p = data.latestPayslip;
-  const net = data.trend.map((m) => ({ label: monthLabel(m.month), tip: monthLabel(m.month), net: parseMoney(m.netPay) || null }));
+  const router = useRouter();
+  const net = data.trend.map((m) => ({ label: monthLabel(m.month), tip: monthLabel(m.month), year: m.month.slice(0, 4), net: parseMoney(m.netPay) || null }));
   return (
     <ChartCard
       title={d.payslip}
@@ -275,6 +378,7 @@ export function PayslipCard({ data }: { data: MyDashboard }) {
         series={[{ key: "net", label: d.net, type: "area", color: slotColor(0), format: rp }]}
         yFormat={(v) => rpCompact(v)}
         legend={false}
+        onSelect={(r) => router.push(`/erp/me/payslips?year=${r.year}`)}
         summary={d.netTrend}
         height={150}
       />

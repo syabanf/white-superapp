@@ -8,6 +8,7 @@ WHERE (cardinality(@statuses::text[]) = 0 OR c.status = ANY (@statuses::text[]))
        OR c.phone ILIKE sqlc.narg(search) OR c.domicile ILIKE sqlc.narg(search))
   AND (sqlc.narg(date_from)::date IS NULL OR c.created_at >= (sqlc.narg(date_from)::date::timestamp AT TIME ZONE 'Asia/Jakarta'))
   AND (sqlc.narg(date_to)::date IS NULL OR c.created_at < ((sqlc.narg(date_to)::date + 1)::timestamp AT TIME ZONE 'Asia/Jakarta'))
+  AND (sqlc.narg(source)::text IS NULL OR c.source = sqlc.narg(source))
 ORDER BY CASE WHEN @sort_updated::bool THEN c.updated_at ELSE c.created_at END DESC, c.id
 LIMIT @lim OFFSET @off;
 

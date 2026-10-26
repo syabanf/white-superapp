@@ -101,12 +101,16 @@ type Employee struct {
 
 // EmployeeFilter narrows ListEmployees. Zero values do not filter.
 type EmployeeFilter struct {
-	DepartmentID    string
-	ManagerID       string
-	IDs             []string
-	IncludeInactive bool
-	Search          string
-	Limit, Offset   int
+	DepartmentID     string
+	ManagerID        string
+	IDs              []string
+	IncludeInactive  bool
+	Search           string
+	PositionID       string
+	Level            string
+	Gender           string
+	EmploymentStatus string
+	Limit, Offset    int
 }
 
 type HistoryEntry struct {
@@ -198,6 +202,7 @@ type Attendance struct {
 
 type AttendanceFilter struct {
 	EmployeeIDs     []string
+	DepartmentID    string
 	From, To        string
 	Status          string
 	OnlyLate        bool
@@ -262,6 +267,7 @@ type Leave struct {
 
 type LeaveFilter struct {
 	EmployeeIDs   []string
+	DepartmentID  string
 	Status        string
 	Statuses      []string
 	LeaveType     string
@@ -292,10 +298,11 @@ type Overtime struct {
 }
 
 type OvertimeFilter struct {
-	EmployeeIDs []string
-	Source      string
-	Status      string
-	From, To    string
+	EmployeeIDs  []string
+	DepartmentID string
+	Source       string
+	Status       string
+	From, To     string
 }
 
 type Contract struct {

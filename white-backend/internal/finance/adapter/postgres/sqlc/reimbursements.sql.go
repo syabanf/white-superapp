@@ -467,14 +467,15 @@ SELECT c.id, c.claim_no, c.employee_id, c.employee_user_id, c.employee_name, c.d
    AND ($3::text IS NULL OR c.employee_id = $3)
    AND ($4::text IS NULL OR c.employee_user_id = $4)
    AND ($5::text IS NULL OR c.manager_user_id = $5)
-   AND ($6::date IS NULL OR c.transaction_date >= $6)
-   AND ($7::date IS NULL OR c.transaction_date <= $7)
-   AND ($8::timestamptz IS NULL OR c.submitted_at < $8)
-   AND ($9::timestamptz IS NULL OR c.last_reminded_at IS NULL OR c.last_reminded_at < $9)
-   AND ($10::text IS NULL OR c.claim_no ILIKE '%' || $10 || '%'
-        OR c.employee_name ILIKE '%' || $10 || '%' OR c.description ILIKE '%' || $10 || '%')
+   AND ($6::text IS NULL OR c.department_name = $6)
+   AND ($7::date IS NULL OR c.transaction_date >= $7)
+   AND ($8::date IS NULL OR c.transaction_date <= $8)
+   AND ($9::timestamptz IS NULL OR c.submitted_at < $9)
+   AND ($10::timestamptz IS NULL OR c.last_reminded_at IS NULL OR c.last_reminded_at < $10)
+   AND ($11::text IS NULL OR c.claim_no ILIKE '%' || $11 || '%'
+        OR c.employee_name ILIKE '%' || $11 || '%' OR c.description ILIKE '%' || $11 || '%')
  ORDER BY c.transaction_date DESC, c.created_at DESC
- LIMIT $12 OFFSET $11
+ LIMIT $13 OFFSET $12
 `
 
 type ListClaimsParams struct {
@@ -483,6 +484,7 @@ type ListClaimsParams struct {
 	EmployeeID      *string
 	EmployeeUserID  *string
 	ManagerUserID   *string
+	Department      *string
 	MonthFrom       *time.Time
 	MonthTo         *time.Time
 	SubmittedBefore *time.Time
@@ -539,6 +541,7 @@ func (q *Queries) ListClaims(ctx context.Context, arg ListClaimsParams) ([]ListC
 		arg.EmployeeID,
 		arg.EmployeeUserID,
 		arg.ManagerUserID,
+		arg.Department,
 		arg.MonthFrom,
 		arg.MonthTo,
 		arg.SubmittedBefore,

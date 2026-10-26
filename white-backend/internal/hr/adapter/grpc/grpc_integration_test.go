@@ -171,4 +171,91 @@ func TestHandlersOverGRPC(t *testing.T) {
 	if err != nil || len(export.Data) < 1000 {
 		t.Fatalf("export: %v", err)
 	}
+	listFilters(t, conn, as("user-hr", authn.PermHRRead), *me.DepartmentId, me.DepartmentName)
+}
+
+// listFilters checks the dashboard drill filters on the HR list endpoints.
+func listFilters(t *testing.T, conn *grpc.ClientConn, ctx context.Context, deptID, deptName string) {
+	t.Helper()
+	directory := hrv1.NewEmployeeServiceClient(conn)
+	all, err := directory.ListEmployees(ctx, &hrv1.ListEmployeesRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name string
+		req  *hrv1.ListEmployeesRequest
+		want int
+	}{
+		{"gender", &hrv1.ListEmployeesRequest{Gender: "female"}, 0},
+		{"level", &hrv1.ListEmployeesRequest{Level: "director"}, 0},
+		{"status", &hrv1.ListEmployeesRequest{EmploymentStatus: "contract"}, 0},
+		{"position", &hrv1.ListEmployeesRequest{PositionId: all.Employees[0].GetPositionId()}, 0},
+		{"no match", &hrv1.ListEmployeesRequest{Gender: "female", Level: "nobody"}, -1},
+	} {
+		got, err := directory.ListEmployees(ctx, tc.req)
+		if err != nil {
+			t.Fatalf("%s: %v", tc.name, err)
+		}
+		if tc.want < 0 && got.Total != 0 || tc.want == 0 && (got.Total == 0 || got.Total >= all.Total) {
+			t.Fatalf("%s filter: %d of %d", tc.name, got.Total, all.Total)
+		}
+	}
+	directors, _ := directory.ListEmployees(ctx, &hrv1.ListEmployeesRequest{Level: "director"})
+	if directors.Total != 2 {
+		t.Fatalf("seeded directors: %d", directors.Total)
+	}
+
+	inDept := func(name string, refs []*hrv1.EmployeeRef) {
+		t.Helper()
+		if len(refs) == 0 {
+			t.Fatalf("%s: department filter returned nothing", name)
+		}
+		for _, r := range refs {
+			if r.DepartmentName != deptName {
+				t.Fatalf("%s: %s is in %q, want %q", name, r.FullName, r.DepartmentName, deptName)
+			}
+		}
+	}
+	att := hrv1.NewAttendanceServiceClient(conn)
+	every, err := att.ListAttendance(ctx, &hrv1.ListAttendanceRequest{StartDate: "2026-09-01", EndDate: "2026-09-30", PageSize: 500})
+	if err != nil {
+		t.Fatal(err)
+	}
+	dept, err := att.ListAttendance(ctx, &hrv1.ListAttendanceRequest{StartDate: "2026-09-01", EndDate: "2026-09-30", PageSize: 500, DepartmentId: deptID})
+	if err != nil || dept.Total >= every.Total {
+		t.Fatalf("attendance by department: %d of %d, %v", dept.GetTotal(), every.Total, err)
+	}
+	refs := make([]*hrv1.EmployeeRef, 0, len(dept.Records))
+	for _, r := range dept.Records {
+		refs = append(refs, r.Employee)
+	}
+	inDept("attendance", refs)
+
+	leaves, err := hrv1.NewLeaveServiceClient(conn).ListLeaves(ctx, &hrv1.ListLeavesRequest{DepartmentId: deptID, PageSize: 200})
+	if err != nil {
+		t.Fatal(err)
+	}
+	refs = refs[:0]
+	for _, l := range leaves.Leaves {
+		refs = append(refs, l.Employee)
+	}
+	if len(refs) > 0 {
+		inDept("leaves", refs)
+	}
+	ot, err := hrv1.NewOvertimeServiceClient(conn).ListOvertime(ctx, &hrv1.ListOvertimeRequest{DepartmentId: deptID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	refs = refs[:0]
+	for _, o := range ot.Overtime {
+		refs = append(refs, o.Employee)
+	}
+	if len(refs) > 0 {
+		inDept("overtime", refs)
+	}
+	none, err := att.ListAttendance(ctx, &hrv1.ListAttendanceRequest{DepartmentId: "no-such-department"})
+	if err != nil || none.Total != 0 {
+		t.Fatalf("unknown department: %v %v", none.GetTotal(), err)
+	}
 }

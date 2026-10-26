@@ -12,12 +12,14 @@ import { UrlTabs } from "@/features/erp/hr/components/ui";
 import { hrPerms, monthParam } from "@/features/erp/hr/perms";
 import {
   getPayrollSettings,
+  listDepartments,
   listEmployeeOptions,
   listLoans,
   listPayrollAdditions,
   listPayrollRuns,
   listSalaries,
 } from "@/features/erp/hr/queries";
+import { filterPeople } from "@/features/erp/hr/people-filter";
 import { th } from "@/features/erp/hr/strings";
 
 export const metadata: Metadata = { title: th.payroll.title };
@@ -49,12 +51,18 @@ export default async function PayrollPage(props: PageProps<"/erp/hr/payroll">) {
 async function Body({ tab, sp, perms }: { tab: string; sp: SP; perms: ReturnType<typeof hrPerms> }) {
   switch (tab) {
     case "salaries": {
-      const [list, emps] = await Promise.all([
-        load(() => listSalaries({ activeOnly: sp1(sp.all) !== "1" })),
+      const [list, emps, deps] = await Promise.all([
+        load(() => listSalaries({ activeOnly: sp1(sp.all) !== "1", employeeId: sp1(sp.employee) })),
         load(listEmployeeOptions),
+        load(() => listDepartments()),
       ]);
       return list.data ? (
-        <SalariesTable salaries={list.data} employees={emps.data ?? []} canWrite={perms.payroll} />
+        <SalariesTable
+          salaries={filterPeople(list.data, deps.data ?? [], { dept: sp1(sp.dept) })}
+          employees={emps.data ?? []}
+          departments={(deps.data ?? []).map((d) => ({ value: d.id, label: d.name }))}
+          canWrite={perms.payroll}
+        />
       ) : (
         <ErpError message={list.error.message} />
       );

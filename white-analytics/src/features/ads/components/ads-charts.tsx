@@ -8,12 +8,15 @@ import { DataTable } from "@/components/dashboard/data-table";
 import { formatCompact, formatCurrency, formatDate, formatNumber, formatPercent } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { resultTypeLabel, s } from "@/features/ads/strings";
+import { useDrill, useDrillParams } from "@/features/erp/shared/drill";
+import { ADS_DRILL } from "@/features/ads/components/ads-drill";
 
 export type AdsDailyPoint = { date: string; spend: number; results: number; spendPrev: number | null; resultsPrev: number | null };
 export type CampaignShareItem = { id: string; name: string; spend: number; results: number; resultType: string | null };
 
 /** (a) Belanja harian — bar slot 2 (oranye) + overlay periode sebelumnya. */
 export function SpendDailyCard({ daily, currency, compare }: { daily: AdsDailyPoint[]; currency: string; compare: boolean }) {
+  const { open } = useDrill();
   const money = (v: number) => formatCurrency(v, currency, { compact: true });
   const columns: ColumnDef<AdsDailyPoint, unknown>[] = [
     { accessorKey: "date", header: t.common.date, cell: ({ row }) => formatDate(row.original.date) },
@@ -41,6 +44,8 @@ export function SpendDailyCard({ daily, currency, compare }: { daily: AdsDailyPo
         previousKey={compare ? "spendPrev" : undefined}
         yFormat={(v) => formatCompact(v)}
         height={240}
+        onSelect={(p) => open(ADS_DRILL.day, p.date)}
+        selectLabel={s.drillPointLabel}
       />
     </ChartCard>
   );
@@ -48,6 +53,7 @@ export function SpendDailyCard({ daily, currency, compare }: { daily: AdsDailyPo
 
 /** (b) Hasil harian — bar slot 1 (small multiple terpisah, bukan dual axis). */
 export function ResultsDailyCard({ daily }: { daily: AdsDailyPoint[] }) {
+  const { open } = useDrill();
   const columns: ColumnDef<AdsDailyPoint, unknown>[] = [
     { accessorKey: "date", header: t.common.date, cell: ({ row }) => formatDate(row.original.date) },
     { accessorKey: "results", header: t.ads.results, cell: ({ row }) => formatNumber(row.original.results), meta: { align: "right" } },
@@ -63,6 +69,8 @@ export function ResultsDailyCard({ daily }: { daily: AdsDailyPoint[] }) {
         series={[{ key: "results", label: t.ads.results, type: "bar", format: (v) => formatNumber(v) }]}
         yFormat={(v) => formatCompact(v)}
         height={240}
+        onSelect={(p) => open(ADS_DRILL.day, p.date)}
+        selectLabel={s.drillPointLabel}
       />
     </ChartCard>
   );
@@ -70,6 +78,7 @@ export function ResultsDailyCard({ daily }: { daily: AdsDailyPoint[] }) {
 
 /** (c) Belanja per kampanye — HBar dengan porsi (share). */
 export function CampaignShareCard({ items, currency }: { items: CampaignShareItem[]; currency: string }) {
+  const { hrefWith } = useDrillParams();
   const total = items.reduce((a, b) => a + b.spend, 0);
   const columns: ColumnDef<CampaignShareItem, unknown>[] = [
     { accessorKey: "name", header: t.ads.campaign },
@@ -94,7 +103,7 @@ export function CampaignShareCard({ items, currency }: { items: CampaignShareIte
       table={<DataTable bare dense columns={columns} data={items} pageSize={Math.max(items.length, 1)} paginate={false} />}
     >
       <HBarChart
-        items={items.map((c) => ({ label: c.name, value: c.spend }))}
+        items={items.map((c) => ({ label: c.name, value: c.spend, href: hrefWith({ campaign: c.id }) }))}
         format={(v) => formatCurrency(v, currency, { compact: true })}
         showShare
         emptyLabel={t.common.noData}

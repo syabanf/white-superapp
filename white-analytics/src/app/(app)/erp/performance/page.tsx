@@ -29,6 +29,7 @@ import type {
   DashTasks,
 } from "@/features/erp/performance/dashboard/types";
 import { getDashboard } from "@/features/erp/performance/queries";
+import { DashboardTrail, type TrailLevel } from "@/features/erp/sales/dashboard/trail";
 import { sp } from "@/features/erp/performance/strings";
 
 export const metadata: Metadata = { title: ds.title };
@@ -71,11 +72,19 @@ export default async function PerformanceDashboardPage(props: PageProps<"/erp/pe
       </>
     );
   const tab: Tab = TABS.find((t) => t === sp1(q.tab)) ?? "summary";
+  const trail: TrailLevel[] = [
+    period.preset === "custom" ? { label: period.label, params: ["preset", "from", "to"] } : null,
+    query.departmentId
+      ? { label: ctx.data.departments.find((d) => d.id === query.departmentId)?.name ?? query.departmentId, params: ["dept", "emp"] }
+      : null,
+    query.employeeId ? { label: ctx.data.people.find((p) => p.id === query.employeeId)?.name ?? query.employeeId, params: ["emp"] } : null,
+  ].filter((l): l is TrailLevel => l != null);
 
   return (
     <>
       {header}
       <DashboardFilterBar context={ctx.data} preset={period.preset} />
+      <DashboardTrail levels={trail} />
       <UrlTabs label={ds.title} tabs={TABS.map((t) => ({ value: t, label: ds.tabs[t] }))} />
       <Suspense key={`${tab}|${JSON.stringify(query)}`} fallback={<TabSkeleton />}>
         <TabSection tab={tab} query={query} />

@@ -5499,6 +5499,26 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "dateFrom",
+            "description": "Invoice date range, YYYY-MM-DD, both inclusive.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "partyName",
+            "description": "Exact party (client or vendor) name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -5839,6 +5859,26 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "dateFrom",
+            "description": "Invoice date range, YYYY-MM-DD, both inclusive.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "partyName",
+            "description": "Exact party (client or vendor) name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -7638,6 +7678,26 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "department",
+            "description": "Exact department name on the claim.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateFrom",
+            "description": "Transaction date range, YYYY-MM-DD; month wins when both are set.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -8394,6 +8454,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -9067,6 +9133,32 @@
           },
           {
             "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "positionId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "level",
+            "description": "Position level (e.g. Staff, Manager).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "gender",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "employmentStatus",
+            "description": "Employment status code.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -9859,6 +9951,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -10043,6 +10141,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -10871,6 +10975,12 @@
           },
           {
             "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "departmentId",
             "in": "query",
             "required": false,
             "type": "string"
@@ -15153,6 +15263,13 @@
             "in": "query",
             "required": false,
             "type": "boolean"
+          },
+          {
+            "name": "source",
+            "description": "portal | internal | referral | jobstreet | ...",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -18747,6 +18864,54 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "serviceLine",
+            "description": "A service line the deal covers (social_media_management, seo, ...).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "industry",
+            "description": "Account industry; \"Lainnya\" matches deals without one.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "source",
+            "description": "Lead source of the deal's lead.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "lostReasonId",
+            "description": "A lost reason id; \"none\" matches lost deals without a reason.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateFrom",
+            "description": "Day range (YYYY-MM-DD, WIB, inclusive) on date_field.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateField",
+            "description": "created (default) | closed",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -19251,6 +19416,19 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "dateFrom",
+            "description": "Issue day range (sent, else created; YYYY-MM-DD, WIB, inclusive).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -19375,6 +19553,34 @@
           },
           {
             "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "dateFrom",
+            "description": "Created day range (YYYY-MM-DD, WIB, inclusive).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "scoreMin",
+            "description": "Score range, inclusive; unset bounds are open.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "scoreMax",
             "in": "query",
             "required": false,
             "type": "integer",

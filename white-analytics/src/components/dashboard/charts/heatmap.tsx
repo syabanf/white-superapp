@@ -11,7 +11,8 @@ export type HeatCell = { row: number; col: number; value: number; count?: number
 
 /**
  * Sequential heatmap (one hue, light→dark). Zero cells recede to the surface.
- * Each cell is its own hover target with a tooltip.
+ * Each cell is its own hover target with a tooltip. With `onSelect` every
+ * cell becomes a focusable button (row and column indexes are passed back).
  */
 export function Heatmap({
   cells,
@@ -24,6 +25,7 @@ export function Heatmap({
   countLabel,
   className,
   cellSize = 16,
+  onSelect,
 }: {
   cells: HeatCell[];
   rows: number;
@@ -35,6 +37,7 @@ export function Heatmap({
   countLabel?: string;
   className?: string;
   cellSize?: number;
+  onSelect?: (cell: HeatCell) => void;
 }) {
   const max = Math.max(0, ...cells.map((c) => c.value));
   const grid = React.useMemo(() => {
@@ -75,12 +78,22 @@ export function Heatmap({
               return (
                 <Tooltip key={c}>
                   <TooltipTrigger asChild>
-                    <div
-                      role="img"
-                      aria-label={`${rowLabels[r]} ${colLabels[c]}: ${format(v)}`}
-                      className="rounded-[3px] transition-transform hover:scale-110 hover:ring-2 hover:ring-foreground/40"
-                      style={{ width: cellSize, height: cellSize, background: bg }}
-                    />
+                    {onSelect ? (
+                      <button
+                        type="button"
+                        aria-label={`${rowLabels[r]} ${colLabels[c]}: ${format(v)}`}
+                        onClick={() => onSelect(cell ?? { row: r, col: c, value: 0 })}
+                        className="cursor-pointer rounded-[3px] outline-none transition-transform hover:scale-110 hover:ring-2 hover:ring-foreground/40 focus-visible:ring-2 focus-visible:ring-ring"
+                        style={{ width: cellSize, height: cellSize, background: bg }}
+                      />
+                    ) : (
+                      <div
+                        role="img"
+                        aria-label={`${rowLabels[r]} ${colLabels[c]}: ${format(v)}`}
+                        className="rounded-[3px] transition-transform hover:scale-110 hover:ring-2 hover:ring-foreground/40"
+                        style={{ width: cellSize, height: cellSize, background: bg }}
+                      />
+                    )}
                   </TooltipTrigger>
                   <TooltipContent className="text-xs">
                     <div className="font-medium">

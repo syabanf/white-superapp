@@ -50,7 +50,14 @@ func (l *Ledgers) PaymentStatus(i domain.Invoice) string {
 // ListInvoices pages invoices; a payment status filter is applied in Go
 // because it depends on today.
 func (l *Ledgers) ListInvoices(ctx context.Context, f domain.InvoiceFilter, paymentStatus string) ([]domain.Invoice, int, error) {
-	f.Search = trim(f.Search)
+	f.Search, f.PartyName = trim(f.Search), trim(f.PartyName)
+	var err error
+	if f.From, err = optionalDay("date_from", f.From); err != nil {
+		return nil, 0, err
+	}
+	if f.To, err = optionalDay("date_to", f.To); err != nil {
+		return nil, 0, err
+	}
 	if paymentStatus == "" || paymentStatus == "all" {
 		return l.Store.ListInvoices(ctx, f)
 	}

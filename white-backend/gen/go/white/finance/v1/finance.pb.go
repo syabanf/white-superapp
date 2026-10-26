@@ -6202,6 +6202,11 @@ type ListInvoicesRequest struct {
 	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
 	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Page          int32                  `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	// Invoice date range, YYYY-MM-DD, both inclusive.
+	DateFrom string `protobuf:"bytes,6,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo   string `protobuf:"bytes,7,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
+	// Exact party (client or vendor) name.
+	PartyName     string `protobuf:"bytes,8,opt,name=party_name,json=partyName,proto3" json:"party_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6269,6 +6274,27 @@ func (x *ListInvoicesRequest) GetPage() int32 {
 		return x.Page
 	}
 	return 0
+}
+
+func (x *ListInvoicesRequest) GetDateFrom() string {
+	if x != nil {
+		return x.DateFrom
+	}
+	return ""
+}
+
+func (x *ListInvoicesRequest) GetDateTo() string {
+	if x != nil {
+		return x.DateTo
+	}
+	return ""
+}
+
+func (x *ListInvoicesRequest) GetPartyName() string {
+	if x != nil {
+		return x.PartyName
+	}
+	return ""
 }
 
 type ListInvoicesResponse struct {
@@ -11275,10 +11301,15 @@ type ListClaimsRequest struct {
 	Category   ClaimCategory          `protobuf:"varint,2,opt,name=category,proto3,enum=white.finance.v1.ClaimCategory" json:"category,omitempty"`
 	EmployeeId string                 `protobuf:"bytes,3,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
 	// YYYY-MM of the transaction date.
-	Month         string `protobuf:"bytes,4,opt,name=month,proto3" json:"month,omitempty"`
-	Search        string `protobuf:"bytes,5,opt,name=search,proto3" json:"search,omitempty"`
-	PageSize      int32  `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Page          int32  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	Month    string `protobuf:"bytes,4,opt,name=month,proto3" json:"month,omitempty"`
+	Search   string `protobuf:"bytes,5,opt,name=search,proto3" json:"search,omitempty"`
+	PageSize int32  `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Page     int32  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	// Exact department name on the claim.
+	Department string `protobuf:"bytes,8,opt,name=department,proto3" json:"department,omitempty"`
+	// Transaction date range, YYYY-MM-DD; month wins when both are set.
+	DateFrom      string `protobuf:"bytes,9,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo        string `protobuf:"bytes,10,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -11360,6 +11391,27 @@ func (x *ListClaimsRequest) GetPage() int32 {
 		return x.Page
 	}
 	return 0
+}
+
+func (x *ListClaimsRequest) GetDepartment() string {
+	if x != nil {
+		return x.Department
+	}
+	return ""
+}
+
+func (x *ListClaimsRequest) GetDateFrom() string {
+	if x != nil {
+		return x.DateFrom
+	}
+	return ""
+}
+
+func (x *ListClaimsRequest) GetDateTo() string {
+	if x != nil {
+		return x.DateTo
+	}
+	return ""
 }
 
 type ListClaimsResponse struct {
@@ -13775,13 +13827,17 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\tclient_id\x18\t \x01(\tR\bclientId\"\\\n" +
 	"\x14UpdateInvoiceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x124\n" +
-	"\x05input\x18\x02 \x01(\v2\x1e.white.finance.v1.InvoiceInputR\x05input\"\xbf\x01\n" +
+	"\x05input\x18\x02 \x01(\v2\x1e.white.finance.v1.InvoiceInputR\x05input\"\x94\x02\n" +
 	"\x13ListInvoicesRequest\x128\n" +
 	"\x06status\x18\x01 \x01(\x0e2 .white.finance.v1.DocumentStatusR\x06status\x12%\n" +
 	"\x0epayment_status\x18\x02 \x01(\tR\rpaymentStatus\x12\x16\n" +
 	"\x06search\x18\x03 \x01(\tR\x06search\x12\x1b\n" +
 	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\x12\x12\n" +
-	"\x04page\x18\x05 \x01(\x05R\x04page\"c\n" +
+	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tdate_from\x18\x06 \x01(\tR\bdateFrom\x12\x17\n" +
+	"\adate_to\x18\a \x01(\tR\x06dateTo\x12\x1d\n" +
+	"\n" +
+	"party_name\x18\b \x01(\tR\tpartyName\"c\n" +
 	"\x14ListInvoicesResponse\x125\n" +
 	"\binvoices\x18\x01 \x03(\v2\x19.white.finance.v1.InvoiceR\binvoices\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"#\n" +
@@ -14238,7 +14294,7 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\"L\n" +
 	"\x13ListMyClaimsRequest\x125\n" +
-	"\x06status\x18\x01 \x01(\x0e2\x1d.white.finance.v1.ClaimStatusR\x06status\"\x87\x02\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x1d.white.finance.v1.ClaimStatusR\x06status\"\xdd\x02\n" +
 	"\x11ListClaimsRequest\x125\n" +
 	"\x06status\x18\x01 \x01(\x0e2\x1d.white.finance.v1.ClaimStatusR\x06status\x12;\n" +
 	"\bcategory\x18\x02 \x01(\x0e2\x1f.white.finance.v1.ClaimCategoryR\bcategory\x12\x1f\n" +
@@ -14247,7 +14303,13 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\x05month\x18\x04 \x01(\tR\x05month\x12\x16\n" +
 	"\x06search\x18\x05 \x01(\tR\x06search\x12\x1b\n" +
 	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\x12\x12\n" +
-	"\x04page\x18\a \x01(\x05R\x04page\"~\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1e\n" +
+	"\n" +
+	"department\x18\b \x01(\tR\n" +
+	"department\x12\x1b\n" +
+	"\tdate_from\x18\t \x01(\tR\bdateFrom\x12\x17\n" +
+	"\adate_to\x18\n" +
+	" \x01(\tR\x06dateTo\"~\n" +
 	"\x12ListClaimsResponse\x12/\n" +
 	"\x06claims\x18\x01 \x03(\v2\x17.white.finance.v1.ClaimR\x06claims\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12!\n" +

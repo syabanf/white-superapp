@@ -6,7 +6,9 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ErpDataTable, type ServerPage } from "@/features/erp/shared/data-table";
+import { DateRangeFilter } from "@/features/erp/shared/period-picker";
 import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
+import { UrlFilterChips } from "./filter-chips";
 import { formatDate } from "@/lib/format";
 import { nameOf, type SalesCaps } from "../lib";
 import { LEAD_SOURCE, LEAD_STATUS, ORG_TYPE, TEMPERATURE, lbl, opts, ss } from "../strings";
@@ -28,7 +30,10 @@ export function LeadsTable({
   accounts,
   customFields,
   caps,
+  scoreRange,
 }: {
+  /** "20-39" when a dashboard drill narrowed the list by score */
+  scoreRange?: string;
   leads: Lead[];
   pagination: ServerPage;
   owners: Option[];
@@ -37,6 +42,7 @@ export function LeadsTable({
   caps: SalesCaps;
 }) {
   const router = useRouter();
+  const scoreChip = scoreRange ? { label: s.score, value: scoreRange, params: ["scoreMin", "scoreMax"] } : null;
   const names = React.useMemo(() => Object.fromEntries(owners.map((o) => [o.value, o.label])), [owners]);
   const listFields = customFields.filter((f) => f.isActive && f.showInList);
   const columns: ColumnDef<Lead, unknown>[] = [
@@ -100,7 +106,9 @@ export function LeadsTable({
           <SelectFilter param="temperature" label={s.temperature} allLabel={s.allTemp} options={opts(TEMPERATURE)} />
           <SelectFilter param="source" label={s.source} allLabel={s.allSource} options={opts(LEAD_SOURCE)} />
           <SelectFilter param="owner" label={ss.owner} allLabel={s.allOwner} options={owners} />
-          <ResetFilters params={["q", "status", "temperature", "source", "owner"]} />
+          <DateRangeFilter />
+          <UrlFilterChips chips={scoreChip ? [scoreChip] : []} />
+          <ResetFilters params={["q", "status", "temperature", "source", "owner", "from", "to", "scoreMin", "scoreMax"]} />
           {caps.write ? (
             <div className="ml-auto flex gap-2">
               <LeadImportDialog />

@@ -7,10 +7,11 @@ import { BoxPlot } from "@/components/dashboard/charts/box-plot";
 import { FunnelChart } from "@/components/dashboard/charts/funnel-chart";
 import { StackedBarChart, type CategoryRow } from "@/components/dashboard/charts/stacked-bar-chart";
 import { formatDate, formatDecimal, formatNumber, formatPercent } from "@/lib/format";
-import { candidateHref, candidatesHref, pipelineHref, rate, topN, type DrillContext } from "../../analytics";
+import { candidateHref, candidatesHref, rate, topN, type DrillContext } from "../../analytics";
 import { CANDIDATE_STATUS, ra } from "../../strings";
 import type { FunnelStageStat, RecruitmentDashboard, StuckCandidate } from "../../types";
 import { CandidateBadge } from "../ui";
+import { useRecruitmentDrill } from "./drill";
 import { AnalyticsTable } from "./table";
 
 const STACK = ["applied", "screening", "psikotes", "interview", "offer", "hired", "rejected", "talent_pool"] as const;
@@ -24,12 +25,13 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
   const cycle = funnel.slice(0, -1).reduce((a, f) => a + (medians.get(f.stage)?.medianDays ?? 0), 0);
   const exits = funnel.reduce((a, f) => a + f.exited, 0);
   const conversion = rate(hired, applied);
+  const drill = useRecruitmentDrill(ctx);
 
   // opening x status, top 10 openings by applications, the rest folded
   const byOpening = new Map<string, CategoryRow & { total: number }>();
   for (const r of data.openingStages) {
     const status = r.status === "archived" ? "talent_pool" : r.status;
-    const row = byOpening.get(r.jobOpeningId) ?? { label: r.title || ra.sources.others, href: pipelineHref(ctx, r.jobOpeningId), total: 0 };
+    const row = byOpening.get(r.jobOpeningId) ?? { label: r.title || ra.sources.others, job: r.jobOpeningId, total: 0 };
     row[status] = Number(row[status] ?? 0) + r.count;
     row.total += r.count;
     byOpening.set(r.jobOpeningId, row);
@@ -47,10 +49,20 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
     <div className="flex flex-col gap-4 sm:gap-5">
       <StatStrip
         items={[
-          { label: s.conversion, value: conversion == null ? "–" : formatPercent(conversion, 1), caption: `${formatNumber(hired)} dari ${formatNumber(applied)}` },
-          { label: s.medianCycle, value: ra.days(formatDecimal(cycle, 1)) },
-          { label: s.stuckCount, value: formatNumber(data.stuck.length), caption: `≥ ${data.stuckAfterDays} hari` },
-          { label: s.exits, value: formatNumber(exits), caption: applied ? formatPercent((exits / applied) * 100, 0) : undefined },
+          {
+            label: s.conversion,
+            value: conversion == null ? "–" : formatPercent(conversion, 1),
+            caption: `${formatNumber(hired)} dari ${formatNumber(applied)}`,
+            href: candidatesHref(ctx, { status: "hired" }),
+          },
+          { label: s.medianCycle, value: ra.days(formatDecimal(cycle, 1)), lowerIsBetter: true, href: "#durasi-tahap" },
+          { label: s.stuckCount, value: formatNumber(data.stuck.length), caption: `≥ ${data.stuckAfterDays} hari`, lowerIsBetter: true, href: "#kandidat-macet" },
+          {
+            label: s.exits,
+            value: formatNumber(exits),
+            caption: applied ? formatPercent((exits / applied) * 100, 0) : undefined,
+            href: candidatesHref(ctx, { status: "rejected" }),
+          },
         ]}
       />
 
@@ -62,11 +74,12 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
               label: CANDIDATE_STATUS[f.stage] ?? f.label,
               value: f.reached,
               exited: f.exited,
-              href: candidatesHref(ctx, { status: f.stage }),
             }))}
+            onSelect={(st) => drill("cand", { status: st.key, l: st.label })}
           />
         </ChartCard>
-        <ChartCard title={s.duration} description={s.durationHint}>
+        <div id="durasi-tahap" className="min-w-0 scroll-mt-20">
+        <ChartCard title={s.duration} description={s.durationHint} className="h-full">
           <BoxPlot
             unit=" hr"
             format={(v) => ra.days(formatDecimal(v, 1))}
@@ -83,8 +96,13 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
                 avg: d.avgDays,
                 count: d.count,
               }))}
+            onSelect={(row) => {
+              const stage = data.stageDurations.find((d) => (CANDIDATE_STATUS[d.stage] ?? d.label) === row.label)?.stage;
+              if (stage) drill("cand", { status: stage, from: null, to: null, l: ra.drill.inStage(row.label) });
+            }}
           />
         </ChartCard>
+        </div>
       </div>
 
       <ChartCard title={s.byOpening} description={s.byOpeningHint}>
@@ -94,6 +112,11 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
           data={openingRows}
           series={STACK.map((st) => ({ key: st, label: CANDIDATE_STATUS[st] ?? st, format: formatNumber }))}
           valueFormat={formatNumber}
+          onSelect={(row, key) => {
+            const job = row.job as string | undefined;
+            if (!job) return;
+            drill("cand", { job, status: key ?? undefined, dim: "job", l: key ? `${row.label} · ${CANDIDATE_STATUS[key] ?? key}` : row.label });
+          }}
         />
       </ChartCard>
 
@@ -139,6 +162,7 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
         />
       </ChartCard>
 
+      <div id="kandidat-macet" className="scroll-mt-20">
       <ChartCard title={s.stuck(data.stuckAfterDays)}>
         <AnalyticsTable<StuckCandidate>
           rows={data.stuck}
@@ -159,11 +183,18 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
             },
             { key: "opening", header: s.cols.opening, cell: (r) => r.jobOpeningTitle || ra.sources.others, sort: (r) => r.jobOpeningTitle },
             { key: "stage", header: s.cols.stage, cell: (r) => <CandidateBadge status={r.status} />, sort: (r) => r.status },
-            { key: "days", header: s.cols.daysInStage, align: "right", cell: (r) => formatNumber(r.daysInStage), sort: (r) => r.daysInStage },
+            {
+              key: "days",
+              header: s.cols.daysInStage,
+              align: "right",
+              cell: (r) => <span className="text-negative">▲ {formatNumber(r.daysInStage)}</span>,
+              sort: (r) => r.daysInStage,
+            },
             { key: "since", header: s.cols.since, cell: (r) => formatDate(r.enteredAt), sort: (r) => r.enteredAt },
           ]}
         />
       </ChartCard>
+      </div>
     </div>
   );
 }

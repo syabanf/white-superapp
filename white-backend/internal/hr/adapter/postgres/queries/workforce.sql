@@ -91,6 +91,7 @@ WHERE (cardinality(sqlc.arg(employee_ids)::text[]) = 0 OR a.employee_id = ANY (s
   AND (sqlc.arg(status)::text = '' OR a.status::text = sqlc.arg(status)::text)
   AND (NOT sqlc.arg(only_late)::boolean OR a.is_late)
   AND (NOT sqlc.arg(only_unvalidated)::boolean OR a.validated_at IS NULL)
+  AND (sqlc.arg(department_id)::text = '' OR e.department_id = sqlc.arg(department_id)::text)
 ORDER BY a.date DESC, e.full_name
 LIMIT sqlc.arg(row_limit)::int OFFSET sqlc.arg(row_offset)::int;
 
@@ -189,6 +190,7 @@ WHERE (cardinality(sqlc.arg(employee_ids)::text[]) = 0 OR l.employee_id = ANY (s
   AND (sqlc.arg(leave_type)::text = '' OR l.leave_type = sqlc.arg(leave_type)::text)
   AND (sqlc.narg(date_from)::date IS NULL OR l.end_date >= sqlc.narg(date_from)::date)
   AND (sqlc.narg(date_to)::date IS NULL OR l.start_date <= sqlc.narg(date_to)::date)
+  AND (sqlc.arg(department_id)::text = '' OR e.department_id = sqlc.arg(department_id)::text)
 ORDER BY l.created_at DESC
 LIMIT sqlc.arg(row_limit)::int OFFSET sqlc.arg(row_offset)::int;
 
@@ -246,6 +248,7 @@ WHERE (cardinality(sqlc.arg(employee_ids)::text[]) = 0 OR o.employee_id = ANY (s
   AND (sqlc.arg(status)::text = '' OR o.status = sqlc.arg(status)::text)
   AND (sqlc.narg(date_from)::date IS NULL OR o.date >= sqlc.narg(date_from)::date)
   AND (sqlc.narg(date_to)::date IS NULL OR o.date <= sqlc.narg(date_to)::date)
+  AND (sqlc.arg(department_id)::text = '' OR e.department_id = sqlc.arg(department_id)::text)
 ORDER BY o.date DESC, o.created_at DESC
 LIMIT 500;
 

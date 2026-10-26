@@ -276,7 +276,8 @@ func (s *Store) ListEmployees(ctx context.Context, f domain.EmployeeFilter) ([]d
 		limit = 1000
 	}
 	rows, err := s.q.ListEmployees(ctx, sqlc.ListEmployeesParams{IncludeInactive: f.IncludeInactive, DepartmentID: f.DepartmentID,
-		ManagerID: f.ManagerID, Ids: nonNil(f.IDs), Search: f.Search, RowLimit: i32(limit), RowOffset: i32(f.Offset)})
+		ManagerID: f.ManagerID, Ids: nonNil(f.IDs), Search: f.Search, PositionID: f.PositionID, Level: f.Level, Gender: f.Gender,
+		EmploymentStatus: f.EmploymentStatus, RowLimit: i32(limit), RowOffset: i32(f.Offset)})
 	if err != nil {
 		return nil, 0, err
 	}

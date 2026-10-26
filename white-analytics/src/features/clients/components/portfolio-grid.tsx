@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { ArrowUpRight, CircleAlert, Clock, Megaphone, Search, Share2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,8 @@ export type PortfolioCardData = {
   attention: { label: string; href: string; kind: "warning" | "critical" }[];
 };
 
-type SortKey = "name" | "followers" | "clicks" | "spend" | "health";
+const SORT_KEYS = ["name", "followers", "clicks", "spend", "health"] as const;
+type SortKey = (typeof SORT_KEYS)[number];
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "name", label: tc.portfolio.sortName },
@@ -50,7 +52,11 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 
 export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
   const [query, setQuery] = React.useState("");
-  const [sort, setSort] = React.useState<SortKey>("name");
+  // in the URL so the portfolio hero stats can open the grid sorted by their metric
+  const [sort, setSort] = useQueryState(
+    "sort",
+    parseAsStringLiteral(SORT_KEYS).withDefault("name").withOptions({ history: "replace", scroll: false }),
+  );
 
   const visible = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -95,7 +101,7 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{tc.portfolio.sort}</span>
-          <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
+          <Select value={sort} onValueChange={(v) => void setSort(v as SortKey)}>
             <SelectTrigger size="sm" className="w-40" aria-label={tc.portfolio.sort}>
               <SelectValue />
             </SelectTrigger>
@@ -163,12 +169,18 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
       </div>
 
       <div className="space-y-0.5 rounded-2xl bg-muted/70 p-1.5">
-        <MiniMetric label={tc.portfolio.metricFollowers} value={formatCompact(data.followers)} delta={data.followersDelta} />
-        <MiniMetric label={tc.portfolio.metricClicks} value={data.coverage.seo ? formatCompact(data.clicks) : "–"} delta={data.coverage.seo ? data.clicksDelta : null} />
+        <MiniMetric label={tc.portfolio.metricFollowers} value={formatCompact(data.followers)} delta={data.followersDelta} href={href("social")} />
+        <MiniMetric
+          label={tc.portfolio.metricClicks}
+          value={data.coverage.seo ? formatCompact(data.clicks) : "–"}
+          delta={data.coverage.seo ? data.clicksDelta : null}
+          href={href("seo")}
+        />
         <MiniMetric
           label={tc.portfolio.metricSpend}
           value={data.coverage.ads ? formatCurrency(data.spend, data.currency, { compact: true }) : "–"}
           delta={data.coverage.ads ? data.spendDelta : null}
+          href={href("ads")}
         />
       </div>
       {!data.coverage.social || !data.coverage.seo || !data.coverage.ads ? <p className="text-xs text-muted-foreground">– berarti belum ada data pada periode terpilih.</p> : null}
@@ -217,14 +229,17 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
 }
 
 /** One metric row: label left, value (and delta when comparing) right. */
-function MiniMetric({ label, value, delta }: { label: string; value: string; delta: Delta | null }) {
+function MiniMetric({ label, value, delta, href }: { label: string; value: string; delta: Delta | null; href: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl px-3 py-2">
+    <Link
+      href={href}
+      className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 outline-none transition-colors hover:bg-background/70 focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <span className="label-mono truncate text-muted-foreground">{label}</span>
       <span className="flex shrink-0 items-center gap-2">
         <span className="text-[15px] font-semibold tracking-[-0.02em] tabular">{value}</span>
         {delta ? <DeltaBadge delta={delta} /> : null}
       </span>
-    </div>
+    </Link>
   );
 }

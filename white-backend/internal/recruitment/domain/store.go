@@ -10,6 +10,7 @@ type CandidateFilter struct {
 	Statuses     []string
 	JobOpeningID string
 	Search       string
+	Source       string
 	DateFrom     *time.Time
 	DateTo       *time.Time
 	SortUpdated  bool

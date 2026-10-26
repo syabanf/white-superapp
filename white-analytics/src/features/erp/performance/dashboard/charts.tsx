@@ -17,6 +17,7 @@ import {
   AXIS_TICK,
   CURSOR_STROKE,
   GRID_STROKE,
+  MarkButtons,
   MUTED_SERIES,
   SeriesLegend,
   TooltipBox,
@@ -24,6 +25,7 @@ import {
   type SeriesDef,
 } from "@/components/dashboard/charts/chart-primitives";
 import { Tooltip as UiTooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { DeltaText } from "@/components/dashboard/delta-badge";
 import { cn } from "@/lib/utils";
 import { ds } from "./strings";
 
@@ -144,6 +146,7 @@ export function TrendChart({
         </ResponsiveContainer>
       </div>
       <SeriesLegend series={resolved} className="mt-2" />
+      {onPick ? <MarkButtons marks={data} label={(row) => xFormat(String(row[xKey]))} onSelect={(row) => onPick(row)} /> : null}
     </div>
   );
 }
@@ -163,14 +166,17 @@ export type Segment = { key: string; label: string; color: string };
  * One horizontal stacked bar per row (composition), 2px surface gaps
  * between segments, total at the right. Rows link to hrefs.
  */
-export function StackedRows({
+export function StackedRows<R extends { label: string; href?: string; values: Record<string, number>; total?: number }>({
   rows,
   segments,
   format = (v) => v.toLocaleString("id-ID"),
+  onSelect,
 }: {
-  rows: { label: string; href?: string; values: Record<string, number>; total?: number }[];
+  rows: R[];
   segments: Segment[];
   format?: (v: number) => string;
+  /** a segment click passes its key; the row label passes null */
+  onSelect?: (row: R, segment: string | null) => void;
 }) {
   if (rows.length === 0) return EMPTY;
   const max = Math.max(
@@ -185,7 +191,13 @@ export function StackedRows({
           const body = (
             <>
               <div className="mb-1 flex items-center justify-between gap-3 text-xs">
-                <span className="truncate font-medium">{r.label}</span>
+                {onSelect ? (
+                  <button type="button" onClick={() => onSelect(r, null)} className="min-w-0 cursor-pointer truncate rounded-sm text-left font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+                    {r.label}
+                  </button>
+                ) : (
+                  <span className="truncate font-medium">{r.label}</span>
+                )}
                 <span className="shrink-0 tabular text-muted-foreground">{format(total)}</span>
               </div>
               <div
@@ -198,10 +210,17 @@ export function StackedRows({
                   return (
                     <UiTooltip key={s.key}>
                       <TooltipTrigger asChild>
-                        <span
-                          className="h-full min-w-[3px]"
-                          style={{ flexGrow: v, flexBasis: 0, background: s.color }}
-                        />
+                        {onSelect ? (
+                          <button
+                            type="button"
+                            aria-label={`${r.label} · ${s.label}: ${format(v)}`}
+                            onClick={() => onSelect(r, s.key)}
+                            className="h-full min-w-[3px] cursor-pointer outline-none hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring"
+                            style={{ flexGrow: v, flexBasis: 0, background: s.color }}
+                          />
+                        ) : (
+                          <span className="h-full min-w-[3px]" style={{ flexGrow: v, flexBasis: 0, background: s.color }} />
+                        )}
                       </TooltipTrigger>
                       <TooltipContent className="text-xs">
                         {r.label} · {s.label}: <span className="font-semibold tabular">{format(v)}</span>
@@ -297,10 +316,12 @@ export function Funnel({
  * Bullet rows: attainment bar (0-150%), a tick at the 100% target and a
  * hollow marker for the comparison period.
  */
-export function BulletRows({
+export function BulletRows<R extends { label: string; value?: number; previous?: number; caption: string }>({
   rows,
+  onSelect,
 }: {
-  rows: { label: string; value?: number; previous?: number; caption: string; good?: boolean }[];
+  rows: R[];
+  onSelect?: (row: R) => void;
 }) {
   if (rows.length === 0) return EMPTY;
   const MAX = 1.5;
@@ -310,9 +331,16 @@ export function BulletRows({
       {rows.map((r) => (
         <li key={r.label}>
           <div className="mb-1 flex items-baseline justify-between gap-3 text-xs">
-            <span className="truncate font-medium">{r.label}</span>
+            {onSelect ? (
+              <button type="button" onClick={() => onSelect(r)} className="min-w-0 cursor-pointer truncate rounded-sm text-left font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+                {r.label}
+              </button>
+            ) : (
+              <span className="truncate font-medium">{r.label}</span>
+            )}
             <span className="shrink-0 tabular">
               <span className="font-semibold">{r.value == null ? "–" : `${Math.round(r.value * 100)}%`}</span>
+              {r.value != null && r.previous != null ? <DeltaText current={Math.round(r.value * 100)} previous={Math.round(r.previous * 100)} mode="abs" suffix=" poin" className="ml-1.5" /> : null}
               <span className="ml-1.5 text-muted-foreground">{r.caption}</span>
             </span>
           </div>
@@ -451,7 +479,7 @@ export function PairedBars({
   currentLabel,
   previousLabel,
 }: {
-  rows: { label: string; value?: number; previous?: number }[];
+  rows: { label: string; value?: number; previous?: number; href?: string }[];
   max: number;
   format: (v: number) => string;
   currentLabel: string;
@@ -465,12 +493,19 @@ export function PairedBars({
         {rows.map((r) => (
           <li key={r.label} className="text-xs">
             <div className="mb-1 flex justify-between gap-3">
-              <span className="truncate font-medium">{r.label}</span>
+              {r.href ? (
+                <Link href={r.href} className="truncate font-medium underline-offset-4 hover:underline">
+                  {r.label}
+                </Link>
+              ) : (
+                <span className="truncate font-medium">{r.label}</span>
+              )}
               <span className="shrink-0 tabular">
                 <span className="font-semibold">{r.value == null ? "–" : format(r.value)}</span>
                 {r.previous != null ? (
                   <span className="ml-1.5 text-muted-foreground">{format(r.previous)}</span>
                 ) : null}
+                {r.value != null && r.previous != null ? <DeltaText current={r.value} previous={r.previous} mode="abs" digits={1} className="ml-1.5" /> : null}
               </span>
             </div>
             <div className="space-y-[2px]">

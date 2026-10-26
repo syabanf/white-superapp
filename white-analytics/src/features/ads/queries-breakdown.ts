@@ -30,6 +30,7 @@ export type AdsCampaignNode = {
 export type AdsTopAd = {
   id: string;
   name: string;
+  campaignId: string | null;
   campaignName: string;
   status: string;
   thumbnailUrl: string | null;
@@ -169,6 +170,7 @@ export function buildTopAds(
       return {
         id: x.adId,
         name: meta?.name ?? x.adId,
+        campaignId: cid ?? null,
         campaignName: (cid && campaignName.get(cid)) || "–",
         status: meta?.status ?? "ACTIVE",
         thumbnailUrl: meta?.thumbnailUrl ?? null,

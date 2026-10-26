@@ -38,6 +38,7 @@ export const listCandidates = (p: {
   status?: string;
   jobOpeningId?: string;
   search?: string;
+  source?: string;
   dateFrom?: string;
   dateTo?: string;
   sort?: string;

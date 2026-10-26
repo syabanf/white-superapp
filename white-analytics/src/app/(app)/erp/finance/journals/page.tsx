@@ -69,6 +69,7 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
       entryType: sp1(sp.type),
       dateFrom: sp1(sp.from),
       dateTo: sp1(sp.to),
+      accountId: sp1(sp.account),
       page,
       pageSize,
     }),

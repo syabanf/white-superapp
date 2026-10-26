@@ -298,6 +298,16 @@ func TestCandidatesPipeline(t *testing.T) {
 	if page.Total != 1 {
 		t.Fatal(page)
 	}
+	if _, err := f.cands.Update(hrCtx, other.ID, domain.CandidatePatch{Source: sp("referral")}); err != nil {
+		t.Fatal(err)
+	}
+	page, _ = f.cands.List(readerCtx, app.ListQuery{Source: "referral"})
+	if page.Total != 1 || page.Candidates[0].ID != other.ID {
+		t.Fatal(page)
+	}
+	if page, _ = f.cands.List(readerCtx, app.ListQuery{Source: "jobstreet"}); page.Total != 0 {
+		t.Fatal(page)
+	}
 	cols, err := f.cands.Pipeline(readerCtx, o.ID, "")
 	if err != nil || len(cols) != 8 || cols[3].Status != "interview" || cols[3].Count != 1 || cols[0].Count != 0 {
 		t.Fatalf("%v %+v", err, cols)

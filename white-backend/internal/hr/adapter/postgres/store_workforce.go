@@ -194,7 +194,7 @@ func (s *Store) ListAttendance(ctx context.Context, f domain.AttendanceFilter) (
 		limit = 5000
 	}
 	rows, err := s.q.ListAttendance(ctx, sqlc.ListAttendanceParams{EmployeeIds: nonNil(f.EmployeeIDs), DateFrom: optDay(f.From),
-		DateTo: optDay(f.To), Status: f.Status, OnlyLate: f.OnlyLate, OnlyUnvalidated: f.OnlyUnvalidated,
+		DateTo: optDay(f.To), Status: f.Status, OnlyLate: f.OnlyLate, OnlyUnvalidated: f.OnlyUnvalidated, DepartmentID: f.DepartmentID,
 		RowLimit: i32(limit), RowOffset: i32(f.Offset)})
 	if err != nil {
 		return nil, 0, err
@@ -338,7 +338,7 @@ func (s *Store) ListLeaves(ctx context.Context, f domain.LeaveFilter) ([]domain.
 		statuses = []string{f.Status}
 	}
 	rows, err := s.q.ListLeaves(ctx, sqlc.ListLeavesParams{EmployeeIds: nonNil(f.EmployeeIDs), Statuses: nonNil(statuses),
-		LeaveType: f.LeaveType, DateFrom: optDay(f.From), DateTo: optDay(f.To), RowLimit: i32(limit), RowOffset: i32(f.Offset)})
+		LeaveType: f.LeaveType, DateFrom: optDay(f.From), DateTo: optDay(f.To), DepartmentID: f.DepartmentID, RowLimit: i32(limit), RowOffset: i32(f.Offset)})
 	if err != nil {
 		return nil, 0, err
 	}
@@ -403,7 +403,7 @@ func toOvertime(o sqlc.HrOvertimeRequest, start, end, name, no string, mgr *stri
 
 func (s *Store) ListOvertime(ctx context.Context, f domain.OvertimeFilter) ([]domain.Overtime, error) {
 	rows, err := s.q.ListOvertime(ctx, sqlc.ListOvertimeParams{EmployeeIds: nonNil(f.EmployeeIDs), Source: f.Source, Status: f.Status,
-		DateFrom: optDay(f.From), DateTo: optDay(f.To)})
+		DateFrom: optDay(f.From), DateTo: optDay(f.To), DepartmentID: f.DepartmentID})
 	if err != nil {
 		return nil, err
 	}

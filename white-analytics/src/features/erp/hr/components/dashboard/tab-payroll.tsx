@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { StatStrip } from "@/components/dashboard/stat-strip";
 import { HBarChart } from "@/components/dashboard/charts/hbar-chart";
@@ -14,6 +13,7 @@ import { delta, monthLabel, num0, rp, rpCompact } from "@/features/erp/hr/dashbo
 import { thd } from "@/features/erp/hr/dashboard/strings";
 import { ChartEmpty, ComboChart, RangeBars, Waterfall } from "./charts";
 import { SortTable } from "./sort-table";
+import { useHrDrill, useHrScope } from "./drill";
 import { deptPalette, Grid, type TabProps } from "./shared";
 
 const c = thd.charts;
@@ -21,7 +21,10 @@ const k = thd.kpi;
 const s = thd.series;
 
 export function PayrollTab({ data }: TabProps) {
-  const router = useRouter();
+  const drill = useHrDrill();
+  const { dept } = useHrScope();
+  const year = data.to.slice(0, 4);
+  const runs = hrLinks.payroll(year);
   const cur = data.current;
   const prev = data.previous;
   const depts = deptPalette(data);
@@ -32,7 +35,7 @@ export function PayrollTab({ data }: TabProps) {
     const net = m(b.payrollNet);
     const pph = m(b.payrollPph21);
     const bpjs = m(b.payrollBpjsEmployee);
-    return { label: monthLabel(b.date), tip: monthLabel(b.date), net, pph, bpjs, other: Math.max(0, gross - net - pph - bpjs) };
+    return { label: monthLabel(b.date), tip: monthLabel(b.date), date: b.date, net, pph, bpjs, other: Math.max(0, gross - net - pph - bpjs) };
   });
 
   const sum = (pick: (b: (typeof data.buckets)[number]) => string) => data.buckets.reduce((a, b) => a + m(pick(b)), 0);
@@ -46,17 +49,23 @@ export function PayrollTab({ data }: TabProps) {
     <div className="space-y-5">
       <StatStrip
         items={[
-          { label: k.gross, value: rpCompact(cur.payrollGross), delta: delta(m(cur.payrollGross), m(prev.payrollGross)), lowerIsBetter: true, hint: k.exact(rp(cur.payrollGross)) },
-          { label: k.net, value: rpCompact(cur.payrollNet), delta: delta(m(cur.payrollNet), m(prev.payrollNet)), lowerIsBetter: true, hint: k.exact(rp(cur.payrollNet)) },
+          { label: k.gross, value: rpCompact(cur.payrollGross), delta: delta(m(cur.payrollGross), m(prev.payrollGross)), lowerIsBetter: true, hint: k.exact(rp(cur.payrollGross)), href: runs },
+          { label: k.net, value: rpCompact(cur.payrollNet), delta: delta(m(cur.payrollNet), m(prev.payrollNet)), lowerIsBetter: true, hint: k.exact(rp(cur.payrollNet)), href: runs },
           {
             label: k.employerCost,
             value: rpCompact(cur.payrollEmployerCost),
             delta: delta(m(cur.payrollEmployerCost), m(prev.payrollEmployerCost)),
             lowerIsBetter: true,
             hint: `${k.payrollHint} ${k.exact(rp(cur.payrollEmployerCost))}`,
+            href: runs,
           },
-          { label: k.paidEmployees, value: num0(cur.payrollEmployees), delta: delta(cur.payrollEmployees, prev.payrollEmployees) },
-          { label: k.loans, value: rpCompact(data.loansOutstanding), hint: k.exact(rp(data.loansOutstanding)) },
+          {
+            label: k.paidEmployees,
+            value: num0(cur.payrollEmployees),
+            delta: delta(cur.payrollEmployees, prev.payrollEmployees),
+            href: hrLinks.salaries({ dept }),
+          },
+          { label: k.loans, value: rpCompact(data.loansOutstanding), hint: k.exact(rp(data.loansOutstanding)), href: hrLinks.loans() },
         ]}
       />
 
@@ -72,7 +81,7 @@ export function PayrollTab({ data }: TabProps) {
               { key: "other", label: s.otherDeductions, color: slotColor(3), format: rp },
             ]}
             yFormat={(v) => rpCompact(v)}
-            onSelect={() => router.push(hrLinks.payroll())}
+            onSelect={(r) => drill("pay", { month: String(r.date).slice(0, 7) })}
             summary={c.payrollTrend}
             height={280}
           />
@@ -82,7 +91,8 @@ export function PayrollTab({ data }: TabProps) {
             items={[...data.departments]
               .filter((d) => m(d.payrollEmployerCost) > 0)
               .sort((a, b) => m(b.payrollEmployerCost) - m(a.payrollEmployerCost))
-              .map((d) => ({ label: depts.name(d.departmentId), value: m(d.payrollEmployerCost) }))}
+              .map((d) => ({ label: depts.name(d.departmentId), value: m(d.payrollEmployerCost), key: d.departmentId }))}
+            onSelect={(item) => item.key && drill("pay", { month: data.to.slice(0, 7), dept: item.key })}
             format={(v) => rpCompact(v)}
             showShare
             emptyLabel={thd.emptyPayroll}
@@ -105,6 +115,7 @@ export function PayrollTab({ data }: TabProps) {
               ]}
               format={(v) => rpCompact(v)}
               summary={`${c.waterfall}: ${rp(gross)} ke ${rp(net)}`}
+              onSelect={() => drill("pay", { month: data.to.slice(0, 7) })}
               height={280}
             />
           ) : (
@@ -120,6 +131,7 @@ export function PayrollTab({ data }: TabProps) {
               max: m(l.maxGross),
               avg: m(l.avgGross),
               count: l.employees,
+              href: l.level ? hrLinks.employees({ level: l.level, dept }) : undefined,
             }))}
             format={(v) => rpCompact(v)}
           />

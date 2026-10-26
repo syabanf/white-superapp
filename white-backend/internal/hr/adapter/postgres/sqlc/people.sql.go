@@ -572,18 +572,26 @@ WHERE e.deleted_at IS NULL
   AND (cardinality($4::text[]) = 0 OR e.id = ANY ($4::text[]))
   AND ($5::text = '' OR e.full_name ILIKE '%' || $5::text || '%'
        OR e.employee_no ILIKE '%' || $5::text || '%' OR e.email ILIKE '%' || $5::text || '%')
+  AND ($6::text = '' OR e.position_id = $6::text)
+  AND ($7::text = '' OR p.level = $7::text)
+  AND ($8::text = '' OR e.gender = $8::text)
+  AND ($9::text = '' OR e.employment_status = $9::text)
 ORDER BY e.full_name
-LIMIT $7::int OFFSET $6::int
+LIMIT $11::int OFFSET $10::int
 `
 
 type ListEmployeesParams struct {
-	IncludeInactive bool
-	DepartmentID    string
-	ManagerID       string
-	Ids             []string
-	Search          string
-	RowOffset       int32
-	RowLimit        int32
+	IncludeInactive  bool
+	DepartmentID     string
+	ManagerID        string
+	Ids              []string
+	Search           string
+	PositionID       string
+	Level            string
+	Gender           string
+	EmploymentStatus string
+	RowOffset        int32
+	RowLimit         int32
 }
 
 type ListEmployeesRow struct {
@@ -603,6 +611,10 @@ func (q *Queries) ListEmployees(ctx context.Context, arg ListEmployeesParams) ([
 		arg.ManagerID,
 		arg.Ids,
 		arg.Search,
+		arg.PositionID,
+		arg.Level,
+		arg.Gender,
+		arg.EmploymentStatus,
 		arg.RowOffset,
 		arg.RowLimit,
 	)

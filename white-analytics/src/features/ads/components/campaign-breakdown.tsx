@@ -45,14 +45,17 @@ function csvEscape(v: string): string {
 export function CampaignBreakdown({
   campaigns,
   currency,
+  initialSort = "spend",
 }: {
   campaigns: AdsCampaignNode[];
   currency: string;
+  /** `?sort=cpr` from a KPI drill sorts by cost per result, cheapest first */
+  initialSort?: SortKey;
 }) {
   const [openCampaigns, setOpenCampaigns] = React.useState<ReadonlySet<string>>(new Set());
   const [openAdSets, setOpenAdSets] = React.useState<ReadonlySet<string>>(new Set());
-  const [sortKey, setSortKey] = React.useState<SortKey>("spend");
-  const [sortDir, setSortDir] = React.useState<SortDir>("desc");
+  const [sortKey, setSortKey] = React.useState<SortKey>(initialSort);
+  const [sortDir, setSortDir] = React.useState<SortDir>(initialSort === "cpr" ? "asc" : "desc");
 
   const toggle = (set: ReadonlySet<string>, id: string): Set<string> => {
     const next = new Set(set);

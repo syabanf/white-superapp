@@ -19,7 +19,8 @@ import { MoneyInput } from "@/features/erp/shared/money-input";
 import { formatRupiah, parseMoney } from "@/features/erp/shared/money";
 import { DatePicker, toIsoDate } from "@/features/erp/shared/period-picker";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
-import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
+import { DateRangeFilter } from "@/features/erp/shared/period-picker";
+import { ResetFilters, SearchFilter, SearchSelectFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { toast } from "@/lib/toast";
 import { deleteInvoiceAction, postInvoiceAction, saveInvoiceAction } from "../actions";
 import type { Invoice, LedgerKind, PostableAccount } from "../types";
@@ -142,12 +143,15 @@ export function InvoicesTable({
   invoices,
   page,
   accounts,
+  parties,
   perms,
 }: {
   kind: LedgerKind;
   invoices: Invoice[];
   page: ServerPage;
   accounts: PostableAccount[];
+  /** party names for the party filter */
+  parties: string[];
   perms: FinancePerms;
 }) {
   const k = iv[kind];
@@ -271,7 +275,16 @@ export function InvoicesTable({
               allLabel={iv.allPayStatus}
               options={Object.entries(iv.payStatus).map(([value, label]) => ({ value, label }))}
             />
-            <ResetFilters params={["q", "status", "pay"]} />
+            <DateRangeFilter placeholder={iv.dateRange} />
+            {parties.length ? (
+              <SearchSelectFilter
+                param="party"
+                placeholder={k.party}
+                options={parties.map((p) => ({ value: p, label: p }))}
+                className="w-56"
+              />
+            ) : null}
+            <ResetFilters params={["q", "status", "pay", "from", "to", "party"]} />
             {perms.canWrite ? (
               <Button size="sm" className="ml-auto" onClick={() => setDialog({})}>
                 <Plus className="size-4" /> {k.newInvoice}

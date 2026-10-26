@@ -93,8 +93,13 @@ func (s *leadServer) ListLeads(ctx context.Context, r *salesv1.ListLeadsRequest)
 	if _, err := reader(ctx); err != nil {
 		return nil, err
 	}
+	from, to, bad := domain.ParseDayRange(r.DateFrom, r.DateTo)
+	if bad != "" {
+		return nil, apperr.Field(bad, "Tanggal tidak valid")
+	}
 	limit, offset := pageArgs(r.Page, r.PageSize)
-	leads, total, err := s.svc.Leads.ListLeads(ctx, domain.LeadFilter{Query: strings.TrimSpace(r.Q), Status: r.Status, Temperature: r.Temperature, Source: r.Source, OwnerUserID: r.OwnerUserId, Limit: limit, Offset: offset})
+	leads, total, err := s.svc.Leads.ListLeads(ctx, domain.LeadFilter{Query: strings.TrimSpace(r.Q), Status: r.Status, Temperature: r.Temperature, Source: r.Source, OwnerUserID: r.OwnerUserId,
+		From: from, To: to, ScoreMin: r.ScoreMin, ScoreMax: r.ScoreMax, Limit: limit, Offset: offset})
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +402,12 @@ func (s *pipelineServer) ListDeals(ctx context.Context, r *salesv1.ListDealsRequ
 	if r.PageSize == 0 {
 		limit = 500
 	}
-	ds, total, err := s.svc.Pipeline.ListDeals(ctx, domain.DealFilter{PipelineID: r.PipelineId, StageID: r.StageId, OwnerUserID: r.OwnerUserId, LeadID: r.LeadId, Status: r.Status, Query: strings.TrimSpace(r.Q), Limit: limit, Offset: offset})
+	from, to, bad := domain.ParseDayRange(r.DateFrom, r.DateTo)
+	if bad != "" {
+		return nil, apperr.Field(bad, "Tanggal tidak valid")
+	}
+	ds, total, err := s.svc.Pipeline.ListDeals(ctx, domain.DealFilter{PipelineID: r.PipelineId, StageID: r.StageId, OwnerUserID: r.OwnerUserId, LeadID: r.LeadId, Status: r.Status, Query: strings.TrimSpace(r.Q),
+		ServiceLine: r.ServiceLine, Industry: r.Industry, Source: r.Source, LostReason: r.LostReasonId, From: from, To: to, ByClosed: r.DateField == "closed", Limit: limit, Offset: offset})
 	if err != nil {
 		return nil, err
 	}
@@ -798,7 +808,11 @@ func (s *billingServer) ListInvoices(ctx context.Context, r *salesv1.ListInvoice
 	if err := salesOrFinance(ctx); err != nil {
 		return nil, err
 	}
-	is, err := s.svc.Billing.ListInvoices(ctx, domain.InvoiceFilter{DealID: r.DealId, Status: r.Status, Limit: int(r.Limit)})
+	from, to, bad := domain.ParseDayRange(r.DateFrom, r.DateTo)
+	if bad != "" {
+		return nil, apperr.Field(bad, "Tanggal tidak valid")
+	}
+	is, err := s.svc.Billing.ListInvoices(ctx, domain.InvoiceFilter{DealID: r.DealId, Status: r.Status, From: from, To: to, Limit: int(r.Limit)})
 	if err != nil {
 		return nil, err
 	}

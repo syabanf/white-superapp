@@ -54,7 +54,7 @@ export function FinanceTrend({
   );
 }
 
-/** Won value bars against the monthly target line, comparison won value behind. */
+/** Won value bars against the monthly target line, comparison won value behind; a month opens the sales dashboard for that month. */
 export function SalesTrend({
   months,
   won,
@@ -68,11 +68,18 @@ export function SalesTrend({
   previous: number[];
   labels: { won: string; target: string; previous: string };
 }) {
+  const router = useRouter();
   return (
     <SalesMonthlyChart
       months={months}
       yFormat={rpCompact}
       height={260}
+      onMonth={(i) => {
+        const m = months[i];
+        if (!m) return;
+        const b = monthBounds(m.slice(0, 7));
+        router.push(`/erp/sales?${new URLSearchParams({ from: b.from, to: b.to, tab: "penjualan" })}`);
+      }}
       series={[
         { key: "won", label: labels.won, values: won, format: formatRupiah },
         { key: "target", label: labels.target, type: "line", color: "var(--foreground)", values: target, format: formatRupiah },

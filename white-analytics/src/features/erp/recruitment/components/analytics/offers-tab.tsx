@@ -11,7 +11,8 @@ import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { formatRupiah } from "@/features/erp/shared/money";
 import { computeDelta } from "@/lib/metrics";
 import { formatCurrency, formatDate, formatDecimal, formatNumber, formatPercent } from "@/lib/format";
-import { candidateHref, mean, responseBuckets, type DrillContext } from "../../analytics";
+import { candidateHref, candidatesHref, mean, responseBuckets, type DrillContext } from "../../analytics";
+import { useRecruitmentDrill, weekRange } from "./drill";
 import { OFFER_STATUS, kinds, ra } from "../../strings";
 import type { DashboardOffer, RecruitmentDashboard } from "../../types";
 import { AnalyticsTable } from "./table";
@@ -20,7 +21,7 @@ import { WeekTable } from "./week-table";
 const rp = (v: number) => formatCurrency(v, "IDR", { compact: true });
 const num = (v: string | null | undefined) => (v == null || v === "" ? null : Number(v));
 
-export function OffersTab({ data }: { data: RecruitmentDashboard; ctx: DrillContext }) {
+export function OffersTab({ data, ctx }: { data: RecruitmentDashboard; ctx: DrillContext }) {
   const s = ra.offers;
   const k = data.kpis;
   const p = data.previousKpis;
@@ -29,6 +30,7 @@ export function OffersTab({ data }: { data: RecruitmentDashboard; ctx: DrillCont
   const avgResponse = mean(responses);
   const negotiating = offers.filter((o) => o.status === "negotiating").length;
   const buckets = responseBuckets(offers);
+  const drill = useRecruitmentDrill(ctx);
   const weeks = data.trend.map((t) => ({
     date: t.start,
     accepted: t.offersAccepted,
@@ -41,16 +43,23 @@ export function OffersTab({ data }: { data: RecruitmentDashboard; ctx: DrillCont
     <div className="flex flex-col gap-4 sm:gap-5">
       <StatStrip
         items={[
-          { label: s.sent, value: formatNumber(k.offersSent), delta: computeDelta(k.offersSent, p.offersSent) },
-          { label: s.accepted, value: formatNumber(k.offersAccepted), delta: computeDelta(k.offersAccepted, p.offersAccepted) },
-          { label: s.declined, value: formatNumber(k.offersDeclined), delta: computeDelta(k.offersDeclined, p.offersDeclined), lowerIsBetter: true },
+          { label: s.sent, value: formatNumber(k.offersSent), delta: computeDelta(k.offersSent, p.offersSent), previous: formatNumber(p.offersSent), href: candidatesHref(ctx, { status: "offer" }) },
+          { label: s.accepted, value: formatNumber(k.offersAccepted), delta: computeDelta(k.offersAccepted, p.offersAccepted), previous: formatNumber(p.offersAccepted), href: candidatesHref(ctx, { status: "hired" }) },
+          {
+            label: s.declined,
+            value: formatNumber(k.offersDeclined),
+            delta: computeDelta(k.offersDeclined, p.offersDeclined),
+            previous: formatNumber(p.offersDeclined),
+            lowerIsBetter: true,
+            href: "#tabel-offer",
+          },
           {
             label: s.acceptance,
             value: k.offerAcceptanceRate == null ? "–" : formatPercent(k.offerAcceptanceRate, 0),
             delta: k.offerAcceptanceRate != null && p.offerAcceptanceRate != null ? computeDelta(k.offerAcceptanceRate, p.offerAcceptanceRate) : null,
           },
-          { label: s.responseTime, value: avgResponse == null ? "–" : ra.days(formatDecimal(avgResponse, 1)), lowerIsBetter: true },
-          { label: s.negotiating, value: formatNumber(negotiating) },
+          { label: s.responseTime, value: avgResponse == null ? "–" : ra.days(formatDecimal(avgResponse, 1)), lowerIsBetter: true, href: "#tabel-offer" },
+          { label: s.negotiating, value: formatNumber(negotiating), href: "#tabel-offer" },
         ]}
       />
 
@@ -75,6 +84,7 @@ export function OffersTab({ data }: { data: RecruitmentDashboard; ctx: DrillCont
           ]}
           yFormat={formatNumber}
           height={250}
+          onSelect={(pt) => drill("offer", { ...weekRange(String(pt.date)), week: 1, l: ra.drill.week(formatDate(String(pt.date))) })}
         />
       </ChartCard>
 
@@ -101,7 +111,8 @@ export function OffersTab({ data }: { data: RecruitmentDashboard; ctx: DrillCont
         </ChartCard>
         <ChartCard title={s.responseDist} description={s.responseDistHint}>
           <HBarChart
-            items={s.buckets.map((label, i) => ({ label, value: buckets[i] ?? 0 }))}
+            items={s.buckets.map((label, i) => ({ label, value: buckets[i] ?? 0, key: String(i) }))}
+            onSelect={(it) => drill("offer", { bucket: it.key, l: `${s.responseDist} · ${it.label}` })}
             format={formatNumber}
             showShare
             emptyLabel={ra.empty}
@@ -109,6 +120,7 @@ export function OffersTab({ data }: { data: RecruitmentDashboard; ctx: DrillCont
         </ChartCard>
       </div>
 
+      <div id="tabel-offer" className="scroll-mt-20">
       <ChartCard title={s.table}>
         <AnalyticsTable<DashboardOffer>
           rows={offers}
@@ -159,6 +171,7 @@ export function OffersTab({ data }: { data: RecruitmentDashboard; ctx: DrillCont
           ]}
         />
       </ChartCard>
+      </div>
     </div>
   );
 }

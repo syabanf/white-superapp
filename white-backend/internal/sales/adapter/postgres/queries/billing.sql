@@ -17,6 +17,8 @@ LEFT JOIN sales.accounts a ON a.id = d.account_id
 WHERE d.deleted_at IS NULL
   AND (sqlc.narg('deal')::text IS NULL OR i.deal_id = sqlc.narg('deal'))
   AND (sqlc.narg('status')::text IS NULL OR i.status = sqlc.narg('status'))
+  AND (sqlc.narg('from_at')::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) >= sqlc.narg('from_at'))
+  AND (sqlc.narg('to_at')::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) < sqlc.narg('to_at'))
 ORDER BY i.created_at DESC, i.id
 LIMIT sqlc.arg('lim');
 

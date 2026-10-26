@@ -5,11 +5,12 @@ import { StatStrip } from "@/components/dashboard/stat-strip";
 import { HBarChart } from "@/components/dashboard/charts/hbar-chart";
 import { StackedBarChart, type CategoryRow } from "@/components/dashboard/charts/stacked-bar-chart";
 import { formatDecimal, formatNumber, formatPercent } from "@/lib/format";
-import { interviewsHref, rate, type DrillContext } from "../../analytics";
+import { candidatesHref, interviewsHref, rate, type DrillContext } from "../../analytics";
 import { INTERVIEW_STATUS, INTERVIEW_TYPE, SESSION_STATUS, ra } from "../../strings";
 import type { CountByKey, RecruitmentDashboard } from "../../types";
 import { AnalyticsTable } from "./table";
 
+const PSIKOTES = "/erp/hr/recruitment/psikotes";
 const SESSION_ORDER = ["completed", "in_progress", "sent", "draft", "expired"];
 
 type Interviewer = RecruitmentDashboard["interviewers"][number];
@@ -38,11 +39,11 @@ export function AssessmentsTab({ data, ctx }: { data: RecruitmentDashboard; ctx:
   const sumOf = (pick: (p: Interviewer) => number) => people.reduce((a, b) => a + pick(b), 0);
 
   const statusBars = (list: CountByKey[]) =>
-    SESSION_ORDER.filter((k) => countOf(list, k) > 0).map((k) => ({ label: SESSION_STATUS[k] ?? k, value: countOf(list, k) }));
+    SESSION_ORDER.filter((k) => countOf(list, k) > 0).map((k) => ({ label: SESSION_STATUS[k] ?? k, value: countOf(list, k), href: PSIKOTES }));
 
   const instruments = [...new Set(data.psikotesScores.map((x) => x.instrument))];
   const bands: CategoryRow[] = Array.from({ length: 10 }, (_, i) => {
-    const row: CategoryRow = { label: s.band(i * 10) };
+    const row: CategoryRow = { label: s.band(i * 10), href: PSIKOTES };
     for (const inst of instruments) {
       row[inst] = data.psikotesScores.find((x) => x.instrument === inst && x.bucket === i * 10)?.count ?? 0;
     }
@@ -52,7 +53,7 @@ export function AssessmentsTab({ data, ctx }: { data: RecruitmentDashboard; ctx:
   const criteria = [...new Set(data.scorecards.map((c) => c.criterion))];
   const types = [...new Set(data.scorecards.map((c) => c.type))];
   const criteriaRows: CategoryRow[] = criteria.map((c) => {
-    const row: CategoryRow = { label: c };
+    const row: CategoryRow = { label: c, href: interviewsHref(ctx, "completed") };
     for (const t of types) row[t] = data.scorecards.find((x) => x.criterion === c && x.type === t)?.avgScore ?? 0;
     return row;
   });
@@ -61,20 +62,22 @@ export function AssessmentsTab({ data, ctx }: { data: RecruitmentDashboard; ctx:
     <div className="flex flex-col gap-4 sm:gap-5">
       <StatStrip
         items={[
-          { label: s.psikotesInvited, value: formatNumber(total(psi)) },
+          { label: s.psikotesInvited, value: formatNumber(total(psi)), href: PSIKOTES },
           {
             label: s.psikotesDone,
             value: rate(psiDone, total(psi)) == null ? "–" : formatPercent(rate(psiDone, total(psi))!, 0),
             caption: s.rate(formatNumber(psiDone), formatNumber(total(psi))),
+            href: PSIKOTES,
           },
-          { label: s.avgScore, value: avgScore == null ? "–" : formatDecimal(avgScore, 1) },
+          { label: s.avgScore, value: avgScore == null ? "–" : formatDecimal(avgScore, 1), href: PSIKOTES },
           {
             label: s.aiDone,
             value: rate(aiDone, total(ai)) == null ? "–" : formatPercent(rate(aiDone, total(ai))!, 0),
             caption: s.rate(formatNumber(aiDone), formatNumber(total(ai))),
+            href: candidatesHref(ctx, { status: "interview" }),
           },
-          { label: s.interviews, value: formatNumber(completed) },
-          { label: s.avgScorecard, value: avgCard == null ? "–" : `${formatDecimal(avgCard, 2)} / 5` },
+          { label: s.interviews, value: formatNumber(completed), href: interviewsHref(ctx, "completed") },
+          { label: s.avgScorecard, value: avgCard == null ? "–" : `${formatDecimal(avgCard, 2)} / 5`, href: interviewsHref(ctx, "completed") },
         ]}
       />
 

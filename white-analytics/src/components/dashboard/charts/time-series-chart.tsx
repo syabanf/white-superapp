@@ -5,6 +5,7 @@ import {
   Area,
   Bar,
   CartesianGrid,
+  Cell,
   ComposedChart,
   Line,
   ResponsiveContainer,
@@ -19,6 +20,8 @@ import {
   MUTED_SERIES,
   SeriesLegend,
   TooltipBox,
+  activeIndexOf,
+  signedFill,
   slotColor,
   type SeriesDef,
 } from "./chart-primitives";
@@ -32,6 +35,8 @@ export type TimeSeriesPoint = { date: string; [k: string]: number | string | nul
  * Single-axis daily time series. Lines 2px, areas 10% wash, bars ≤24px with 4px data-end radius,
  * hairline solid grid, crosshair tooltip listing every series, legend for ≥2 series.
  * Optional previous-period overlay in the de-emphasis gray (emphasis form, not a second axis).
+ * `onSelect` makes every point/bar clickable (drill sheet or time drill); `onSeriesSelect`
+ * turns the legend into filter toggles. Bar series with `signed` color by sign.
  */
 export function TimeSeriesChart({
   data,
@@ -45,6 +50,10 @@ export function TimeSeriesChart({
   yDomain,
   reverseY = false,
   summary,
+  onSelect,
+  selectLabel = "Lihat rincian",
+  onSeriesSelect,
+  activeSeries,
 }: {
   data: TimeSeriesPoint[];
   series: SeriesDef[];
@@ -60,6 +69,13 @@ export function TimeSeriesChart({
   reverseY?: boolean;
   /** Concise text alternative announced before the interactive chart. */
   summary?: string;
+  /** click on a point/bar (any series) */
+  onSelect?: (point: TimeSeriesPoint, index: number) => void;
+  /** keyboard button label next to the point explorer */
+  selectLabel?: string;
+  /** legend click; pair with `activeSeries` to show the active filter */
+  onSeriesSelect?: (series: SeriesDef) => void;
+  activeSeries?: string | null;
 }) {
   const chartPointId = React.useId();
   const gradientId = `area${chartPointId.replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -124,6 +140,15 @@ export function TimeSeriesChart({
             margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
             barGap={2}
             barCategoryGap="20%"
+            onClick={
+              onSelect
+                ? (state) => {
+                    const idx = activeIndexOf(state);
+                    if (idx != null && data[idx]) onSelect(data[idx], idx);
+                  }
+                : undefined
+            }
+            style={onSelect ? { cursor: "pointer" } : undefined}
           >
             <defs>
               {resolved.map((s, i) =>
@@ -210,7 +235,13 @@ export function TimeSeriesChart({
                     isAnimationActive={false}
                     stroke="var(--card)"
                     strokeWidth={stacked ? 2 : 0}
-                  />
+                  >
+                    {s.signed
+                      ? data.map((d, j) => (
+                          <Cell key={j} fill={signedFill(Number(d[s.key] ?? 0), s.lowerIsBetter)} />
+                        ))
+                      : null}
+                  </Bar>
                 );
               }
               return (
@@ -231,7 +262,12 @@ export function TimeSeriesChart({
         </ResponsiveContainer>
       </div>
       {(showLegend ?? legendSeries.length > 1) ? (
-        <SeriesLegend series={legendSeries} className="mt-2" />
+        <SeriesLegend
+          series={legendSeries}
+          className="mt-2"
+          onSelect={onSeriesSelect ? (item) => item.key !== previousKey && onSeriesSelect(item) : undefined}
+          activeKey={activeSeries}
+        />
       ) : null}
       {data.length > 0 ? (
         // Keyboard and screen-reader access to every point. Hidden for pointer users,
@@ -259,6 +295,15 @@ export function TimeSeriesChart({
           <p className="mt-1.5 text-xs text-muted-foreground" aria-live="polite">
             {activePointText}
           </p>
+          {onSelect && activePoint ? (
+            <button
+              type="button"
+              onClick={() => onSelect(activePoint, safeActiveIndex)}
+              className="mt-2 rounded-full border bg-card px-2.5 py-1 text-xs font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {selectLabel}: {formatDateShort(activePoint.date)}
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>

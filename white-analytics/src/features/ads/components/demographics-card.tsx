@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCompact, formatCurrency, formatNumber } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { genderLabel, s } from "@/features/ads/strings";
+import { useDrill } from "@/features/erp/shared/drill";
+import { ADS_DRILL } from "@/features/ads/components/ads-drill";
 
 export type DemographicRow = { age: string; gender: string; spend: number; results: number };
 
@@ -26,6 +28,7 @@ export function DemographicsCard({
   currency: string;
   hasData: boolean;
 }) {
+  const { open } = useDrill();
   const money = (v: number) => formatCurrency(v, currency, { compact: true });
   const genders = [...new Set(matrix.map((m) => m.gender))];
   const ages = [...new Set(matrix.map((m) => m.age))];
@@ -86,8 +89,10 @@ export function DemographicsCard({
                 label: r.age,
                 value: r.spend,
                 secondary: `${formatNumber(r.results)} ${t.ads.results.toLowerCase()}`,
+                key: r.age,
               }))}
               format={money}
+              onSelect={(it) => open(ADS_DRILL.age, it.key ?? it.label)}
             />
           </div>
           <div>
@@ -97,8 +102,10 @@ export function DemographicsCard({
                 label: genderLabel(r.gender),
                 value: r.spend,
                 secondary: `${formatNumber(r.results)} ${t.ads.results.toLowerCase()}`,
+                key: r.gender,
               }))}
               format={money}
+              onSelect={(it) => open(ADS_DRILL.gender, it.key ?? it.label)}
             />
           </div>
         </div>

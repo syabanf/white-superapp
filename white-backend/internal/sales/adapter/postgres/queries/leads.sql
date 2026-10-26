@@ -10,6 +10,10 @@ WHERE deleted_at IS NULL
   AND (sqlc.narg('owner')::text IS NULL OR owner_user_id = sqlc.narg('owner'))
   AND (sqlc.narg('q')::text IS NULL OR org_name ILIKE '%' || sqlc.narg('q') || '%' OR pic_name ILIKE '%' || sqlc.narg('q') || '%'
        OR pic_phone ILIKE '%' || sqlc.narg('q') || '%' OR pic_email ILIKE '%' || sqlc.narg('q') || '%')
+  AND (sqlc.narg('from_at')::timestamptz IS NULL OR created_at >= sqlc.narg('from_at'))
+  AND (sqlc.narg('to_at')::timestamptz IS NULL OR created_at < sqlc.narg('to_at'))
+  AND (sqlc.narg('score_min')::int IS NULL OR score >= sqlc.narg('score_min'))
+  AND (sqlc.narg('score_max')::int IS NULL OR score <= sqlc.narg('score_max'))
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg('lim') OFFSET sqlc.arg('off');
 
@@ -21,7 +25,11 @@ WHERE deleted_at IS NULL
   AND (sqlc.narg('source')::text IS NULL OR source = sqlc.narg('source'))
   AND (sqlc.narg('owner')::text IS NULL OR owner_user_id = sqlc.narg('owner'))
   AND (sqlc.narg('q')::text IS NULL OR org_name ILIKE '%' || sqlc.narg('q') || '%' OR pic_name ILIKE '%' || sqlc.narg('q') || '%'
-       OR pic_phone ILIKE '%' || sqlc.narg('q') || '%' OR pic_email ILIKE '%' || sqlc.narg('q') || '%');
+       OR pic_phone ILIKE '%' || sqlc.narg('q') || '%' OR pic_email ILIKE '%' || sqlc.narg('q') || '%')
+  AND (sqlc.narg('from_at')::timestamptz IS NULL OR created_at >= sqlc.narg('from_at'))
+  AND (sqlc.narg('to_at')::timestamptz IS NULL OR created_at < sqlc.narg('to_at'))
+  AND (sqlc.narg('score_min')::int IS NULL OR score >= sqlc.narg('score_min'))
+  AND (sqlc.narg('score_max')::int IS NULL OR score <= sqlc.narg('score_max'));
 
 -- name: UpsertLead :exec
 INSERT INTO sales.leads (id, org_name, org_type, pic_name, pic_title, pic_phone, pic_email, city, source, temperature, status,

@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
-import { load } from "@/features/erp/shared/load";
+import { load, sp1 } from "@/features/erp/shared/load";
 import { formatRupiah } from "@/features/erp/shared/money";
 import { ErpError } from "@/features/erp/shared/states";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { PayslipsTable, RunActions } from "@/features/erp/hr/components/payroll-runs";
 import { hrPerms } from "@/features/erp/hr/perms";
-import { getPayrollRun } from "@/features/erp/hr/queries";
+import { filterPeople } from "@/features/erp/hr/people-filter";
+import { getPayrollRun, listDepartments } from "@/features/erp/hr/queries";
 import { kinds, monthLabel, th } from "@/features/erp/hr/strings";
 import { formatNumber } from "@/lib/format";
 
@@ -24,9 +25,12 @@ export default async function PayrollRunPage(props: PageProps<"/erp/hr/payroll/r
   const { access, offline } = await requireErp("hr.payroll");
   if (offline) return <OfflineNotice message={offline.message} />;
   const p = th.payroll;
-  const res = await load(() => getPayrollRun(id));
+  const sp = await props.searchParams;
+  const [res, deps] = await Promise.all([load(() => getPayrollRun(id)), load(() => listDepartments())]);
   if (!res.data) return <ErpError message={res.error.message} />;
-  const { run, payslips } = res.data;
+  const { run } = res.data;
+  const payslips = filterPeople(res.data.payslips, deps.data ?? [], { dept: sp1(sp.dept), employee: sp1(sp.employee) });
+  const employees = res.data.payslips.map((s) => ({ id: s.employee.id, label: `${s.employee.fullName} · ${s.employee.employeeNo}` }));
 
   return (
     <>
@@ -53,7 +57,11 @@ export default async function PayrollRunPage(props: PageProps<"/erp/hr/payroll/r
         <KpiTile label={p.pph21} value={formatRupiah(run.totalPph21)} size="sm" />
       </div>
       <Section title={p.payslips}>
-        <PayslipsTable payslips={payslips} />
+        <PayslipsTable
+          payslips={payslips}
+          departments={(deps.data ?? []).map((d) => ({ value: d.id, label: d.name }))}
+          employees={employees}
+        />
       </Section>
     </>
   );

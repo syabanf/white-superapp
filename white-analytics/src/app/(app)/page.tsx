@@ -16,6 +16,7 @@ import { getSetupState } from "@/lib/integrations";
 import { getRange } from "@/lib/range-params";
 import { formatCompact, formatCurrency, formatDateRange, formatNumber, formatRelative } from "@/lib/format";
 import { mean, type Delta } from "@/lib/metrics";
+import { pickQuery, withQuery } from "@/lib/drill-query";
 import { t } from "@/i18n/id";
 import { tc } from "@/features/clients/strings";
 
@@ -99,7 +100,8 @@ export default async function PortfolioPage(props: PageProps<"/">) {
   const hasAdsData = perClient.some((p) => p.ads.hasData);
   const d = (x: Delta, isDemo = allDemo): Delta | null => (compare && !isDemo ? x : null);
 
-  const globalQuery = pickGlobalQuery(sp);
+  const globalQuery = pickQuery(sp);
+  const gridHref = (sort: string) => withQuery("/", globalQuery, { sort }, "clients");
   const cards: PortfolioCardData[] = perClient.map(({ client, social, seo, ads, publishing }) => ({
     id: client.id,
     name: client.name,
@@ -164,7 +166,7 @@ export default async function PortfolioPage(props: PageProps<"/">) {
             value: formatCompact(totals.followers),
             caption: !hasSocialData ? "Tidak ada data baru pada periode ini" : undefined,
             delta: d(totals.followersDelta),
-            href: "#clients",
+            href: gridHref("followers"),
             hint: tc.portfolio.followersHint,
           },
           {
@@ -172,7 +174,7 @@ export default async function PortfolioPage(props: PageProps<"/">) {
             value: hasSeoData ? formatCompact(totals.clicks) : "–",
             caption: !hasSeoData ? "Tidak ada data pada periode ini" : undefined,
             delta: d(totals.clicksDelta),
-            href: "#clients",
+            href: gridHref("clicks"),
             hint: tc.portfolio.clicksHint,
           },
           {
@@ -180,7 +182,7 @@ export default async function PortfolioPage(props: PageProps<"/">) {
             value: hasAdsData ? formatCurrency(totals.spend, "IDR", { compact: true }) : "–",
             caption: !hasAdsData ? "Tidak ada data pada periode ini" : undefined,
             delta: d(totals.spendDelta),
-            href: "#clients",
+            href: gridHref("spend"),
             hint: tc.portfolio.spendHint,
           },
           {
@@ -188,7 +190,7 @@ export default async function PortfolioPage(props: PageProps<"/">) {
             value: avgHealth != null ? formatNumber(avgHealth) : "–",
             caption: avgHealth != null ? tc.portfolio.healthOutOf : tc.portfolio.noAudit,
             hint: tc.portfolio.healthHint,
-            href: "#clients",
+            href: gridHref("health"),
           },
         ]}
       />
@@ -197,15 +199,6 @@ export default async function PortfolioPage(props: PageProps<"/">) {
       <PortfolioGrid cards={cards} />
     </>
   );
-}
-
-function pickGlobalQuery(sp: Record<string, string | string[] | undefined>): string {
-  const query = new URLSearchParams();
-  for (const key of ["from", "to", "preset", "compare"]) {
-    const value = sp[key];
-    if (typeof value === "string" && value) query.set(key, value);
-  }
-  return query.toString();
 }
 
 function UnauthorizedNotice() {

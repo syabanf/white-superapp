@@ -15,10 +15,11 @@ import { SalesDashboardFilters } from "@/features/erp/sales/dashboard/components
 import { DASH_TABS, readDashboardParams } from "@/features/erp/sales/dashboard/params";
 import { DashboardSection, DashboardSkeleton } from "@/features/erp/sales/dashboard/sections";
 import { dd } from "@/features/erp/sales/dashboard/strings";
+import { DashboardTrail, type TrailLevel } from "@/features/erp/sales/dashboard/trail";
 import { salesCaps } from "@/features/erp/sales/lib";
 import { listActivities, listApprovals, listDeals, listPipelines } from "@/features/erp/sales/queries";
 import { ownerOptions } from "@/features/erp/sales/refs";
-import { ss } from "@/features/erp/sales/strings";
+import { LEAD_SOURCE, SERVICE_LINE, ss } from "@/features/erp/sales/strings";
 
 export const metadata: Metadata = { title: dd.title };
 
@@ -35,6 +36,13 @@ export default async function SalesDashboardPage(props: PageProps<"/erp/sales">)
   ]);
   if (pipelines.error?.code === "NETWORK") return <OfflineNotice message={pipelines.error.message} />;
   const pendingApprovals = approvals?.data?.filter((r) => r.canDecide).length ?? 0;
+  const trail: TrailLevel[] = [
+    period.preset === "custom" ? { label: period.label, params: ["preset", "from", "to"] } : null,
+    query.pipelineId ? { label: pipelines.data?.find((p) => p.id === query.pipelineId)?.name ?? query.pipelineId, params: ["pipeline"] } : null,
+    query.ownerUserId ? { label: owners.find((o) => o.value === query.ownerUserId)?.label ?? query.ownerUserId, params: ["owner"] } : null,
+    query.serviceLine ? { label: SERVICE_LINE[query.serviceLine] ?? query.serviceLine, params: ["line"] } : null,
+    query.source ? { label: LEAD_SOURCE[query.source] ?? query.source, params: ["source"] } : null,
+  ].filter((l): l is TrailLevel => l != null);
 
   return (
     <>
@@ -65,6 +73,7 @@ export default async function SalesDashboardPage(props: PageProps<"/erp/sales">)
         pipelines={(pipelines.data ?? []).map((p) => ({ value: p.id, label: p.name }))}
         owners={owners}
       />
+      <DashboardTrail levels={trail} />
       <UrlTabs label={dd.title} tabs={DASH_TABS.map((t) => ({ value: t, label: dd.tabs[t] }))} />
       <Suspense key={`${tab}|${JSON.stringify(query)}`} fallback={<DashboardSkeleton />}>
         <DashboardSection tab={tab} query={query} />

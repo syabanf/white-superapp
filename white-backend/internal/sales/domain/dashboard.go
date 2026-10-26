@@ -502,3 +502,27 @@ type DashboardRepo interface {
 	DashReceivables(ctx context.Context, asOf time.Time, f DashFilter) ([]DashReceivable, error)
 	DashTermProgress(ctx context.Context, f DashFilter) ([]DashTermRow, error)
 }
+
+// ParseDayRange turns inclusive WIB days ("YYYY-MM-DD", either may be empty)
+// into [from, to) instants for list filters. badField names a bad input.
+func ParseDayRange(fromS, toS string) (from, to *time.Time, badField string) {
+	if fromS != "" {
+		t, err := time.ParseInLocation("2006-01-02", fromS, Jakarta)
+		if err != nil {
+			return nil, nil, "date_from"
+		}
+		from = &t
+	}
+	if toS != "" {
+		t, err := time.ParseInLocation("2006-01-02", toS, Jakarta)
+		if err != nil {
+			return nil, nil, "date_to"
+		}
+		t = t.AddDate(0, 0, 1)
+		to = &t
+	}
+	if from != nil && to != nil && !to.After(*from) {
+		return nil, nil, "date_to"
+	}
+	return from, to, ""
+}

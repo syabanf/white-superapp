@@ -13,7 +13,8 @@ import { ErpDataTable, type ServerPage } from "@/features/erp/shared/data-table"
 import { DownloadButton } from "@/features/erp/shared/download-button";
 import { DateRangeFilter, DatePicker } from "@/features/erp/shared/period-picker";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
-import { ResetFilters, SelectFilter } from "@/features/erp/shared/url-filters";
+import { ResetFilters, SelectFilter, type FilterOption } from "@/features/erp/shared/url-filters";
+import { PEOPLE_PARAMS, PeopleFilters } from "./list-filters";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { cancelLeaveAction, createLeaveAction, decideLeaveAction } from "../actions";
@@ -166,11 +167,13 @@ export function LeaveTable({
   canWrite,
   filters,
   approvals,
+  departments,
 }: {
   leaves: Leave[];
   page?: ServerPage;
   types: LeaveType[];
   employees: EmployeeOption[];
+  departments: FilterOption[];
   canWrite: boolean;
   filters: Record<string, string | undefined>;
   approvals?: boolean;
@@ -200,7 +203,8 @@ export function LeaveTable({
               options={types.map((t) => ({ value: t.code, label: t.name }))}
             />
             <DateRangeFilter />
-            <ResetFilters params={["status", "type", "from", "to"]} />
+            <PeopleFilters departments={departments} employees={employees} />
+            <ResetFilters params={["status", "type", "from", "to", ...PEOPLE_PARAMS]} />
             <div className="ml-auto flex gap-2">
               <DownloadButton
                 href={`/api/erp/v1/hr/leaves:export${toQuery({ status: filters.status, leaveType: filters.type, startDate: filters.from, endDate: filters.to })}`}

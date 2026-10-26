@@ -260,8 +260,14 @@ type ListEmployeesRequest struct {
 	Search          string   `protobuf:"bytes,5,opt,name=search,proto3" json:"search,omitempty"`
 	PageSize        int32    `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PageToken       string   `protobuf:"bytes,7,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	PositionId      string   `protobuf:"bytes,8,opt,name=position_id,json=positionId,proto3" json:"position_id,omitempty"`
+	// Position level (e.g. Staff, Manager).
+	Level  string `protobuf:"bytes,9,opt,name=level,proto3" json:"level,omitempty"`
+	Gender string `protobuf:"bytes,10,opt,name=gender,proto3" json:"gender,omitempty"`
+	// Employment status code.
+	EmploymentStatus string `protobuf:"bytes,11,opt,name=employment_status,json=employmentStatus,proto3" json:"employment_status,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ListEmployeesRequest) Reset() {
@@ -339,6 +345,34 @@ func (x *ListEmployeesRequest) GetPageSize() int32 {
 func (x *ListEmployeesRequest) GetPageToken() string {
 	if x != nil {
 		return x.PageToken
+	}
+	return ""
+}
+
+func (x *ListEmployeesRequest) GetPositionId() string {
+	if x != nil {
+		return x.PositionId
+	}
+	return ""
+}
+
+func (x *ListEmployeesRequest) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *ListEmployeesRequest) GetGender() string {
+	if x != nil {
+		return x.Gender
+	}
+	return ""
+}
+
+func (x *ListEmployeesRequest) GetEmploymentStatus() string {
+	if x != nil {
+		return x.EmploymentStatus
 	}
 	return ""
 }
@@ -3366,6 +3400,7 @@ type ListAttendanceRequest struct {
 	OnlyUnvalidated bool                   `protobuf:"varint,6,opt,name=only_unvalidated,json=onlyUnvalidated,proto3" json:"only_unvalidated,omitempty"`
 	Page            int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize        int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	DepartmentId    string                 `protobuf:"bytes,9,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -3454,6 +3489,13 @@ func (x *ListAttendanceRequest) GetPageSize() int32 {
 		return x.PageSize
 	}
 	return 0
+}
+
+func (x *ListAttendanceRequest) GetDepartmentId() string {
+	if x != nil {
+		return x.DepartmentId
+	}
+	return ""
 }
 
 type ListAttendanceResponse struct {
@@ -5469,6 +5511,7 @@ type ListLeavesRequest struct {
 	Scope         string `protobuf:"bytes,6,opt,name=scope,proto3" json:"scope,omitempty"`
 	Page          int32  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	DepartmentId  string `protobuf:"bytes,9,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5557,6 +5600,13 @@ func (x *ListLeavesRequest) GetPageSize() int32 {
 		return x.PageSize
 	}
 	return 0
+}
+
+func (x *ListLeavesRequest) GetDepartmentId() string {
+	if x != nil {
+		return x.DepartmentId
+	}
+	return ""
 }
 
 type ListLeavesResponse struct {
@@ -6134,6 +6184,7 @@ type ListOvertimeRequest struct {
 	// YYYY-MM
 	Month         string `protobuf:"bytes,3,opt,name=month,proto3" json:"month,omitempty"`
 	Scope         string `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
+	DepartmentId  string `protobuf:"bytes,5,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6192,6 +6243,13 @@ func (x *ListOvertimeRequest) GetMonth() string {
 func (x *ListOvertimeRequest) GetScope() string {
 	if x != nil {
 		return x.Scope
+	}
+	return ""
+}
+
+func (x *ListOvertimeRequest) GetDepartmentId() string {
+	if x != nil {
+		return x.DepartmentId
 	}
 	return ""
 }
@@ -14875,7 +14933,7 @@ const file_white_hr_v1_hr_proto_rawDesc = "" +
 	"\f_position_idB\r\n" +
 	"\v_manager_idB\v\n" +
 	"\t_end_dateB\x12\n" +
-	"\x10_manager_user_id\"\xfc\x01\n" +
+	"\x10_manager_user_id\"\xf8\x02\n" +
 	"\x14ListEmployeesRequest\x12#\n" +
 	"\rdepartment_id\x18\x01 \x01(\tR\fdepartmentId\x12\x1d\n" +
 	"\n" +
@@ -14885,7 +14943,13 @@ const file_white_hr_v1_hr_proto_rawDesc = "" +
 	"\x06search\x18\x05 \x01(\tR\x06search\x12\x1b\n" +
 	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\a \x01(\tR\tpageToken\"\x8a\x01\n" +
+	"page_token\x18\a \x01(\tR\tpageToken\x12\x1f\n" +
+	"\vposition_id\x18\b \x01(\tR\n" +
+	"positionId\x12\x14\n" +
+	"\x05level\x18\t \x01(\tR\x05level\x12\x16\n" +
+	"\x06gender\x18\n" +
+	" \x01(\tR\x06gender\x12+\n" +
+	"\x11employment_status\x18\v \x01(\tR\x10employmentStatus\"\x8a\x01\n" +
 	"\x15ListEmployeesResponse\x123\n" +
 	"\temployees\x18\x01 \x03(\v2\x15.white.hr.v1.EmployeeR\temployees\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x14\n" +
@@ -15167,7 +15231,7 @@ const file_white_hr_v1_hr_proto_rawDesc = "" +
 	"\x10validation_notes\x18\x16 \x01(\tR\x0fvalidationNotes\x12\x14\n" +
 	"\x05notes\x18\x17 \x01(\tR\x05notesB\x14\n" +
 	"\x12_clock_in_locationB\x15\n" +
-	"\x13_clock_out_location\"\x83\x02\n" +
+	"\x13_clock_out_location\"\xa8\x02\n" +
 	"\x15ListAttendanceRequest\x12\x1f\n" +
 	"\vemployee_id\x18\x01 \x01(\tR\n" +
 	"employeeId\x12\x1d\n" +
@@ -15178,7 +15242,8 @@ const file_white_hr_v1_hr_proto_rawDesc = "" +
 	"\tonly_late\x18\x05 \x01(\bR\bonlyLate\x12)\n" +
 	"\x10only_unvalidated\x18\x06 \x01(\bR\x0fonlyUnvalidated\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"g\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\x12#\n" +
+	"\rdepartment_id\x18\t \x01(\tR\fdepartmentId\"g\n" +
 	"\x16ListAttendanceResponse\x127\n" +
 	"\arecords\x18\x01 \x03(\v2\x1d.white.hr.v1.AttendanceRecordR\arecords\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"P\n" +
@@ -15354,7 +15419,7 @@ const file_white_hr_v1_hr_proto_rawDesc = "" +
 	"\n" +
 	"can_cancel\x18\x11 \x01(\bR\tcanCancel\")\n" +
 	"\fLeaveRequest\x12\x19\n" +
-	"\bleave_id\x18\x01 \x01(\tR\aleaveId\"\xec\x01\n" +
+	"\bleave_id\x18\x01 \x01(\tR\aleaveId\"\x91\x02\n" +
 	"\x11ListLeavesRequest\x12\x1f\n" +
 	"\vemployee_id\x18\x01 \x01(\tR\n" +
 	"employeeId\x12\x16\n" +
@@ -15366,7 +15431,8 @@ const file_white_hr_v1_hr_proto_rawDesc = "" +
 	"\bend_date\x18\x05 \x01(\tR\aendDate\x12\x14\n" +
 	"\x05scope\x18\x06 \x01(\tR\x05scope\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"V\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\x12#\n" +
+	"\rdepartment_id\x18\t \x01(\tR\fdepartmentId\"V\n" +
 	"\x12ListLeavesResponse\x12*\n" +
 	"\x06leaves\x18\x01 \x03(\v2\x12.white.hr.v1.LeaveR\x06leaves\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"\xa6\x01\n" +
@@ -15423,13 +15489,14 @@ const file_white_hr_v1_hr_proto_rawDesc = "" +
 	"decided_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tdecidedAt\x12)\n" +
 	"\x10rejection_reason\x18\r \x01(\tR\x0frejectionReason\x129\n" +
 	"\n" +
-	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"z\n" +
+	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x9f\x01\n" +
 	"\x13ListOvertimeRequest\x12\x1f\n" +
 	"\vemployee_id\x18\x01 \x01(\tR\n" +
 	"employeeId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x14\n" +
 	"\x05month\x18\x03 \x01(\tR\x05month\x12\x14\n" +
-	"\x05scope\x18\x04 \x01(\tR\x05scope\"I\n" +
+	"\x05scope\x18\x04 \x01(\tR\x05scope\x12#\n" +
+	"\rdepartment_id\x18\x05 \x01(\tR\fdepartmentId\"I\n" +
 	"\x14ListOvertimeResponse\x121\n" +
 	"\bovertime\x18\x01 \x03(\v2\x15.white.hr.v1.OvertimeR\bovertime\"\x9e\x01\n" +
 	"\x15CreateOvertimeRequest\x12\x1f\n" +

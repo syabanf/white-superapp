@@ -24,6 +24,8 @@ import { c } from "@/features/content/strings";
 import type { Item, ItemDetail, ItemStatus, Person, Plan } from "@/features/content/types";
 import { cn } from "@/lib/utils";
 import { OptionSelect } from "../fields";
+import { BoardFilterBar } from "./board-filter-bar";
+import { STAGE_STATUSES, type BoardFilters } from "@/features/content/board-filters";
 import { useSetParam } from "../use-set-param";
 
 const DND_MIME = "application/x-content-item";
@@ -38,9 +40,12 @@ type Props = {
   assigneeId: string;
   today: string;
   canWrite: boolean;
+  filters: BoardFilters;
+  /** items in the plan/assignee scope before the board filters */
+  totalItems: number;
 };
 
-export function ContentBoard({ slug, clientId, items, plans, people, planId, assigneeId, today, canWrite }: Props) {
+export function ContentBoard({ slug, clientId, items, plans, people, planId, assigneeId, today, canWrite, filters, totalItems }: Props) {
   const router = useRouter();
   const [pending, start] = React.useTransition();
   const [dragging, setDragging] = React.useState<string | null>(null);
@@ -61,6 +66,11 @@ export function ContentBoard({ slug, clientId, items, plans, people, planId, ass
     for (const list of m.values()) list.sort((a, b) => a.plannedDate.localeCompare(b.plannedDate));
     return m;
   }, [items]);
+
+  // a status or stage filter narrows the board to its own columns
+  const visibleStatuses = ITEM_STATUSES.filter(
+    (s) => (!filters.status.length || filters.status.includes(s)) && (!filters.stage || STAGE_STATUSES[filters.stage].includes(s)),
+  );
 
   const move = (itemId: string, to: ItemStatus, moveNote?: string) =>
     start(async () => {
@@ -127,13 +137,14 @@ export function ContentBoard({ slug, clientId, items, plans, people, planId, ass
           allLabel={c.allAssignees}
           options={people.map((p) => ({ value: p.id, label: p.name }))}
         />
+        <BoardFilterBar filters={filters} shown={items.length} total={totalItems} />
         {canWrite ? <span className="text-xs text-muted-foreground">{c.boardDragHint}</span> : null}
         {pending ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
       </div>
 
       <div className="-mx-4 overflow-x-auto px-4 pb-2 scrollbar-thin md:-mx-6 md:px-6">
         <div className="flex min-w-max gap-3">
-          {ITEM_STATUSES.map((status) => {
+          {visibleStatuses.map((status) => {
             const list = columns.get(status) ?? [];
             const highlight = dragging && allowed?.includes(status);
             const blocked = dragging && allowed && !allowed.includes(status) && items.find((x) => x.id === dragging)?.status !== status;

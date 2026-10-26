@@ -66,3 +66,49 @@ export function round(v: number, digits = 2): number {
   const f = 10 ** digits;
   return Math.round(v * f) / f;
 }
+
+export type ChangeTone = "positive" | "negative" | "neutral";
+
+/**
+ * Good/bad/neutral tone of a change. Accepts a Delta or a signed number
+ * (e.g. a net figure or an absolute difference). Respects lower-is-better
+ * metrics; flat, null and NaN are neutral.
+ */
+export function changeTone(change: Delta | number | null | undefined, lowerIsBetter = false): ChangeTone {
+  if (change == null) return "neutral";
+  if (typeof change === "number") {
+    if (!Number.isFinite(change) || Math.abs(change) < 1e-9) return "neutral";
+    return change > 0 !== lowerIsBetter ? "positive" : "negative";
+  }
+  const good = isGoodChange(change, lowerIsBetter);
+  return good === null ? "neutral" : good ? "positive" : "negative";
+}
+
+const TONE_VAR: Record<ChangeTone, string> = {
+  positive: "var(--positive)",
+  negative: "var(--negative)",
+  neutral: "var(--muted-foreground)",
+};
+
+const TONE_TEXT: Record<ChangeTone, string> = {
+  positive: "text-positive",
+  negative: "text-negative",
+  neutral: "text-muted-foreground",
+};
+
+/** CSS color for a change (text, strokes, signed bars). */
+export function trendColor(change: Delta | number | null | undefined, lowerIsBetter = false): string {
+  return TONE_VAR[changeTone(change, lowerIsBetter)];
+}
+
+/** Tailwind text class for a change. */
+export function trendTextClass(change: Delta | number | null | undefined, lowerIsBetter = false): string {
+  return TONE_TEXT[changeTone(change, lowerIsBetter)];
+}
+
+/** Delta between the first and last finite value of a series (sparklines, trend lines). */
+export function seriesDelta(values: ReadonlyArray<number | null | undefined>): Delta | null {
+  const finite = values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  if (finite.length < 2) return null;
+  return computeDelta(finite.at(-1)!, finite[0]!);
+}

@@ -5,7 +5,8 @@ import { KpiGrid } from "@/components/dashboard/kpi-tile";
 import { HBarChart } from "@/components/dashboard/charts/hbar-chart";
 import { Heatmap } from "@/components/dashboard/charts/heatmap";
 import { MUTED_SERIES, slotColor } from "@/components/dashboard/charts/chart-primitives";
-import { LinkedTrendChart, ValueHeatmap } from "./charts";
+import { TrendChart, ValueHeatmap } from "./charts";
+import { PerfDrillSheet, usePerfDrill } from "./drill";
 import { bucketEnd, bucketLabel, bucketTick, dayTick, href, int, pct, ratio, score } from "./lib";
 import { ds } from "./strings";
 import type { DashLogbook } from "./types";
@@ -22,6 +23,12 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
   const history = (extra: Record<string, string | undefined> = {}) =>
     href(P, { tab: "history", dept, from: w.from, to: w.to, ...extra });
   const p100 = (v: number) => `${Math.round(v)}%`;
+  const drill = usePerfDrill();
+  const dayOf = (week: string, weekday: number) => {
+    const d = new Date(`${week}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + weekday - 1);
+    return d.toISOString().slice(0, 10);
+  };
   const trend = data.trend.map((b) => ({
     bucket: b.bucket,
     rate: b.expected ? (b.submitted / b.expected) * 100 : null,
@@ -65,7 +72,7 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
           format={pct}
           href={history()}
         />
-        <MetricTile label={l.score} hint={l.scoreHint} metric={data.avgScore} format={score} />
+        <MetricTile label={l.score} hint={l.scoreHint} metric={data.avgScore} format={score} href={history({ status: "reviewed" })} />
         <MetricTile
           label={l.rejected}
           hint={l.rejectedHint}
@@ -106,7 +113,7 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
           />
         }
       >
-        <LinkedTrendChart
+        <TrendChart
           data={trend}
           xKey="bucket"
           xFormat={(v) => bucketTick(v, w.granularity)}
@@ -128,14 +135,10 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
                 ]
               : []),
           ]}
-          hrefFor={(row) =>
-            href(P, {
-              tab: "history",
-              dept,
-              from: String(row.bucket),
-              to: bucketEnd(String(row.bucket), w.granularity, w.to),
-            })
-          }
+          onPick={(row) => {
+            const b = String(row.bucket);
+            drill("log", { from: b, to: bucketEnd(b, w.granularity, w.to), l: `${l.trend} · ${bucketLabel(b, w.granularity)}` });
+          }}
           summary={l.trend}
         />
       </ChartCard>
@@ -166,6 +169,10 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
               valueLabel={l.sent}
               countLabel="Logbook"
               cellSize={18}
+              onSelect={(c) => {
+                const day = dayOf(weeks[c.col]!, weekdays[c.row]!);
+                drill("log", { from: day, to: day, dim: "none", l: `${l.weekdays[weekdays[c.row]!]} ${dayTick(day)}` });
+              }}
             />
           ) : (
             <p className="py-10 text-center text-sm text-muted-foreground">{ds.noData}</p>
@@ -188,7 +195,7 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
         <SortTable
           rows={data.people}
           rowKey={(p) => p.employeeId}
-          rowHref={() => history()}
+          onRow={(p) => drill("log", { from: w.from, to: w.to, emp: p.employeeId, dim: "emp", l: p.name })}
           limit={40}
           columns={[
             { key: "n", label: ds.filters.employee, render: (p) => p.name, sort: (p) => p.name },
@@ -248,6 +255,7 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
           ]}
         />
       </ChartCard>
+      <PerfDrillSheet period={w} />
     </div>
   );
 }

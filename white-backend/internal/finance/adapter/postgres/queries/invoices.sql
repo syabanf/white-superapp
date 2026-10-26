@@ -12,6 +12,9 @@ SELECT i.id, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.r
    AND (sqlc.narg(status)::text IS NULL OR i.status = sqlc.narg(status))
    AND (sqlc.narg(search)::text IS NULL OR i.invoice_no ILIKE '%' || sqlc.narg(search) || '%'
         OR i.party_name ILIKE '%' || sqlc.narg(search) || '%' OR i.reference ILIKE '%' || sqlc.narg(search) || '%')
+   AND (sqlc.narg(date_from)::date IS NULL OR i.invoice_date >= sqlc.narg(date_from))
+   AND (sqlc.narg(date_to)::date IS NULL OR i.invoice_date <= sqlc.narg(date_to))
+   AND (sqlc.narg(party_name)::text IS NULL OR i.party_name = sqlc.narg(party_name))
  ORDER BY i.invoice_date DESC, i.created_at DESC
  LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
 

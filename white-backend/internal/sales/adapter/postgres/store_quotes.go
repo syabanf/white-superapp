@@ -337,7 +337,7 @@ func (s *Store) GetInvoice(ctx context.Context, id string) (*domain.Invoice, err
 }
 
 func (s *Store) ListInvoices(ctx context.Context, f domain.InvoiceFilter) ([]domain.Invoice, error) {
-	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Deal: nz(f.DealID), Status: nz(f.Status), Lim: limitOr(f.Limit, 200)})
+	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Deal: nz(f.DealID), Status: nz(f.Status), FromAt: f.From, ToAt: f.To, Lim: limitOr(f.Limit, 200)})
 	return many(rows, err, func(r sqlc.ListInvoicesRow) domain.Invoice { return invoiceRow(sqlc.GetInvoiceRow(r)) })
 }
 

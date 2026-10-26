@@ -1342,7 +1342,9 @@ type ListCandidatesRequest struct {
 	Page  int32  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
 	Limit int32  `protobuf:"varint,8,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Every row on one page.
-	All           bool `protobuf:"varint,9,opt,name=all,proto3" json:"all,omitempty"`
+	All bool `protobuf:"varint,9,opt,name=all,proto3" json:"all,omitempty"`
+	// portal | internal | referral | jobstreet | ...
+	Source        string `protobuf:"bytes,10,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1438,6 +1440,13 @@ func (x *ListCandidatesRequest) GetAll() bool {
 		return x.All
 	}
 	return false
+}
+
+func (x *ListCandidatesRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
 }
 
 type ListCandidatesResponse struct {
@@ -10107,7 +10116,7 @@ const file_white_recruitment_v1_recruitment_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"d\n" +
 	"\x16UpdateCandidateRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12:\n" +
-	"\x05input\x18\x02 \x01(\v2$.white.recruitment.v1.CandidatePatchR\x05input\"\xf3\x01\n" +
+	"\x05input\x18\x02 \x01(\v2$.white.recruitment.v1.CandidatePatchR\x05input\"\x8b\x02\n" +
 	"\x15ListCandidatesRequest\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12$\n" +
 	"\x0ejob_opening_id\x18\x02 \x01(\tR\fjobOpeningId\x12\x16\n" +
@@ -10117,7 +10126,9 @@ const file_white_recruitment_v1_recruitment_proto_rawDesc = "" +
 	"\x04sort\x18\x06 \x01(\tR\x04sort\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x14\n" +
 	"\x05limit\x18\b \x01(\x05R\x05limit\x12\x10\n" +
-	"\x03all\x18\t \x01(\bR\x03all\"\xba\x01\n" +
+	"\x03all\x18\t \x01(\bR\x03all\x12\x16\n" +
+	"\x06source\x18\n" +
+	" \x01(\tR\x06source\"\xba\x01\n" +
 	"\x16ListCandidatesResponse\x12?\n" +
 	"\n" +
 	"candidates\x18\x01 \x03(\v2\x1f.white.recruitment.v1.CandidateR\n" +

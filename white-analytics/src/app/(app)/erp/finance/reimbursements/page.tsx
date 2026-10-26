@@ -20,6 +20,7 @@ import {
   listPostableAccounts,
 } from "@/features/erp/finance/queries";
 import { fs } from "@/features/erp/finance/strings";
+import { listDepartments } from "@/features/erp/hr/queries";
 
 export const metadata: Metadata = { title: fs.reimburse.title };
 
@@ -60,7 +61,7 @@ export default async function ReimbursementsPage(props: PageProps<"/erp/finance/
         { value: "summary", label: rb.tabSummary },
         { value: "policies", label: rb.tabPolicies },
       ]}
-      reset={["page", "q", "status", "category", "month"]}
+      reset={["page", "q", "status", "category", "month", "department", "from", "to"]}
     />
   );
 
@@ -68,19 +69,26 @@ export default async function ReimbursementsPage(props: PageProps<"/erp/finance/
   if (tab === "all") {
     const page = spInt(sp.page, 1);
     const pageSize = spInt(sp.pageSize, 20);
-    const [res, accounts] = await Promise.all([
+    const department = sp1(sp.department);
+    const [res, accounts, deps] = await Promise.all([
       load(() =>
         listClaims({
           search: sp1(sp.q),
           status: sp1(sp.status),
           category: sp1(sp.category),
           month: sp1(sp.month),
+          department,
+          dateFrom: sp1(sp.from),
+          dateTo: sp1(sp.to),
           page,
           pageSize,
         }),
       ),
       perms.canApprove ? load(listPostableAccounts) : null,
+      load(() => listDepartments()),
     ]);
+    const departments = (deps.data ?? []).map((d) => d.name);
+    if (department && !departments.includes(department)) departments.push(department);
     body = res.error ? (
       <ErpLoadError error={res.error} />
     ) : (
@@ -90,6 +98,7 @@ export default async function ReimbursementsPage(props: PageProps<"/erp/finance/
         page={{ page, pageSize, total: res.data.total }}
         canPay={perms.canApprove}
         accounts={accounts?.data ?? []}
+        departments={departments}
       />
     );
   } else if (tab === "batches") {

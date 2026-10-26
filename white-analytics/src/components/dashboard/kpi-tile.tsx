@@ -5,7 +5,8 @@ import { Sparkline } from "@/components/dashboard/sparkline";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/dashboard/info-hint";
-import type { Delta } from "@/lib/metrics";
+import { changeTone, computeDelta, type Delta } from "@/lib/metrics";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { t } from "@/i18n/id";
 
 export type KpiTileProps = {
@@ -13,8 +14,14 @@ export type KpiTileProps = {
   /** already-formatted value string */
   value: string;
   delta?: Delta | null;
+  /** Raw values: when `delta` is not given, it is computed from these. */
+  currentValue?: number | null;
+  previousValue?: number | null;
+  /** Cost, late rate, DSO, CPC, SEO position...: a drop is good news. */
   lowerIsBetter?: boolean;
-  /** already-formatted previous value */
+  /** signed raw value (net growth, net income...): tints the value itself good/bad, respecting lowerIsBetter */
+  signedValue?: number | null;
+  /** already-formatted previous value; tinted good/bad with the delta */
   previous?: string;
   spark?: number[];
   hint?: string;
@@ -36,8 +43,11 @@ export type KpiTileProps = {
 export function KpiTile({
   label,
   value,
-  delta,
+  delta: deltaProp,
+  currentValue,
+  previousValue,
   lowerIsBetter,
+  signedValue,
   previous,
   spark,
   hint,
@@ -48,6 +58,11 @@ export function KpiTile({
   accentVar,
   href,
 }: KpiTileProps) {
+  const delta =
+    deltaProp ??
+    (currentValue != null && previousValue != null ? computeDelta(currentValue, previousValue) : null);
+  const valueTone = signedValue == null ? null : changeTone(signedValue, lowerIsBetter);
+  const toneClass = valueTone === "positive" ? "text-positive" : valueTone === "negative" ? "text-negative" : undefined;
   const pad = size === "sm" ? "px-3.5 py-3" : size === "lg" ? "p-5 sm:p-6" : "p-4 sm:p-5";
   const valueSize =
     size === "sm"
@@ -80,6 +95,7 @@ export function KpiTile({
               className={cn(
                 "-mb-[0.2em] min-w-0 truncate rounded-sm pb-[0.2em] leading-none font-bold tracking-[-0.035em] underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
                 valueSize,
+                toneClass,
               )}
               aria-label={`${label}: ${value}. Buka rincian`}
               title={value}
@@ -91,6 +107,7 @@ export function KpiTile({
               className={cn(
                 "-mb-[0.2em] min-w-0 truncate pb-[0.2em] leading-none font-bold tracking-[-0.035em]",
                 valueSize,
+                toneClass,
               )}
               title={value}
             >
@@ -100,6 +117,8 @@ export function KpiTile({
           {spark && spark.length > 1 ? (
             <Sparkline
               values={spark}
+              trend={delta}
+              lowerIsBetter={lowerIsBetter}
               width={size === "sm" ? 56 : 84}
               height={size === "sm" ? 20 : 30}
               className="mb-0.5 hidden shrink-0 opacity-70 transition-opacity duration-200 group-hover/kpi:opacity-100 min-[480px]:block"
@@ -112,16 +131,49 @@ export function KpiTile({
             {delta ? <DeltaBadge delta={delta} lowerIsBetter={lowerIsBetter} /> : null}
             {caption ? <span className="truncate text-xs text-muted-foreground">{caption}</span> : null}
             {previous && !caption ? (
-              <span className="line-clamp-2 min-w-0 text-xs text-muted-foreground">
-                <span className="sm:hidden">{t.common.previousShort}</span>
-                <span className="hidden sm:inline">{t.common.previousPeriod}</span>:{" "}
-                <span className="tabular">{previous}</span>
-              </span>
+              <PreviousLine value={previous} delta={delta} lowerIsBetter={lowerIsBetter} />
             ) : null}
           </div>
         ) : null}
       </div>
     </Card>
+  );
+}
+
+/**
+ * "Periode sebelumnya: X", tinted by whether the move since then is good news.
+ * The arrow carries the direction so color is never the only cue.
+ */
+export function PreviousLine({
+  value,
+  delta,
+  lowerIsBetter,
+  className,
+}: {
+  value: string;
+  delta?: Delta | null;
+  lowerIsBetter?: boolean;
+  className?: string;
+}) {
+  const tone = changeTone(delta, lowerIsBetter);
+  const Icon = delta?.direction === "up" ? ArrowUpRight : delta?.direction === "down" ? ArrowDownRight : null;
+  return (
+    <span
+      className={cn(
+        "line-clamp-2 min-w-0 text-xs",
+        tone === "positive"
+          ? "text-positive/90"
+          : tone === "negative"
+            ? "text-negative/90"
+            : "text-muted-foreground",
+        className,
+      )}
+    >
+      <span className="sm:hidden">{t.common.previousShort}</span>
+      <span className="hidden sm:inline">{t.common.previousPeriod}</span>:{" "}
+      <span className="tabular">{value}</span>
+      {Icon ? <Icon aria-hidden className="ml-0.5 inline size-3 align-[-2px]" strokeWidth={2.5} /> : null}
+    </span>
   );
 }
 

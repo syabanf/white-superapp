@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { DeltaText } from "@/components/dashboard/delta-badge";
+import type { Delta } from "@/lib/metrics";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatCompact, formatPercent } from "@/lib/format";
@@ -15,12 +18,18 @@ export type HBarItem = {
   color?: string;
   href?: string;
   muted?: boolean;
+  /** change vs the comparison period, shown as colored text after the value */
+  delta?: Delta | null;
+  lowerIsBetter?: boolean;
+  /** free payload handed back to `onSelect` (ids, filter values) */
+  key?: string;
 };
 
 /**
  * Horizontal bar list — the default for comparing categories with long names.
  * One series → one hue (slot 1). Bars ≤ 20px thick, 4px rounded data-end, square at baseline.
  * Value at the tip (outside), label above. Every row is its own hover target.
+ * A row with `href` is a link; with `onSelect` (and no href) it is a button.
  */
 export function HBarChart({
   items,
@@ -30,6 +39,7 @@ export function HBarChart({
   className,
   maxItems,
   emptyLabel = "–",
+  onSelect,
 }: {
   items: HBarItem[];
   format?: (v: number) => string;
@@ -39,11 +49,13 @@ export function HBarChart({
   className?: string;
   maxItems?: number;
   emptyLabel?: string;
+  onSelect?: (item: HBarItem, index: number) => void;
 }) {
   const rows = maxItems ? items.slice(0, maxItems) : items;
   const max = Math.max(0, ...rows.map((r) => r.value));
   const total = rows.reduce((a, b) => a + b.value, 0);
-  if (rows.length === 0) return <p className="py-6 text-center text-sm text-muted-foreground">{emptyLabel}</p>;
+  if (rows.length === 0)
+    return <p className="py-6 text-center text-sm text-muted-foreground">{emptyLabel}</p>;
   return (
     <ul className={cn("space-y-2.5", className)}>
       {rows.map((r, i) => {
@@ -51,14 +63,21 @@ export function HBarChart({
         const share = total > 0 ? (r.value / total) * 100 : 0;
         const barColor = r.color ?? (r.muted ? "var(--chart-emphasis-muted)" : color);
         const content = (
-          <li className="group">
+          <div className="group">
             <div className="mb-1 flex items-center justify-between gap-3 text-xs">
               <span className="truncate text-foreground/90" title={r.label}>
                 {r.label}
               </span>
               <span className="shrink-0 tabular text-muted-foreground">
                 <span className="font-medium text-foreground">{format(r.value)}</span>
-                {showShare ? <span className="ml-1.5">{formatPercent(share, 1)}</span> : r.secondary ? <span className="ml-1.5">{r.secondary}</span> : null}
+                {showShare ? (
+                  <span className="ml-1.5">{formatPercent(share, 1)}</span>
+                ) : r.secondary ? (
+                  <span className="ml-1.5">{r.secondary}</span>
+                ) : null}
+                {r.delta ? (
+                  <DeltaText delta={r.delta} lowerIsBetter={r.lowerIsBetter} className="ml-1.5 text-[11px]" />
+                ) : null}
               </span>
             </div>
             <div className="h-2 w-full rounded-r-[4px] bg-muted/70">
@@ -67,16 +86,36 @@ export function HBarChart({
                 style={{ width: `${Math.max(pct, r.value > 0 ? 1.5 : 0)}%`, background: barColor }}
               />
             </div>
-          </li>
+          </div>
+        );
+        const target = r.href ? (
+          <Link
+            href={r.href}
+            className="block cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {content}
+          </Link>
+        ) : onSelect ? (
+          <button
+            type="button"
+            onClick={() => onSelect(r, i)}
+            className="block w-full cursor-pointer rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {content}
+          </button>
+        ) : (
+          content
         );
         return (
-          <Tooltip key={`${r.label}-${i}`}>
-            <TooltipTrigger asChild>{r.href ? <a href={r.href} className="block">{content}</a> : content}</TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">
-              <span className="font-medium">{r.label}</span> · {format(r.value)}
-              {showShare ? ` · ${formatPercent(share, 1)}` : ""}
-            </TooltipContent>
-          </Tooltip>
+          <li key={`${r.key ?? r.label}-${i}`}>
+            <Tooltip>
+              <TooltipTrigger asChild>{target}</TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                <span className="font-medium">{r.label}</span> · {format(r.value)}
+                {showShare ? ` · ${formatPercent(share, 1)}` : ""}
+              </TooltipContent>
+            </Tooltip>
+          </li>
         );
       })}
     </ul>

@@ -13,6 +13,7 @@ import {
   getTeamSchedule,
   listAttendance,
   listDepartments,
+  listEmployeeOptions,
   listHolidays,
   listShifts,
 } from "@/features/erp/hr/queries";
@@ -55,17 +56,23 @@ async function Body({ tab, sp, perms }: { tab: string; sp: SP; perms: ReturnType
       const page = spInt(sp.page, 1);
       const pageSize = spInt(sp.pageSize, 20);
       const filters = { from: sp1(sp.from), to: sp1(sp.to), status: sp1(sp.status) };
-      const res = await load(() =>
-        listAttendance({
-          startDate: filters.from,
-          endDate: filters.to,
-          status: filters.status,
-          onlyLate: sp1(sp.late) === "1" || undefined,
-          onlyUnvalidated: sp1(sp.unvalidated) === "1" || undefined,
-          page,
-          pageSize,
-        }),
-      );
+      const [res, deps, employees] = await Promise.all([
+        load(() =>
+          listAttendance({
+            startDate: filters.from,
+            endDate: filters.to,
+            status: filters.status,
+            departmentId: sp1(sp.dept),
+            employeeId: sp1(sp.employee),
+            onlyLate: sp1(sp.late) === "1" || undefined,
+            onlyUnvalidated: sp1(sp.unvalidated) === "1" || undefined,
+            page,
+            pageSize,
+          }),
+        ),
+        departmentOptions(),
+        load(listEmployeeOptions),
+      ]);
       if (!res.data) return <ErpError message={res.error.message} />;
       return (
         <AttendanceTable
@@ -73,6 +80,8 @@ async function Body({ tab, sp, perms }: { tab: string; sp: SP; perms: ReturnType
           page={{ page, pageSize, total: res.data.total }}
           canApprove={perms.approve}
           filters={filters}
+          departments={deps}
+          employees={employees.data ?? []}
         />
       );
     }

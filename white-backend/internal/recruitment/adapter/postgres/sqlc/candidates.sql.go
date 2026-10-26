@@ -363,8 +363,9 @@ WHERE (cardinality($1::text[]) = 0 OR c.status = ANY ($1::text[]))
        OR c.phone ILIKE $3 OR c.domicile ILIKE $3)
   AND ($4::date IS NULL OR c.created_at >= ($4::date::timestamp AT TIME ZONE 'Asia/Jakarta'))
   AND ($5::date IS NULL OR c.created_at < (($5::date + 1)::timestamp AT TIME ZONE 'Asia/Jakarta'))
-ORDER BY CASE WHEN $6::bool THEN c.updated_at ELSE c.created_at END DESC, c.id
-LIMIT $8 OFFSET $7
+  AND ($6::text IS NULL OR c.source = $6)
+ORDER BY CASE WHEN $7::bool THEN c.updated_at ELSE c.created_at END DESC, c.id
+LIMIT $9 OFFSET $8
 `
 
 type ListCandidatesParams struct {
@@ -373,6 +374,7 @@ type ListCandidatesParams struct {
 	Search       *string
 	DateFrom     *time.Time
 	DateTo       *time.Time
+	Source       *string
 	SortUpdated  bool
 	Off          int32
 	Lim          int32
@@ -391,6 +393,7 @@ func (q *Queries) ListCandidates(ctx context.Context, arg ListCandidatesParams) 
 		arg.Search,
 		arg.DateFrom,
 		arg.DateTo,
+		arg.Source,
 		arg.SortUpdated,
 		arg.Off,
 		arg.Lim,

@@ -17,10 +17,12 @@ import { OffersTab } from "@/features/erp/recruitment/components/analytics/offer
 import { OpeningsTab } from "@/features/erp/recruitment/components/analytics/openings-tab";
 import { OverviewTab } from "@/features/erp/recruitment/components/analytics/overview-tab";
 import { PipelineTab } from "@/features/erp/recruitment/components/analytics/pipeline-tab";
+import { RecruitmentDrillSheet } from "@/features/erp/recruitment/components/analytics/drill";
 import { AnalyticsSkeleton } from "@/features/erp/recruitment/components/analytics/skeleton";
 import { SourcesTab } from "@/features/erp/recruitment/components/analytics/sources-tab";
 import { getDashboard, listInterviews, listJobOpenings } from "@/features/erp/recruitment/queries";
-import { INTERVIEW_MODE, INTERVIEW_TYPE, JOB_STATUS, ra, rs } from "@/features/erp/recruitment/strings";
+import { DashboardTrail, type TrailLevel } from "@/features/erp/sales/dashboard/trail";
+import { CANDIDATE_STATUS, SOURCE, INTERVIEW_MODE, INTERVIEW_TYPE, JOB_STATUS, ra, rs } from "@/features/erp/recruitment/strings";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: ra.title };
@@ -61,11 +63,19 @@ export default async function RecruitmentDashboardPage(props: PageProps<"/erp/hr
     label: `${j.title} · ${JOB_STATUS[j.status] ?? j.status}${j.publishedAt ? ` ${j.publishedAt.slice(0, 7)}` : ""}`,
   }));
   const departments = [...new Set(openings.map((j) => j.department).filter(Boolean))].sort();
+  const trail: TrailLevel[] = [
+    period.preset === "custom" ? { label: period.label, params: ["preset", "from", "to"] } : null,
+    ctx.department ? { label: ctx.department, params: ["department"] } : null,
+    ctx.job ? { label: openings.find((j) => j.id === ctx.job)?.title ?? ctx.job, params: ["job"] } : null,
+    ctx.source ? { label: SOURCE[ctx.source] ?? ctx.source, params: ["source"] } : null,
+    ctx.stage ? { label: CANDIDATE_STATUS[ctx.stage] ?? ctx.stage, params: ["stage"] } : null,
+  ].filter((l): l is TrailLevel => l != null);
 
   return (
     <>
       <PageHeader eyebrow={rs.eyebrow} title={ra.title} description={ra.subtitle} />
       <RecruitmentFilters period={period} jobs={jobOptions} departments={departments} />
+      <DashboardTrail levels={trail} />
       {/* the outer box scrolls so the first tab stays reachable on phones */}
       <div className="-mx-1 overflow-x-auto px-1 scrollbar-thin">
         <UrlTabs tabs={ra.tabs} label={ra.tabsLabel} className="w-max" />
@@ -103,6 +113,7 @@ async function DashboardBody({ tab, period, ctx }: { tab: Tab; period: ResolvedP
         {ra.periodCaption(formatPeriod(d.period.from, d.period.to), formatPeriod(d.comparePeriod.from, d.comparePeriod.to), d.compare)}
       </p>
       <Body data={d} ctx={ctx} />
+      <RecruitmentDrillSheet ctx={ctx} offers={d.offers} />
     </div>
   );
 }

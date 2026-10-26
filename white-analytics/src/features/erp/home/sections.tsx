@@ -277,8 +277,9 @@ export async function HrSection({ period }: HomeProps) {
               value={payroll ? hrRpCompact(payroll) : "–"}
               delta={payroll ? hrDelta(payroll, prevPayroll) : null}
               previous={prevPayroll ? hrRpCompact(prevPayroll) : undefined}
+              lowerIsBetter
               spark={m.map((b) => parseMoney(b.payrollGross) + parseMoney(b.payrollBpjsEmployer))}
-              href={hrLinks.payroll()}
+              href={hrLinks.payroll(d.to.slice(0, 4))}
             />
           ) : (
             <KpiTile
@@ -434,6 +435,7 @@ export async function RecruitmentSection({ period }: HomeProps) {
             lowerIsBetter
             previous={prev.avgDaysToHire != null ? days(prev.avgDaysToHire) : undefined}
             spark={t.map((x) => x.avgDaysToHire ?? 0)}
+            href={candidatesHref(ctx, { status: "hired" })}
           />
           <KpiTile
             label={r.acceptance}

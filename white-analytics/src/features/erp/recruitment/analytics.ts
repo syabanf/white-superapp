@@ -20,9 +20,9 @@ function href(path: string, params: Record<string, string | undefined>): string 
   return q ? `${BASE}${path}?${q}` : `${BASE}${path}`;
 }
 
-/** Candidate list for a slice: the list filters by status, opening and application date. */
-export function candidatesHref(ctx: DrillContext, p: { status?: string; job?: string } = {}): string {
-  return href("/candidates", { status: p.status ?? ctx.stage, job: p.job ?? ctx.job, from: ctx.from, to: ctx.to });
+/** Candidate list for a slice: the list filters by status, opening, source and application date. */
+export function candidatesHref(ctx: DrillContext, p: { status?: string; job?: string; source?: string } = {}): string {
+  return href("/candidates", { status: p.status ?? ctx.stage, job: p.job ?? ctx.job, source: p.source ?? ctx.source, from: ctx.from, to: ctx.to });
 }
 
 export function pipelineHref(ctx: DrillContext, job?: string): string {

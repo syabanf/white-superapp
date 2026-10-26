@@ -1,15 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { StatStrip } from "@/components/dashboard/stat-strip";
 import { slotColor } from "@/components/dashboard/charts/chart-primitives";
 import { hrLinks } from "@/features/erp/hr/dashboard/links";
-import { bucketEndOf } from "@/features/erp/hr/dashboard/range";
+import { bucketEndOf, monthEndOf } from "@/features/erp/hr/dashboard/range";
 import { bucketLabel, dayLabelLong, delta, monthLabel, num0, num1, pct1 } from "@/features/erp/hr/dashboard/format";
 import { thd } from "@/features/erp/hr/dashboard/strings";
 import { ComboChart, HeatGrid } from "./charts";
 import { SortTable } from "./sort-table";
+import { useHrDrill, useHrScope } from "./drill";
 import { deptPalette, Grid, type TabProps } from "./shared";
 
 const c = thd.charts;
@@ -23,7 +23,9 @@ function offsetLabel(bin: number): string {
 }
 
 export function AttendanceTab({ data }: TabProps) {
-  const router = useRouter();
+  const drill = useHrDrill();
+  const { dept } = useHrScope();
+  const range = { from: data.from, to: data.to, dept };
   const cur = data.current;
   const prev = data.previous;
   const depts = deptPalette(data);
@@ -43,6 +45,7 @@ export function AttendanceTab({ data }: TabProps) {
   const byDay = data.lateByDay.map((d) => ({
     label: String(d.col),
     tip: `Tanggal ${d.col}`,
+    dom: d.col,
     share: d.total ? Math.round((d.value / d.total) * 1000) / 10 : 0,
     late: d.value,
   }));
@@ -57,17 +60,41 @@ export function AttendanceTab({ data }: TabProps) {
     <div className="space-y-5">
       <StatStrip
         items={[
-          { label: k.records, value: num0(cur.attendanceRecords), delta: delta(cur.attendanceRecords, prev.attendanceRecords) },
-          { label: k.attendance, value: pct1(cur.attendanceRate), delta: delta(cur.attendanceRate, prev.attendanceRate), hint: k.attendanceHint },
-          { label: k.lateCount, value: num0(cur.lateCount), delta: delta(cur.lateCount, prev.lateCount), lowerIsBetter: true },
+          { label: k.records, value: num0(cur.attendanceRecords), delta: delta(cur.attendanceRecords, prev.attendanceRecords), href: hrLinks.attendance(range) },
+          {
+            label: k.attendance,
+            value: pct1(cur.attendanceRate),
+            delta: delta(cur.attendanceRate, prev.attendanceRate),
+            hint: k.attendanceHint,
+            href: hrLinks.attendance(range),
+          },
+          {
+            label: k.lateCount,
+            value: num0(cur.lateCount),
+            delta: delta(cur.lateCount, prev.lateCount),
+            lowerIsBetter: true,
+            href: hrLinks.attendance({ ...range, late: true }),
+          },
           {
             label: k.avgLate,
             value: `${num1(cur.avgLateMinutes)} ${thd.units.minutes}`,
             delta: delta(cur.avgLateMinutes, prev.avgLateMinutes),
             lowerIsBetter: true,
+            href: hrLinks.attendance({ ...range, late: true }),
           },
-          { label: k.absent, value: num0(cur.absentCount), delta: delta(cur.absentCount, prev.absentCount), lowerIsBetter: true },
-          { label: k.avgHours, value: `${num1(cur.avgWorkHours)} ${thd.units.hours}`, delta: delta(cur.avgWorkHours, prev.avgWorkHours) },
+          {
+            label: k.absent,
+            value: num0(cur.absentCount),
+            delta: delta(cur.absentCount, prev.absentCount),
+            lowerIsBetter: true,
+            href: hrLinks.attendance({ ...range, status: "absent" }),
+          },
+          {
+            label: k.avgHours,
+            value: `${num1(cur.avgWorkHours)} ${thd.units.hours}`,
+            delta: delta(cur.avgWorkHours, prev.avgWorkHours),
+            href: hrLinks.attendance(range),
+          },
         ]}
       />
 
@@ -82,7 +109,13 @@ export function AttendanceTab({ data }: TabProps) {
               { key: "absent", label: thd.series.absent, color: slotColor(7), format: num0 },
             ]}
             yFormat={num0}
-            onSelect={(r) => router.push(hrLinks.attendance({ from: String(r.date), to: bucketEndOf(String(r.date), data.bucket, data.to) }))}
+            onSelect={(r, _, key) =>
+              drill("att", {
+                from: String(r.date),
+                to: bucketEndOf(String(r.date), data.bucket, data.to),
+                status: key === "late" ? "late" : key === "absent" ? "absent" : undefined,
+              })
+            }
             summary={`${c.attendanceMix}: ${num0(cur.attendanceRecords)}`}
             height={260}
           />
@@ -97,7 +130,7 @@ export function AttendanceTab({ data }: TabProps) {
             ]}
             yFormat={num0}
             reference={{ x: `+${TOLERANCE}`, label: "15 mnt" }}
-            onSelect={(r) => r.late && router.push(hrLinks.attendance({ from: data.from, to: data.to, late: true }))}
+            onSelect={(r) => drill("att", { from: data.from, to: data.to, status: r.late ? "late" : undefined })}
             summary={c.clockIn}
             height={260}
           />
@@ -111,7 +144,7 @@ export function AttendanceTab({ data }: TabProps) {
             cols={weekdays.map((d) => ({ key: d, label: thd.weekdays[d - 1]! }))}
             cell={(row, col) => data.lateByWeekday.find((x) => x.row === row && x.col === col)}
             valueLabel={thd.series.late}
-            onSelect={() => router.push(hrLinks.attendance({ from: data.from, to: data.to, late: true }))}
+            onSelect={(row, col) => drill("att", { from: data.from, to: data.to, status: "late", dept: row, wd: String(col) })}
           />
         </ChartCard>
         <ChartCard title={c.lateByDay} description={c.lateByDayQ}>
@@ -120,6 +153,7 @@ export function AttendanceTab({ data }: TabProps) {
             series={[{ key: "share", label: thd.series.late, color: slotColor(3), format: pct1 }]}
             yFormat={(v) => `${v}%`}
             summary={c.lateByDay}
+            onSelect={(r) => drill("att", { from: data.from, to: data.to, status: "late", dom: String(r.dom) })}
             legend={false}
             height={232}
           />
@@ -136,13 +170,17 @@ export function AttendanceTab({ data }: TabProps) {
               return d?.attendanceRecords ? { value: Math.round((d.attendanceRate * d.attendanceRecords) / 100), total: d.attendanceRecords } : undefined;
             }}
             valueLabel={k.attendance}
+            onSelect={(row, col) => {
+              const month = data.months[col]?.date;
+              if (month) drill("att", { from: month, to: monthEndOf(month), dept: row });
+            }}
           />
         </ChartCard>
         <ChartCard title={c.topLate} description={c.topLateQ}>
           <SortTable
             rows={data.topLate}
             rowKey={(r) => r.employeeId}
-            rowHref={(r) => hrLinks.employee(r.employeeId)}
+            rowHref={(r) => hrLinks.attendance({ ...range, late: true, employee: r.employeeId })}
             initialSort={{ key: "late", desc: true }}
             columns={[
               { key: "name", label: thd.cols.employee, value: (r) => r.fullName, cell: (r) => <span className="block max-w-36 truncate">{r.fullName}</span> },

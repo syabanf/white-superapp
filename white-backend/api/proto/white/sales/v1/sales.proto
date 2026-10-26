@@ -173,6 +173,12 @@ message ListLeadsRequest {
   string owner_user_id = 5;
   int32 page = 6;
   int32 page_size = 7;
+  // Created day range (YYYY-MM-DD, WIB, inclusive).
+  string date_from = 8;
+  string date_to = 9;
+  // Score range, inclusive; unset bounds are open.
+  optional int32 score_min = 10;
+  optional int32 score_max = 11;
 }
 
 message ListLeadsResponse {
@@ -474,6 +480,19 @@ message ListDealsRequest {
   string q = 6;
   int32 page = 7;
   int32 page_size = 8;
+  // A service line the deal covers (social_media_management, seo, ...).
+  string service_line = 9;
+  // Account industry; "Lainnya" matches deals without one.
+  string industry = 10;
+  // Lead source of the deal's lead.
+  string source = 11;
+  // A lost reason id; "none" matches lost deals without a reason.
+  string lost_reason_id = 12;
+  // Day range (YYYY-MM-DD, WIB, inclusive) on date_field.
+  string date_from = 13;
+  string date_to = 14;
+  // created (default) | closed
+  string date_field = 15;
 }
 
 message ListDealsResponse {
@@ -964,6 +983,9 @@ message ListInvoicesRequest {
   string deal_id = 1;
   string status = 2;
   int32 limit = 3;
+  // Issue day range (sent, else created; YYYY-MM-DD, WIB, inclusive).
+  string date_from = 4;
+  string date_to = 5;
 }
 
 message ListInvoicesResponse {

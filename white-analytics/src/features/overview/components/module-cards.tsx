@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowUpRight, Megaphone, Search, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,23 @@ import { t } from "@/i18n/id";
 import type { Delta } from "@/lib/metrics";
 import type { DataQuality, OverviewAds, OverviewSeo, OverviewSocial } from "@/features/overview/queries";
 import { PlatformIcon } from "@/features/social/components/platform-icon";
+import { withParam } from "@/lib/drill-query";
+
+/** Module page href with extra params (and an optional hash), keeping the period query. */
+function moduleHref(href: string, params: Record<string, string>, hash?: string): string {
+  let out = href;
+  for (const [k, v] of Object.entries(params)) out = withParam(out, k, v);
+  return hash ? `${out}#${hash}` : out;
+}
+
+/** Click on a daily point opens that day's drill sheet on the module page. */
+function useDayDrillTo(href: string) {
+  const router = useRouter();
+  return {
+    onSelect: (p: { date: string }) => router.push(withParam(href, "drill", `day:${p.date}`)),
+    selectLabel: "Lihat rincian hari ini",
+  };
+}
 
 /**
  * One shape for all three module panels: header · flex-1 body · two-stat footer.
@@ -106,20 +124,32 @@ function FooterStat({
   value,
   delta,
   lowerIsBetter,
+  href,
 }: {
   label: string;
   value: string;
   delta?: Delta | null;
   lowerIsBetter?: boolean;
+  href?: string;
 }) {
-  return (
-    <div className="min-w-0 px-6 py-3.5">
+  const body = (
+    <>
       <div className="label-mono truncate text-muted-foreground">{label}</div>
       <div className="mt-1.5 flex flex-wrap items-center gap-2">
         <span className="text-[17px] font-bold tracking-[-0.02em] tabular">{value}</span>
         {delta ? <DeltaBadge delta={delta} lowerIsBetter={lowerIsBetter} /> : null}
       </div>
-    </div>
+    </>
+  );
+  return href ? (
+    <Link
+      href={href}
+      className="min-w-0 px-6 py-3.5 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+    >
+      {body}
+    </Link>
+  ) : (
+    <div className="min-w-0 px-6 py-3.5">{body}</div>
   );
 }
 
@@ -180,11 +210,13 @@ export function SocialModuleCard({
               label={t.social.engagementRate}
               value={formatPercent(data.engagementRate)}
               delta={data.isDemo ? null : data.engagementRateDelta}
+              href={moduleHref(href, { sort: "er" }, "posts")}
             />
             <FooterStat
               label={t.social.reach}
               value={formatCompact(data.reach)}
               delta={data.isDemo ? null : data.reachDelta}
+              href={moduleHref(href, { sort: "reach" }, "posts")}
             />
           </>
         ) : undefined
@@ -195,22 +227,27 @@ export function SocialModuleCard({
       ) : !data.hasData ? (
         <NoDataEmpty href={href} />
       ) : (
-        <ul className="space-y-3.5">
+        <ul className="space-y-2">
           {data.accounts.map((a) => (
             <li key={`${a.platform}-${a.username}`}>
-              <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
-                <span className="flex min-w-0 items-center gap-2">
-                  <PlatformIcon platform={a.platform} className="size-4 shrink-0" />
-                  <span className="truncate text-muted-foreground">@{a.username}</span>
-                </span>
-                <span className="shrink-0 font-semibold tabular">{formatCompact(a.followers)}</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-muted">
-                <div
-                  className="h-1.5 rounded-full"
-                  style={{ width: `${(a.followers / max) * 100}%`, background: "var(--chart-1)" }}
-                />
-              </div>
+              <Link
+                href={moduleHref(href, { platform: a.platform })}
+                className="-mx-2 block rounded-lg px-2 py-1 outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PlatformIcon platform={a.platform} className="size-4 shrink-0" />
+                    <span className="truncate text-muted-foreground">@{a.username}</span>
+                  </span>
+                  <span className="shrink-0 font-semibold tabular">{formatCompact(a.followers)}</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted">
+                  <div
+                    className="h-1.5 rounded-full"
+                    style={{ width: `${(a.followers / max) * 100}%`, background: "var(--chart-1)" }}
+                  />
+                </div>
+              </Link>
             </li>
           ))}
         </ul>
@@ -228,6 +265,8 @@ export function SeoModuleCard({
   href: string;
   settingsHref: string;
 }) {
+  const drill = useDayDrillTo(href);
+  const keywords = href.replace(/\/seo(?=\?|$)/, "/seo/keywords");
   return (
     <ModulePanel
       index="02 · SEO"
@@ -243,12 +282,14 @@ export function SeoModuleCard({
               label={t.seo.ctr}
               value={formatPercent(data.ctr)}
               delta={data.isDemo ? null : data.ctrDelta}
+              href={moduleHref(keywords, { view: "low_ctr" })}
             />
             <FooterStat
               label={t.seo.position}
               value={formatNumber(data.position, 1)}
               delta={data.isDemo ? null : data.positionDelta}
               lowerIsBetter
+              href={moduleHref(keywords, { view: "striking" })}
             />
           </>
         ) : undefined
@@ -263,6 +304,7 @@ export function SeoModuleCard({
           data={data.daily}
           series={[{ key: "clicks", label: t.seo.clicks, type: "area", format: (v) => formatNumber(v) }]}
           height={168}
+          {...drill}
         />
       )}
     </ModulePanel>
@@ -280,6 +322,7 @@ export function AdsModuleCard({
   settingsHref: string;
   currency: string;
 }) {
+  const drill = useDayDrillTo(href);
   const ctrDelta: Delta | null =
     data.prev.ctr === 0
       ? null
@@ -304,11 +347,13 @@ export function AdsModuleCard({
               value={formatCurrency(data.kpis.cpr, currency)}
               delta={data.isDemo ? null : data.cprDelta}
               lowerIsBetter
+              href={moduleHref(href, { sort: "cpr" }, "breakdown")}
             />
             <FooterStat
               label={t.ads.ctr}
               value={formatPercent(data.kpis.ctr)}
               delta={data.isDemo ? null : ctrDelta}
+              href={moduleHref(href, {}, "top-ads")}
             />
           </>
         ) : undefined
@@ -332,6 +377,7 @@ export function AdsModuleCard({
           ]}
           height={168}
           yFormat={(v) => formatCompact(v)}
+          {...drill}
         />
       )}
     </ModulePanel>

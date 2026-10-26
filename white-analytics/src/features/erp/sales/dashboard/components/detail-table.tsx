@@ -27,6 +27,7 @@ export function DetailTable<T>({
   columns,
   rowKey,
   href,
+  onRow,
   initialSort,
   limit,
   empty = dd.empty,
@@ -35,6 +36,8 @@ export function DetailTable<T>({
   columns: Column<T>[];
   rowKey: (row: T) => string;
   href?: (row: T) => string | undefined;
+  /** opens a drill for the row (used when there is no href) */
+  onRow?: (row: T) => void;
   initialSort?: { key: string; desc: boolean };
   limit?: number;
   empty?: string;
@@ -86,13 +89,21 @@ export function DetailTable<T>({
           {shown.map((r) => {
             const link = href?.(r);
             return (
-              <tr key={rowKey(r)} className={cn(link && "hover:bg-muted/40")}>
+              <tr key={rowKey(r)} className={cn((link || onRow) && "hover:bg-muted/40")}>
                 {columns.map((c, i) => (
                   <td key={c.key} className={cell(c)}>
                     {link && i === 0 ? (
                       <Link href={link} className="font-medium hover:underline">
                         {c.render(r)}
                       </Link>
+                    ) : onRow && i === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => onRow(r)}
+                        className="cursor-pointer text-left font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {c.render(r)}
+                      </button>
                     ) : (
                       c.render(r)
                     )}

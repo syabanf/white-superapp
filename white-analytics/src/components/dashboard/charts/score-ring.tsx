@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { rateScore, type CwvRating } from "@/lib/metrics";
 import { t } from "@/i18n/id";
@@ -25,6 +26,7 @@ export function ScoreRing({
   stroke = 7,
   className,
   rating,
+  href,
 }: {
   score: number | null | undefined;
   label?: string;
@@ -32,14 +34,25 @@ export function ScoreRing({
   stroke?: number;
   className?: string;
   rating?: CwvRating;
+  /** drill destination (e.g. the audit issues behind the score) */
+  href?: string;
 }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const val = score == null ? 0 : Math.max(0, Math.min(100, score));
   const rt = rating ?? (score == null ? null : rateScore(val));
   const color = rt ? RATING_COLOR[rt] : "var(--muted-foreground)";
+  const Root = href ? Link : "div";
   return (
-    <div className={cn("flex flex-col items-center gap-1.5", className)}>
+    <Root
+      href={href as string}
+      className={cn(
+        "flex flex-col items-center gap-1.5",
+        href &&
+          "cursor-pointer rounded-xl outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring",
+        className,
+      )}
+    >
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--muted)" strokeWidth={stroke} />
@@ -67,6 +80,6 @@ export function ScoreRing({
           {RATING_LABEL[rt]}
         </span>
       ) : null}
-    </div>
+    </Root>
   );
 }

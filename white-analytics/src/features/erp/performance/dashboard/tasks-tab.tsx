@@ -4,8 +4,9 @@ import { ChartCard } from "@/components/dashboard/chart-card";
 import { KpiGrid } from "@/components/dashboard/kpi-tile";
 import { HBarChart } from "@/components/dashboard/charts/hbar-chart";
 import { MUTED_SERIES, slotColor } from "@/components/dashboard/charts/chart-primitives";
-import { LinkedTrendChart, StackedRows, type Segment } from "./charts";
-import { bucketLabel, bucketTick, href, int, monthOf, pct } from "./lib";
+import { StackedRows, TrendChart, type Segment } from "./charts";
+import { PerfDrillSheet, usePerfDrill } from "./drill";
+import { bucketEnd, bucketLabel, bucketTick, href, int, monthOf, pct } from "./lib";
 import { ds } from "./strings";
 import type { DashTasks } from "./types";
 import { MetricTile, SortTable } from "./widgets";
@@ -37,6 +38,9 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
   }));
   const p100 = (v: number) => `${Math.round(v)}%`;
   const monitor = (deptId?: string, m = month) => href(P, { tab: "monitor", dept: deptId ?? dept, month: m });
+  const drill = usePerfDrill();
+  const range = { from: w.from, to: w.to };
+  const SEG_STATUS: Record<string, string> = { approved: "approved", waitingReview: "done", inProgress: "in_progress", pending: "pending", rejected: "rejected" };
   const turnTotal = data.turnaround.reduce((a, c) => a + c.value, 0);
   const sum = (pick: (r: DashTasks["people"][number]) => number) =>
     int(data.people.reduce((a, r) => a + pick(r), 0));
@@ -50,8 +54,9 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
           hint={ds.summary.completionHint}
           metric={data.completion}
           format={pct}
+          href={monitor()}
         />
-        <MetricTile label={t.onTime} hint={ds.summary.onTimeHint} metric={data.onTimeRate} format={pct} />
+        <MetricTile label={t.onTime} hint={ds.summary.onTimeHint} metric={data.onTimeRate} format={pct} href={monitor()} />
         <MetricTile
           label={t.overdue}
           hint={ds.summary.overdueHint}
@@ -73,6 +78,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
           metric={data.turnaroundHours}
           format={hours}
           lowerIsBetter
+          href={monitor()}
         />
       </KpiGrid>
 
@@ -106,7 +112,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
           />
         }
       >
-        <LinkedTrendChart
+        <TrendChart
           data={trend}
           xKey="bucket"
           xFormat={(v) => bucketTick(v, w.granularity)}
@@ -128,7 +134,10 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
                 ]
               : []),
           ]}
-          hrefFor={(row) => monitor(undefined, String(row.bucket).slice(0, 7))}
+          onPick={(row) => {
+            const b = String(row.bucket);
+            drill("task", { from: b, to: bucketEnd(b, w.granularity, w.to), l: `${t.trend} · ${bucketLabel(b, w.granularity)}` });
+          }}
           summary={t.trend}
         />
       </ChartCard>
@@ -137,9 +146,12 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
         <ChartCard title={t.byDept} description={t.byDeptHint}>
           <StackedRows
             segments={SEGMENTS}
+            onSelect={(r, seg) =>
+              drill("task", { ...range, dept: r.id, dim: "dept", status: seg ? SEG_STATUS[seg] : undefined, l: seg ? `${r.label} · ${SEGMENTS.find((x) => x.key === seg)?.label}` : r.label })
+            }
             rows={data.departments.map((d) => ({
+              id: d.departmentId,
               label: d.departmentName,
-              href: monitor(d.departmentId),
               values: {
                 approved: d.approved,
                 waitingReview: d.waitingReview,
@@ -157,8 +169,9 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
               label: t.agingKeys[a.key] ?? a.key,
               value: a.value,
               color: AGING_RAMP[i],
-              href: monitor(),
+              key: a.key,
             }))}
+            onSelect={(it) => drill("task", { status: "overdue", age: it.key, l: `${t.aging} · ${it.label}` })}
           />
         </ChartCard>
       </div>
@@ -168,7 +181,8 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
           <HBarChart
             maxItems={10}
             format={(v) => `${int(v)} tugas`}
-            items={data.people.map((p) => ({ label: p.name, value: p.due, secondary: pct(p.completion) }))}
+            items={data.people.map((p) => ({ label: p.name, value: p.due, secondary: pct(p.completion), key: p.employeeId }))}
+            onSelect={(it) => drill("task", { ...range, emp: it.key, dim: "emp", l: it.label })}
           />
         </ChartCard>
         <ChartCard title={t.turnaroundDist} description={t.turnaroundDistHint}>
@@ -179,6 +193,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
               value: c.value,
               secondary: turnTotal ? pct(c.value / turnTotal) : undefined,
             }))}
+            onSelect={() => drill("task", { ...range, status: "approved", l: t.turnaroundDist })}
           />
         </ChartCard>
       </div>
@@ -189,6 +204,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
           rowKey={(p) => p.employeeId}
           initialSort={{ key: "overdue", desc: true }}
           limit={25}
+          onRow={(p) => drill("task", { ...range, emp: p.employeeId, dim: "emp", l: p.name })}
           columns={[
             { key: "n", label: ds.filters.employee, render: (p) => p.name, sort: (p) => p.name },
             {
@@ -239,6 +255,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
           ]}
         />
       </ChartCard>
+      <PerfDrillSheet period={w} />
     </div>
   );
 }

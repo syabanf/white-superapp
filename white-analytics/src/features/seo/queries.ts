@@ -5,6 +5,7 @@ import type { DateRange } from "@/lib/dates";
 import { toISODate } from "@/lib/dates";
 import {
   computeDelta,
+  ctr as ctrPct,
   declining,
   fillDaily,
   healthScore,
@@ -179,6 +180,39 @@ export const getDimBreakdown = cache(async (propertyId: string, range: DateRange
   const [devices, countries] = await Promise.all([dimRows(propertyId, "DEVICE", range), dimRows(propertyId, "COUNTRY", range)]);
   return { devices: aggregateDimRows(devices), countries: aggregateDimRows(countries) };
 });
+
+export type DimensionDetail = {
+  dimension: "DEVICE" | "COUNTRY";
+  key: string;
+  totals: { clicks: number; impressions: number; ctr: number; position: number };
+  deltas: { clicks: Delta; impressions: Delta; ctr: Delta; position: Delta };
+  daily: { date: string; clicks: number; impressions: number; ctr: number; position: number }[];
+};
+
+/** One device or country over the period: totals vs previous and its daily rows. */
+export const getDimensionDetail = cache(
+  async (propertyId: string, dimension: "DEVICE" | "COUNTRY", key: string, range: DateRange, previous: DateRange): Promise<DimensionDetail> => {
+    const where = (r: DateRange) => ({ propertyId, dimension, key, date: { gte: r.from, lte: r.to } });
+    const [rows, prevRows] = await Promise.all([
+      db.seoDimensionMetric.findMany({ where: where(range), orderBy: { date: "asc" }, select: { date: true, clicks: true, impressions: true, position: true } }),
+      db.seoDimensionMetric.findMany({ where: where(previous), select: { clicks: true, impressions: true, position: true } }),
+    ]);
+    const cur = aggregateSearch(rows);
+    const prev = aggregateSearch(prevRows);
+    return {
+      dimension,
+      key,
+      totals: cur,
+      deltas: {
+        clicks: computeDelta(cur.clicks, prev.clicks),
+        impressions: computeDelta(cur.impressions, prev.impressions),
+        ctr: computeDelta(cur.ctr, prev.ctr),
+        position: computeDelta(cur.position, prev.position),
+      },
+      daily: rows.map((r) => ({ date: toISODate(r.date), clicks: r.clicks, impressions: r.impressions, ctr: ctrPct(r.clicks, r.impressions), position: r.position })),
+    };
+  },
+);
 
 // ── Audit ─────────────────────────────────────────────────────
 

@@ -28,15 +28,19 @@ export function FunnelChart({
   color = slotColor(0),
   exitedLabel = "Keluar di tahap ini",
   className,
+  onSelect,
 }: {
   steps: FunnelStep[];
   format?: (v: number) => string;
   color?: string;
   exitedLabel?: string;
   className?: string;
+  /** used for steps without `href` */
+  onSelect?: (step: FunnelStep, index: number) => void;
 }) {
   const top = steps[0]?.value ?? 0;
-  if (top === 0) return <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data pada periode ini</p>;
+  if (top === 0)
+    return <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data pada periode ini</p>;
   return (
     <ol className={cn("flex flex-col", className)}>
       {steps.map((s, i) => {
@@ -74,11 +78,25 @@ export function FunnelChart({
             <Tooltip>
               <TooltipTrigger asChild>
                 {s.href ? (
-                  <Link href={s.href} className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Link
+                    href={s.href}
+                    className="block cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
                     {bar}
                   </Link>
+                ) : onSelect ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelect(s, i)}
+                    className="block w-full cursor-pointer rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {bar}
+                  </button>
                 ) : (
-                  <div tabIndex={0} className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <div
+                    tabIndex={0}
+                    className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
                     {bar}
                   </div>
                 )}

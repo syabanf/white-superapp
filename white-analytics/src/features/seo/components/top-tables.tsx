@@ -9,6 +9,7 @@ import { DataTable, type ColMeta } from "@/components/dashboard/data-table";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { computeDelta } from "@/lib/metrics";
 import { formatNumber, formatPercent, truncate } from "@/lib/format";
+import { withParam } from "@/lib/drill-query";
 import { t } from "@/i18n/id";
 import type { PageAgg } from "@/features/seo/queries";
 import type { QueryAgg } from "@/features/seo/aggregate";
@@ -25,6 +26,14 @@ function ViewAllLink({ href }: { href: string }) {
   );
 }
 
+function DrillLink({ href, title, text }: { href: string; title: string; text: string }) {
+  return (
+    <Link href={href} title={title} className="rounded-sm underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+      {text}
+    </Link>
+  );
+}
+
 function ClicksCell({ clicks, prevClicks, compare }: { clicks: number; prevClicks: number | null; compare: boolean }) {
   return (
     <span className="inline-flex items-center justify-end gap-1.5">
@@ -37,7 +46,11 @@ function ClicksCell({ clicks, prevClicks, compare }: { clicks: number; prevClick
 /** Kata kunci teratas — top 10 by clicks with Δ clicks, position, CTR. */
 export function TopQueriesCard({ rows, href, compare }: { rows: QueryAgg[]; href: string; compare: boolean }) {
   const columns: ColumnDef<QueryAgg, unknown>[] = [
-    { accessorKey: "key", header: t.seo.query, cell: ({ row }) => <span title={row.original.key}>{truncate(row.original.key, 42)}</span> },
+    {
+      accessorKey: "key",
+      header: t.seo.query,
+      cell: ({ row }) => <DrillLink href={withParam(href, "q", row.original.key)} title={row.original.key} text={truncate(row.original.key, 42)} />,
+    },
     {
       accessorKey: "clicks",
       header: t.seo.clicks,
@@ -57,7 +70,11 @@ export function TopQueriesCard({ rows, href, compare }: { rows: QueryAgg[]; href
 /** Halaman teratas — top 10 by clicks. */
 export function TopPagesCard({ rows, href, compare }: { rows: PageAgg[]; href: string; compare: boolean }) {
   const columns: ColumnDef<PageAgg, unknown>[] = [
-    { accessorKey: "path", header: t.seo.page, cell: ({ row }) => <span title={row.original.key}>{truncate(row.original.path, 42)}</span> },
+    {
+      accessorKey: "path",
+      header: t.seo.page,
+      cell: ({ row }) => <DrillLink href={withParam(href, "q", row.original.path)} title={row.original.key} text={truncate(row.original.path, 42)} />,
+    },
     {
       accessorKey: "clicks",
       header: t.seo.clicks,

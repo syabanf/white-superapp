@@ -60,6 +60,7 @@ export function SortTable<T>({
   columns,
   rowKey,
   rowHref,
+  onRow,
   initialSort,
   limit,
   totalLabel = ds.total,
@@ -69,6 +70,8 @@ export function SortTable<T>({
   columns: Column<T>[];
   rowKey: (row: T) => string;
   rowHref?: (row: T) => string | undefined;
+  /** opens a drill for the row (used when there is no rowHref) */
+  onRow?: (row: T) => void;
   initialSort?: { key: string; desc: boolean };
   limit?: number;
   totalLabel?: string;
@@ -141,6 +144,14 @@ export function SortTable<T>({
                       <Link href={to} className="font-medium underline-offset-4 hover:underline">
                         {c.render(r)}
                       </Link>
+                    ) : i === 0 && onRow ? (
+                      <button
+                        type="button"
+                        onClick={() => onRow(r)}
+                        className="cursor-pointer text-left font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {c.render(r)}
+                      </button>
                     ) : (
                       c.render(r)
                     )}

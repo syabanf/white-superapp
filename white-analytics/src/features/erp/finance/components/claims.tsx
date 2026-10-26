@@ -24,6 +24,7 @@ import { formatRupiah, sumMoney } from "@/features/erp/shared/money";
 import { DatePicker, formatMonth, toIsoDate } from "@/features/erp/shared/period-picker";
 import { ErpEmpty } from "@/features/erp/shared/states";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
+import { DateRangeFilter } from "@/features/erp/shared/period-picker";
 import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { approveClaimAction, payClaimsAction, rejectClaimAction } from "../actions";
 import type { Claim, PostableAccount } from "../types";
@@ -261,12 +262,15 @@ export function ClaimsTable({
   totalAmount,
   canPay,
   accounts,
+  departments,
 }: {
   claims: Claim[];
   page: ServerPage;
   totalAmount: string;
   canPay: boolean;
   accounts: PostableAccount[];
+  /** department names for the department filter */
+  departments: string[];
 }) {
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const payable = claims.filter((c) => c.status === "APPROVED_FINANCE");
@@ -318,8 +322,17 @@ export function ClaimsTable({
               allLabel={rb.allCategories}
               options={Object.entries(rb.categories).map(([value, label]) => ({ value, label }))}
             />
+            {departments.length ? (
+              <SelectFilter
+                param="department"
+                label={rb.department}
+                allLabel={rb.allDepartments}
+                options={departments.map((d) => ({ value: d, label: d }))}
+              />
+            ) : null}
             <SelectFilter param="month" label={rb.month} allLabel={rb.month} options={last12Months()} />
-            <ResetFilters params={["q", "status", "category", "month"]} />
+            <DateRangeFilter placeholder={rb.dateRange} />
+            <ResetFilters params={["q", "status", "category", "department", "month", "from", "to"]} />
           </>
         }
       />

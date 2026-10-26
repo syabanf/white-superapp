@@ -12,13 +12,18 @@ import { funnelSteps, publishRate, type DashBucket, type DashPerson } from "@/fe
 import { num } from "@/features/content/lib";
 import { c, cd } from "@/features/content/strings";
 import type { ItemStatus } from "@/features/content/types";
+import type { BoardStage } from "@/features/content/board-filters";
 import { formatCompact, formatDecimal, formatNumber, formatPercent } from "@/lib/format";
 import { CategoryBars, FunnelBars, MonthCalendars, PeriodChart, type CalendarMonth } from "./charts";
+import { useContentDrill } from "./drill";
+import { contentBoardHref, periodRange } from "./links";
+import { bucketRange } from "@/features/erp/shared/drill/time";
 import {
   DetailTable,
   TextLink,
-  boardHref,
+  TextButton,
   bucketLabel,
+  overviewHref,
   bucketRangeLabel,
   personName,
   planForMonth,
@@ -39,32 +44,34 @@ export function SummaryTab({ data, ctx }: TabProps) {
   const buckets = cur.buckets ?? [];
   const prevBuckets = prev.buckets ?? [];
   const gran = cur.granularity;
-  const series = buckets.map((b, i) => {
-    const plan = planForMonth(ctx, b.start);
-    return {
-      label: bucketLabel(b.start, gran),
-      planned: b.planned,
-      published: b.published,
-      previous: ctx.compare ? (prevBuckets[i]?.published ?? null) : null,
-      href: plan ? `${ctx.base}/plans/${plan}` : undefined,
-    };
-  });
-  const steps = funnelSteps(cur.funnel ?? []).map((s) => ({ ...s, href: `${ctx.base}/board` }));
+  const drill = useContentDrill(ctx);
+  const range = periodRange(ctx);
+  const board = (patch: Parameters<typeof contentBoardHref>[1] = {}) => contentBoardHref(ctx, { ...range, ...patch });
+  const series = buckets.map((b, i) => ({
+    start: b.start,
+    label: bucketLabel(b.start, gran),
+    planned: b.planned,
+    published: b.published,
+    previous: ctx.compare ? (prevBuckets[i]?.published ?? null) : null,
+  }));
+  const steps = funnelSteps(cur.funnel ?? []);
 
   return (
     <div className="space-y-6">
       <KpiGrid>
-        <KpiTile label={cd.kPlanned} value={formatNumber(k.planned)} delta={d(k.planned, p.planned)} previous={formatNumber(p.planned)} spark={spark(buckets, (b) => b.planned)} hint={cd.hPlanned} />
+        <KpiTile label={cd.kPlanned} value={formatNumber(k.planned)} delta={d(k.planned, p.planned)} previous={formatNumber(p.planned)} spark={spark(buckets, (b) => b.planned)} href={board()} hint={cd.hPlanned} />
         <KpiTile
           label={cd.kPublished}
           value={formatNumber(k.published)}
           delta={d(k.published, p.published)}
           caption={cd.publishRate(pct(publishRate(k)))}
           spark={spark(buckets, (b) => b.published)}
+          href={board({ status: ["PUBLISHED"] })}
           hint={cd.hPublished}
         />
-        <KpiTile label={cd.kOnTime} value={pct(k.onTimeRate)} delta={d(k.onTimeRate, p.onTimeRate)} previous={pct(p.onTimeRate)} spark={spark(buckets, (b) => b.onTimeRate)} hint={cd.hOnTime(k.deadlinesMet, k.deadlinesTotal)} />
+        <KpiTile label={cd.kOnTime} value={pct(k.onTimeRate)} delta={d(k.onTimeRate, p.onTimeRate)} previous={pct(p.onTimeRate)} spark={spark(buckets, (b) => b.onTimeRate)} href={board()} hint={cd.hOnTime(k.deadlinesMet, k.deadlinesTotal)} />
         <KpiTile
+          href={board({ rounds: "any" })}
           label={cd.kRevisions}
           value={formatDecimal(k.revisionAvg)}
           delta={d(k.revisionAvg, p.revisionAvg)}
@@ -73,10 +80,10 @@ export function SummaryTab({ data, ctx }: TabProps) {
           spark={spark(buckets, (b) => b.revisionAvg)}
           hint={cd.hRevisions}
         />
-        <KpiTile label={cd.kInReview} value={formatNumber(k.inReview)} caption={cd.now} href={`${ctx.base}/board`} hint={cd.hInReview} />
-        <KpiTile label={cd.kOverdue} value={formatNumber(k.overdue)} caption={cd.now} href={`${ctx.base}/board`} hint={cd.hOverdue} />
-        <KpiTile label={cd.engagement} value={formatCompact(num(k.engagements))} delta={d(k.engagements, p.engagements)} previous={formatCompact(num(p.engagements))} spark={spark(buckets, (b) => b.engagements)} hint={cd.hEngagement} />
-        <KpiTile label={cd.reach} value={formatCompact(num(k.reach))} delta={d(k.reach, p.reach)} previous={formatCompact(num(p.reach))} spark={spark(buckets, (b) => b.reach)} hint={cd.hReach} />
+        <KpiTile label={cd.kInReview} value={formatNumber(k.inReview)} caption={cd.now} href={board({ status: ["REVIEW", "REVISION"] })} hint={cd.hInReview} />
+        <KpiTile label={cd.kOverdue} value={formatNumber(k.overdue)} caption={cd.now} href={board({ overdue: true })} hint={cd.hOverdue} />
+        <KpiTile label={cd.engagement} value={formatCompact(num(k.engagements))} delta={d(k.engagements, p.engagements)} previous={formatCompact(num(p.engagements))} spark={spark(buckets, (b) => b.engagements)} href={overviewHref(ctx, {}, "performa")} hint={cd.hEngagement} />
+        <KpiTile label={cd.reach} value={formatCompact(num(k.reach))} delta={d(k.reach, p.reach)} previous={formatCompact(num(p.reach))} spark={spark(buckets, (b) => b.reach)} href={overviewHref(ctx, {}, "performa")} hint={cd.hReach} />
       </KpiGrid>
 
       <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-5">
@@ -84,10 +91,11 @@ export function SummaryTab({ data, ctx }: TabProps) {
           className="lg:col-span-3"
           title={gran === "week" ? cd.publishedPerWeek : cd.publishedPerMonth}
           description={cd.publishedPerDesc}
-          table={<BucketTable buckets={buckets} gran={gran} />}
+          table={<BucketTable buckets={buckets} gran={gran} onSelect={(start) => drill(bucketDrill(start, gran))} />}
         >
           <PeriodChart
             data={series}
+            onSelect={(row, _i, key) => drill(bucketDrill(String(row.start), gran, key === "planned" ? "planned" : "published"))}
             series={[
               { key: "published", label: cd.published, type: "bar", format: (v) => formatNumber(v) },
               { key: "planned", label: cd.planned, type: "line", color: slotColor(1), format: (v) => formatNumber(v) },
@@ -99,27 +107,48 @@ export function SummaryTab({ data, ctx }: TabProps) {
           />
         </ChartCard>
         <ChartCard className="lg:col-span-2" title={cd.funnelTitle} description={cd.funnelDesc}>
-          <FunnelBars steps={steps} label={(key) => c.itemStatus[key as ItemStatus] ?? key} />
+          <FunnelBars steps={steps} label={(key) => c.itemStatus[key as ItemStatus] ?? key} onSelect={(key) => drill({ ...range, reached: key as ItemStatus })} />
         </ChartCard>
       </div>
 
       <Section title={cd.perPeriodTable} description={cd.perPeriodTableDesc}>
         <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
-          <BucketTable buckets={buckets} gran={gran} totals={k} />
+          <BucketTable buckets={buckets} gran={gran} totals={k} onSelect={(start) => drill(bucketDrill(start, gran))} />
         </div>
       </Section>
     </div>
   );
 }
 
-function BucketTable({ buckets, gran, totals }: { buckets: DashBucket[]; gran: "week" | "month"; totals?: TabProps["data"]["current"]["kpis"] }) {
+/**
+ * Drill for one period bucket: published items by publish day (what the bars
+ * count) or planned items by planned day (what the planned line counts).
+ */
+function bucketDrill(start: string, gran: "week" | "month", by: "planned" | "published" = "planned") {
+  const { from, to } = bucketRange(start, gran);
+  return by === "published"
+    ? { dateFrom: from, dateTo: to, dateBy: "published" as const, status: ["PUBLISHED" as ItemStatus] }
+    : { dateFrom: from, dateTo: to };
+}
+
+function BucketTable({
+  buckets,
+  gran,
+  totals,
+  onSelect,
+}: {
+  buckets: DashBucket[];
+  gran: "week" | "month";
+  totals?: TabProps["data"]["current"]["kpis"];
+  onSelect: (start: string) => void;
+}) {
   return (
     <DetailTable
       rows={buckets}
       rowKey={(b) => b.start}
       showTotals={!!totals}
       columns={[
-        { key: "start", label: cd.period, value: (b) => b.start, render: (b) => bucketRangeLabel(b.start, gran) },
+        { key: "start", label: cd.period, value: (b) => b.start, render: (b) => <TextButton onClick={() => onSelect(b.start)}>{bucketRangeLabel(b.start, gran)}</TextButton> },
         { key: "planned", label: cd.planned, align: "right", value: (b) => b.planned, total: totals ? formatNumber(totals.planned) : undefined },
         { key: "published", label: cd.published, align: "right", value: (b) => b.published, total: totals ? formatNumber(totals.published) : undefined },
         { key: "onTime", label: cd.kOnTime, align: "right", value: (b) => b.onTimeRate, render: (b) => (b.deadlinesTotal ? pct(b.onTimeRate) : "–"), total: totals ? pct(totals.onTimeRate) : undefined },
@@ -129,6 +158,10 @@ function BucketTable({ buckets, gran, totals }: { buckets: DashBucket[]; gran: "
     />
   );
 }
+
+/** Stage cycle → the funnel status an item reaches once that stage is done. */
+const STAGE_DONE = { COPY: "DESIGN", DESIGN: "REVIEW", REVIEW: "APPROVED", PUBLISH: "PUBLISHED" } as const satisfies Record<string, ItemStatus>;
+const WIP_STAGE: Record<string, BoardStage> = { stageCopy: "COPY", stageDesign: "DESIGN", stageReview: "REVIEW", stageReady: "PUBLISH" };
 
 const STAGE_SERIES = [
   { key: "stageCopy", label: "Copy", color: slotColor(0) },
@@ -146,14 +179,17 @@ export function ProductionTab({ data, ctx }: TabProps) {
   const copywriters = people.filter((p) => p.role === "COPYWRITER");
   const designers = people.filter((p) => p.role === "DESIGNER");
   const overdueOwners = people.filter((p) => p.overdue > 0).toSorted((a, b) => b.overdue - a.overdue);
+  const drill = useContentDrill(ctx);
+  const range = periodRange(ctx);
   const workload = (rows: DashPerson[], color: string) =>
     rows.map((p) => ({
+      key: p.userId,
       label: personName(ctx, p.userId),
       value: p.assigned,
       secondary: cd.workloadSecondary(p.published, p.overdue),
-      href: boardHref(ctx, { assignee: p.userId }),
       color,
     }));
+  const openPerson = (item: { key?: string }) => item.key && drill({ ...range, assignee: item.key });
 
   return (
     <div className="space-y-6">
@@ -177,15 +213,20 @@ export function ProductionTab({ data, ctx }: TabProps) {
           }
         >
           <HBarChart
-            items={cycles.map((r) => ({ label: cd.stage4[r.stage], value: r.avgDays, secondary: cd.medianOf(days(r.medianDays)) }))}
+            items={cycles.map((r) => ({ key: r.stage, label: cd.stage4[r.stage], value: r.avgDays, secondary: cd.medianOf(days(r.medianDays)) }))}
             format={days}
             emptyLabel={cd.noData}
+            onSelect={(it) => drill({ ...range, reached: STAGE_DONE[it.key as keyof typeof STAGE_DONE] })}
           />
           <p className="mt-4 text-xs text-muted-foreground">{cd.cycleTotal(days(cur.kpis.cycleDaysAvg))}</p>
         </ChartCard>
         <ChartCard title={cd.wipTitle} description={cd.wipDesc}>
           <PeriodChart
-            data={buckets.map((b) => ({ label: bucketLabel(b.start, gran), stageCopy: b.stageCopy, stageDesign: b.stageDesign, stageReview: b.stageReview, stageReady: b.stageReady }))}
+            onSelect={(row, _i, key) => {
+              const { from, to } = bucketRange(String(row.start), gran);
+              drill({ dateFrom: from, dateTo: to, stage: key ? WIP_STAGE[key] : undefined });
+            }}
+            data={buckets.map((b) => ({ start: b.start, label: bucketLabel(b.start, gran), stageCopy: b.stageCopy, stageDesign: b.stageDesign, stageReview: b.stageReview, stageReady: b.stageReady }))}
             series={STAGE_SERIES.map((s) => ({ ...s, type: "bar" as const, format: (v: number) => formatNumber(v) }))}
             stacked
             yFormat={(v) => formatNumber(v)}
@@ -197,22 +238,24 @@ export function ProductionTab({ data, ctx }: TabProps) {
       <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-3">
         <ChartCard title={cd.overdueStageTitle} description={cd.overdueStageDesc}>
           <HBarChart
-            items={(cur.overdueByStage ?? []).map((r) => ({ label: cd.stage4[r.key as "COPY"] ?? r.key, value: r.count, href: `${ctx.base}/board`, color: "var(--status-critical)" }))}
+            items={(cur.overdueByStage ?? []).map((r) => ({ key: r.key, label: cd.stage4[r.key as "COPY"] ?? r.key, value: r.count, color: "var(--status-critical)" }))}
             format={(v) => formatNumber(v)}
             emptyLabel={cd.noData}
+            onSelect={(it) => drill({ ...range, overdue: true, stage: it.key as BoardStage })}
           />
         </ChartCard>
         <ChartCard title={cd.overdueOwnerTitle} description={cd.overdueOwnerDesc}>
           {overdueOwners.length ? (
             <HBarChart
               items={overdueOwners.map((p) => ({
+                key: p.userId,
                 label: `${personName(ctx, p.userId)} · ${cd.role[p.role]}`,
                 value: p.overdue,
                 secondary: cd.overdueSplit(p.overdueCopy, p.overdueDesign, p.overdueReview),
-                href: boardHref(ctx, { assignee: p.userId }),
                 color: "var(--status-critical)",
               }))}
               format={(v) => formatNumber(v)}
+              onSelect={(it) => it.key && drill({ ...range, overdue: true, assignee: it.key })}
             />
           ) : (
             <p className="py-6 text-center text-sm text-muted-foreground">{cd.noOverdue}</p>
@@ -220,7 +263,8 @@ export function ProductionTab({ data, ctx }: TabProps) {
         </ChartCard>
         <ChartCard title={cd.roundsTitle} description={cd.roundsDesc}>
           <CategoryBars
-            data={(cur.revisionRounds ?? []).map((r) => ({ label: cd.roundsLabel(r.key), value: r.count }))}
+            data={(cur.revisionRounds ?? []).map((r) => ({ key: r.key, label: cd.roundsLabel(r.key), value: r.count }))}
+            onSelect={(r) => r.key && drill({ ...range, rounds: r.key })}
             label={cd.items}
             height={200}
             summary={cd.roundsTitle}
@@ -230,10 +274,10 @@ export function ProductionTab({ data, ctx }: TabProps) {
 
       <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-2">
         <ChartCard title={cd.workloadCopy} description={cd.workloadDesc}>
-          <HBarChart items={workload(copywriters, slotColor(0))} format={(v) => formatNumber(v)} maxItems={8} emptyLabel={cd.noData} />
+          <HBarChart items={workload(copywriters, slotColor(0))} format={(v) => formatNumber(v)} maxItems={8} emptyLabel={cd.noData} onSelect={openPerson} />
         </ChartCard>
         <ChartCard title={cd.workloadDesign} description={cd.workloadDesc}>
-          <HBarChart items={workload(designers, slotColor(1))} format={(v) => formatNumber(v)} maxItems={8} emptyLabel={cd.noData} />
+          <HBarChart items={workload(designers, slotColor(1))} format={(v) => formatNumber(v)} maxItems={8} emptyLabel={cd.noData} onSelect={openPerson} />
         </ChartCard>
       </div>
 
@@ -244,7 +288,7 @@ export function ProductionTab({ data, ctx }: TabProps) {
             rowKey={(p) => `${p.userId}-${p.role}`}
             initialSort={{ key: "assigned", desc: true }}
             columns={[
-              { key: "name", label: cd.person, value: (p) => personName(ctx, p.userId), render: (p) => <TextLink href={boardHref(ctx, { assignee: p.userId })}>{personName(ctx, p.userId)}</TextLink> },
+              { key: "name", label: cd.person, value: (p) => personName(ctx, p.userId), render: (p) => <TextLink href={contentBoardHref(ctx, { ...range, assignee: p.userId })}>{personName(ctx, p.userId)}</TextLink> },
               { key: "role", label: cd.roleCol, value: (p) => cd.role[p.role] },
               { key: "assigned", label: cd.assigned, align: "right", value: (p) => p.assigned, total: formatNumber(cur.kpis.planned) },
               { key: "published", label: cd.published, align: "right", value: (p) => p.published, total: formatNumber(cur.kpis.published) },
@@ -282,13 +326,21 @@ export function CalendarTab({ data, ctx }: TabProps) {
     const best = cells.toSorted((a, b) => num(b.engagements) / b.posts - num(a.engagements) / a.posts)[0];
     return { weekday: w, label: weekdayLabel(w, true), posts, eng, avg: posts ? eng / posts : 0, bestHour: best ? `${String(best.hour).padStart(2, "0")}:00` : "–" };
   });
+  const drill = useContentDrill(ctx);
+  const published = { ...periodRange(ctx), dateBy: "published" as const, status: ["PUBLISHED" as ItemStatus] };
   const totalPosts = byWeekday.reduce((s, r) => s + r.posts, 0);
   const totalEng = byWeekday.reduce((s, r) => s + r.eng, 0);
 
   return (
     <div className="space-y-6">
       <ChartCard title={cd.calendarTitle} description={cd.calendarDesc}>
-        <MonthCalendars months={months} weekdays={weekdays} />
+        <MonthCalendars
+          months={months}
+          weekdays={weekdays}
+          onSelectDay={(date, measure) =>
+            drill(measure === "published" ? { dateFrom: date, dateTo: date, dateBy: "published", status: ["PUBLISHED"] } : { dateFrom: date, dateTo: date })
+          }
+        />
       </ChartCard>
       <ChartCard title={cd.postingHeatTitle} description={cd.postingHeatDesc}>
         <Heatmap
@@ -301,6 +353,7 @@ export function CalendarTab({ data, ctx }: TabProps) {
           countLabel={cd.posts}
           format={(v) => formatNumber(Math.round(v))}
           cellSize={18}
+          onSelect={(cell) => drill({ ...published, weekday: cell.row, hour: cell.col })}
         />
       </ChartCard>
       <Section title={cd.weekdayTable} description={cd.weekdayTableDesc}>
@@ -309,7 +362,7 @@ export function CalendarTab({ data, ctx }: TabProps) {
             rows={byWeekday}
             rowKey={(r) => String(r.weekday)}
             columns={[
-              { key: "day", label: cd.weekday, value: (r) => r.weekday, render: (r) => r.label },
+              { key: "day", label: cd.weekday, value: (r) => r.weekday, render: (r) => <TextButton onClick={() => drill({ ...published, weekday: r.weekday })}>{r.label}</TextButton> },
               { key: "posts", label: cd.posts, align: "right", value: (r) => r.posts, total: formatNumber(totalPosts) },
               { key: "eng", label: cd.engagement, align: "right", value: (r) => r.eng, render: (r) => formatNumber(r.eng), total: formatNumber(totalEng) },
               { key: "avg", label: cd.avgEngagement, align: "right", value: (r) => r.avg, render: (r) => formatNumber(Math.round(r.avg)), total: formatNumber(totalPosts ? Math.round(totalEng / totalPosts) : 0) },

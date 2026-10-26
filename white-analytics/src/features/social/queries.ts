@@ -10,6 +10,7 @@ import {
   contentType,
   followerGrowth,
   postEngagementRate,
+  postDayHour,
   postEngagements,
   postingHeatmap,
   postsPerWeek,
@@ -48,6 +49,9 @@ export type SocialPostRow = {
   type: string;
   /** ISO timestamp */
   publishedAt: string;
+  /** Jakarta weekday (0 = Senin) and hour, the posting heatmap buckets */
+  day: number;
+  hour: number;
   likes: number;
   comments: number;
   shares: number;
@@ -149,6 +153,7 @@ function toPostRow(p: PostRecord, followers: number, username?: string): SocialP
     permalink: p.permalink,
     type: contentType(p),
     publishedAt: p.publishedAt.toISOString(),
+    ...postDayHour(p.publishedAt),
     likes: p.likes,
     comments: p.comments,
     shares: p.shares,

@@ -661,7 +661,8 @@ func toInvoice(r sqlc.GetInvoiceRow) domain.Invoice {
 }
 
 func (s *Store) ListInvoices(ctx context.Context, f domain.InvoiceFilter) ([]domain.Invoice, int, error) {
-	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Kind: f.Kind, Status: sp(f.Status), Search: sp(f.Search), Lim: int32(f.Limit), Off: int32(f.Offset)})
+	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Kind: f.Kind, Status: sp(f.Status), Search: sp(f.Search), DateFrom: dayp(f.From), DateTo: dayp(f.To),
+		PartyName: sp(f.PartyName), Lim: int32(f.Limit), Off: int32(f.Offset)})
 	if err != nil {
 		return nil, 0, err
 	}
@@ -949,7 +950,7 @@ func (s *Store) ListClaims(ctx context.Context, f domain.ClaimFilter) ([]domain.
 	}
 	rows, err := s.q.ListClaims(ctx, sqlc.ListClaimsParams{
 		Statuses: statuses, Category: sp(f.Category), EmployeeID: sp(f.EmployeeID), EmployeeUserID: sp(f.EmployeeUserID),
-		ManagerUserID: sp(f.ManagerUserID), MonthFrom: dayp(f.MonthFrom), MonthTo: dayp(f.MonthTo), SubmittedBefore: f.SubmittedBefore,
+		ManagerUserID: sp(f.ManagerUserID), Department: sp(f.Department), MonthFrom: dayp(f.MonthFrom), MonthTo: dayp(f.MonthTo), SubmittedBefore: f.SubmittedBefore,
 		RemindedBefore: f.RemindedBefore, Search: sp(f.Search), Lim: int32(limit), Off: int32(f.Offset),
 	})
 	if err != nil {

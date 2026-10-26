@@ -43,6 +43,7 @@ SELECT c.*, count(*) OVER ()::int AS total, (SUM(c.amount) OVER ())::numeric AS 
    AND (sqlc.narg(employee_id)::text IS NULL OR c.employee_id = sqlc.narg(employee_id))
    AND (sqlc.narg(employee_user_id)::text IS NULL OR c.employee_user_id = sqlc.narg(employee_user_id))
    AND (sqlc.narg(manager_user_id)::text IS NULL OR c.manager_user_id = sqlc.narg(manager_user_id))
+   AND (sqlc.narg(department)::text IS NULL OR c.department_name = sqlc.narg(department))
    AND (sqlc.narg(month_from)::date IS NULL OR c.transaction_date >= sqlc.narg(month_from))
    AND (sqlc.narg(month_to)::date IS NULL OR c.transaction_date <= sqlc.narg(month_to))
    AND (sqlc.narg(submitted_before)::timestamptz IS NULL OR c.submitted_at < sqlc.narg(submitted_before))

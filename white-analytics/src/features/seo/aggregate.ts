@@ -3,7 +3,7 @@
  * DB rows are per (date, key); pages aggregate them per key over the selected range
  * with clicks/impressions summed and position weighted by impressions.
  */
-import { ctr, expectedCtr, positionBucket, weightedMean, type Opportunity, type PositionBucket } from "@/lib/metrics";
+import { ctr, expectedCtr, POSITION_BUCKETS, positionBucket, weightedMean, type Opportunity, type PositionBucket } from "@/lib/metrics";
 
 export type DimMetricRow = { key: string; clicks: number; impressions: number; position: number };
 
@@ -109,6 +109,23 @@ export function buildKeywordRows(rows: QueryAgg[], opportunities: KeywordOpportu
   });
 }
 
+export type DimFilter = { q?: string | null; bucket?: PositionBucket | null };
+
+/** `?bucket=` value when it names a position bucket. */
+export function parseBucket(raw: string | undefined): PositionBucket | null {
+  return (POSITION_BUCKETS as string[]).includes(raw ?? "") ? (raw as PositionBucket) : null;
+}
+
+/** Case-insensitive contains on `key` (or `path`) plus an optional position bucket. */
+export function filterDimRows<T extends { key: string; position: number; path?: string }>(rows: T[], f: DimFilter): T[] {
+  const q = f.q?.trim().toLowerCase();
+  return rows.filter(
+    (r) =>
+      (!q || r.key.toLowerCase().includes(q) || (r.path?.toLowerCase().includes(q) ?? false)) &&
+      (!f.bucket || positionBucket(r.position) === f.bucket),
+  );
+}
+
 /** Strip the origin from a full URL for compact display ("/menu" instead of "https://…/menu"). */
 export function urlPath(fullUrl: string): string {
   try {
@@ -146,4 +163,11 @@ const COUNTRY_NAMES: Record<string, string> = {
 
 export function countryLabel(key: string): string {
   return COUNTRY_NAMES[key.toLowerCase()] ?? key.toUpperCase();
+}
+
+// matches t.seo.mobile / t.seo.desktop
+const DEVICE_NAMES: Record<string, string> = { MOBILE: "Mobile", DESKTOP: "Desktop", TABLET: "Tablet" };
+
+export function deviceLabel(key: string): string {
+  return DEVICE_NAMES[key.toUpperCase()] ?? key;
 }

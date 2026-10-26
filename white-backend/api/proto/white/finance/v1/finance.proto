@@ -908,6 +908,11 @@ message ListInvoicesRequest {
   string search = 3;
   int32 page_size = 4;
   int32 page = 5;
+  // Invoice date range, YYYY-MM-DD, both inclusive.
+  string date_from = 6;
+  string date_to = 7;
+  // Exact party (client or vendor) name.
+  string party_name = 8;
 }
 
 message ListInvoicesResponse {
@@ -1773,6 +1778,11 @@ message ListClaimsRequest {
   string search = 5;
   int32 page_size = 6;
   int32 page = 7;
+  // Exact department name on the claim.
+  string department = 8;
+  // Transaction date range, YYYY-MM-DD; month wins when both are set.
+  string date_from = 9;
+  string date_to = 10;
 }
 
 message ListClaimsResponse {

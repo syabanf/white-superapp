@@ -11,7 +11,8 @@ import { useErpAction } from "@/features/erp/shared/client";
 import { ErpDataTable } from "@/features/erp/shared/data-table";
 import { DatePicker, MonthFilter } from "@/features/erp/shared/period-picker";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
-import { SelectFilter } from "@/features/erp/shared/url-filters";
+import { ResetFilters, SelectFilter, type FilterOption } from "@/features/erp/shared/url-filters";
+import { PEOPLE_PARAMS, PeopleFilters } from "./list-filters";
 import { formatDate } from "@/lib/format";
 import { createOvertimeAction, decideOvertimeAction } from "../actions";
 import { sumHours } from "../format";
@@ -97,9 +98,11 @@ export function OvertimeTable({
   canDecide,
   month,
   approvals,
+  departments,
 }: {
   rows: Overtime[];
   employees: EmployeeOption[];
+  departments: FilterOption[];
   canWrite: boolean;
   canDecide: boolean;
   month: string;
@@ -126,6 +129,8 @@ export function OvertimeTable({
                 allLabel={th.allStatus}
                 options={Object.entries(o.statuses).map(([value, label]) => ({ value, label }))}
               />
+              <PeopleFilters departments={departments} employees={employees} />
+              <ResetFilters params={["status", ...PEOPLE_PARAMS]} />
               {canWrite ? (
                 <div className="ml-auto">
                   <FormDialog

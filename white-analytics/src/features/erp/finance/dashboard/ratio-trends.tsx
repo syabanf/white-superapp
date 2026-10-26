@@ -1,11 +1,15 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { DeltaText } from "@/components/dashboard/delta-badge";
+import { seriesDelta } from "@/lib/metrics";
+import { useDrillParams } from "@/features/erp/shared/drill";
 import { formatNumber } from "@/lib/format";
 import { formatMetric } from "../components/analysis";
 import { fs } from "../strings";
 import { MonthlyChart, slotColor } from "./charts";
-import { compactIdr } from "./lib";
+import { compactIdr, monthBounds } from "./lib";
 import type { RatioTrend } from "./types";
 import { ds } from "./strings";
 
@@ -16,6 +20,13 @@ const axis = (unit: string) => (v: number) =>
 
 /** Each ratio over the last 12 months with its healthy threshold, grouped like the metric cards. */
 export function RatioTrends({ data }: { data: RatioTrend }) {
+  const router = useRouter();
+  const { hrefWith } = useDrillParams();
+  // A month zooms the analysis above into that month.
+  const onMonth = (i: number) => {
+    const m = data.months[i];
+    if (m) router.push(hrefWith({ ...monthBounds(m), preset: null }), { scroll: true });
+  };
   return (
     <div className="flex flex-col gap-6">
       {GROUPS.map((g, gi) => {
@@ -37,8 +48,14 @@ export function RatioTrends({ data }: { data: RatioTrend }) {
                     title={s.label}
                     description={`${s.lowerIsBetter ? ds.ratios.belowIsGood : ds.ratios.aboveIsGood}.${bench != null ? ` ${ds.ratios.benchmark}: ${formatMetric(bench, s.unit)}.` : ""}`}
                     actions={
-                      <span className="text-sm font-semibold tabular">
+                      <span className="flex flex-col items-end text-sm font-semibold tabular">
                         {last && !last.unavailable ? formatMetric(last.value, s.unit) : ds.ratios.unavailable}
+                        <DeltaText
+                          delta={seriesDelta(s.points.filter((p) => !p.unavailable).map((p) => p.value))}
+                          lowerIsBetter={s.lowerIsBetter}
+                          className="text-xs"
+                          title={ds.ratios.twelveMonths}
+                        />
                       </span>
                     }
                   >
@@ -49,6 +66,7 @@ export function RatioTrends({ data }: { data: RatioTrend }) {
                       valueFormat={(v) => formatMetric(v, s.unit)}
                       referenceY={bench}
                       referenceLabel={ds.ratios.benchmark}
+                      onMonthClick={onMonth}
                       series={[{ key: s.key, label: s.label, color: slotColor(gi), type: "line", values }]}
                     />
                   </ChartCard>

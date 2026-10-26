@@ -4,7 +4,9 @@ import { ChartCard } from "@/components/dashboard/chart-card";
 import { KpiGrid } from "@/components/dashboard/kpi-tile";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { MUTED_SERIES, slotColor } from "@/components/dashboard/charts/chart-primitives";
-import { BulletRows, Funnel, LinkedTrendChart, ValueHeatmap } from "./charts";
+import { DrillSheet, useDrill } from "@/features/erp/shared/drill";
+import { BulletRows, Funnel, TrendChart, ValueHeatmap } from "./charts";
+import { PerfDrillSheet, usePerfDrill } from "./drill";
 import { href, int, scoreDelta, monthOf, monthTick, pct, score } from "./lib";
 import { ds } from "./strings";
 import type { DashKpi } from "./types";
@@ -77,6 +79,13 @@ export function KpiTab({ data }: { data: DashKpi }) {
     },
   ];
   const compactCols = [personCols[0]!, personCols[2]!, personCols[3]!];
+  const { open } = useDrill();
+  const drill = usePerfDrill();
+  // ScoreBins: "50-59" is [50, 60); the top bin is open.
+  const inBin = (bin: string, v?: number) => {
+    const [lo = 0, hi = 0] = bin.split("-").map(Number);
+    return v != null && v >= lo && (hi >= 100 || v < hi + 1);
+  };
   const personHref = (p: Person) =>
     href(P, { month, scope: scope === "me" ? "me" : "all", dept: p.departmentId });
 
@@ -90,9 +99,9 @@ export function KpiTab({ data }: { data: DashKpi }) {
           format={score}
           href={href(P, { month, scope })}
         />
-        <MetricTile label={k.finalRate} hint={k.finalRateHint} metric={data.finalRate} format={pct} />
-        <MetricTile label={k.count} metric={data.scorecards} format={int} />
-        <MetricTile label={k.below} hint={k.belowHint} metric={data.belowTarget} format={int} lowerIsBetter />
+        <MetricTile label={k.finalRate} hint={k.finalRateHint} metric={data.finalRate} format={pct} href={href(P, { month, scope })} />
+        <MetricTile label={k.count} metric={data.scorecards} format={int} href={href(P, { month, scope })} />
+        <MetricTile label={k.below} hint={k.belowHint} metric={data.belowTarget} format={int} lowerIsBetter href={href(P, { month, scope })} />
       </KpiGrid>
 
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -126,7 +135,7 @@ export function KpiTab({ data }: { data: DashKpi }) {
             />
           }
         >
-          <LinkedTrendChart
+          <TrendChart
             data={hist}
             xKey="bin"
             xFormat={(v) => v}
@@ -151,7 +160,7 @@ export function KpiTab({ data }: { data: DashKpi }) {
                   ]
                 : []),
             ]}
-            hrefFor={() => href(P, { month, scope })}
+            onPick={(row) => open("kpibin", String(row.bin))}
             summary={k.histogram}
           />
         </ChartCard>
@@ -188,9 +197,11 @@ export function KpiTab({ data }: { data: DashKpi }) {
         }
       >
         <BulletRows
+          onSelect={(r) => drill("task", { from: `${month}-01`, to: w.to, indicator: r.id, dim: "none", l: ds.drill.indicatorTasks(r.label) })}
           rows={[...data.indicators]
             .sort((a, b) => (a.attainment ?? 0) - (b.attainment ?? 0))
             .map((i) => ({
+              id: i.indicatorId,
               label: i.name,
               value: i.attainment,
               previous: i.previousAttainment,
@@ -230,6 +241,31 @@ export function KpiTab({ data }: { data: DashKpi }) {
           limit={50}
         />
       </ChartCard>
+      <DrillSheet
+        kind="kpibin"
+        title={(t) => ds.drill.bin(t.key)}
+        description={() => k.histogramHint}
+        load={(t) => {
+          const rows = data.people.filter((p) => inBin(t.key, p.score)).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+          const avg = rows.length ? rows.reduce((a, p) => a + (p.score ?? 0), 0) / rows.length : undefined;
+          return {
+            summary: [
+              { label: ds.drill.people, value: int(rows.length) },
+              { label: ds.drill.avg, value: score(avg) },
+            ],
+            items: rows.map((p) => ({
+              id: p.employeeId,
+              title: p.name,
+              subtitle: p.departmentName || undefined,
+              value: score(p.score),
+              meta: p.score != null && p.previous != null ? <DeltaBadge variant="text" delta={scoreDelta(p.score, p.previous)} mode="abs" digits={1} /> : undefined,
+              href: personHref(p),
+            })),
+          };
+        }}
+        fullListHref={() => href(P, { month, scope })}
+      />
+      <PerfDrillSheet period={w} />
     </div>
   );
 }

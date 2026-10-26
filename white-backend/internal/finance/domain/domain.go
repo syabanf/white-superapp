@@ -309,6 +309,8 @@ type InvoiceFilter struct {
 	Kind          string
 	Status        string
 	Search        string
+	From, To      string
+	PartyName     string
 	Limit, Offset int
 }
 
@@ -431,6 +433,7 @@ type ClaimFilter struct {
 	EmployeeID      string
 	EmployeeUserID  string
 	ManagerUserID   string
+	Department      string
 	MonthFrom       string
 	MonthTo         string
 	Search          string

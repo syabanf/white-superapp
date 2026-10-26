@@ -123,6 +123,7 @@ export function ReviewsTab({ data }: { data: DashReviews }) {
                 label: x.name,
                 value: x.score,
                 previous: x.previous,
+                href: feedback,
               }))}
               max={100}
               format={one}

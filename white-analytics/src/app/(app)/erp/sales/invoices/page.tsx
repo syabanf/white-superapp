@@ -19,7 +19,7 @@ export default async function InvoicesPage(props: PageProps<"/erp/sales/invoices
   const { access, offline } = await requireErp("sales.read");
   if (offline) return <OfflineNotice message={offline.message} />;
   const caps = salesCaps(access);
-  const invoices = await load(() => listInvoices({ status: sp1(sp.status), limit: 500 }));
+  const invoices = await load(() => listInvoices({ status: sp1(sp.status), dateFrom: sp1(sp.from), dateTo: sp1(sp.to), limit: 500 }));
   const live = (invoices.data ?? []).filter((i) => i.status !== "batal");
   const billed = sumMoney(live.map((i) => i.amount));
   const paid = sumMoney(live.map((i) => i.paidTotal));

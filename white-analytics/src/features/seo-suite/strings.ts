@@ -4,6 +4,10 @@
  * parallel agents never touch id.ts.
  */
 export const s = {
+  drillDesc: "Backlink yang pertama terlihat atau hilang pada periode ini. Jumlah grafik berasal dari snapshot penyedia data, jadi bisa sedikit berbeda.",
+  drillPointLabel: "Lihat backlink",
+  rankDrillDesc: "Posisi tiap kata kunci terpantau pada hari ini, dibanding snapshot sebelumnya. Angka lebih kecil lebih baik.",
+  rankPointLabel: "Lihat posisi kata kunci",
   demoBanner: "Menampilkan data demo SEO suite. Isi DATAFORSEO_LOGIN/PASSWORD untuk data nyata.",
   apifyBanner: "Posisi SERP nyata via Apify Google Search Scraper; volume, KD, dan backlink masih data demo sampai DataForSEO diisi.",
   refreshNow: "Perbarui sekarang",

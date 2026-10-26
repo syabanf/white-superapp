@@ -109,7 +109,8 @@ func (h *employeeServer) ListEmployees(ctx context.Context, req *hrv1.ListEmploy
 		limit, offset = pageOf(int32(page), req.PageSize)
 	}
 	rows, total, err := h.s.People.List(ctx, domain.EmployeeFilter{DepartmentID: req.DepartmentId, ManagerID: req.ManagerId,
-		IDs: req.EmployeeIds, IncludeInactive: req.IncludeInactive, Search: req.Search, Limit: limit, Offset: offset})
+		IDs: req.EmployeeIds, IncludeInactive: req.IncludeInactive, Search: req.Search, PositionID: req.PositionId,
+		Level: req.Level, Gender: req.Gender, EmploymentStatus: req.EmploymentStatus, Limit: limit, Offset: offset})
 	if err != nil {
 		return nil, err
 	}

@@ -35,6 +35,7 @@ export function BulletChart({
   markerLabel = "Pembanding",
   outsideLabel = "Di luar rentang",
   className,
+  onSelect,
 }: {
   rows: BulletRow[];
   format?: (v: number) => string;
@@ -43,14 +44,18 @@ export function BulletChart({
   markerLabel?: string;
   outsideLabel?: string;
   className?: string;
+  /** used for rows without `href` */
+  onSelect?: (row: BulletRow) => void;
 }) {
-  if (rows.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data pada periode ini</p>;
+  if (rows.length === 0)
+    return <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data pada periode ini</p>;
   const max = Math.max(...rows.flatMap((r) => [r.value, r.rangeMax ?? 0, r.marker ?? 0])) * 1.08 || 1;
   const pct = (v: number) => `${Math.min(100, (v / max) * 100)}%`;
   return (
     <div className={cn("flex flex-col gap-2.5", className)}>
       {rows.map((r) => {
-        const outside = r.rangeMax != null && r.rangeMin != null && (r.value > r.rangeMax || r.value < r.rangeMin);
+        const outside =
+          r.rangeMax != null && r.rangeMin != null && (r.value > r.rangeMax || r.value < r.rangeMin);
         const body = (
           <div className="group">
             <div className="mb-1 flex items-baseline justify-between gap-3 text-xs">
@@ -59,7 +64,9 @@ export function BulletChart({
                 {r.sublabel ? <span className="text-muted-foreground"> · {r.sublabel}</span> : null}
               </span>
               <span className="shrink-0 tabular">
-                {outside ? <span className="mr-1.5 text-[11px] text-muted-foreground">{outsideLabel}</span> : null}
+                {outside ? (
+                  <span className="mr-1.5 text-[11px] text-muted-foreground">{outsideLabel}</span>
+                ) : null}
                 <span className="font-semibold">{format(r.value)}</span>
               </span>
             </div>
@@ -78,7 +85,11 @@ export function BulletChart({
                 style={{ width: pct(r.value), background: outside ? "var(--status-warning)" : slotColor(0) }}
               />
               {r.marker != null ? (
-                <span aria-hidden className="absolute -inset-y-0.5 w-0.5 rounded-full bg-foreground" style={{ left: pct(r.marker) }} />
+                <span
+                  aria-hidden
+                  className="absolute -inset-y-0.5 w-0.5 rounded-full bg-foreground"
+                  style={{ left: pct(r.marker) }}
+                />
               ) : null}
             </div>
           </div>
@@ -87,11 +98,25 @@ export function BulletChart({
           <Tooltip key={r.key}>
             <TooltipTrigger asChild>
               {r.href ? (
-                <Link href={r.href} className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <Link
+                  href={r.href}
+                  className="block cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
                   {body}
                 </Link>
+              ) : onSelect ? (
+                <button
+                  type="button"
+                  onClick={() => onSelect(r)}
+                  className="block w-full cursor-pointer rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {body}
+                </button>
               ) : (
-                <div tabIndex={0} className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <div
+                  tabIndex={0}
+                  className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
                   {body}
                 </div>
               )}
@@ -118,10 +143,12 @@ export function BulletChart({
       })}
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span aria-hidden className="h-2.5 w-4 rounded-[3px] bg-[var(--chart-emphasis-muted)]" /> {rangeLabel}
+          <span aria-hidden className="h-2.5 w-4 rounded-[3px] bg-[var(--chart-emphasis-muted)]" />{" "}
+          {rangeLabel}
         </span>
         <span className="flex items-center gap-1.5">
-          <span aria-hidden className="h-1.5 w-4 rounded-full" style={{ background: slotColor(0) }} /> {valueLabel}
+          <span aria-hidden className="h-1.5 w-4 rounded-full" style={{ background: slotColor(0) }} />{" "}
+          {valueLabel}
         </span>
         <span className="flex items-center gap-1.5">
           <span aria-hidden className="h-3 w-0.5 rounded-full bg-foreground" /> {markerLabel}

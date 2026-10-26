@@ -82,6 +82,12 @@ message ListEmployeesRequest {
   string search = 5;
   int32 page_size = 6;
   string page_token = 7;
+  string position_id = 8;
+  // Position level (e.g. Staff, Manager).
+  string level = 9;
+  string gender = 10;
+  // Employment status code.
+  string employment_status = 11;
 }
 
 message ListEmployeesResponse {
@@ -535,6 +541,7 @@ message ListAttendanceRequest {
   bool only_unvalidated = 6;
   int32 page = 7;
   int32 page_size = 8;
+  string department_id = 9;
 }
 
 message ListAttendanceResponse {
@@ -854,6 +861,7 @@ message ListLeavesRequest {
   string scope = 6;
   int32 page = 7;
   int32 page_size = 8;
+  string department_id = 9;
 }
 
 message ListLeavesResponse {
@@ -945,6 +953,7 @@ message ListOvertimeRequest {
   // YYYY-MM
   string month = 3;
   string scope = 4;
+  string department_id = 5;
 }
 
 message ListOvertimeResponse {

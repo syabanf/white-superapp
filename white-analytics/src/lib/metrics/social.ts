@@ -65,20 +65,31 @@ export function contentType(p: Pick<PostLike, "mediaType" | "productType">): "Re
   return "Foto";
 }
 
+const DAY_INDEX: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+const dayHourFormats = new Map<string, Intl.DateTimeFormat>();
+
+/** Weekday (0 = Senin) and hour of a timestamp in the given zone; the heatmap buckets by these. */
+export function postDayHour(date: Date, timeZone = "Asia/Jakarta"): { day: number; hour: number } {
+  let fmt = dayHourFormats.get(timeZone);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short", hour: "numeric", hour12: false });
+    dayHourFormats.set(timeZone, fmt);
+  }
+  const parts = fmt.formatToParts(date);
+  const wd = parts.find((x) => x.type === "weekday")?.value ?? "Mon";
+  const hour = Number(parts.find((x) => x.type === "hour")?.value ?? 0);
+  return { day: DAY_INDEX[wd] ?? 0, hour: hour === 24 ? 0 : hour };
+}
+
 /**
  * Best-time-to-post heatmap: 7 (Mon..Sun) × 24 buckets of average engagements.
  * Day index 0 = Senin (Monday) to match Indonesian week start.
  */
 export function postingHeatmap(posts: PostLike[], timeZone = "Asia/Jakarta"): { day: number; hour: number; posts: number; avgEngagement: number }[] {
   const sums = new Map<string, { n: number; e: number }>();
-  const fmt = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short", hour: "numeric", hour12: false });
-  const dayIdx: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
   for (const p of posts) {
-    const parts = fmt.formatToParts(p.publishedAt);
-    const wd = parts.find((x) => x.type === "weekday")?.value ?? "Mon";
-    const hrRaw = Number(parts.find((x) => x.type === "hour")?.value ?? 0);
-    const hour = hrRaw === 24 ? 0 : hrRaw;
-    const key = `${dayIdx[wd] ?? 0}-${hour}`;
+    const { day, hour } = postDayHour(p.publishedAt, timeZone);
+    const key = `${day}-${hour}`;
     const cur = sums.get(key) ?? { n: 0, e: 0 };
     cur.n += 1;
     cur.e += postEngagements(p);

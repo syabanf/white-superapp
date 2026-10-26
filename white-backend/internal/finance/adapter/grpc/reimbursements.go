@@ -201,7 +201,8 @@ func (s *reimbursementServer) ListClaims(ctx context.Context, req *financev1.Lis
 		return nil, err
 	}
 	limit, offset := app.Page(int(req.Page), int(req.PageSize))
-	f := domain.ClaimFilter{Category: categoryFrom(req.Category), EmployeeID: req.EmployeeId, Search: req.Search, Limit: limit, Offset: offset}
+	f := domain.ClaimFilter{Category: categoryFrom(req.Category), EmployeeID: req.EmployeeId, Search: req.Search, Department: req.Department,
+		MonthFrom: req.DateFrom, MonthTo: req.DateTo, Limit: limit, Offset: offset}
 	if st := claimStatusFrom(req.Status); st != "" {
 		f.Statuses = []domain.ClaimStatus{st}
 	}

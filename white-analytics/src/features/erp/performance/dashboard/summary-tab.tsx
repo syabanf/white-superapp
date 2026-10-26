@@ -53,7 +53,13 @@ export function SummaryTab({ data, dept }: { data: DashSummary; dept?: string })
           format={pct}
           href={href(`${P}/tasks`, { tab: "monitor", month, dept })}
         />
-        <MetricTile label={s.onTime} hint={s.onTimeHint} metric={data.onTimeRate} format={pct} />
+        <MetricTile
+          label={s.onTime}
+          hint={s.onTimeHint}
+          metric={data.onTimeRate}
+          format={pct}
+          href={href(`${P}/tasks`, { tab: "monitor", month, dept })}
+        />
         <MetricTile
           label={s.overdue}
           hint={s.overdueHint}

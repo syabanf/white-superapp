@@ -8,6 +8,7 @@ import { formatDateShort, formatDecimal, formatNumber, formatPercent } from "@/l
 import { dashboardHref, rate, type DrillContext } from "../../analytics";
 import { SOURCE, ra } from "../../strings";
 import type { RecruitmentDashboard, SourceStat } from "../../types";
+import { useRecruitmentDrill, weekRange } from "./drill";
 import { AnalyticsTable } from "./table";
 
 const TOP_SOURCES = 5;
@@ -15,6 +16,8 @@ const TOP_SOURCES = 5;
 export function SourcesTab({ data, ctx }: { data: RecruitmentDashboard; ctx: DrillContext }) {
   const s = ra.sources;
   const sources = data.sources;
+  const drill = useRecruitmentDrill(ctx);
+  const bySource = (src: string, extra: Record<string, string> = {}) => drill("cand", { source: src, dim: "source", l: SOURCE[src] ?? src, ...extra });
   const label = (src: string) => SOURCE[src] ?? src;
   const sum = (pick: (x: SourceStat) => number, list = sources) => list.reduce((a, b) => a + pick(b), 0);
 
@@ -40,7 +43,8 @@ export function SourcesTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dri
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
         <ChartCard title={s.volume} description={s.volumeHint}>
           <HBarChart
-            items={sources.map((x) => ({ label: label(x.source), value: x.applications, href: dashboardHref(ctx, { tab: "sumber", source: x.source }) }))}
+            items={sources.map((x) => ({ label: label(x.source), value: x.applications, key: x.source }))}
+            onSelect={(it) => bySource(it.key!)}
             format={formatNumber}
             showShare
             emptyLabel={ra.empty}
@@ -55,7 +59,9 @@ export function SourcesTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dri
                 label: label(x.source),
                 value: r,
                 secondary: s.hireRateOf(formatNumber(x.hires), formatNumber(x.applications)),
+                key: x.source,
               }))}
+            onSelect={(it) => bySource(it.key!, { status: "hired", l: `${label(it.key!)} · ${s.cols.hires}` })}
             format={(v) => formatPercent(v, 1)}
             color={slotColor(2)}
             emptyLabel={ra.empty}
@@ -93,6 +99,10 @@ export function SourcesTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dri
             labelFormat={(d) => formatDateShort(d)}
             valueFormat={formatNumber}
             height={260}
+            onSelect={(row, key) => {
+              const r = weekRange(String(row.label));
+              drill("cand", { ...r, week: 1, source: key && key !== "others" ? key : undefined, l: `${formatDateShort(String(row.label))}${key && key !== "others" ? ` · ${label(key)}` : ""}` });
+            }}
           />
         </ChartCard>
       </div>

@@ -713,7 +713,8 @@ func (l ledger) listInvoices(ctx context.Context, req *financev1.ListInvoicesReq
 		return nil, err
 	}
 	limit, offset := app.Page(int(req.Page), int(req.PageSize))
-	rows, total, err := l.svc.Ledgers.ListInvoices(ctx, domain.InvoiceFilter{Kind: l.kind, Status: docStatusFrom(req.Status), Search: req.Search, Limit: limit, Offset: offset}, req.PaymentStatus)
+	rows, total, err := l.svc.Ledgers.ListInvoices(ctx, domain.InvoiceFilter{Kind: l.kind, Status: docStatusFrom(req.Status), Search: req.Search,
+		From: req.DateFrom, To: req.DateTo, PartyName: req.PartyName, Limit: limit, Offset: offset}, req.PaymentStatus)
 	if err != nil {
 		return nil, err
 	}

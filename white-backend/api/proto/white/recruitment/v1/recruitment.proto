@@ -296,6 +296,8 @@ message ListCandidatesRequest {
   int32 limit = 8;
   // Every row on one page.
   bool all = 9;
+  // portal | internal | referral | jobstreet | ...
+  string source = 10;
 }
 
 message ListCandidatesResponse {

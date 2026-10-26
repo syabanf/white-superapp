@@ -42,6 +42,10 @@ const H = "/v1/hr";
 export function listEmployees(p: {
   search?: string;
   departmentId?: string;
+  positionId?: string;
+  level?: string;
+  gender?: string;
+  employmentStatus?: string;
   includeInactive?: boolean;
   pageSize?: number;
   pageToken?: string;
@@ -87,6 +91,7 @@ export const listUserOptions = () =>
 
 export type AttendanceFilter = {
   employeeId?: string;
+  departmentId?: string;
   startDate?: string;
   endDate?: string;
   status?: string;
@@ -111,6 +116,7 @@ export const getTeamSchedule = (departmentId?: string, weekOf?: string) =>
 
 export type LeaveFilter = {
   employeeId?: string;
+  departmentId?: string;
   status?: string;
   leaveType?: string;
   startDate?: string;
@@ -124,7 +130,13 @@ export const listLeaveTypes = () =>
   gatewayFetch<{ types: LeaveType[] }>(`${H}/leave-types`).then((r) => r.types);
 export const listLeaves = (f: LeaveFilter) => gatewayFetch<ListLeavesResponse>(`${H}/leaves${qs(f)}`);
 
-export const listOvertime = (f: { employeeId?: string; status?: string; month?: string; scope?: string }) =>
+export const listOvertime = (f: {
+  employeeId?: string;
+  departmentId?: string;
+  status?: string;
+  month?: string;
+  scope?: string;
+}) =>
   gatewayFetch<{ overtime: Overtime[] }>(`${H}/overtime${qs(f)}`).then((r) => r.overtime);
 
 export const listContracts = (f: { employeeId?: string; status?: string; contractType?: string; search?: string }) =>

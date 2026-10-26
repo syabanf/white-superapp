@@ -17,13 +17,17 @@ import { thd } from "@/features/erp/hr/dashboard/strings";
 import { BulletList, ComboChart } from "./charts";
 import type { ChartRow } from "./charts";
 import { SortTable } from "./sort-table";
-import { deptKey, deptPalette, Grid, type TabProps } from "./shared";
+import { useHrDrill, useHrScope } from "./drill";
+import { deptFromKey, deptKey, deptPalette, Grid, type TabProps } from "./shared";
 
 const c = thd.charts;
 const k = thd.kpi;
 
 export function LeaveTab({ data, leaveTypes }: TabProps) {
   const router = useRouter();
+  const drill = useHrDrill();
+  const { dept } = useHrScope();
+  const month = ymOf(data.to);
   const cur = data.current;
   const prev = data.previous;
   const depts = deptPalette(data);
@@ -54,14 +58,21 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
     <div className="space-y-5">
       <StatStrip
         items={[
-          { label: k.leaveDays, value: `${num0(cur.leaveDays)} ${thd.units.days}`, delta: delta(cur.leaveDays, prev.leaveDays), hint: k.leaveHint },
-          { label: k.pending, value: num0(data.pendingCount), caption: <Link href={hrLinks.leaveApprovals()} className="underline-offset-4 hover:underline">{thd.openApprovals}</Link> },
+          {
+            label: k.leaveDays,
+            value: `${num0(cur.leaveDays)} ${thd.units.days}`,
+            delta: delta(cur.leaveDays, prev.leaveDays),
+            hint: k.leaveHint,
+            href: hrLinks.leave({ from: data.from, to: data.to, status: "approved", dept }),
+          },
+          { label: k.pending, value: num0(data.pendingCount), caption: thd.openApprovals, href: hrLinks.leaveApprovals() },
           {
             label: k.overtimeHours,
             value: `${num1(cur.overtimeHours)} ${thd.units.hours}`,
             delta: delta(cur.overtimeHours, prev.overtimeHours),
             lowerIsBetter: true,
             hint: k.overtimeHint,
+            href: hrLinks.overtime(month, { dept }),
           },
           {
             label: k.overtimeCost,
@@ -69,6 +80,7 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
             delta: delta(parseMoney(cur.overtimeCost), parseMoney(prev.overtimeCost)),
             lowerIsBetter: true,
             hint: `${k.overtimeCostHint} ${k.exact(rp(cur.overtimeCost))}`,
+            href: hrLinks.overtime(month, { dept }),
           },
         ]}
       />
@@ -80,7 +92,9 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
             stacked
             series={typeOrder.map((t, i) => ({ key: `t_${t}`, label: leaveTypes[t] ?? t, color: slotColor(i), format: num0 }))}
             yFormat={num0}
-            onSelect={(r) => router.push(hrLinks.leave({ from: String(r.date), to: monthEndOf(String(r.date)), status: "approved" }))}
+            onSelect={(r, _, key) =>
+              drill("leave", { from: String(r.date), to: monthEndOf(String(r.date)), status: "approved", type: key?.slice(2) })
+            }
             summary={c.leaveByType}
             height={260}
           />
@@ -89,11 +103,17 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
           <BulletList
             items={data.departments
               .filter((d) => d.leaveQuota > 0)
-              .map((d) => ({ key: d.departmentId || "none", label: depts.name(d.departmentId), value: d.leaveUsed, target: d.leaveQuota }))}
+              .map((d) => ({
+                key: d.departmentId || "none",
+                label: depts.name(d.departmentId),
+                value: d.leaveUsed,
+                target: d.leaveQuota,
+                href: d.departmentId ? hrLinks.leave({ from: `${data.to.slice(0, 4)}-01-01`, to: data.to, type: "annual", status: "approved", dept: d.departmentId }) : undefined,
+              }))}
             format={(v, t) => `${v} / ${t} ${thd.units.days}`}
           />
           <Button asChild variant="ghost" size="sm" className="mt-3 px-0">
-            <Link href="/erp/hr/leave?tab=balances">{thd.openList}</Link>
+            <Link href={hrLinks.leaveBalances()}>{thd.openList}</Link>
           </Button>
         </ChartCard>
       </Grid>
@@ -142,7 +162,7 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
             stacked
             series={depts.list.map((d) => ({ key: deptKey(d.id), label: d.name, color: d.color, format: num1 }))}
             yFormat={num0}
-            onSelect={(r) => router.push(hrLinks.overtime(ymOf(String(r.date))))}
+            onSelect={(r, _, key) => drill("ot", { month: ymOf(String(r.date)), dept: key ? deptFromKey(key) : undefined })}
             summary={c.overtimeTrend}
             height={260}
           />
@@ -155,7 +175,7 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
                 label: depts.name(d.departmentId),
                 value: d.overtimeHours,
                 secondary: rpCompact(d.overtimeCost),
-                href: hrLinks.overtime(ymOf(data.to)),
+                href: d.departmentId ? hrLinks.overtime(month, { dept: d.departmentId }) : undefined,
               }))}
             format={(v) => `${num1(v)} ${thd.units.hours}`}
             emptyLabel={thd.empty}
@@ -167,7 +187,7 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
         <SortTable
           rows={data.topOvertime}
           rowKey={(r) => r.employeeId}
-          rowHref={(r) => hrLinks.employee(r.employeeId)}
+          rowHref={(r) => hrLinks.overtime(month, { employee: r.employeeId })}
           initialSort={{ key: "hours", desc: true }}
           columns={[
             { key: "name", label: thd.cols.employee, value: (r) => r.fullName },

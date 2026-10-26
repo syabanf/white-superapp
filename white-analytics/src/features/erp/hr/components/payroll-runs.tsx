@@ -15,7 +15,7 @@ import { useErpAction } from "@/features/erp/shared/client";
 import { ErpDataTable } from "@/features/erp/shared/data-table";
 import { Money } from "@/features/erp/shared/money-display";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
-import { SelectFilter } from "@/features/erp/shared/url-filters";
+import { ResetFilters, SelectFilter, type FilterOption } from "@/features/erp/shared/url-filters";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -28,7 +28,8 @@ import {
 import { kinds, monthLabel, th } from "../strings";
 import type { PayrollRun, Payslip } from "../types";
 import { PayslipDialog } from "./payslip";
-import { ConfirmAction, Fld, FormDialog, FormFooter, SimpleSelect } from "./ui";
+import { PEOPLE_PARAMS, PeopleFilters } from "./list-filters";
+import { ConfirmAction, Fld, FormDialog, FormFooter, SimpleSelect, type EmployeeOption } from "./ui";
 
 const p = th.payroll;
 
@@ -290,7 +291,15 @@ function MarkPaidForm({ runId, close }: { runId: string; close: () => void }) {
   );
 }
 
-export function PayslipsTable({ payslips }: { payslips: Payslip[] }) {
+export function PayslipsTable({
+  payslips,
+  departments,
+  employees,
+}: {
+  payslips: Payslip[];
+  departments: FilterOption[];
+  employees: EmployeeOption[];
+}) {
   const columns: ColumnDef<Payslip, unknown>[] = [
     {
       id: "employee",
@@ -335,6 +344,12 @@ export function PayslipsTable({ payslips }: { payslips: Payslip[] }) {
       data={payslips}
       getRowId={(r) => r.id}
       emptyMessage={p.noPayslips}
+      toolbar={
+        <>
+          <PeopleFilters departments={departments} employees={employees} />
+          <ResetFilters params={PEOPLE_PARAMS} />
+        </>
+      }
       exportName="payroll"
     />
   );

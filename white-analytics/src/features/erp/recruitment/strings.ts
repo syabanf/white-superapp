@@ -672,6 +672,7 @@ export const ra = {
     funnelHint: "Dari lamaran dalam periode, berapa yang mencapai tiap tahap? Klik tahap untuk membuka daftar kandidatnya.",
     flow: "Offer dan rekrutan per minggu",
     flowHint: "Apakah offer yang dikirim berubah menjadi rekrutan?",
+    flowSelect: "Saring dasbor ke minggu",
     composition: "Status kandidat saat ini",
     compositionHint: "Status terkini dari lamaran dalam periode. Klik untuk membuka daftar kandidat.",
     topOpenings: "Lowongan dengan pelamar terbanyak",
@@ -826,4 +827,15 @@ export const ra = {
   },
   table: { total: "Total", sortBy: (c: string) => `Urutkan menurut ${c}` },
   empty: "Belum ada data pada periode ini",
+  drill: {
+    candidates: "Kandidat",
+    hired: "Diterima kerja",
+    offers: "Offer",
+    avgResponse: "Respons rata-rata",
+    candHint: "Kandidat menurut tanggal melamar.",
+    focusPeriod: "Saring dasbor ke minggu ini",
+    focusDim: (label: string) => `Saring dasbor: ${label}`,
+    week: (label: string) => `Minggu ${label}`,
+    inStage: (stage: string) => `Saat ini di tahap ${stage}`,
+  },
 };

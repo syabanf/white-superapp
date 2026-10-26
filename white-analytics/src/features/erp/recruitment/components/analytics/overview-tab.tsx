@@ -7,8 +7,10 @@ import { FunnelChart } from "@/components/dashboard/charts/funnel-chart";
 import { HBarChart } from "@/components/dashboard/charts/hbar-chart";
 import { TimeSeriesChart } from "@/components/dashboard/charts/time-series-chart";
 import { computeDelta } from "@/lib/metrics";
-import { formatDecimal, formatNumber, formatPercent } from "@/lib/format";
-import { acceptanceSeries, candidatesHref, overlay, type DrillContext } from "../../analytics";
+import { formatDateShort, formatDecimal, formatNumber, formatPercent } from "@/lib/format";
+import { useDrillParams } from "@/features/erp/shared/drill";
+import { acceptanceSeries, candidatesHref, dashboardHref, overlay, type DrillContext } from "../../analytics";
+import { useRecruitmentDrill, weekRange } from "./drill";
 import { CANDIDATE_STATUS, STAGE_ORDER, ra } from "../../strings";
 import type { OpeningStat, RecruitmentDashboard } from "../../types";
 import { AnalyticsTable } from "./table";
@@ -24,13 +26,16 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
   const prevLost = p.offersDeclined + p.offersExpired;
 
   const apps = overlay(t, data.previousTrend, "applications");
+  const drill = useRecruitmentDrill(ctx);
+  const { apply } = useDrillParams();
+  const week = (start: string) => drill("cand", { ...weekRange(start), week: 1, l: ra.drill.week(formatDateShort(start)) });
   const flow = t.map((x) => ({ date: x.start, offers: x.offersSent, hires: x.hires }));
   const statusCounts = new Map<string, number>();
   for (const r of data.openingStages) statusCounts.set(r.status, (statusCounts.get(r.status) ?? 0) + r.count);
   const composition = STAGE_ORDER.filter((s) => statusCounts.get(s)).map((s) => ({
     label: CANDIDATE_STATUS[s] ?? s,
     value: statusCounts.get(s) ?? 0,
-    href: candidatesHref(ctx, { status: s }),
+    key: s,
   }));
   const totalApplicants = data.openings.reduce((a, b) => a + b.applicantsPeriod, 0);
   const totalHires = data.openings.reduce((a, b) => a + b.hires, 0);
@@ -97,6 +102,7 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
           delta={k.avgDaysToHire != null && p.avgDaysToHire != null ? computeDelta(k.avgDaysToHire, p.avgDaysToHire) : null}
           previous={days(p.avgDaysToHire)}
           spark={t.map((x) => x.avgDaysToHire ?? 0)}
+          href={candidatesHref(ctx, { status: "hired" })}
         />
         <KpiTile
           label={ra.kpi.acceptance}
@@ -110,6 +116,7 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
           }
           previous={p.offerAcceptanceRate == null ? "–" : formatPercent(p.offerAcceptanceRate, 0)}
           spark={acceptanceSeries(t)}
+          href={dashboardHref(ctx, { tab: "offer" })}
         />
         <KpiTile
           label={ra.kpi.offersLost}
@@ -120,6 +127,7 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
           delta={computeDelta(lost, prevLost)}
           previous={formatNumber(prevLost)}
           spark={t.map((x) => x.offersDeclined + x.offersExpired)}
+          href={dashboardHref(ctx, { tab: "offer" })}
         />
       </KpiGrid>
 
@@ -136,6 +144,7 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
             previousKey="previous"
             yFormat={formatNumber}
             height={260}
+            onSelect={(p) => week(String(p.date))}
             summary={`${o.applications}: ${formatNumber(k.applicants)} lamaran dalam ${t.length} minggu.`}
           />
         </ChartCard>
@@ -146,8 +155,8 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
               label: CANDIDATE_STATUS[f.stage] ?? f.label,
               value: f.reached,
               exited: f.exited,
-              href: candidatesHref(ctx, { status: f.stage }),
             }))}
+            onSelect={(s) => drill("cand", { status: s.key, l: s.label })}
           />
         </ChartCard>
       </div>
@@ -167,10 +176,15 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
             ]}
             yFormat={formatNumber}
             height={240}
+            onSelect={(p) => {
+              const r = weekRange(String(p.date));
+              apply({ preset: "custom", from: r.from, to: r.to });
+            }}
+            selectLabel={o.flowSelect}
           />
         </ChartCard>
         <ChartCard title={o.composition} description={o.compositionHint}>
-          <HBarChart items={composition} format={formatNumber} showShare emptyLabel={ra.empty} />
+          <HBarChart items={composition} format={formatNumber} showShare emptyLabel={ra.empty} onSelect={(it) => drill("cand", { status: it.key, l: it.label })} />
         </ChartCard>
       </div>
 

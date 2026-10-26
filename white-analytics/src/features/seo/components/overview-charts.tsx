@@ -9,6 +9,13 @@ import { formatCompact, formatDate, formatNumber } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { s } from "@/features/seo/strings";
 import type { Ga4DailyPoint, SearchDailyPoint } from "@/features/seo/queries";
+import { useDrill } from "@/features/erp/shared/drill";
+import { SEO_DRILL } from "@/features/seo/components/seo-drill";
+
+function useDayDrill() {
+  const { open } = useDrill();
+  return { onSelect: (p: { date: string }) => open(SEO_DRILL.day, p.date), selectLabel: s.drillPointLabel };
+}
 
 const right: ColMeta = { align: "right" };
 
@@ -25,6 +32,7 @@ function dailyColumns(label: string, key: keyof SearchDailyPoint, prevKey: keyof
 
 /** (a) Klik & impresi — two small multiples (NOT one dual-axis chart), previous overlay. */
 export function SearchTrendCards({ daily, compare }: { daily: SearchDailyPoint[]; compare: boolean }) {
+  const drill = useDayDrill();
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <ChartCard
@@ -37,6 +45,7 @@ export function SearchTrendCards({ daily, compare }: { daily: SearchDailyPoint[]
           series={[{ key: "clicks", label: t.seo.clicks, type: "area", color: slotColor(0), format: (v) => formatNumber(v) }]}
           previousKey={compare ? "clicksPrev" : undefined}
           height={220}
+          {...drill}
         />
       </ChartCard>
       <ChartCard
@@ -49,6 +58,7 @@ export function SearchTrendCards({ daily, compare }: { daily: SearchDailyPoint[]
           series={[{ key: "impressions", label: t.seo.impressions, type: "area", color: slotColor(2), format: (v) => formatCompact(v) }]}
           previousKey={compare ? "impressionsPrev" : undefined}
           height={220}
+          {...drill}
         />
       </ChartCard>
     </div>
@@ -57,6 +67,7 @@ export function SearchTrendCards({ daily, compare }: { daily: SearchDailyPoint[]
 
 /** (b) Tren posisi rata-rata — reversed Y (1 is best), previous overlay. */
 export function PositionTrendCard({ daily, compare }: { daily: SearchDailyPoint[]; compare: boolean }) {
+  const drill = useDayDrill();
   return (
     <ChartCard
       title={t.seo.positionChart}
@@ -70,6 +81,7 @@ export function PositionTrendCard({ daily, compare }: { daily: SearchDailyPoint[
         reverseY
         yFormat={(v) => formatNumber(v, 0)}
         height={220}
+        {...drill}
       />
     </ChartCard>
   );
@@ -77,6 +89,7 @@ export function PositionTrendCard({ daily, compare }: { daily: SearchDailyPoint[
 
 /** (e) GA4 — sesi organik vs kanal lain, stacked daily bars (part-to-whole). */
 export function Ga4SessionsCard({ daily }: { daily: Ga4DailyPoint[] }) {
+  const drill = useDayDrill();
   const columns: ColumnDef<Ga4DailyPoint, unknown>[] = [
     { accessorKey: "date", header: t.common.date, cell: ({ row }) => formatDate(row.original.date) },
     { accessorKey: "organik", header: t.seo.channelOrganic, meta: right, cell: ({ row }) => formatNumber(row.original.organik) },
@@ -92,6 +105,7 @@ export function Ga4SessionsCard({ daily }: { daily: Ga4DailyPoint[] }) {
         ]}
         stacked
         height={220}
+        {...drill}
       />
     </ChartCard>
   );

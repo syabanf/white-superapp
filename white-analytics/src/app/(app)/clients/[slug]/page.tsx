@@ -16,6 +16,7 @@ import { getLatestInsight } from "@/features/reports/queries";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
 import { formatCompact, formatCurrency, formatDateRange } from "@/lib/format";
+import { pickQuery } from "@/lib/drill-query";
 import { t } from "@/i18n/id";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]">): Promise<Metadata> {
@@ -29,7 +30,7 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
   const { client } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
   const base = `/clients/${slug}`;
-  const globalQuery = pickGlobalQuery(sp);
+  const globalQuery = pickQuery(sp);
   const detailHref = (path: string) => `${base}/${path}${globalQuery ? `?${globalQuery}` : ""}`;
 
   const [social, seo, ads, jobs, insight] = await Promise.all([
@@ -135,13 +136,4 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
       </div>
     </>
   );
-}
-
-function pickGlobalQuery(sp: Record<string, string | string[] | undefined>): string {
-  const query = new URLSearchParams();
-  for (const key of ["from", "to", "preset", "compare"]) {
-    const value = sp[key];
-    if (typeof value === "string" && value) query.set(key, value);
-  }
-  return query.toString();
 }

@@ -138,6 +138,65 @@ func TestDashboardOverSeededHistory(t *testing.T) {
 		}
 	}
 
+	// List filters reproduce the dashboard slices they drill into.
+	fromAt, toAt, bad := domain.ParseDayRange(last12.From, last12.To)
+	if bad != "" {
+		t.Fatal(bad)
+	}
+	won := domain.DealFilter{Status: "won", From: fromAt, To: toAt, ByClosed: true, Limit: 5000}
+	if _, n := must2(deps.Store.ListDeals(ctx, won)); n != wonDeals {
+		t.Fatalf("won deals in range: %d, want %d", n, wonDeals)
+	}
+	for _, x := range sl.Industries {
+		f := won
+		f.Industry = x.Key
+		if _, n := must2(deps.Store.ListDeals(ctx, f)); n != x.Count {
+			t.Fatalf("industry %s: %d deals, want %d", x.Key, n, x.Count)
+		}
+	}
+	for _, x := range sl.ServiceLines {
+		if x.Key == "lainnya" {
+			continue
+		}
+		f := won
+		f.ServiceLine = x.Key
+		if _, n := must2(deps.Store.ListDeals(ctx, f)); n != x.Count {
+			t.Fatalf("line %s: %d deals, want %d", x.Key, n, x.Count)
+		}
+	}
+	for _, x := range sl.LostReasons {
+		key := x.Key
+		if key == "" {
+			key = "none"
+		}
+		f := domain.DealFilter{Status: "lost", LostReason: key, From: fromAt, To: toAt, ByClosed: true}
+		if _, n := must2(deps.Store.ListDeals(ctx, f)); n != x.Count {
+			t.Fatalf("lost reason %s: %d deals, want %d", key, n, x.Count)
+		}
+	}
+	if _, n := must2(deps.Store.ListLeads(ctx, domain.LeadFilter{From: fromAt, To: toAt})); float64(n) != kpi(t, ld.Kpis, "leads").Value {
+		t.Fatalf("leads in range: %d, want %.0f", n, kpi(t, ld.Kpis, "leads").Value)
+	}
+	lo, hi := int32(20), int32(39)
+	for _, sc := range ld.Scores {
+		if sc.Key != "20-39" {
+			continue
+		}
+		if _, n := must2(deps.Store.ListLeads(ctx, domain.LeadFilter{From: fromAt, To: toAt, ScoreMin: &lo, ScoreMax: &hi})); n != sc.Count {
+			t.Fatalf("score 20-39: %d leads, want %d", n, sc.Count)
+		}
+	}
+	invoiced := 0.0
+	for _, inv := range must(deps.Store.ListInvoices(ctx, domain.InvoiceFilter{From: fromAt, To: toAt, Limit: 5000})) {
+		if inv.Status != "batal" {
+			invoiced += float64(inv.Amount) / 100
+		}
+	}
+	eq("invoices in range", invoiced, kpi(t, bill.Kpis, "invoiced").Value)
+	if _, _, bad := domain.ParseDayRange("2026-02-30", ""); bad != "date_from" {
+		t.Fatalf("bad day: %q", bad)
+	}
+
 	_, err := d.Summary(ctx, app.DashQuery{From: "2026-02-30"})
 	if !apperr.Is(err, apperr.Validation) {
 		t.Fatalf("bad date: %v", err)

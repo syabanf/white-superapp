@@ -7,7 +7,7 @@ import { DateFilter } from "@/features/erp/shared/period-picker";
 import { ErpLoadError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
 import { financePerms } from "../perms";
-import { getAging, listInvoices, listOpenInvoices, listPayments, listPostableAccounts } from "../queries";
+import { getAging, listInvoices, listOpenInvoices, listPayments, listPostableAccounts, listSubsidiaryParties } from "../queries";
 import type { LedgerKind } from "../types";
 import { fs } from "../strings";
 import { InvoicesTable } from "./invoices";
@@ -38,7 +38,7 @@ export async function LedgerKindPage({
         { value: "payments", label: k.tabPayments },
         { value: "aging", label: fs.invoices.tabAging },
       ]}
-      reset={["page", "q", "status", "pay", "asOf"]}
+      reset={["page", "q", "status", "pay", "asOf", "from", "to", "party"]}
     />
   );
   const header = (actions?: React.ReactNode) => (
@@ -78,11 +78,21 @@ export async function LedgerKindPage({
     );
   }
 
-  const [res, accounts] = await Promise.all([
+  const [res, accounts, parties] = await Promise.all([
     load(() =>
-      listInvoices(kind, { search: sp1(sp.q), status: sp1(sp.status), paymentStatus: sp1(sp.pay), page, pageSize }),
+      listInvoices(kind, {
+        search: sp1(sp.q),
+        status: sp1(sp.status),
+        paymentStatus: sp1(sp.pay),
+        dateFrom: sp1(sp.from),
+        dateTo: sp1(sp.to),
+        partyName: sp1(sp.party),
+        page,
+        pageSize,
+      }),
     ),
     perms.canWrite ? load(listPostableAccounts) : null,
+    load(() => listSubsidiaryParties(kind)),
   ]);
   return (
     <>
@@ -96,6 +106,7 @@ export async function LedgerKindPage({
           invoices={res.data.invoices}
           page={{ page, pageSize, total: res.data.total }}
           accounts={accounts?.data ?? []}
+          parties={(parties.data ?? []).map((p) => p.partyName)}
           perms={perms}
         />
       )}

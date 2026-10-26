@@ -11,8 +11,8 @@ import { ErpDataTable } from "@/features/erp/shared/data-table";
 import { DownloadButton } from "@/features/erp/shared/download-button";
 import { Money } from "@/features/erp/shared/money-display";
 import { MoneyInput } from "@/features/erp/shared/money-input";
-import { DatePicker, toIsoDate } from "@/features/erp/shared/period-picker";
-import { SelectFilter } from "@/features/erp/shared/url-filters";
+import { DatePicker, DateRangeFilter, toIsoDate } from "@/features/erp/shared/period-picker";
+import { ResetFilters, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
 import {
   cancelInvoiceAction,
@@ -106,7 +106,15 @@ export function InvoicesTable({ invoices, caps, showDeal = true }: { invoices: I
       getRowId={(i) => i.id}
       exportName={showDeal ? "invoice" : undefined}
       dense={!showDeal}
-      toolbar={showDeal ? <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={opts(INVOICE_STATUS)} /> : undefined}
+      toolbar={
+        showDeal ? (
+          <>
+            <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={opts(INVOICE_STATUS)} />
+            <DateRangeFilter placeholder={s.issuedRange} />
+            <ResetFilters params={["status", "from", "to"]} />
+          </>
+        ) : undefined
+      }
     />
   );
 }

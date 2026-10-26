@@ -18,7 +18,8 @@ import { validateAttendanceAction } from "../actions";
 import { timeWib, toQuery } from "../format";
 import { kinds, th } from "../strings";
 import type { AttendanceRecord, DailyRoster, RosterEntry } from "../types";
-import { Fld, FormDialog, FormFooter, SimpleSelect, UrlDate, UrlSwitch } from "./ui";
+import { PEOPLE_PARAMS, PeopleFilters } from "./list-filters";
+import { Fld, FormDialog, FormFooter, SimpleSelect, UrlDate, UrlSwitch, type EmployeeOption } from "./ui";
 
 const a = th.attendance;
 
@@ -179,11 +180,15 @@ export function AttendanceTable({
   page,
   canApprove,
   filters,
+  departments,
+  employees,
 }: {
   records: AttendanceRecord[];
   page: ServerPage;
   canApprove: boolean;
   filters: { from?: string; to?: string; status?: string };
+  departments: FilterOption[];
+  employees: EmployeeOption[];
 }) {
   const [target, setTarget] = React.useState<AttendanceRecord | null>(null);
   const columns: ColumnDef<AttendanceRecord, unknown>[] = [
@@ -261,7 +266,8 @@ export function AttendanceTable({
             <SelectFilter param="status" options={statusOptions} allLabel={th.allStatus} label={th.status} />
             <UrlSwitch param="late" label={a.onlyLate} />
             <UrlSwitch param="unvalidated" label={a.onlyUnvalidated} />
-            <ResetFilters params={["from", "to", "status", "late", "unvalidated"]} />
+            <PeopleFilters departments={departments} employees={employees} />
+            <ResetFilters params={["from", "to", "status", "late", "unvalidated", ...PEOPLE_PARAMS]} />
             <div className="ml-auto">
               <DownloadButton
                 href={`/api/erp/v1/hr/attendance:export${toQuery({ startDate: filters.from, endDate: filters.to, status: filters.status })}`}

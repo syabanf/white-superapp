@@ -21,6 +21,8 @@ export function deptPalette(data: HrDashboard) {
 }
 
 export const deptKey = (id: string) => `d_${id || "none"}`;
+/** Inverse of deptKey; "" for employees without a department. */
+export const deptFromKey = (key: string) => (key.startsWith("d_") && key !== "d_none" ? key.slice(2) : "");
 
 export function Grid({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5 ${className}`}>{children}</div>;

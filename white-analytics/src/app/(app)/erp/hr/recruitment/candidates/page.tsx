@@ -26,6 +26,7 @@ export default async function CandidatesPage(props: PageProps<"/erp/hr/recruitme
         status: sp1(sp.status),
         jobOpeningId: sp1(sp.job),
         search: sp1(sp.q),
+        source: sp1(sp.source),
         dateFrom: sp1(sp.from),
         dateTo: sp1(sp.to),
         sort: sp1(sp.sort),
