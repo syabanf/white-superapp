@@ -5,7 +5,6 @@ package pagespeed
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math"
 	"net/url"
 	"time"
@@ -164,9 +163,4 @@ func (c *Client) Run(ctx context.Context, target, strategy string) (*Result, err
 		Metrics: Metrics{LcpMs: metric("lcpMs"), InpMs: metric("inpMs"), Cls: metric("cls"), FcpMs: metric("fcpMs"), TtfbMs: metric("ttfbMs"), TbtMs: metric("tbtMs"), SpeedIndexMs: metric("speedIndexMs")},
 		Raw:     rawJSON,
 	}, nil
-}
-
-// String labels the result for log lines.
-func (r *Result) String() string {
-	return fmt.Sprintf("%s perf=%d seo=%d", r.Strategy, r.Scores.Performance, r.Scores.Seo)
 }

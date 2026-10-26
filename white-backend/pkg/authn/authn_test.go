@@ -39,3 +39,24 @@ func TestBearer(t *testing.T) {
 		t.Fatal("basic accepted")
 	}
 }
+
+func TestPerms(t *testing.T) {
+	admin := Principal{Role: RoleAdmin}
+	if !admin.Can(PermPayroll) {
+		t.Fatal("admin holds every permission")
+	}
+	m := Principal{UserID: "u1", Role: RoleMember, Perms: []string{PermFinanceRead, "hr.*"}}
+	if !m.Can(PermFinanceRead) || m.Can(PermFinanceWrite) || !m.Can(PermPayroll) || m.Can(PermSalesRead) {
+		t.Fatalf("%+v", m)
+	}
+	if !IsKnownPermission("sales.*") || !IsKnownPermission(PermSelfService) || IsKnownPermission("root.all") {
+		t.Fatal("catalog")
+	}
+	priv, _ := KeyPair("", "s")
+	pub, _ := PublicKey("", "", "s")
+	tok, _, _ := NewIssuer(priv, time.Minute).Issue(m, time.Now())
+	got, err := NewVerifier(pub).Verify(tok)
+	if err != nil || len(got.Perms) != 2 || !got.Can(PermHRApprove) {
+		t.Fatalf("%+v %v", got, err)
+	}
+}

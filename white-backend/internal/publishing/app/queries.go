@@ -189,6 +189,9 @@ type BestTimeSlot struct {
 	FromHistory bool
 }
 
+// bestTimesHistory is how many recent synced posts feed the heatmap.
+const bestTimesHistory = 400
+
 // BestTimes ranks the client's posting history (defaults when thin) and
 // resolves each slot to its next occurrence at least 5 minutes ahead.
 func (q *Queries) BestTimes(ctx context.Context, userID, clientID, timeZone string) ([]BestTimeSlot, error) {
@@ -199,11 +202,15 @@ func (q *Queries) BestTimes(ctx context.Context, userID, clientID, timeZone stri
 	if timeZone == "" {
 		timeZone = access.Timezone
 	}
-	cells, err := q.Analytics.PostingHeatmap(ctx, clientID, timeZone)
+	posts, err := q.Analytics.SyncedPosts(ctx, clientID, nil, bestTimesHistory)
 	if err != nil {
 		return nil, err
 	}
-	best := domain.BestPostingTimes(cells, 3, 2)
+	engaged := make([]domain.EngagedPost, 0, len(posts))
+	for _, p := range posts {
+		engaged = append(engaged, domain.EngagedPost{PublishedAt: p.PublishedAt, Engagements: float64(p.Engagements)})
+	}
+	best := domain.BestPostingTimes(domain.PostingHeatmap(engaged, timeZone), 3, 2)
 	slots := make([]domain.Slot, 0, len(best))
 	for _, b := range best {
 		slots = append(slots, domain.Slot{Day: b.Day, Hour: b.Hour})

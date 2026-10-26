@@ -91,9 +91,43 @@ async function extend(
   console.log(`  · ${name}: ${inserted} baris`);
 }
 
+/**
+ * Posts are events, not a daily series: replay each account's last eight weeks
+ * of posts, shifted by whole eight-week blocks, until yesterday. Weekday and hour
+ * stay the same, metrics are jittered, and the copy gets a derived external id so
+ * re-runs skip it.
+ */
+async function extendPosts(until: Date): Promise<void> {
+  const last = (await db.socialPost.aggregate({ _max: { publishedAt: true } }))._max.publishedAt;
+  if (!last || key(last) >= key(until)) return;
+  const block = 56 * DAY;
+  const source = await db.socialPost.findMany({ where: { publishedAt: { gt: new Date(last.getTime() - block) } } });
+  const metrics = ["likes", "comments", "shares", "saves", "views", "reach", "impressions"] as const;
+  const creates: Prisma.SocialPostCreateManyInput[] = [];
+  for (let k = 1; last.getTime() + (k - 1) * block <= until.getTime(); k++) {
+    for (const p of source) {
+      const at = new Date(p.publishedAt.getTime() + k * block);
+      if (at <= last || key(at) > key(until)) continue;
+      const rand = rng(`SocialPost|${p.id}|${k}`);
+      const row: Prisma.SocialPostCreateManyInput = {
+        ...p,
+        id: undefined,
+        syncedAt: undefined,
+        externalId: `${p.externalId}-r${k}`,
+        publishedAt: at,
+      };
+      for (const m of metrics) row[m] = Math.round(p[m] * (0.8 + rand() * 0.4));
+      creates.push(row);
+    }
+  }
+  const { count } = await db.socialPost.createMany({ data: creates, skipDuplicates: true });
+  console.log(`  · SocialPost: ${count} baris`);
+}
+
 async function main() {
   const now = new Date();
   const until = addDays(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())), -1);
+  await extendPosts(until);
   const last = (await db.seoDailyMetric.aggregate({ _max: { date: true } }))._max.date;
   if (!last) return console.log("Belum ada data seed. Jalankan pnpm db:seed dulu.");
   if (last >= until) return console.log(`Data sudah sampai ${key(last)}. Tidak ada yang ditambah.`);

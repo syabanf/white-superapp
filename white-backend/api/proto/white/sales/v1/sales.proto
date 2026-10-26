@@ -1,0 +1,2241 @@
+syntax = "proto3";
+
+package white.sales.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/sales/v1;salesv1";
+
+// Sales: the CRM pipeline ported from NüHabit (salesfunnel, crm advance,
+// crm inbox, public forms) plus WHITE's automations (quotation drafts,
+// contracts with e-signature, pitch decks, client onboarding, lead
+// chatbot).
+//
+// Conventions: money is a decimal string ("1250000.00"), days are
+// "YYYY-MM-DD", percents are doubles. Value sets travel as the Indonesian
+// strings NüHabit used (status "draft" | "terkirim" | ...), documented on
+// each field. RPCs without an http annotation are internal (the gateway
+// uses them to stream PDF, PPTX and asset bytes).
+
+// File is a rendered document or uploaded asset.
+message File {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
+}
+
+message IdRequest {
+  string id = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// LeadService: leads, accounts, contacts, custom fields
+// ─────────────────────────────────────────────────────────────
+
+service LeadService {
+  rpc ListLeads(ListLeadsRequest) returns (ListLeadsResponse) {
+    option (google.api.http) = {get: "/v1/sales/leads"};
+  }
+  rpc GetLead(IdRequest) returns (LeadDetail) {
+    option (google.api.http) = {get: "/v1/sales/leads/{id}"};
+  }
+  rpc CreateLead(LeadInput) returns (Lead) {
+    option (google.api.http) = {post: "/v1/sales/leads" body: "*"};
+  }
+  rpc UpdateLead(LeadInput) returns (Lead) {
+    option (google.api.http) = {patch: "/v1/sales/leads/{id}" body: "*"};
+  }
+  rpc DeleteLead(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/leads/{id}"};
+  }
+  // CSV or XLSX (max 500 rows): nama_instansi, nama_pic, wa_pic, ...
+  rpc ImportLeads(ImportLeadsRequest) returns (ImportLeadsResponse) {
+    option (google.api.http) = {post: "/v1/sales/leads:import" body: "*"};
+  }
+  rpc ListOwners(google.protobuf.Empty) returns (ListOwnersResponse) {
+    option (google.api.http) = {get: "/v1/sales/owners"};
+  }
+
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse) {
+    option (google.api.http) = {get: "/v1/sales/accounts"};
+  }
+  rpc GetAccount(IdRequest) returns (AccountDetail) {
+    option (google.api.http) = {get: "/v1/sales/accounts/{id}"};
+  }
+  rpc CreateAccount(AccountInput) returns (Account) {
+    option (google.api.http) = {post: "/v1/sales/accounts" body: "*"};
+  }
+  rpc UpdateAccount(AccountInput) returns (Account) {
+    option (google.api.http) = {patch: "/v1/sales/accounts/{id}" body: "*"};
+  }
+  rpc DeleteAccount(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/accounts/{id}"};
+  }
+  rpc ListContacts(ListContactsRequest) returns (ListContactsResponse) {
+    option (google.api.http) = {get: "/v1/sales/contacts"};
+  }
+  rpc CreateContact(ContactInput) returns (Contact) {
+    option (google.api.http) = {post: "/v1/sales/contacts" body: "*"};
+  }
+  rpc UpdateContact(ContactInput) returns (Contact) {
+    option (google.api.http) = {patch: "/v1/sales/contacts/{id}" body: "*"};
+  }
+  rpc DeleteContact(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/contacts/{id}"};
+  }
+
+  rpc ListCustomFields(ListCustomFieldsRequest) returns (ListCustomFieldsResponse) {
+    option (google.api.http) = {get: "/v1/sales/custom-fields"};
+  }
+  // ADMIN. Creates (empty id) or updates a custom field.
+  rpc SaveCustomField(CustomField) returns (CustomField) {
+    option (google.api.http) = {post: "/v1/sales/custom-fields" body: "*"};
+  }
+  rpc DeleteCustomField(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/custom-fields/{id}"};
+  }
+}
+
+message Attribution {
+  string utm_source = 1;
+  string utm_medium = 2;
+  string utm_campaign = 3;
+  string utm_term = 4;
+  string utm_content = 5;
+  string landing_page = 6;
+  string referrer = 7;
+}
+
+message ScoreItem {
+  string rule_id = 1;
+  string name = 2;
+  int32 points = 3;
+  int32 count = 4;
+}
+
+message Lead {
+  string id = 1;
+  string org_name = 2;
+  // corporate | umkm | startup | brand | pemerintah | pendidikan | perorangan | lainnya
+  string org_type = 3;
+  string pic_name = 4;
+  string pic_title = 5;
+  string pic_phone = 6;
+  string pic_email = 7;
+  string city = 8;
+  // wa | instagram | referral | google | linkedin | pameran | website | chatbot | form | lainnya
+  string source = 9;
+  // panas | hangat | dingin
+  string temperature = 10;
+  // baru | dihubungi | qualified | tidak-cocok
+  string status = 11;
+  string notes = 12;
+  string owner_user_id = 13;
+  string account_id = 14;
+  string contact_id = 15;
+  google.protobuf.Struct custom = 16;
+  int32 score = 17;
+  repeated ScoreItem score_breakdown = 18;
+  Attribution attribution = 19;
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+}
+
+message LeadInput {
+  // Set on update.
+  string id = 1;
+  string org_name = 2;
+  string org_type = 3;
+  string pic_name = 4;
+  string pic_title = 5;
+  string pic_phone = 6;
+  string pic_email = 7;
+  string city = 8;
+  string source = 9;
+  string temperature = 10;
+  string status = 11;
+  string notes = 12;
+  string owner_user_id = 13;
+  string account_id = 14;
+  string contact_id = 15;
+  google.protobuf.Struct custom = 16;
+  Attribution attribution = 17;
+}
+
+message ListLeadsRequest {
+  string q = 1;
+  string status = 2;
+  string temperature = 3;
+  string source = 4;
+  string owner_user_id = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+}
+
+message ListLeadsResponse {
+  repeated Lead leads = 1;
+  int32 total = 2;
+}
+
+message LeadDetail {
+  Lead lead = 1;
+  repeated Deal deals = 2;
+  repeated Activity activities = 3;
+  repeated Conversation conversations = 4;
+}
+
+message ImportLeadsRequest {
+  string file_name = 1;
+  bytes data = 2;
+}
+
+message ImportRowError {
+  int32 row = 1;
+  string message = 2;
+}
+
+message ImportLeadsResponse {
+  int32 imported = 1;
+  int32 skipped = 2;
+  repeated ImportRowError errors = 3;
+}
+
+message Owner {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message ListOwnersResponse {
+  repeated Owner owners = 1;
+}
+
+message Account {
+  string id = 1;
+  string name = 2;
+  string account_type = 3;
+  string industry = 4;
+  string address = 5;
+  string city = 6;
+  string phone = 7;
+  string email = 8;
+  string website = 9;
+  string npwp = 10;
+  string notes = 11;
+  string owner_user_id = 12;
+  google.protobuf.Struct custom = 13;
+  google.protobuf.Timestamp created_at = 14;
+  google.protobuf.Timestamp updated_at = 15;
+}
+
+message AccountInput {
+  string id = 1;
+  string name = 2;
+  string account_type = 3;
+  string industry = 4;
+  string address = 5;
+  string city = 6;
+  string phone = 7;
+  string email = 8;
+  string website = 9;
+  string npwp = 10;
+  string notes = 11;
+  string owner_user_id = 12;
+  google.protobuf.Struct custom = 13;
+}
+
+message ListAccountsRequest {
+  string q = 1;
+  int32 limit = 2;
+}
+
+message ListAccountsResponse {
+  repeated Account accounts = 1;
+}
+
+message AccountDetail {
+  Account account = 1;
+  repeated Contact contacts = 2;
+  repeated Deal deals = 3;
+}
+
+message Contact {
+  string id = 1;
+  string account_id = 2;
+  string name = 3;
+  string title = 4;
+  string phone = 5;
+  string email = 6;
+  bool is_primary = 7;
+  string notes = 8;
+  google.protobuf.Struct custom = 9;
+  google.protobuf.Timestamp created_at = 10;
+}
+
+message ContactInput {
+  string id = 1;
+  string account_id = 2;
+  string name = 3;
+  string title = 4;
+  string phone = 5;
+  string email = 6;
+  bool is_primary = 7;
+  string notes = 8;
+  google.protobuf.Struct custom = 9;
+}
+
+message ListContactsRequest {
+  string account_id = 1;
+  string q = 2;
+  int32 limit = 3;
+}
+
+message ListContactsResponse {
+  repeated Contact contacts = 1;
+}
+
+message CustomField {
+  string id = 1;
+  // lead | deal | account | contact
+  string object = 2;
+  string key = 3;
+  string label = 4;
+  // text | textarea | number | date | boolean | picklist | multipicklist | url | email | phone
+  string field_type = 5;
+  repeated string options = 6;
+  bool is_required = 7;
+  bool show_in_list = 8;
+  int32 sort_order = 9;
+  bool is_active = 10;
+}
+
+message ListCustomFieldsRequest {
+  string object = 1;
+}
+
+message ListCustomFieldsResponse {
+  repeated CustomField fields = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PipelineService: pipelines, stages, deals, activities
+// ─────────────────────────────────────────────────────────────
+
+service PipelineService {
+  rpc ListPipelines(google.protobuf.Empty) returns (ListPipelinesResponse) {
+    option (google.api.http) = {get: "/v1/sales/pipelines"};
+  }
+  // ADMIN.
+  rpc SavePipeline(Pipeline) returns (Pipeline) {
+    option (google.api.http) = {post: "/v1/sales/pipelines" body: "*"};
+  }
+  // ADMIN.
+  rpc SaveStage(Stage) returns (Stage) {
+    option (google.api.http) = {post: "/v1/sales/stages" body: "*"};
+  }
+  rpc ListLostReasons(google.protobuf.Empty) returns (ListLostReasonsResponse) {
+    option (google.api.http) = {get: "/v1/sales/lost-reasons"};
+  }
+
+  rpc ListDeals(ListDealsRequest) returns (ListDealsResponse) {
+    option (google.api.http) = {get: "/v1/sales/deals"};
+  }
+  rpc GetDeal(IdRequest) returns (DealDetail) {
+    option (google.api.http) = {get: "/v1/sales/deals/{id}"};
+  }
+  rpc CreateDeal(DealInput) returns (Deal) {
+    option (google.api.http) = {post: "/v1/sales/deals" body: "*"};
+  }
+  // Edits the deal fields; the stage moves through MoveDealStage.
+  rpc UpdateDeal(DealInput) returns (Deal) {
+    option (google.api.http) = {patch: "/v1/sales/deals/{id}" body: "*"};
+  }
+  rpc DeleteDeal(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/deals/{id}"};
+  }
+  // A won stage needs value_final and starts client onboarding; a lost
+  // stage needs lost_reason_id.
+  rpc MoveDealStage(MoveDealStageRequest) returns (Deal) {
+    option (google.api.http) = {post: "/v1/sales/deals/{id}:move" body: "*"};
+  }
+  rpc SetDealMembers(SetDealMembersRequest) returns (SetDealMembersResponse) {
+    option (google.api.http) = {put: "/v1/sales/deals/{id}/members" body: "*"};
+  }
+
+  rpc ListActivities(ListActivitiesRequest) returns (ListActivitiesResponse) {
+    option (google.api.http) = {get: "/v1/sales/activities"};
+  }
+  rpc CreateActivity(ActivityInput) returns (Activity) {
+    option (google.api.http) = {post: "/v1/sales/activities" body: "*"};
+  }
+  rpc UpdateActivity(ActivityInput) returns (Activity) {
+    option (google.api.http) = {patch: "/v1/sales/activities/{id}" body: "*"};
+  }
+  rpc DeleteActivity(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/activities/{id}"};
+  }
+}
+
+message Stage {
+  string id = 1;
+  string pipeline_id = 2;
+  string code = 3;
+  string name = 4;
+  int32 sort_order = 5;
+  int32 probability = 6;
+  bool is_won = 7;
+  bool is_lost = 8;
+  int32 stuck_threshold_days = 9;
+  bool is_active = 10;
+}
+
+message Pipeline {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  bool is_default = 4;
+  int32 sort_order = 5;
+  repeated Stage stages = 6;
+}
+
+message ListPipelinesResponse {
+  repeated Pipeline pipelines = 1;
+}
+
+message LostReason {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+}
+
+message ListLostReasonsResponse {
+  repeated LostReason reasons = 1;
+}
+
+message Deal {
+  string id = 1;
+  string lead_id = 2;
+  string account_id = 3;
+  string title = 4;
+  // social_media_management | seo | ads_management | content_production | website | branding
+  repeated string service_lines = 5;
+  string pipeline_id = 6;
+  string stage_id = 7;
+  string stage_name = 8;
+  string stage_code = 9;
+  bool is_won = 10;
+  bool is_lost = 11;
+  int32 probability = 12;
+  string value_estimate = 13;
+  string value_final = 14;
+  string owner_user_id = 15;
+  string lost_reason_id = 16;
+  string expected_close_date = 17;
+  string notes = 18;
+  // pipeline | best_case | commit | closed_won | closed_lost
+  string forecast_category = 19;
+  google.protobuf.Timestamp entered_stage_at = 20;
+  google.protobuf.Timestamp closed_at = 21;
+  google.protobuf.Struct custom = 22;
+  string client_name = 23;
+  string pic_name = 24;
+  google.protobuf.Timestamp created_at = 25;
+  google.protobuf.Timestamp updated_at = 26;
+}
+
+message DealInput {
+  string id = 1;
+  string lead_id = 2;
+  string account_id = 3;
+  string title = 4;
+  repeated string service_lines = 5;
+  // Create only; defaults to the first stage of the default pipeline.
+  string pipeline_id = 6;
+  string stage_id = 7;
+  string value_estimate = 8;
+  string owner_user_id = 9;
+  string expected_close_date = 10;
+  string notes = 11;
+  // Manual override: pipeline | best_case | commit (empty follows the stage).
+  string forecast_category = 12;
+  google.protobuf.Struct custom = 13;
+}
+
+message ListDealsRequest {
+  string pipeline_id = 1;
+  string stage_id = 2;
+  string owner_user_id = 3;
+  string lead_id = 4;
+  // open | won | lost
+  string status = 5;
+  string q = 6;
+  int32 page = 7;
+  int32 page_size = 8;
+}
+
+message ListDealsResponse {
+  repeated Deal deals = 1;
+  int32 total = 2;
+}
+
+message MoveDealStageRequest {
+  string id = 1;
+  string stage_id = 2;
+  string value_final = 3;
+  string lost_reason_id = 4;
+}
+
+message DealMember {
+  string user_id = 1;
+  // owner | support | pre_sales | account_manager | finance
+  string role = 2;
+  double split_percent = 3;
+}
+
+message SetDealMembersRequest {
+  string id = 1;
+  repeated DealMember members = 2;
+}
+
+message SetDealMembersResponse {
+  repeated DealMember members = 1;
+}
+
+message StageHistoryEntry {
+  string stage_id = 1;
+  string stage_name = 2;
+  google.protobuf.Timestamp entered_at = 3;
+  string moved_by = 4;
+}
+
+message TermProgress {
+  string term_id = 1;
+  string label = 2;
+  string due_date = 3;
+  double percent = 4;
+  string amount = 5;
+  string paid = 6;
+  // belum | sebagian | lunas
+  string status = 7;
+}
+
+message DealDetail {
+  Deal deal = 1;
+  repeated DealMember members = 2;
+  repeated StageHistoryEntry stage_history = 3;
+  repeated Quotation quotations = 4;
+  repeated Invoice invoices = 5;
+  repeated Payment payments = 6;
+  repeated TermProgress term_progress = 7;
+  string reference_total = 8;
+  string paid_total = 9;
+  // belum | sebagian | lunas
+  string payment_status = 10;
+  repeated Contract contracts = 11;
+  Onboarding onboarding = 12;
+}
+
+message Recurrence {
+  // daily | weekly | monthly
+  string freq = 1;
+  int32 interval = 2;
+  string until = 3;
+}
+
+message Activity {
+  string id = 1;
+  string lead_id = 2;
+  string deal_id = 3;
+  string subject_type = 4;
+  string subject_id = 5;
+  // telepon | wa | meeting | catatan | tugas | email
+  string activity_type = 6;
+  string title = 7;
+  string notes = 8;
+  // low | normal | high | urgent
+  string priority = 9;
+  // open | in_progress | done | cancelled
+  string status = 10;
+  google.protobuf.Timestamp due_at = 11;
+  google.protobuf.Timestamp done_at = 12;
+  google.protobuf.Timestamp reminder_at = 13;
+  Recurrence recurrence = 14;
+  string owner_user_id = 15;
+  string parent_task_id = 16;
+  google.protobuf.Timestamp created_at = 17;
+}
+
+message ActivityInput {
+  string id = 1;
+  string lead_id = 2;
+  string deal_id = 3;
+  string subject_type = 4;
+  string subject_id = 5;
+  string activity_type = 6;
+  string title = 7;
+  string notes = 8;
+  string priority = 9;
+  string status = 10;
+  google.protobuf.Timestamp due_at = 11;
+  google.protobuf.Timestamp reminder_at = 12;
+  Recurrence recurrence = 13;
+  string owner_user_id = 14;
+}
+
+message ListActivitiesRequest {
+  string lead_id = 1;
+  string deal_id = 2;
+  string owner_user_id = 3;
+  string status = 4;
+  bool open_only = 5;
+  bool mine = 6;
+  int32 limit = 7;
+}
+
+message ListActivitiesResponse {
+  repeated Activity activities = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// QuotationService: catalog, quotations, drafts, approvals
+// ─────────────────────────────────────────────────────────────
+
+service QuotationService {
+  rpc ListCatalog(ListCatalogRequest) returns (ListCatalogResponse) {
+    option (google.api.http) = {get: "/v1/sales/catalog"};
+  }
+  // ADMIN.
+  rpc SaveCatalogItem(CatalogItem) returns (CatalogItem) {
+    option (google.api.http) = {post: "/v1/sales/catalog" body: "*"};
+  }
+  rpc ListRetainerDiscounts(google.protobuf.Empty) returns (RetainerDiscounts) {
+    option (google.api.http) = {get: "/v1/sales/retainer-discounts"};
+  }
+  // ADMIN. Replaces every rule.
+  rpc SaveRetainerDiscounts(RetainerDiscounts) returns (RetainerDiscounts) {
+    option (google.api.http) = {put: "/v1/sales/retainer-discounts" body: "*"};
+  }
+
+  rpc ListQuotations(ListQuotationsRequest) returns (ListQuotationsResponse) {
+    option (google.api.http) = {get: "/v1/sales/quotations"};
+  }
+  rpc GetQuotation(IdRequest) returns (Quotation) {
+    option (google.api.http) = {get: "/v1/sales/quotations/{id}"};
+  }
+  rpc CreateQuotation(QuotationInput) returns (Quotation) {
+    option (google.api.http) = {post: "/v1/sales/deals/{deal_id}/quotations" body: "*"};
+  }
+  // Draft only.
+  rpc UpdateQuotation(QuotationInput) returns (Quotation) {
+    option (google.api.http) = {patch: "/v1/sales/quotations/{id}" body: "*"};
+  }
+  // terkirim | diterima | ditolak (send is blocked while a discount waits
+  // for approval).
+  rpc SetQuotationStatus(SetQuotationStatusRequest) returns (Quotation) {
+    option (google.api.http) = {post: "/v1/sales/quotations/{id}:status" body: "*"};
+  }
+  // Copies items and terms into version + 1; the old version is superseded.
+  rpc ReviseQuotation(IdRequest) returns (Quotation) {
+    option (google.api.http) = {post: "/v1/sales/quotations/{id}:revise" body: "*"};
+  }
+  rpc DeleteQuotation(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/quotations/{id}"};
+  }
+  // Builds a draft from the deal's service lines, the catalog, package
+  // tiers and retainer discounts; OpenRouter (or the mock) writes scope
+  // descriptions from the deal notes when use_ai is set.
+  rpc GenerateQuotationDraft(GenerateQuotationDraftRequest) returns (GenerateQuotationDraftResponse) {
+    option (google.api.http) = {post: "/v1/sales/deals/{deal_id}/quotations:generate" body: "*"};
+  }
+  // Internal: PDF bytes for the gateway (GET /api/sales/quotations/{id}/pdf).
+  rpc RenderQuotationPdf(IdRequest) returns (File);
+
+  rpc ListApprovalRules(google.protobuf.Empty) returns (ListApprovalRulesResponse) {
+    option (google.api.http) = {get: "/v1/sales/approval-rules"};
+  }
+  // ADMIN.
+  rpc SaveApprovalRule(ApprovalRule) returns (ApprovalRule) {
+    option (google.api.http) = {post: "/v1/sales/approval-rules" body: "*"};
+  }
+  rpc DeleteApprovalRule(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/approval-rules/{id}"};
+  }
+  rpc ListApprovals(ListApprovalsRequest) returns (ListApprovalsResponse) {
+    option (google.api.http) = {get: "/v1/sales/approvals"};
+  }
+  // sales.approve (or the named approver).
+  rpc DecideApproval(DecideApprovalRequest) returns (DecideApprovalResponse) {
+    option (google.api.http) = {post: "/v1/sales/approvals/{id}:decide" body: "*"};
+  }
+}
+
+message CatalogTier {
+  // basic | standard | premium
+  string tier = 1;
+  string price = 2;
+  string description = 3;
+}
+
+message CatalogItem {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string service_line = 4;
+  string unit = 5;
+  string default_price = 6;
+  string description = 7;
+  // Billed per month: qty = retainer months in generated drafts.
+  bool is_retainer = 8;
+  // Picked automatically for its service line in generated drafts.
+  bool is_default_for_line = 9;
+  bool is_active = 10;
+  int32 sort_order = 11;
+  repeated CatalogTier tiers = 12;
+}
+
+message ListCatalogRequest {
+  bool include_inactive = 1;
+}
+
+message ListCatalogResponse {
+  repeated CatalogItem items = 1;
+}
+
+message RetainerDiscount {
+  int32 min_months = 1;
+  double discount_percent = 2;
+}
+
+message RetainerDiscounts {
+  repeated RetainerDiscount rules = 1;
+}
+
+message QuotationItem {
+  string id = 1;
+  // katalog | bebas
+  string item_type = 2;
+  string catalog_id = 3;
+  string description = 4;
+  string scope = 5;
+  string unit = 6;
+  double qty = 7;
+  string unit_price = 8;
+  string line_total = 9;
+}
+
+message QuotationTerm {
+  string id = 1;
+  string label = 2;
+  double percent = 3;
+  string due_date = 4;
+  string amount = 5;
+}
+
+message Quotation {
+  string id = 1;
+  string deal_id = 2;
+  string deal_title = 3;
+  string client_name = 4;
+  // QT-YYMM-####
+  string quote_number = 5;
+  int32 version = 6;
+  string parent_quotation_id = 7;
+  // draft | terkirim | diterima | ditolak | superseded
+  string status = 8;
+  bool use_ppn = 9;
+  double ppn_percent = 10;
+  string subtotal = 11;
+  double discount_percent = 12;
+  string discount_nominal = 13;
+  string ppn_nominal = 14;
+  string total = 15;
+  string notes = 16;
+  string valid_until = 17;
+  // none | pending | approved | rejected
+  string approval_status = 18;
+  string approval_request_id = 19;
+  // "ai", "template" or empty for manual quotations.
+  string generated_by = 20;
+  repeated QuotationItem items = 21;
+  repeated QuotationTerm terms = 22;
+  google.protobuf.Timestamp sent_at = 23;
+  google.protobuf.Timestamp created_at = 24;
+  google.protobuf.Timestamp updated_at = 25;
+}
+
+message QuotationItemInput {
+  string item_type = 1;
+  string catalog_id = 2;
+  string description = 3;
+  string scope = 4;
+  string unit = 5;
+  double qty = 6;
+  string unit_price = 7;
+}
+
+message QuotationTermInput {
+  string label = 1;
+  double percent = 2;
+  string due_date = 3;
+}
+
+message QuotationInput {
+  // Set on update.
+  string id = 1;
+  // Set on create.
+  string deal_id = 2;
+  bool use_ppn = 3;
+  double ppn_percent = 4;
+  double discount_percent = 5;
+  string notes = 6;
+  string valid_until = 7;
+  repeated QuotationItemInput items = 8;
+  repeated QuotationTermInput terms = 9;
+}
+
+message ListQuotationsRequest {
+  string deal_id = 1;
+  string status = 2;
+  int32 limit = 3;
+}
+
+message ListQuotationsResponse {
+  repeated Quotation quotations = 1;
+}
+
+message SetQuotationStatusRequest {
+  string id = 1;
+  string status = 2;
+}
+
+message GenerateQuotationDraftRequest {
+  string deal_id = 1;
+  // basic | standard | premium (default standard)
+  string tier = 2;
+  // Months for retainer services (default 3).
+  int32 retainer_months = 3;
+  bool use_ai = 4;
+  // Default true with 11%.
+  optional bool use_ppn = 5;
+  string start_date = 6;
+}
+
+message GenerateQuotationDraftResponse {
+  Quotation quotation = 1;
+  // Service lines the catalog could not price.
+  repeated string unpriced_service_lines = 2;
+  // Model id that wrote the scope text ("mock" without an OpenRouter key).
+  string model = 3;
+}
+
+message ApprovalRule {
+  string id = 1;
+  string name = 2;
+  int32 level = 3;
+  double min_discount_percent = 4;
+  // "sales.approve" or "ADMIN"; or set approver_user_id.
+  string approver_role = 5;
+  string approver_user_id = 6;
+  bool is_active = 7;
+}
+
+message ListApprovalRulesResponse {
+  repeated ApprovalRule rules = 1;
+}
+
+message ApprovalStep {
+  int32 level = 1;
+  string status = 2;
+  string approver_role = 3;
+  string approver_user_id = 4;
+  string decided_by = 5;
+  google.protobuf.Timestamp decided_at = 6;
+  string comment = 7;
+}
+
+message ApprovalRequest {
+  string id = 1;
+  string quotation_id = 2;
+  string quote_number = 3;
+  string deal_id = 4;
+  string deal_title = 5;
+  string client_name = 6;
+  // pending | approved | rejected | cancelled
+  string status = 7;
+  int32 current_level = 8;
+  double discount_percent = 9;
+  string amount = 10;
+  string requested_by = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp resolved_at = 13;
+  repeated ApprovalStep steps = 14;
+  bool can_decide = 15;
+}
+
+message ListApprovalsRequest {
+  // mine (default) | all
+  string view = 1;
+  // pending (default) | approved | rejected | all
+  string status = 2;
+}
+
+message ListApprovalsResponse {
+  repeated ApprovalRequest requests = 1;
+}
+
+message DecideApprovalRequest {
+  string id = 1;
+  // approve | reject
+  string decision = 2;
+  string comment = 3;
+}
+
+message DecideApprovalResponse {
+  // pending | approved | rejected
+  string status = 1;
+  int32 next_level = 2;
+  string message = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// BillingService: invoices from quotation terms and payments
+// ─────────────────────────────────────────────────────────────
+
+service BillingService {
+  rpc ListInvoices(ListInvoicesRequest) returns (ListInvoicesResponse) {
+    option (google.api.http) = {get: "/v1/sales/invoices"};
+  }
+  // Sales submits an invoice (status diajukan) for a quotation term or a
+  // free amount.
+  rpc SubmitInvoice(SubmitInvoiceRequest) returns (Invoice) {
+    option (google.api.http) = {post: "/v1/sales/deals/{deal_id}/invoices" body: "*"};
+  }
+  // One invoice per term of an accepted quotation not invoiced yet.
+  rpc SubmitInvoicesFromTerms(IdRequest) returns (ListInvoicesResponse) {
+    option (google.api.http) = {post: "/v1/sales/quotations/{id}:invoices" body: "*"};
+  }
+  // finance.write: diajukan -> terkirim; publishes white.sales.invoice.issued.
+  rpc IssueInvoice(IdRequest) returns (Invoice) {
+    option (google.api.http) = {post: "/v1/sales/invoices/{id}:issue" body: "*"};
+  }
+  // finance.write: -> batal (refused once a payment is recorded).
+  rpc CancelInvoice(CancelInvoiceRequest) returns (Invoice) {
+    option (google.api.http) = {post: "/v1/sales/invoices/{id}:cancel" body: "*"};
+  }
+  // Internal: invoice PDF bytes for the gateway.
+  rpc RenderInvoicePdf(IdRequest) returns (File);
+  rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse) {
+    option (google.api.http) = {get: "/v1/sales/deals/{deal_id}/payments"};
+  }
+  // Publishes white.sales.payment.recorded.
+  rpc RecordPayment(RecordPaymentRequest) returns (Payment) {
+    option (google.api.http) = {post: "/v1/sales/deals/{deal_id}/payments" body: "*"};
+  }
+  rpc DeletePayment(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/payments/{id}"};
+  }
+}
+
+message Invoice {
+  string id = 1;
+  string deal_id = 2;
+  string deal_title = 3;
+  string client_name = 4;
+  string quotation_id = 5;
+  string term_id = 6;
+  // INV-YYMM-####
+  string invoice_number = 7;
+  string label = 8;
+  string amount = 9;
+  string due_date = 10;
+  // diajukan | terkirim | batal
+  string status = 11;
+  google.protobuf.Timestamp sent_at = 12;
+  string issued_by = 13;
+  string cancel_reason = 14;
+  string paid_total = 15;
+  google.protobuf.Timestamp created_at = 16;
+}
+
+message ListInvoicesRequest {
+  string deal_id = 1;
+  string status = 2;
+  int32 limit = 3;
+}
+
+message ListInvoicesResponse {
+  repeated Invoice invoices = 1;
+}
+
+message SubmitInvoiceRequest {
+  string deal_id = 1;
+  string quotation_id = 2;
+  // A term of the quotation: the amount is the allocated term amount.
+  string term_id = 3;
+  string label = 4;
+  // Required without term_id.
+  string amount = 5;
+  string due_date = 6;
+}
+
+message CancelInvoiceRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message Payment {
+  string id = 1;
+  string deal_id = 2;
+  string invoice_id = 3;
+  string amount = 4;
+  // cash | transfer | qris | edc | lainnya
+  string method = 5;
+  string paid_on = 6;
+  string note = 7;
+  string created_by = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ListPaymentsRequest {
+  string deal_id = 1;
+}
+
+message ListPaymentsResponse {
+  repeated Payment payments = 1;
+  string paid_total = 2;
+}
+
+message RecordPaymentRequest {
+  string deal_id = 1;
+  string invoice_id = 2;
+  string amount = 3;
+  string method = 4;
+  string paid_on = 5;
+  string note = 6;
+}
+
+// ─────────────────────────────────────────────────────────────
+// InsightService: targets, forecast, funnel report
+// ─────────────────────────────────────────────────────────────
+
+service InsightService {
+  rpc ListTargets(ListTargetsRequest) returns (ListTargetsResponse) {
+    option (google.api.http) = {get: "/v1/sales/targets"};
+  }
+  // sales.approve. Replaces the month's targets (empty user_id = company).
+  rpc SaveTargets(SaveTargetsRequest) returns (ListTargetsResponse) {
+    option (google.api.http) = {put: "/v1/sales/targets" body: "*"};
+  }
+  rpc GetForecast(GetForecastRequest) returns (Forecast) {
+    option (google.api.http) = {get: "/v1/sales/forecast"};
+  }
+  rpc GetFunnelReport(GetFunnelReportRequest) returns (FunnelReport) {
+    option (google.api.http) = {get: "/v1/sales/reports/funnel"};
+  }
+  // Dashboard tabs (sales.read). Each takes the period, the comparison and
+  // the dimension filters; trends are monthly over DashboardPeriod.months.
+  rpc GetDashboardSummary(DashboardRequest) returns (DashboardSummary) {
+    option (google.api.http) = {get: "/v1/sales/dashboard/summary"};
+  }
+  rpc GetDashboardPipeline(DashboardRequest) returns (DashboardPipeline) {
+    option (google.api.http) = {get: "/v1/sales/dashboard/pipeline"};
+  }
+  rpc GetDashboardSales(DashboardRequest) returns (DashboardSales) {
+    option (google.api.http) = {get: "/v1/sales/dashboard/sales"};
+  }
+  rpc GetDashboardTeam(DashboardRequest) returns (DashboardTeam) {
+    option (google.api.http) = {get: "/v1/sales/dashboard/team"};
+  }
+  rpc GetDashboardLeads(DashboardRequest) returns (DashboardLeads) {
+    option (google.api.http) = {get: "/v1/sales/dashboard/leads"};
+  }
+  rpc GetDashboardBilling(DashboardRequest) returns (DashboardBilling) {
+    option (google.api.http) = {get: "/v1/sales/dashboard/billing"};
+  }
+}
+
+message SalesTarget {
+  string user_id = 1;
+  string target_value = 2;
+  int32 target_deals = 3;
+}
+
+message ListTargetsRequest {
+  // YYYY-MM (default the current month).
+  string month = 1;
+}
+
+message ListTargetsResponse {
+  string month = 1;
+  repeated SalesTarget targets = 2;
+}
+
+message SaveTargetsRequest {
+  string month = 1;
+  repeated SalesTarget targets = 2;
+}
+
+message GetForecastRequest {
+  string month = 1;
+}
+
+message ForecastRow {
+  string user_id = 1;
+  string user_name = 2;
+  string target_value = 3;
+  int32 target_deals = 4;
+  string won_value = 5;
+  int32 won_deals = 6;
+  string commit_value = 7;
+  string best_case_value = 8;
+  string pipeline_value = 9;
+  string weighted_value = 10;
+  int32 open_deals = 11;
+  double attainment_percent = 12;
+  string gap = 13;
+}
+
+message Forecast {
+  string month = 1;
+  repeated ForecastRow rows = 2;
+  ForecastRow total = 3;
+  string allocated_target_value = 4;
+  bool company_target_set = 5;
+}
+
+message GetFunnelReportRequest {
+  // YYYY-MM-DD, inclusive; default the current month.
+  string from = 1;
+  string to = 2;
+}
+
+message FunnelStage {
+  string stage_id = 1;
+  string stage_name = 2;
+  int32 deals = 3;
+  string value = 4;
+}
+
+message FunnelSource {
+  string source = 1;
+  int32 leads = 2;
+  int32 converted = 3;
+}
+
+message FunnelReason {
+  string reason_id = 1;
+  string name = 2;
+  int32 deals = 3;
+}
+
+message FunnelReport {
+  string from = 1;
+  string to = 2;
+  int32 leads = 3;
+  int32 qualified_leads = 4;
+  int32 deals_created = 5;
+  int32 deals_won = 6;
+  int32 deals_lost = 7;
+  string won_value = 8;
+  string open_value = 9;
+  double win_rate_percent = 10;
+  double avg_cycle_days = 11;
+  string avg_deal_value = 12;
+  repeated FunnelStage stages = 13;
+  repeated FunnelSource sources = 14;
+  repeated FunnelReason lost_reasons = 15;
+  map<string, int32> service_line_wins = 16;
+}
+
+// ── dashboard ──────────────────────────────────────────────────
+// Rupiah amounts in the dashboard are doubles: chart aggregates, not ledger
+// values. Percent fields are 0..100.
+
+message DashboardRequest {
+  // YYYY-MM-DD inclusive (WIB); default the current month up to today.
+  string from = 1;
+  string to = 2;
+  // "previous" (default, same length ending the day before) | "year".
+  string compare = 3;
+  string pipeline_id = 4;
+  string owner_user_id = 5;
+  string service_line = 6;
+  // Lead source; deals match through their lead.
+  string source = 7;
+}
+
+message DashboardPeriod {
+  string from = 1;
+  string to = 2;
+  string compare = 3;
+  string compare_from = 4;
+  string compare_to = 5;
+  // YYYY-MM trend window: the period's months, at least 12 ending at `to`.
+  repeated string months = 6;
+  // Same length, shifted by the comparison.
+  repeated string compare_months = 7;
+}
+
+message DashboardKpi {
+  string key = 1;
+  double value = 2;
+  // Same measure over the comparison period.
+  double previous = 3;
+  // One value per DashboardPeriod.months.
+  repeated double spark = 4;
+}
+
+message DashboardSeries {
+  string key = 1;
+  // One value per DashboardPeriod.months.
+  repeated double values = 2;
+  // One value per DashboardPeriod.compare_months (empty when not compared).
+  repeated double previous = 3;
+}
+
+// A breakdown row; each field documents what value, count and extra hold.
+message DashboardSlice {
+  string key = 1;
+  string label = 2;
+  // Stack or sub-group key, when the breakdown is two-dimensional.
+  string group = 3;
+  double value = 4;
+  int32 count = 5;
+  double extra = 6;
+}
+
+message DashboardSummary {
+  DashboardPeriod period = 1;
+  // pipeline_value, weighted_value, won_value, win_rate, avg_deal,
+  // cycle_days, open_deals, won_deals.
+  repeated DashboardKpi kpis = 2;
+  // won_value (with previous), target.
+  repeated DashboardSeries trend = 3;
+  // Open deals now by stage: value, count, extra = weighted value.
+  repeated DashboardSlice stages = 4;
+}
+
+message DashboardDeal {
+  string id = 1;
+  string title = 2;
+  string account_name = 3;
+  string stage_id = 4;
+  string stage_name = 5;
+  string owner_user_id = 6;
+  string owner_name = 7;
+  double value = 8;
+  int32 days_in_stage = 9;
+  int32 threshold_days = 10;
+}
+
+message DashboardPipeline {
+  DashboardPeriod period = 1;
+  // open_deals, pipeline_value, weighted_value, stuck_deals, avg_age_days,
+  // velocity (rupiah per day).
+  repeated DashboardKpi kpis = 2;
+  // Deals created in the period that reached each stage: count, value.
+  repeated DashboardSlice funnel = 3;
+  // Open value by stage (key) and service line (group), split evenly
+  // across a deal's lines: value, count.
+  repeated DashboardSlice stage_lines = 4;
+  // Open deals by stage (key) and days in stage (group "0-7" | "8-14" |
+  // "15-30" | "31+"): count, value.
+  repeated DashboardSlice aging = 5;
+  // Average days spent per stage for exits in the period: value, count.
+  repeated DashboardSlice stage_days = 6;
+  // Open deals past their stage's stuck threshold, longest first.
+  repeated DashboardDeal stuck = 7;
+  string pipeline_id = 8;
+}
+
+message DashboardSales {
+  DashboardPeriod period = 1;
+  // won_value, won_deals, lost_deals, win_rate, avg_discount,
+  // quote_acceptance, time_to_accept_days, quotes_sent.
+  repeated DashboardKpi kpis = 2;
+  // won_count, lost_count, won_value, lost_value, win_rate.
+  repeated DashboardSeries monthly = 3;
+  // Won in the period by service line: value (split), count.
+  repeated DashboardSlice service_lines = 4;
+  // Won in the period by client industry: value, count.
+  repeated DashboardSlice industries = 5;
+  // Lost in the period by reason: count, value.
+  repeated DashboardSlice lost_reasons = 6;
+  // Quotations sent in the period by status: count, value = total.
+  repeated DashboardSlice quote_statuses = 7;
+  // Won in the period by lead source: value, count.
+  repeated DashboardSlice sources = 8;
+}
+
+message DashboardMember {
+  string user_id = 1;
+  string name = 2;
+  int32 open_deals = 3;
+  double pipeline_value = 4;
+  int32 won_deals = 5;
+  double won_value = 6;
+  int32 lost_deals = 7;
+  double win_rate = 8;
+  int32 activities = 9;
+  int32 activities_done = 10;
+  // Monthly targets prorated to the period's days.
+  double target_value = 11;
+  double attainment_percent = 12;
+  double previous_won_value = 13;
+}
+
+message DashboardTeam {
+  DashboardPeriod period = 1;
+  // won_value, target_value, attainment, activities.
+  repeated DashboardKpi kpis = 2;
+  repeated DashboardMember members = 3;
+  // key = user id: won value per trend month.
+  repeated DashboardSeries won_by_owner = 4;
+}
+
+message DashboardLeads {
+  DashboardPeriod period = 1;
+  // leads, qualified, converted, conversion_rate, conversations,
+  // first_response_minutes, sla_breaches, submissions.
+  repeated DashboardKpi kpis = 2;
+  // Leads per trend month (key) and source (group): count.
+  repeated DashboardSlice monthly_sources = 3;
+  // Leads created in the period by source: count, value = with a deal,
+  // extra = won.
+  repeated DashboardSlice sources = 4;
+  // Leads created in the period by score bucket "0-19" .. "80+": count.
+  repeated DashboardSlice scores = 5;
+  // conversations, breaches, response_minutes (average first response).
+  repeated DashboardSeries response = 6;
+  // Conversations in the period by channel: count, value = average first
+  // response minutes, extra = SLA breaches.
+  repeated DashboardSlice channels = 7;
+  // Submissions in the period by form: count = accepted, extra = rejected
+  // (spam or invalid).
+  repeated DashboardSlice forms = 8;
+}
+
+message DashboardInvoice {
+  string id = 1;
+  string invoice_number = 2;
+  string deal_id = 3;
+  string deal_title = 4;
+  string account_name = 5;
+  double amount = 6;
+  double paid = 7;
+  string due_date = 8;
+  int32 days_overdue = 9;
+}
+
+message DashboardTerm {
+  string deal_id = 1;
+  string deal_title = 2;
+  string account_name = 3;
+  double contract_value = 4;
+  double invoiced = 5;
+  double paid = 6;
+  int32 terms = 7;
+  int32 terms_invoiced = 8;
+}
+
+message DashboardBilling {
+  DashboardPeriod period = 1;
+  // invoiced, collected, outstanding, overdue, collection_rate,
+  // days_to_pay.
+  repeated DashboardKpi kpis = 2;
+  // invoiced, collected.
+  repeated DashboardSeries monthly = 3;
+  // Unpaid issued invoices by bucket "current" | "1-30" | "31-60" |
+  // "61-90" | "90+" as of the period end: count, value.
+  repeated DashboardSlice aging = 4;
+  // Overdue invoices, most overdue first.
+  repeated DashboardInvoice overdue = 5;
+  // Won deals with payment terms, largest unpaid first.
+  repeated DashboardTerm terms = 6;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AutomationService: workflow rules and lead scoring (ADMIN)
+// ─────────────────────────────────────────────────────────────
+
+service AutomationService {
+  rpc ListWorkflowRules(google.protobuf.Empty) returns (ListWorkflowRulesResponse) {
+    option (google.api.http) = {get: "/v1/sales/workflow-rules"};
+  }
+  rpc SaveWorkflowRule(WorkflowRule) returns (WorkflowRule) {
+    option (google.api.http) = {post: "/v1/sales/workflow-rules" body: "*"};
+  }
+  rpc DeleteWorkflowRule(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/workflow-rules/{id}"};
+  }
+  rpc ListWorkflowRuns(IdRequest) returns (ListWorkflowRunsResponse) {
+    option (google.api.http) = {get: "/v1/sales/workflow-rules/{id}/runs"};
+  }
+  rpc ListScoringRules(google.protobuf.Empty) returns (ListScoringRulesResponse) {
+    option (google.api.http) = {get: "/v1/sales/scoring-rules"};
+  }
+  rpc SaveScoringRule(ScoringRule) returns (ScoringRule) {
+    option (google.api.http) = {post: "/v1/sales/scoring-rules" body: "*"};
+  }
+  rpc DeleteScoringRule(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/scoring-rules/{id}"};
+  }
+  rpc RecalculateScores(google.protobuf.Empty) returns (RecalculateScoresResponse) {
+    option (google.api.http) = {post: "/v1/sales/scoring:recalculate" body: "*"};
+  }
+}
+
+message WorkflowCondition {
+  string field = 1;
+  // eq | neq | in | not_in | contains | gt | gte | lt | lte | is_empty | not_empty | changed | changed_to
+  string op = 2;
+  google.protobuf.Value value = 3;
+}
+
+message WorkflowAction {
+  // create_task | assign_owner | update_field | notify_in_app | wait
+  string type = 1;
+  string title = 2;
+  string activity_type = 3;
+  string notes = 4;
+  double due_in_days = 5;
+  string priority = 6;
+  // owner | creator | <user id>
+  string assign_to = 7;
+  string user_id = 8;
+  // round_robin over user_ids
+  string strategy = 9;
+  repeated string user_ids = 10;
+  bool only_if_empty = 11;
+  string field = 12;
+  google.protobuf.Value value = 13;
+  // notify_in_app: owner | user | role
+  string to = 14;
+  string message = 15;
+  string role = 16;
+  double hours = 17;
+  double days = 18;
+}
+
+message WorkflowRule {
+  string id = 1;
+  string name = 2;
+  // lead | deal | account | contact | task | quotation
+  string object = 3;
+  // created | updated | stage_changed | status_changed | score_reached | inactive_days | due_soon
+  string trigger_type = 4;
+  google.protobuf.Struct trigger_config = 5;
+  repeated WorkflowCondition conditions = 6;
+  repeated WorkflowAction actions = 7;
+  bool run_once_per_record = 8;
+  bool is_active = 9;
+  int32 run_count = 10;
+  google.protobuf.Timestamp last_run_at = 11;
+}
+
+message ListWorkflowRulesResponse {
+  repeated WorkflowRule rules = 1;
+}
+
+message WorkflowRun {
+  string id = 1;
+  string subject_type = 2;
+  string subject_id = 3;
+  // success | partial | failed | skipped | scheduled
+  string status = 4;
+  google.protobuf.ListValue actions_result = 5;
+  string error = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ListWorkflowRunsResponse {
+  repeated WorkflowRun runs = 1;
+}
+
+message ScoringRule {
+  string id = 1;
+  string name = 2;
+  // field | event
+  string kind = 3;
+  string field = 4;
+  string operator = 5;
+  google.protobuf.Value value = 6;
+  // task_done | chat_inbound | deal_created | quotation_sent
+  string event_type = 7;
+  int32 window_days = 8;
+  int32 max_count = 9;
+  int32 points = 10;
+  bool is_active = 11;
+}
+
+message ListScoringRulesResponse {
+  repeated ScoringRule rules = 1;
+}
+
+message RecalculateScoresResponse {
+  int32 leads = 1;
+  int32 changed = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// FormService: public lead forms
+// ─────────────────────────────────────────────────────────────
+
+service FormService {
+  rpc ListForms(google.protobuf.Empty) returns (ListFormsResponse) {
+    option (google.api.http) = {get: "/v1/sales/forms"};
+  }
+  rpc SaveForm(LeadForm) returns (LeadForm) {
+    option (google.api.http) = {post: "/v1/sales/forms" body: "*"};
+  }
+  rpc DeleteForm(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/forms/{id}"};
+  }
+  rpc ListFormSubmissions(IdRequest) returns (ListFormSubmissionsResponse) {
+    option (google.api.http) = {get: "/v1/sales/forms/{id}/submissions"};
+  }
+  // Public, no auth: the form definition for the landing page.
+  rpc GetPublicForm(PublicFormRequest) returns (PublicForm) {
+    option (google.api.http) = {get: "/v1/public/sales/forms/{slug}"};
+  }
+  // Public, no auth, rate limited per IP. Payload keys are the form field
+  // keys plus utm_*, landing_page, referrer, form_started_at (ms) and the
+  // website_url honeypot.
+  rpc SubmitPublicForm(SubmitPublicFormRequest) returns (SubmitPublicFormResponse) {
+    option (google.api.http) = {post: "/v1/public/sales/forms/{slug}" body: "*"};
+  }
+}
+
+message FormField {
+  string key = 1;
+  string label = 2;
+  // text | textarea | email | phone | number | date | select | checkbox
+  string type = 3;
+  bool required = 4;
+  repeated string options = 5;
+  string help = 6;
+}
+
+message LeadForm {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  string description = 4;
+  repeated FormField fields = 5;
+  string submit_label = 6;
+  string success_message = 7;
+  string redirect_url = 8;
+  string default_source = 9;
+  string lead_temperature = 10;
+  repeated string notify_user_ids = 11;
+  bool is_active = 12;
+  int32 submission_count = 13;
+}
+
+message ListFormsResponse {
+  repeated LeadForm forms = 1;
+}
+
+message FormSubmission {
+  string id = 1;
+  string lead_id = 2;
+  google.protobuf.Struct payload = 3;
+  // accepted | spam | invalid
+  string status = 4;
+  string reason = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ListFormSubmissionsResponse {
+  repeated FormSubmission submissions = 1;
+}
+
+message PublicFormRequest {
+  string slug = 1;
+}
+
+message PublicForm {
+  string slug = 1;
+  string name = 2;
+  string description = 3;
+  repeated FormField fields = 4;
+  string submit_label = 5;
+  string success_message = 6;
+  string redirect_url = 7;
+}
+
+message SubmitPublicFormRequest {
+  string slug = 1;
+  google.protobuf.Struct payload = 2;
+}
+
+message SubmitPublicFormFieldError {
+  string key = 1;
+  string message = 2;
+}
+
+message SubmitPublicFormResponse {
+  bool ok = 1;
+  string message = 2;
+  string redirect_url = 3;
+  repeated SubmitPublicFormFieldError errors = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ContractService: templates, generation, e-signature
+// ─────────────────────────────────────────────────────────────
+
+service ContractService {
+  rpc ListContractTemplates(google.protobuf.Empty) returns (ListContractTemplatesResponse) {
+    option (google.api.http) = {get: "/v1/sales/contract-templates"};
+  }
+  // ADMIN.
+  rpc SaveContractTemplate(ContractTemplate) returns (ContractTemplate) {
+    option (google.api.http) = {post: "/v1/sales/contract-templates" body: "*"};
+  }
+  rpc DeleteContractTemplate(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/contract-templates/{id}"};
+  }
+  rpc ListContracts(ListContractsRequest) returns (ListContractsResponse) {
+    option (google.api.http) = {get: "/v1/sales/contracts"};
+  }
+  rpc GetContract(IdRequest) returns (Contract) {
+    option (google.api.http) = {get: "/v1/sales/contracts/{id}"};
+  }
+  // From an accepted quotation: placeholders filled from deal, account and
+  // quotation; numbered KTR-YYMM-####.
+  rpc GenerateContract(GenerateContractRequest) returns (Contract) {
+    option (google.api.http) = {post: "/v1/sales/quotations/{quotation_id}/contracts" body: "*"};
+  }
+  // Draft only.
+  rpc UpdateContract(UpdateContractRequest) returns (Contract) {
+    option (google.api.http) = {patch: "/v1/sales/contracts/{id}" body: "*"};
+  }
+  // draft -> sent; returns the public signing path.
+  rpc SendContract(IdRequest) returns (Contract) {
+    option (google.api.http) = {post: "/v1/sales/contracts/{id}:send" body: "*"};
+  }
+  // signed -> active, active -> ended, any open state -> cancelled.
+  rpc SetContractStatus(SetContractStatusRequest) returns (Contract) {
+    option (google.api.http) = {post: "/v1/sales/contracts/{id}:status" body: "*"};
+  }
+  // Internal: PDF bytes by id or sign token (the signed PDF embeds the
+  // signature and an audit footer).
+  rpc RenderContractPdf(RenderContractPdfRequest) returns (File);
+  // Public, no auth: the contract behind an unguessable token.
+  rpc GetPublicContract(PublicContractRequest) returns (PublicContract) {
+    option (google.api.http) = {get: "/v1/public/sales/contracts/{token}"};
+  }
+  // Public, no auth, rate limited: typed name + drawn signature (PNG data
+  // URL). IP and user agent come from the request metadata.
+  rpc SignPublicContract(SignPublicContractRequest) returns (PublicContract) {
+    option (google.api.http) = {post: "/v1/public/sales/contracts/{token}:sign" body: "*"};
+  }
+}
+
+message ContractTemplate {
+  string id = 1;
+  string name = 2;
+  // retainer | project | nda
+  string type = 3;
+  // Markdown with {{placeholders}}.
+  string body = 4;
+  bool is_active = 5;
+  // Placeholders the body uses that the renderer does not know.
+  repeated string unknown_placeholders = 6;
+}
+
+message ListContractTemplatesResponse {
+  repeated ContractTemplate templates = 1;
+  // Placeholder -> description.
+  map<string, string> placeholders = 2;
+}
+
+message Contract {
+  string id = 1;
+  // KTR-YYMM-####
+  string contract_number = 2;
+  string template_id = 3;
+  string quotation_id = 4;
+  string deal_id = 5;
+  string type = 6;
+  string title = 7;
+  string client_name = 8;
+  string body = 9;
+  // draft | sent | signed | active | ended | cancelled
+  string status = 10;
+  string start_date = 11;
+  string end_date = 12;
+  // /v1/public/sales/contracts/{token}, once sent.
+  string sign_path = 13;
+  google.protobuf.Timestamp sent_at = 14;
+  google.protobuf.Timestamp signed_at = 15;
+  string signer_name = 16;
+  string signer_ip = 17;
+  google.protobuf.Timestamp activated_at = 18;
+  google.protobuf.Timestamp ended_at = 19;
+  google.protobuf.Timestamp cancelled_at = 20;
+  string cancel_reason = 21;
+  google.protobuf.Timestamp created_at = 22;
+}
+
+message ListContractsRequest {
+  string deal_id = 1;
+  string status = 2;
+  int32 limit = 3;
+}
+
+message ListContractsResponse {
+  repeated Contract contracts = 1;
+}
+
+message GenerateContractRequest {
+  string quotation_id = 1;
+  string template_id = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string title = 5;
+}
+
+message UpdateContractRequest {
+  string id = 1;
+  string title = 2;
+  string body = 3;
+  string start_date = 4;
+  string end_date = 5;
+}
+
+message SetContractStatusRequest {
+  string id = 1;
+  // active | ended | cancelled
+  string status = 2;
+  string reason = 3;
+}
+
+message RenderContractPdfRequest {
+  string id = 1;
+  string token = 2;
+}
+
+message PublicContractRequest {
+  string token = 1;
+}
+
+message PublicContract {
+  string contract_number = 1;
+  string title = 2;
+  string client_name = 3;
+  string body = 4;
+  string status = 5;
+  string start_date = 6;
+  string end_date = 7;
+  google.protobuf.Timestamp signed_at = 8;
+  string signer_name = 9;
+}
+
+message SignPublicContractRequest {
+  string token = 1;
+  string signer_name = 2;
+  // data:image/png;base64,...
+  string signature_png = 3;
+  bool agree = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PitchDeckService: generated PPTX decks and case studies
+// ─────────────────────────────────────────────────────────────
+
+service PitchDeckService {
+  rpc ListPitchDecks(ListPitchDecksRequest) returns (ListPitchDecksResponse) {
+    option (google.api.http) = {get: "/v1/sales/pitch-decks"};
+  }
+  rpc GetPitchDeck(IdRequest) returns (PitchDeck) {
+    option (google.api.http) = {get: "/v1/sales/pitch-decks/{id}"};
+  }
+  rpc GeneratePitchDeck(GeneratePitchDeckRequest) returns (PitchDeck) {
+    option (google.api.http) = {post: "/v1/sales/pitch-decks" body: "*"};
+  }
+  // Internal: PPTX bytes for the gateway.
+  rpc GetPitchDeckFile(IdRequest) returns (File);
+  rpc ListCaseStudies(google.protobuf.Empty) returns (ListCaseStudiesResponse) {
+    option (google.api.http) = {get: "/v1/sales/case-studies"};
+  }
+  // ADMIN.
+  rpc SaveCaseStudy(CaseStudy) returns (CaseStudy) {
+    option (google.api.http) = {post: "/v1/sales/case-studies" body: "*"};
+  }
+  rpc DeleteCaseStudy(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/case-studies/{id}"};
+  }
+}
+
+message DeckOptions {
+  // profesional | santai | premium
+  string tone = 1;
+  bool include_pricing = 2;
+  bool include_case_studies = 3;
+  string extra_notes = 4;
+}
+
+message Slide {
+  string kind = 1;
+  string title = 2;
+  string subtitle = 3;
+  repeated string bullets = 4;
+}
+
+message PitchDeck {
+  string id = 1;
+  string deal_id = 2;
+  string lead_id = 3;
+  string title = 4;
+  int32 version = 5;
+  DeckOptions options = 6;
+  repeated Slide slides = 7;
+  string model = 8;
+  int64 size_bytes = 9;
+  string created_by = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message ListPitchDecksRequest {
+  string deal_id = 1;
+  string lead_id = 2;
+}
+
+message ListPitchDecksResponse {
+  repeated PitchDeck decks = 1;
+}
+
+message GeneratePitchDeckRequest {
+  // One of deal_id or lead_id.
+  string deal_id = 1;
+  string lead_id = 2;
+  DeckOptions options = 3;
+}
+
+message CaseStudy {
+  string id = 1;
+  string title = 2;
+  string client_name = 3;
+  string industry = 4;
+  repeated string service_lines = 5;
+  string challenge = 6;
+  string solution = 7;
+  string results = 8;
+  int32 sort_order = 9;
+  bool is_active = 10;
+}
+
+message ListCaseStudiesResponse {
+  repeated CaseStudy case_studies = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// OnboardingService: client onboarding and its public portal
+// ─────────────────────────────────────────────────────────────
+
+service OnboardingService {
+  rpc ListOnboardings(ListOnboardingsRequest) returns (ListOnboardingsResponse) {
+    option (google.api.http) = {get: "/v1/sales/onboardings"};
+  }
+  rpc GetOnboarding(IdRequest) returns (Onboarding) {
+    option (google.api.http) = {get: "/v1/sales/onboardings/{id}"};
+  }
+  // Starts onboarding for a won deal by hand (idempotent; moving a deal to
+  // a won stage does this automatically).
+  rpc StartOnboarding(StartOnboardingRequest) returns (Onboarding) {
+    option (google.api.http) = {post: "/v1/sales/deals/{deal_id}/onboarding" body: "*"};
+  }
+  rpc UpdateOnboardingItem(UpdateOnboardingItemRequest) returns (Onboarding) {
+    option (google.api.http) = {patch: "/v1/sales/onboarding-items/{id}" body: "*"};
+  }
+  // ADMIN: creates the client in the marketing platform (identity
+  // ClientService.CreateClient) and completes that checklist step.
+  rpc CreateMarketingClient(CreateMarketingClientRequest) returns (Onboarding) {
+    option (google.api.http) = {post: "/v1/sales/onboardings/{id}:create-client" body: "*"};
+  }
+  rpc ListOnboardingTemplates(google.protobuf.Empty) returns (ListOnboardingTemplatesResponse) {
+    option (google.api.http) = {get: "/v1/sales/onboarding-templates"};
+  }
+  // ADMIN.
+  rpc SaveOnboardingTemplate(OnboardingTemplate) returns (OnboardingTemplate) {
+    option (google.api.http) = {post: "/v1/sales/onboarding-templates" body: "*"};
+  }
+  // Internal: asset bytes for the gateway.
+  rpc GetOnboardingAsset(IdRequest) returns (File);
+  // Public, no auth: the client portal behind an unguessable token.
+  rpc GetPublicOnboarding(PublicOnboardingRequest) returns (PublicOnboarding) {
+    option (google.api.http) = {get: "/v1/public/sales/onboarding/{token}"};
+  }
+  rpc SubmitPublicBrief(SubmitPublicBriefRequest) returns (PublicOnboarding) {
+    option (google.api.http) = {post: "/v1/public/sales/onboarding/{token}/brief" body: "*"};
+  }
+  // Public, rate limited; magic bytes decide the type (PNG, JPG, WEBP,
+  // GIF, SVG without scripts, PDF, ZIP; max 15 MB).
+  rpc UploadPublicAsset(UploadPublicAssetRequest) returns (PublicOnboarding) {
+    option (google.api.http) = {post: "/v1/public/sales/onboarding/{token}/assets" body: "*"};
+  }
+}
+
+message OnboardingItem {
+  string id = 1;
+  string key = 2;
+  // manual | brief | assets | contract | invoice_paid | create_client
+  string kind = 3;
+  string title = 4;
+  string description = 5;
+  string owner_user_id = 6;
+  string due_date = 7;
+  // todo | done | skipped
+  string status = 8;
+  google.protobuf.Timestamp done_at = 9;
+  string done_by = 10;
+}
+
+message OnboardingAsset {
+  string id = 1;
+  string file_name = 2;
+  string content_type = 3;
+  int64 size_bytes = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message Onboarding {
+  string id = 1;
+  string deal_id = 2;
+  string client_name = 3;
+  // aktif | selesai | batal
+  string status = 4;
+  // /v1/public/sales/onboarding/{token}
+  string portal_path = 5;
+  map<string, string> brief = 6;
+  google.protobuf.Timestamp brief_submitted_at = 7;
+  string marketing_client_id = 8;
+  int32 progress = 9;
+  repeated OnboardingItem items = 10;
+  repeated OnboardingAsset assets = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp completed_at = 13;
+}
+
+message ListOnboardingsRequest {
+  string status = 1;
+}
+
+message ListOnboardingsResponse {
+  repeated Onboarding onboardings = 1;
+}
+
+message StartOnboardingRequest {
+  string deal_id = 1;
+}
+
+message UpdateOnboardingItemRequest {
+  string id = 1;
+  // todo | done | skipped (empty keeps the status)
+  string status = 2;
+  optional string owner_user_id = 3;
+  optional string due_date = 4;
+}
+
+message CreateMarketingClientRequest {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string website_url = 4;
+  string industry = 5;
+}
+
+message OnboardingTemplateItem {
+  string key = 1;
+  string title = 2;
+  string description = 3;
+  int32 due_days = 4;
+  string kind = 5;
+}
+
+message OnboardingTemplate {
+  string id = 1;
+  string name = 2;
+  bool is_default = 3;
+  repeated OnboardingTemplateItem items = 4;
+}
+
+message ListOnboardingTemplatesResponse {
+  repeated OnboardingTemplate templates = 1;
+}
+
+message PublicOnboardingRequest {
+  string token = 1;
+}
+
+message PublicOnboardingStep {
+  string title = 1;
+  string status = 2;
+}
+
+message PublicOnboarding {
+  string client_name = 1;
+  int32 progress = 2;
+  repeated FormField brief_fields = 3;
+  map<string, string> brief = 4;
+  google.protobuf.Timestamp brief_submitted_at = 5;
+  repeated OnboardingAsset assets = 6;
+  repeated PublicOnboardingStep steps = 7;
+}
+
+message SubmitPublicBriefRequest {
+  string token = 1;
+  map<string, string> brief = 2;
+}
+
+message UploadPublicAssetRequest {
+  string token = 1;
+  string file_name = 2;
+  bytes data = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ChatService: lead conversations, chatbot, web widget, WhatsApp
+// ─────────────────────────────────────────────────────────────
+
+service ChatService {
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse) {
+    option (google.api.http) = {get: "/v1/sales/conversations"};
+  }
+  rpc GetConversation(IdRequest) returns (ConversationDetail) {
+    option (google.api.http) = {get: "/v1/sales/conversations/{id}"};
+  }
+  // Agent reply; takes the conversation over from the bot.
+  rpc ReplyConversation(ReplyConversationRequest) returns (ConversationDetail) {
+    option (google.api.http) = {post: "/v1/sales/conversations/{id}:reply" body: "*"};
+  }
+  // assign_me | unassign | set_status | set_complaint | mark_read |
+  // takeover (bot off) | release (bot back on).
+  rpc ConversationAction(ConversationActionRequest) returns (Conversation) {
+    option (google.api.http) = {post: "/v1/sales/conversations/{id}:action" body: "*"};
+  }
+  rpc AddConversationNote(AddConversationNoteRequest) returns (ConversationNote) {
+    option (google.api.http) = {post: "/v1/sales/conversations/{id}/notes" body: "*"};
+  }
+  // AI insight (summary, topic, sentiment, complaint flag, keywords),
+  // cached by transcript fingerprint.
+  rpc AnalyzeConversation(IdRequest) returns (ConversationInsight) {
+    option (google.api.http) = {post: "/v1/sales/conversations/{id}:analyze" body: "*"};
+  }
+  rpc ListReplyTemplates(google.protobuf.Empty) returns (ListReplyTemplatesResponse) {
+    option (google.api.http) = {get: "/v1/sales/reply-templates"};
+  }
+  rpc SaveReplyTemplate(ReplyTemplate) returns (ReplyTemplate) {
+    option (google.api.http) = {post: "/v1/sales/reply-templates" body: "*"};
+  }
+  rpc DeleteReplyTemplate(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/reply-templates/{id}"};
+  }
+  rpc GetChatbotSettings(google.protobuf.Empty) returns (ChatbotSettings) {
+    option (google.api.http) = {get: "/v1/sales/chatbot-settings"};
+  }
+  // ADMIN.
+  rpc SaveChatbotSettings(ChatbotSettings) returns (ChatbotSettings) {
+    option (google.api.http) = {put: "/v1/sales/chatbot-settings" body: "*"};
+  }
+
+  // Public website chat widget (no auth, rate limited per IP).
+  rpc StartPublicChat(StartPublicChatRequest) returns (PublicChat) {
+    option (google.api.http) = {post: "/v1/public/sales/chat" body: "*"};
+  }
+  rpc SendPublicChat(SendPublicChatRequest) returns (PublicChat) {
+    option (google.api.http) = {post: "/v1/public/sales/chat/{token}/messages" body: "*"};
+  }
+  rpc PollPublicChat(PollPublicChatRequest) returns (PublicChat) {
+    option (google.api.http) = {get: "/v1/public/sales/chat/{token}/messages"};
+  }
+  // WhatsApp gateway inbound (NüHabit wa-gateway payload), authenticated
+  // with the x-gateway-token header (or gateway_token in the body).
+  // Disabled unless WA_GATEWAY_URL and WA_GATEWAY_TOKEN are set.
+  rpc ReceiveWhatsApp(ReceiveWhatsAppRequest) returns (ReceiveWhatsAppResponse) {
+    option (google.api.http) = {post: "/v1/public/sales/wa/inbound" body: "*"};
+  }
+}
+
+message Conversation {
+  string id = 1;
+  // web | whatsapp
+  string channel = 2;
+  string external_id = 3;
+  string lead_id = 4;
+  string display_name = 5;
+  string phone = 6;
+  string email = 7;
+  // open | in_progress | waiting_customer | resolved
+  string status = 8;
+  string priority = 9;
+  string assigned_user_id = 10;
+  bool bot_active = 11;
+  string handoff_reason = 12;
+  google.protobuf.Timestamp handoff_at = 13;
+  bool is_complaint = 14;
+  int32 unread_count = 15;
+  google.protobuf.Timestamp last_message_at = 16;
+  string last_message_preview = 17;
+  google.protobuf.Timestamp awaiting_since = 18;
+  int32 first_response_seconds = 19;
+  bool sla_response_breached = 20;
+  google.protobuf.Timestamp resolved_at = 21;
+  google.protobuf.Timestamp created_at = 22;
+}
+
+message ChatMessage {
+  string id = 1;
+  // in | out
+  string direction = 2;
+  // customer | bot | agent | system
+  string sender = 3;
+  string body = 4;
+  // queued | sent | failed | received
+  string status = 5;
+  string error_reason = 6;
+  string sent_by_user_id = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message ConversationNote {
+  string id = 1;
+  string author_user_id = 2;
+  string body = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message ConversationInsight {
+  string summary = 1;
+  string topic = 2;
+  // positif | netral | negatif
+  string sentiment = 3;
+  bool is_complaint = 4;
+  repeated string keywords = 5;
+  string model = 6;
+  google.protobuf.Timestamp analyzed_at = 7;
+  // analyzed | cache | empty
+  string status = 8;
+}
+
+message ConversationDetail {
+  Conversation conversation = 1;
+  repeated ChatMessage messages = 2;
+  repeated ConversationNote notes = 3;
+  ConversationInsight insight = 4;
+}
+
+message ListConversationsRequest {
+  string status = 1;
+  string channel = 2;
+  bool mine = 3;
+  string q = 4;
+  int32 limit = 5;
+}
+
+message ListConversationsResponse {
+  repeated Conversation conversations = 1;
+}
+
+message ReplyConversationRequest {
+  string id = 1;
+  string body = 2;
+}
+
+message ConversationActionRequest {
+  string id = 1;
+  string action = 2;
+  // set_status: open | in_progress | waiting_customer | resolved
+  string status = 3;
+  // set_complaint
+  bool value = 4;
+}
+
+message AddConversationNoteRequest {
+  string id = 1;
+  string body = 2;
+}
+
+message ReplyTemplate {
+  string id = 1;
+  string title = 2;
+  string body = 3;
+  bool is_active = 4;
+}
+
+message ListReplyTemplatesResponse {
+  repeated ReplyTemplate templates = 1;
+}
+
+message ChatbotSettings {
+  bool enabled = 1;
+  string bot_name = 2;
+  string persona = 3;
+  string services_offered = 4;
+  // The only prices the bot may quote.
+  string pricing_hints = 5;
+  int32 business_hours_start = 6;
+  int32 business_hours_end = 7;
+  string handoff_rules = 8;
+  string greeting = 9;
+  // Below this the bot hands off to a human (0-1).
+  double min_confidence = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  // Read only: whether the WhatsApp gateway is configured.
+  bool whatsapp_enabled = 12;
+  // Users notified when the bot hands a chat to a human.
+  repeated string handoff_user_ids = 13;
+}
+
+message StartPublicChatRequest {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+  string page_url = 4;
+  Attribution attribution = 5;
+}
+
+message PublicChat {
+  // Keep it in the browser; it identifies the conversation.
+  string token = 1;
+  string bot_name = 2;
+  repeated ChatMessage messages = 3;
+  bool human_takeover = 4;
+}
+
+message SendPublicChatRequest {
+  string token = 1;
+  string body = 2;
+}
+
+message PollPublicChatRequest {
+  string token = 1;
+  // Only messages created after this instant.
+  google.protobuf.Timestamp after = 2;
+}
+
+message WhatsAppInbound {
+  string remote_jid = 1;
+  bool from_me = 2;
+  string message_id = 3;
+  double timestamp = 4;
+  string text = 5;
+  string media_type = 6;
+  string push_name = 7;
+}
+
+message ReceiveWhatsAppRequest {
+  repeated WhatsAppInbound messages = 1;
+  string gateway_token = 2;
+}
+
+message ReceiveWhatsAppResponse {
+  bool success = 1;
+  int32 stored = 2;
+  int32 skipped = 3;
+}

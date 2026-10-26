@@ -229,6 +229,25 @@ func (s *Store) ListOwnPosts(ctx context.Context, clientID string, from, toExclu
 	return out, nil
 }
 
+func (s *Store) ListOwnPostsFiltered(ctx context.Context, f domain.PostFilter) ([]domain.SocialPost, error) {
+	acc, ext := f.AccountIDs, f.ExternalIDs
+	if acc == nil {
+		acc = []string{}
+	}
+	if ext == nil {
+		ext = []string{}
+	}
+	rows, err := s.q.ListOwnPostsFiltered(ctx, sqlc.ListOwnPostsFilteredParams{ClientID: f.ClientID, AccountIds: acc, ExternalIds: ext, FromTs: f.From, ToTs: f.ToExclusive, RowLimit: i32(f.Limit)})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.SocialPost, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, toPost(r))
+	}
+	return out, nil
+}
+
 func (s *Store) UpsertPost(ctx context.Context, c domain.SocialPost, p domain.PostPatch) error {
 	id := c.ID
 	if id == "" {

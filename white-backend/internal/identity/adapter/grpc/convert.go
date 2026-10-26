@@ -86,7 +86,7 @@ func modulesFrom(in []commonv1.ModuleKey) []string {
 }
 
 func userPB(u *domain.User) *identityv1.User {
-	return &identityv1.User{Id: u.ID, Email: u.Email, Name: u.Name, Role: userRole(u.Role), IsActive: u.IsActive, CreatedAt: ts(u.CreatedAt)}
+	return &identityv1.User{Id: u.ID, Email: u.Email, Name: u.Name, Role: userRole(u.Role), IsActive: u.IsActive, CreatedAt: ts(u.CreatedAt), Permissions: u.Permissions}
 }
 
 func clientPB(c *domain.Client) *identityv1.Client {

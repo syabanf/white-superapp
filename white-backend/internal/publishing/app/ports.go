@@ -10,6 +10,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/publishing/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
+	"github.com/syabanf/white-superapp/white-backend/pkg/events"
 )
 
 // User-facing strings (features/publishing/strings.ts).
@@ -105,9 +106,9 @@ type IntegrationsClient interface {
 // AnalyticsClient lists the client's own social accounts (never competitors).
 type AnalyticsClient interface {
 	OwnAccounts(ctx context.Context, clientID string) ([]domain.SocialAccount, error)
-	// PostingHeatmap returns engagement cells for the client's synced posts,
-	// or nil when analytics exposes no post lookup yet.
-	PostingHeatmap(ctx context.Context, clientID, timeZone string) ([]domain.HeatCell, error)
+	// SyncedPosts returns the client's synced posts, newest first. With
+	// externalIDs set, only those posts are returned.
+	SyncedPosts(ctx context.Context, clientID string, externalIDs []string, limit int32) ([]domain.SyncedPost, error)
 }
 
 // Deps is shared by every use-case struct.
@@ -119,8 +120,10 @@ type Deps struct {
 	Analytics    AnalyticsClient
 	Real         domain.Publisher
 	Mock         domain.Publisher
-	Clock        clock.Clock
-	Logger       *slog.Logger
+	// Events carries publish outcomes to other services; nil drops them.
+	Events events.Publisher
+	Clock  clock.Clock
+	Logger *slog.Logger
 }
 
 func (d Deps) now() time.Time {
@@ -200,7 +203,7 @@ func accountsByID(accounts []domain.SocialAccount) map[string]domain.SocialAccou
 
 // draftInput builds the validation input from stored targets and media.
 func draftInput(post domain.ContentPost, targets []domain.PostTarget, media []domain.MediaAsset) domain.DraftInput {
-	in := domain.DraftInput{Body: post.Body, ScheduledAt: post.ScheduledAt, LinkURL: post.LinkURL, FirstComment: post.FirstComment}
+	in := domain.DraftInput{Format: post.Format, Body: post.Body, ScheduledAt: post.ScheduledAt, LinkURL: post.LinkURL, FirstComment: post.FirstComment}
 	for _, t := range targets {
 		in.Targets = append(in.Targets, domain.DraftTarget{Platform: t.Platform, BodyOverride: t.BodyOverride})
 	}

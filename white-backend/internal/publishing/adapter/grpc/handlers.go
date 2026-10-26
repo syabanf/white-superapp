@@ -125,7 +125,7 @@ func (s *postServer) SavePost(ctx context.Context, req *publishingv1.SavePostReq
 	if err != nil {
 		return nil, err
 	}
-	in := app.SaveInput{ID: req.Id, Title: req.Title, Body: req.Body, MediaIDs: req.MediaIds, MediaAlt: req.MediaAlt, UTM: utmFrom(req.Utm), Labels: req.Labels, ScheduledAt: timePtr(req.ScheduledAt)}
+	in := app.SaveInput{ID: req.Id, Title: req.Title, Body: req.Body, Format: formatFrom(req.Format), MediaIDs: req.MediaIds, MediaAlt: req.MediaAlt, UTM: utmFrom(req.Utm), Labels: req.Labels, ScheduledAt: timePtr(req.ScheduledAt)}
 	if req.LinkUrl != "" {
 		in.LinkURL = &req.LinkUrl
 	}

@@ -58,7 +58,7 @@ export default async function PublishPostsPage(props: PageProps<"/clients/[slug]
           }
         />
       ) : (
-        <PostsTable rows={rows} counts={counts} tab={tab} slug={slug} timezone={client.timezone} />
+        <PostsTable rows={rows} counts={counts} tab={tab} slug={slug} timezone={client.timezone} nowIso={new Date().toISOString()} />
       )}
     </>
   );

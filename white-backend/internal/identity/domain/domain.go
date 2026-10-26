@@ -35,8 +35,10 @@ type User struct {
 	PasswordHash string
 	Role         UserRole
 	IsActive     bool
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	// ERP permission keys (pkg/authn/perms.go).
+	Permissions []string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Membership struct {
@@ -127,10 +129,14 @@ type UserRepo interface {
 	ListUsers(ctx context.Context) ([]User, error)
 	ListUsersByIDs(ctx context.Context, ids []string) ([]User, error)
 	ListActiveUserOptions(ctx context.Context) ([]User, error)
+	ListPermissionHolders(ctx context.Context, permission string) ([]User, error)
 	InsertUser(ctx context.Context, u User) (*User, error)
 	// UpdateUser changes profile fields; passwordHash nil keeps the old hash.
 	UpdateUser(ctx context.Context, u User, passwordHash *string) (*User, error)
 	SetUserActive(ctx context.Context, id string, active bool) (*User, error)
+	SetUserPermissions(ctx context.Context, id string, perms []string) (*User, error)
+	// UpsertLegacyUser mirrors a Next.js user row; permissions are kept.
+	UpsertLegacyUser(ctx context.Context, u User) (*User, error)
 	DeleteUser(ctx context.Context, id string) (bool, error)
 
 	ListMembershipsOfUsers(ctx context.Context, userIDs []string) ([]MembershipWithClient, error)

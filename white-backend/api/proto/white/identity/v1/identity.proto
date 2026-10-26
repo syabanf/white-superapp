@@ -32,6 +32,8 @@ message User {
   UserRole role = 4;
   bool is_active = 5;
   google.protobuf.Timestamp created_at = 6;
+  // ERP permission keys, e.g. finance.read, hr.*. Admins hold all.
+  repeated string permissions = 7;
 }
 
 message Membership {
@@ -86,6 +88,14 @@ service AuthService {
   rpc Me(google.protobuf.Empty) returns (User) {
     option (google.api.http) = {get: "/v1/auth/me"};
   }
+  // Internal. Mints an access token for a user the caller already
+  // authenticated (the Next.js server, which owns the browser session).
+  // Requires the shared INTERNAL_API_SECRET in `x-internal-secret`.
+  rpc IssueServiceToken(IssueServiceTokenRequest) returns (TokenPair);
+}
+
+message IssueServiceTokenRequest {
+  string user_id = 1;
 }
 
 message LoginRequest {
@@ -114,6 +124,10 @@ message LogoutRequest {
 // ─────────────────────────────────────────────────────────────
 
 service UserService {
+  // ERP permission keys an admin can assign.
+  rpc ListPermissions(google.protobuf.Empty) returns (ListPermissionsResponse) {
+    option (google.api.http) = {get: "/v1/permissions"};
+  }
   rpc ListUsers(google.protobuf.Empty) returns (ListUsersResponse) {
     option (google.api.http) = {get: "/v1/users"};
   }
@@ -132,6 +146,39 @@ service UserService {
   }
   rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1/users/{user_id}"};
+  }
+  // Replaces the user's ERP permissions only (memberships untouched).
+  rpc SetUserPermissions(SetUserPermissionsRequest) returns (User) {
+    option (google.api.http) = {put: "/v1/users/{user_id}/permissions" body: "*"};
+  }
+
+  // Internal, guarded by INTERNAL_API_SECRET. Mirrors a user written by the
+  // Next.js admin pages (same id and bcrypt hash) until those pages move to
+  // identity. ERP permissions are kept.
+  rpc SyncLegacyUser(SyncLegacyUserRequest) returns (User);
+  rpc RemoveLegacyUser(DeleteUserRequest) returns (google.protobuf.Empty);
+}
+
+message SetUserPermissionsRequest {
+  string user_id = 1;
+  repeated string permissions = 2;
+}
+
+message SyncLegacyUserRequest {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string password_hash = 4;
+  UserRole role = 5;
+  bool is_active = 6;
+}
+
+message ListPermissionsResponse {
+  repeated Permission permissions = 1;
+
+  message Permission {
+    string key = 1;
+    string label = 2;
   }
 }
 
@@ -155,6 +202,8 @@ message UserOption {
   string id = 1;
   string name = 2;
   string email = 3;
+  // Filled by ListPermissionHolders only.
+  bool admin = 4;
 }
 
 message ListUserOptionsResponse {
@@ -168,6 +217,7 @@ message CreateUserRequest {
   UserRole role = 4;
   bool is_active = 5;
   repeated Membership memberships = 6;
+  repeated string permissions = 7;
 }
 
 message UpdateUserRequest {
@@ -180,6 +230,8 @@ message UpdateUserRequest {
   bool is_active = 6;
   // Replaces every membership of the user.
   repeated Membership memberships = 7;
+  // Replaces every ERP permission of the user.
+  repeated string permissions = 8;
 }
 
 message SetUserActiveRequest {
@@ -313,6 +365,13 @@ service AccessService {
   rpc ListAccessibleClientIds(ListAccessibleClientIdsRequest) returns (ListAccessibleClientIdsResponse);
   // Every client (id, slug, timezone, modules), for schedulers.
   rpc ListAllClients(google.protobuf.Empty) returns (ListAllClientsResponse);
+  // Active users who hold `permission` directly, through `module.*`, or as
+  // ADMIN. ERP services use it to address approver notifications.
+  rpc ListPermissionHolders(ListPermissionHoldersRequest) returns (ListUserOptionsResponse);
+}
+
+message ListPermissionHoldersRequest {
+  string permission = 1;
 }
 
 message CheckClientAccessRequest {

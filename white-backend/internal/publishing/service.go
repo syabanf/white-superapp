@@ -93,6 +93,7 @@ func wire(d pkgapp.Deps) (*wiring, error) {
 		Analytics:    clients.NewAnalytics(analyticsConn),
 		Real:         publisher.NewReal(),
 		Mock:         publisher.Mock{},
+		Events:       d.Events,
 		Clock:        clock.Real{},
 		Logger:       d.Logger,
 	}

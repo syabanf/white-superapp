@@ -51,8 +51,21 @@ func (c *Analytics) OwnAccounts(ctx context.Context, clientID string) ([]domain.
 	return out, nil
 }
 
-// PostingHeatmap has no source yet: analytics exposes no synced-post RPC,
-// so best times fall back to the defaults.
-func (c *Analytics) PostingHeatmap(context.Context, string, string) ([]domain.HeatCell, error) {
-	return nil, nil
+// SyncedPosts reads synced posts from analytics. Engagements are likes +
+// comments + shares + saves, as in lib/metrics/social.ts.
+func (c *Analytics) SyncedPosts(ctx context.Context, clientID string, externalIDs []string, limit int32) ([]domain.SyncedPost, error) {
+	res, err := c.sources.ListSocialPosts(ctx, &analyticsv1.ListSocialPostsRequest{ClientId: clientID, ExternalIds: externalIDs, Limit: limit})
+	if err != nil {
+		return nil, grpcx.FromStatus(err)
+	}
+	out := make([]domain.SyncedPost, 0, len(res.Posts))
+	for _, p := range res.Posts {
+		out = append(out, domain.SyncedPost{
+			SocialAccountID: p.SocialAccountId,
+			ExternalID:      p.ExternalId,
+			PublishedAt:     p.PublishedAt.AsTime(),
+			Engagements:     p.Likes + p.Comments + p.Shares + p.Saves,
+		})
+	}
+	return out, nil
 }

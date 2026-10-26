@@ -30,14 +30,17 @@ type Principal struct {
 	Role   string
 	Name   string
 	Email  string
+	// ERP permission keys (see perms.go). Empty for marketing-only users.
+	Perms []string
 }
 
 func (p Principal) IsAdmin() bool { return p.Role == RoleAdmin }
 
 type claims struct {
-	Role  string `json:"role"`
-	Name  string `json:"name,omitempty"`
-	Email string `json:"email,omitempty"`
+	Role  string   `json:"role"`
+	Name  string   `json:"name,omitempty"`
+	Email string   `json:"email,omitempty"`
+	Perms []string `json:"perms,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -98,6 +101,7 @@ func (i *Issuer_) Issue(p Principal, now time.Time) (string, time.Time, error) {
 		Role:  p.Role,
 		Name:  p.Name,
 		Email: p.Email,
+		Perms: p.Perms,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    Issuer,
 			Subject:   p.UserID,
@@ -134,7 +138,7 @@ func (v *Verifier) Verify(token string) (Principal, error) {
 	if role == "" {
 		role = RoleMember
 	}
-	return Principal{UserID: c.Subject, Role: role, Name: c.Name, Email: c.Email}, nil
+	return Principal{UserID: c.Subject, Role: role, Name: c.Name, Email: c.Email, Perms: c.Perms}, nil
 }
 
 type ctxKey struct{}

@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DataTable, type ColMeta } from "@/components/dashboard/data-table";
 import { deleteUserAction, setUserActiveAction } from "@/features/admin/actions";
-import type { AdminUserRow } from "@/features/admin/queries";
+import type { AdminUserRow, ErpPermissionOption } from "@/features/admin/queries";
 import { formatDate, initials } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { ta } from "@/features/admin/strings";
@@ -30,10 +30,12 @@ import { UserFormDialog, type ClientOption } from "./user-form-dialog";
 export function UsersTable({
   users,
   clients,
+  erpOptions,
   currentUserId,
 }: {
   users: AdminUserRow[];
   clients: ClientOption[];
+  erpOptions: ErpPermissionOption[];
   currentUserId: string;
 }) {
   const [editTarget, setEditTarget] = React.useState<AdminUserRow | null>(null);
@@ -209,6 +211,7 @@ export function UsersTable({
           mode="edit"
           user={editTarget}
           clients={clients}
+          erpOptions={erpOptions}
           open
           onOpenChange={(open) => {
             if (!open) setEditTarget(null);

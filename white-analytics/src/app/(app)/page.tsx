@@ -94,6 +94,9 @@ export default async function PortfolioPage(props: PageProps<"/">) {
   const healths = perClient.map((p) => p.seo.health).filter((h): h is number => h != null);
   const avgHealth = healths.length > 0 ? Math.round(mean(healths)) : null;
   const allDemo = perClient.every((p) => p.social.isDemo && p.seo.isDemo && p.ads.isDemo);
+  const hasSocialData = perClient.some((p) => p.social.hasData);
+  const hasSeoData = perClient.some((p) => p.seo.hasData);
+  const hasAdsData = perClient.some((p) => p.ads.hasData);
   const d = (x: Delta, isDemo = allDemo): Delta | null => (compare && !isDemo ? x : null);
 
   const globalQuery = pickGlobalQuery(sp);
@@ -111,7 +114,8 @@ export default async function PortfolioPage(props: PageProps<"/">) {
     spend: ads.kpis.spend,
     spendDelta: d(ads.spendDelta, ads.isDemo),
     health: seo.health,
-    modules: { social: social.hasData, seo: seo.hasData, ads: ads.hasData },
+    modules: { social: social.hasSource, seo: seo.hasSource, ads: ads.hasSource },
+    coverage: { social: social.hasData, seo: seo.hasData, ads: ads.hasData },
     lastSyncLabel: lastSync[client.id] ? formatRelative(lastSync[client.id]) : null,
     contextQuery: globalQuery,
     attention: [
@@ -158,20 +162,23 @@ export default async function PortfolioPage(props: PageProps<"/">) {
           {
             label: t.portfolio.followers,
             value: formatCompact(totals.followers),
+            caption: !hasSocialData ? "Tidak ada data baru pada periode ini" : undefined,
             delta: d(totals.followersDelta),
             href: "#clients",
             hint: tc.portfolio.followersHint,
           },
           {
             label: t.portfolio.organicClicks,
-            value: formatCompact(totals.clicks),
+            value: hasSeoData ? formatCompact(totals.clicks) : "–",
+            caption: !hasSeoData ? "Tidak ada data pada periode ini" : undefined,
             delta: d(totals.clicksDelta),
             href: "#clients",
             hint: tc.portfolio.clicksHint,
           },
           {
             label: t.portfolio.adSpend,
-            value: formatCurrency(totals.spend, "IDR", { compact: true }),
+            value: hasAdsData ? formatCurrency(totals.spend, "IDR", { compact: true }) : "–",
+            caption: !hasAdsData ? "Tidak ada data pada periode ini" : undefined,
             delta: d(totals.spendDelta),
             href: "#clients",
             hint: tc.portfolio.spendHint,

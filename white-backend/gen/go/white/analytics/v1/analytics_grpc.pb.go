@@ -34,6 +34,7 @@ const (
 	SourceService_RemoveAdAccount_FullMethodName     = "/white.analytics.v1.SourceService/RemoveAdAccount"
 	SourceService_GetClientSources_FullMethodName    = "/white.analytics.v1.SourceService/GetClientSources"
 	SourceService_GetSeoProperty_FullMethodName      = "/white.analytics.v1.SourceService/GetSeoProperty"
+	SourceService_ListSocialPosts_FullMethodName     = "/white.analytics.v1.SourceService/ListSocialPosts"
 )
 
 // SourceServiceClient is the client API for SourceService service.
@@ -59,6 +60,8 @@ type SourceServiceClient interface {
 	GetClientSources(ctx context.Context, in *GetClientSourcesRequest, opts ...grpc.CallOption) (*GetClientSourcesResponse, error)
 	// Internal. One property by id (seosuite).
 	GetSeoProperty(ctx context.Context, in *GetSeoPropertyRequest, opts ...grpc.CallOption) (*SeoProperty, error)
+	// Internal. Own-account posts, newest first (publishing heatmap and report matching).
+	ListSocialPosts(ctx context.Context, in *ListSocialPostsRequest, opts ...grpc.CallOption) (*ListSocialPostsResponse, error)
 }
 
 type sourceServiceClient struct {
@@ -209,6 +212,16 @@ func (c *sourceServiceClient) GetSeoProperty(ctx context.Context, in *GetSeoProp
 	return out, nil
 }
 
+func (c *sourceServiceClient) ListSocialPosts(ctx context.Context, in *ListSocialPostsRequest, opts ...grpc.CallOption) (*ListSocialPostsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSocialPostsResponse)
+	err := c.cc.Invoke(ctx, SourceService_ListSocialPosts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SourceServiceServer is the server API for SourceService service.
 // All implementations must embed UnimplementedSourceServiceServer
 // for forward compatibility.
@@ -232,6 +245,8 @@ type SourceServiceServer interface {
 	GetClientSources(context.Context, *GetClientSourcesRequest) (*GetClientSourcesResponse, error)
 	// Internal. One property by id (seosuite).
 	GetSeoProperty(context.Context, *GetSeoPropertyRequest) (*SeoProperty, error)
+	// Internal. Own-account posts, newest first (publishing heatmap and report matching).
+	ListSocialPosts(context.Context, *ListSocialPostsRequest) (*ListSocialPostsResponse, error)
 	mustEmbedUnimplementedSourceServiceServer()
 }
 
@@ -283,6 +298,9 @@ func (UnimplementedSourceServiceServer) GetClientSources(context.Context, *GetCl
 }
 func (UnimplementedSourceServiceServer) GetSeoProperty(context.Context, *GetSeoPropertyRequest) (*SeoProperty, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSeoProperty not implemented")
+}
+func (UnimplementedSourceServiceServer) ListSocialPosts(context.Context, *ListSocialPostsRequest) (*ListSocialPostsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSocialPosts not implemented")
 }
 func (UnimplementedSourceServiceServer) mustEmbedUnimplementedSourceServiceServer() {}
 func (UnimplementedSourceServiceServer) testEmbeddedByValue()                       {}
@@ -557,6 +575,24 @@ func _SourceService_GetSeoProperty_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SourceService_ListSocialPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSocialPostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SourceServiceServer).ListSocialPosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SourceService_ListSocialPosts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SourceServiceServer).ListSocialPosts(ctx, req.(*ListSocialPostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SourceService_ServiceDesc is the grpc.ServiceDesc for SourceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -619,6 +655,10 @@ var SourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSeoProperty",
 			Handler:    _SourceService_GetSeoProperty_Handler,
+		},
+		{
+			MethodName: "ListSocialPosts",
+			Handler:    _SourceService_ListSocialPosts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

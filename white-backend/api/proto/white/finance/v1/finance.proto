@@ -1,0 +1,2005 @@
+syntax = "proto3";
+
+package white.finance.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "white/common/v1/common.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/finance/v1;financev1";
+
+// Finance service: chart of accounts, fiscal calendar, journals, cash and
+// bank, payables, receivables, reports, reimbursement claims and financial
+// analysis. Ported from the NüHabit accounting module.
+//
+// Conventions:
+// - Money is a decimal string with two places ("1250000.00"); inputs also
+//   accept "1250000" or "1250000.5".
+// - Days are "YYYY-MM-DD" (Asia/Jakarta calendar).
+// - Permissions: read finance.read, drafts and cash-bank finance.write,
+//   post/close/void/pay/approve finance.approve, reimbursement self-service
+//   self.service.
+
+// ─────────────────────────────────────────────────────────────
+// Shared enums
+// ─────────────────────────────────────────────────────────────
+
+enum EntrySide {
+  ENTRY_SIDE_UNSPECIFIED = 0;
+  DEBIT = 1;
+  CREDIT = 2;
+}
+
+enum DocumentStatus {
+  DOCUMENT_STATUS_UNSPECIFIED = 0;
+  DRAFT = 1;
+  POSTED = 2;
+  VOID = 3;
+}
+
+enum EntryType {
+  ENTRY_TYPE_UNSPECIFIED = 0;
+  MANUAL = 1;
+  OPENING = 2;
+  AUTO = 3;
+}
+
+enum PeriodStatus {
+  PERIOD_STATUS_UNSPECIFIED = 0;
+  OPEN = 1;
+  CLOSED = 2;
+}
+
+// Accounts payable (vendor bills) or receivable (client invoices).
+enum LedgerKind {
+  LEDGER_KIND_UNSPECIFIED = 0;
+  AP = 1;
+  AR = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AccountService: account types, chart of accounts, journal mappings
+// ─────────────────────────────────────────────────────────────
+
+service AccountService {
+  rpc ListAccountTypes(ListAccountTypesRequest) returns (ListAccountTypesResponse) {
+    option (google.api.http) = {get: "/v1/finance/account-types"};
+  }
+  rpc CreateAccountType(AccountTypeInput) returns (AccountType) {
+    option (google.api.http) = {
+      post: "/v1/finance/account-types"
+      body: "*"
+    };
+  }
+  rpc UpdateAccountType(UpdateAccountTypeRequest) returns (AccountType) {
+    option (google.api.http) = {
+      patch: "/v1/finance/account-types/{id}"
+      body: "input"
+    };
+  }
+  rpc DeleteAccountType(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/account-types/{id}"};
+  }
+
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse) {
+    option (google.api.http) = {get: "/v1/finance/accounts"};
+  }
+  rpc GetAccount(IdRequest) returns (Account) {
+    option (google.api.http) = {get: "/v1/finance/accounts/{id}"};
+  }
+  rpc CreateAccount(AccountInput) returns (Account) {
+    option (google.api.http) = {
+      post: "/v1/finance/accounts"
+      body: "*"
+    };
+  }
+  rpc UpdateAccount(UpdateAccountRequest) returns (Account) {
+    option (google.api.http) = {
+      patch: "/v1/finance/accounts/{id}"
+      body: "input"
+    };
+  }
+  rpc DeleteAccount(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/accounts/{id}"};
+  }
+  // XLSX import (sheet "coa" or the first one). mode "preview" or "commit".
+  rpc ImportAccounts(ImportAccountsRequest) returns (ImportAccountsResponse) {
+    option (google.api.http) = {
+      post: "/v1/finance/accounts:import"
+      body: "*"
+    };
+  }
+  // Postable, active accounts for pickers.
+  rpc ListPostableAccounts(google.protobuf.Empty) returns (ListPostableAccountsResponse) {
+    option (google.api.http) = {get: "/v1/finance/accounts:postable"};
+  }
+
+  rpc ListJournalEvents(google.protobuf.Empty) returns (ListJournalEventsResponse) {
+    option (google.api.http) = {get: "/v1/finance/journal-events"};
+  }
+  rpc ListJournalMappings(ListJournalMappingsRequest) returns (ListJournalMappingsResponse) {
+    option (google.api.http) = {get: "/v1/finance/journal-mappings"};
+  }
+  rpc GetJournalMapping(IdRequest) returns (JournalMapping) {
+    option (google.api.http) = {get: "/v1/finance/journal-mappings/{id}"};
+  }
+  rpc CreateJournalMapping(JournalMappingInput) returns (JournalMapping) {
+    option (google.api.http) = {
+      post: "/v1/finance/journal-mappings"
+      body: "*"
+    };
+  }
+  rpc UpdateJournalMapping(UpdateJournalMappingRequest) returns (JournalMapping) {
+    option (google.api.http) = {
+      patch: "/v1/finance/journal-mappings/{id}"
+      body: "input"
+    };
+  }
+  rpc DeleteJournalMapping(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/journal-mappings/{id}"};
+  }
+}
+
+message IdRequest {
+  string id = 1;
+}
+
+message AccountType {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  EntrySide normal_balance = 4;
+  int32 sort_order = 5;
+  bool is_active = 6;
+  int32 account_count = 7;
+}
+
+message AccountTypeInput {
+  string code = 1;
+  string name = 2;
+  EntrySide normal_balance = 3;
+  int32 sort_order = 4;
+  bool is_active = 5;
+}
+
+message UpdateAccountTypeRequest {
+  string id = 1;
+  AccountTypeInput input = 2;
+}
+
+message ListAccountTypesRequest {
+  bool include_inactive = 1;
+}
+
+message ListAccountTypesResponse {
+  repeated AccountType account_types = 1;
+}
+
+message Account {
+  string id = 1;
+  // Compact 7-digit code ("1101001") and its display form ("1 1 01 001").
+  string code = 2;
+  string code_display = 3;
+  string name = 4;
+  optional string parent_id = 5;
+  string account_type_id = 6;
+  string account_type_code = 7;
+  string account_type_name = 8;
+  // The type's normal balance, flipped for contra accounts.
+  EntrySide normal_balance = 9;
+  int32 level = 10;
+  bool is_postable = 11;
+  bool is_contra = 12;
+  bool is_cash_bank = 13;
+  // OPERATING, INVESTING, FINANCING, NON_CASH or empty.
+  string cash_flow_category = 14;
+  string description = 15;
+  bool is_active = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+message AccountInput {
+  string code = 1;
+  string name = 2;
+  optional string parent_id = 3;
+  string account_type_id = 4;
+  bool is_contra = 5;
+  bool is_cash_bank = 6;
+  string cash_flow_category = 7;
+  string description = 8;
+  bool is_active = 9;
+}
+
+message UpdateAccountRequest {
+  string id = 1;
+  AccountInput input = 2;
+}
+
+message ListAccountsRequest {
+  string account_type_id = 1;
+  optional bool is_postable = 2;
+  optional bool is_cash_bank = 3;
+  optional bool is_active = 4;
+  string cash_flow_category = 5;
+  string search = 6;
+}
+
+message ListAccountsResponse {
+  repeated Account accounts = 1;
+}
+
+message ImportAccountsRequest {
+  bytes file = 1;
+  string mode = 2;
+}
+
+message ImportIssue {
+  int32 row = 1;
+  string code = 2;
+  string message = 3;
+}
+
+message ImportPreviewRow {
+  int32 source_row = 1;
+  string code = 2;
+  string name = 3;
+  string parent_code = 4;
+  string account_type_code = 5;
+  // create, update, skip or error.
+  string action = 6;
+  string message = 7;
+}
+
+message ImportAccountsResponse {
+  string mode = 1;
+  repeated ImportIssue issues = 2;
+  repeated ImportPreviewRow preview = 3;
+  int32 create_count = 4;
+  int32 update_count = 5;
+  int32 skip_count = 6;
+  int32 error_count = 7;
+  string message = 8;
+}
+
+message PostableAccount {
+  string id = 1;
+  string code = 2;
+  string code_display = 3;
+  string name = 4;
+  bool is_cash_bank = 5;
+  string account_type_code = 6;
+}
+
+message ListPostableAccountsResponse {
+  repeated PostableAccount accounts = 1;
+}
+
+message JournalEvent {
+  string event_code = 1;
+  string name = 2;
+  string description = 3;
+  string module = 4;
+}
+
+message ListJournalEventsResponse {
+  repeated JournalEvent events = 1;
+  repeated string modules = 2;
+  repeated string amount_sources = 3;
+}
+
+message JournalMappingLine {
+  string id = 1;
+  EntrySide entry_side = 2;
+  string line_role = 3;
+  optional string account_id = 4;
+  string account_code = 5;
+  string account_name = 6;
+  // TOTAL, SUBTOTAL, TAX, COGS, PAID, DISCOUNT, SERVICE_CHARGE.
+  string amount_source = 7;
+  int32 sort_order = 8;
+  bool is_required = 9;
+}
+
+message JournalMapping {
+  string id = 1;
+  string event_code = 2;
+  string name = 3;
+  string description = 4;
+  string module = 5;
+  bool is_active = 6;
+  // Every required line has an account.
+  bool is_ready = 7;
+  repeated JournalMappingLine lines = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message JournalMappingLineInput {
+  EntrySide entry_side = 1;
+  string line_role = 2;
+  optional string account_id = 3;
+  string amount_source = 4;
+  optional int32 sort_order = 5;
+  optional bool is_required = 6;
+}
+
+message JournalMappingInput {
+  string event_code = 1;
+  string name = 2;
+  string description = 3;
+  string module = 4;
+  bool is_active = 5;
+  repeated JournalMappingLineInput lines = 6;
+}
+
+message UpdateJournalMappingRequest {
+  string id = 1;
+  JournalMappingInput input = 2;
+}
+
+message ListJournalMappingsRequest {
+  string search = 1;
+  string module = 2;
+  optional bool is_active = 3;
+}
+
+message ListJournalMappingsResponse {
+  repeated JournalMapping mappings = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// FiscalService: fiscal years, periods, beginning balance
+// ─────────────────────────────────────────────────────────────
+
+service FiscalService {
+  rpc ListFiscalYears(ListFiscalYearsRequest) returns (ListFiscalYearsResponse) {
+    option (google.api.http) = {get: "/v1/finance/fiscal-years"};
+  }
+  rpc GetFiscalYear(IdRequest) returns (FiscalYear) {
+    option (google.api.http) = {get: "/v1/finance/fiscal-years/{id}"};
+  }
+  rpc CreateFiscalYear(FiscalYearInput) returns (FiscalYear) {
+    option (google.api.http) = {
+      post: "/v1/finance/fiscal-years"
+      body: "*"
+    };
+  }
+  rpc UpdateFiscalYear(UpdateFiscalYearRequest) returns (FiscalYear) {
+    option (google.api.http) = {
+      patch: "/v1/finance/fiscal-years/{id}"
+      body: "input"
+    };
+  }
+  rpc DeleteFiscalYear(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/fiscal-years/{id}"};
+  }
+  rpc ListFiscalPeriods(ListFiscalPeriodsRequest) returns (ListFiscalPeriodsResponse) {
+    option (google.api.http) = {get: "/v1/finance/fiscal-periods"};
+  }
+  rpc OpenFiscalPeriod(OpenFiscalPeriodRequest) returns (FiscalPeriod) {
+    option (google.api.http) = {
+      post: "/v1/finance/fiscal-periods/{id}:open"
+      body: "*"
+    };
+  }
+  rpc GetPeriodClosePreview(IdRequest) returns (PeriodClosePreview) {
+    option (google.api.http) = {get: "/v1/finance/fiscal-periods/{id}/close-preview"};
+  }
+  rpc CloseFiscalPeriod(IdRequest) returns (FiscalPeriod) {
+    option (google.api.http) = {post: "/v1/finance/fiscal-periods/{id}:close"};
+  }
+  // Whether a journal can be dated on `date`, and how to open its period.
+  rpc GetFiscalCoverage(GetFiscalCoverageRequest) returns (FiscalCoverage) {
+    option (google.api.http) = {get: "/v1/finance/fiscal-coverage"};
+  }
+  rpc GetBeginningBalance(IdRequest) returns (BeginningBalance) {
+    option (google.api.http) = {get: "/v1/finance/fiscal-years/{id}/beginning-balance"};
+  }
+  rpc SaveBeginningBalance(SaveBeginningBalanceRequest) returns (SaveBeginningBalanceResponse) {
+    option (google.api.http) = {
+      put: "/v1/finance/fiscal-years/{id}/beginning-balance"
+      body: "*"
+    };
+  }
+}
+
+message FiscalPeriod {
+  string id = 1;
+  string fiscal_year_id = 2;
+  int32 period_no = 3;
+  string name = 4;
+  string start_date = 5;
+  string end_date = 6;
+  PeriodStatus status = 7;
+  string fiscal_year_code = 8;
+  string fiscal_year_name = 9;
+  bool fiscal_year_is_active = 10;
+  int32 posted_count = 11;
+  int32 draft_count = 12;
+}
+
+message FiscalYear {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string start_date = 4;
+  string end_date = 5;
+  bool is_active = 6;
+  repeated FiscalPeriod periods = 7;
+  int32 open_periods_count = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message FiscalPeriodInput {
+  int32 period_no = 1;
+  string name = 2;
+  string start_date = 3;
+  string end_date = 4;
+  PeriodStatus status = 5;
+}
+
+message FiscalYearInput {
+  string code = 1;
+  string name = 2;
+  string start_date = 3;
+  string end_date = 4;
+  bool is_active = 5;
+  // Empty: twelve monthly periods are generated, all CLOSED except the first.
+  repeated FiscalPeriodInput periods = 6;
+}
+
+message UpdateFiscalYearRequest {
+  string id = 1;
+  FiscalYearInput input = 2;
+}
+
+message ListFiscalYearsRequest {
+  string search = 1;
+  optional bool is_active = 2;
+}
+
+message ListFiscalYearsResponse {
+  repeated FiscalYear fiscal_years = 1;
+}
+
+message ListFiscalPeriodsRequest {
+  string fiscal_year_id = 1;
+  PeriodStatus status = 2;
+  string search = 3;
+}
+
+message ListFiscalPeriodsResponse {
+  repeated FiscalPeriod periods = 1;
+}
+
+message OpenFiscalPeriodRequest {
+  string id = 1;
+  // Close the earlier OPEN periods of the same year first.
+  bool close_previous = 2;
+}
+
+message DraftEntryRef {
+  string id = 1;
+  string entry_no = 2;
+  string entry_date = 3;
+  string description = 4;
+}
+
+message PeriodClosePreview {
+  FiscalPeriod period = 1;
+  int32 posted_count = 2;
+  int32 draft_count = 3;
+  repeated DraftEntryRef draft_entries = 4;
+  bool can_close = 5;
+  repeated string blockers = 6;
+}
+
+message GetFiscalCoverageRequest {
+  string date = 1;
+}
+
+message FiscalCoverage {
+  string date = 1;
+  bool ready = 2;
+  optional FiscalPeriod period = 3;
+  optional FiscalOpenSuggestion suggestion = 4;
+}
+
+message FiscalOpenSuggestion {
+  FiscalPeriod period = 1;
+  bool can_open = 2;
+  repeated FiscalPeriod close_previous = 3;
+  string message = 4;
+}
+
+message BeginningBalanceLine {
+  string account_id = 1;
+  string account_code = 2;
+  string account_name = 3;
+  string account_type_code = 4;
+  EntrySide normal_balance = 5;
+  bool is_contra = 6;
+  string suggested_amount = 7;
+  string amount = 8;
+  EntrySide entry_side = 9;
+  // PRIOR_BS, RETAINED_EARNINGS or MANUAL.
+  string source = 10;
+}
+
+message BeginningBalance {
+  string fiscal_year_id = 1;
+  string fiscal_year_code = 2;
+  string fiscal_year_name = 3;
+  string start_date = 4;
+  string period_id = 5;
+  string period_name = 6;
+  optional FiscalYear prior_fiscal_year = 7;
+  bool prior_fully_closed = 8;
+  optional PostableAccount retained_earnings_account = 9;
+  repeated BeginningBalanceLine lines = 10;
+  string total_debit = 11;
+  string total_credit = 12;
+  string existing_entry_id = 13;
+  DocumentStatus existing_status = 14;
+  bool can_edit = 15;
+  bool is_first_year = 16;
+  string message = 17;
+}
+
+message BeginningBalanceLineInput {
+  string account_id = 1;
+  EntrySide entry_side = 2;
+  string amount = 3;
+  string memo = 4;
+}
+
+message SaveBeginningBalanceRequest {
+  string id = 1;
+  repeated BeginningBalanceLineInput lines = 2;
+  bool post = 3;
+}
+
+message SaveBeginningBalanceResponse {
+  string entry_id = 1;
+  DocumentStatus status = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// JournalService: journal entries and automatic posting log
+// ─────────────────────────────────────────────────────────────
+
+service JournalService {
+  rpc ListJournalEntries(ListJournalEntriesRequest) returns (ListJournalEntriesResponse) {
+    option (google.api.http) = {get: "/v1/finance/journal-entries"};
+  }
+  rpc GetJournalEntry(IdRequest) returns (JournalEntry) {
+    option (google.api.http) = {get: "/v1/finance/journal-entries/{id}"};
+  }
+  rpc CreateJournalEntry(JournalEntryInput) returns (JournalEntry) {
+    option (google.api.http) = {
+      post: "/v1/finance/journal-entries"
+      body: "*"
+    };
+  }
+  rpc UpdateJournalEntry(UpdateJournalEntryRequest) returns (JournalEntry) {
+    option (google.api.http) = {
+      patch: "/v1/finance/journal-entries/{id}"
+      body: "input"
+    };
+  }
+  rpc DeleteJournalEntry(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/journal-entries/{id}"};
+  }
+  rpc PostJournalEntry(IdRequest) returns (JournalEntry) {
+    option (google.api.http) = {post: "/v1/finance/journal-entries/{id}:post"};
+  }
+  // Results of automatic posting from payroll, sales and reimbursements.
+  rpc ListPostingLogs(ListPostingLogsRequest) returns (ListPostingLogsResponse) {
+    option (google.api.http) = {get: "/v1/finance/posting-logs"};
+  }
+  // Posts again a DRAFT or SKIPPED result once the mapping is fixed.
+  rpc RetryPosting(IdRequest) returns (PostingLog) {
+    option (google.api.http) = {post: "/v1/finance/posting-logs/{id}:retry"};
+  }
+}
+
+message JournalLine {
+  string id = 1;
+  string account_id = 2;
+  string account_code = 3;
+  string account_name = 4;
+  EntrySide entry_side = 5;
+  string amount = 6;
+  string memo = 7;
+  int32 sort_order = 8;
+}
+
+message JournalEntry {
+  string id = 1;
+  string entry_no = 2;
+  string entry_date = 3;
+  string description = 4;
+  string fiscal_period_id = 5;
+  string fiscal_period_name = 6;
+  string fiscal_year_code = 7;
+  EntryType entry_type = 8;
+  DocumentStatus status = 9;
+  bool is_recon = 10;
+  optional google.protobuf.Timestamp posted_at = 11;
+  string posted_by = 12;
+  string source_module = 13;
+  string source_event_code = 14;
+  string source_document_type = 15;
+  string source_document_id = 16;
+  repeated JournalLine lines = 17;
+  string total_debit = 18;
+  string total_credit = 19;
+  bool can_edit = 20;
+  google.protobuf.Timestamp created_at = 21;
+  google.protobuf.Timestamp updated_at = 22;
+}
+
+message JournalLineInput {
+  string account_id = 1;
+  EntrySide entry_side = 2;
+  string amount = 3;
+  string memo = 4;
+}
+
+message JournalEntryInput {
+  string entry_date = 1;
+  string description = 2;
+  bool is_recon = 3;
+  repeated JournalLineInput lines = 4;
+  // Save as POSTED right away (needs finance.approve).
+  bool post = 5;
+}
+
+message UpdateJournalEntryRequest {
+  string id = 1;
+  JournalEntryInput input = 2;
+}
+
+message ListJournalEntriesRequest {
+  string search = 1;
+  DocumentStatus status = 2;
+  EntryType entry_type = 3;
+  string date_from = 4;
+  string date_to = 5;
+  string account_id = 6;
+  int32 page_size = 7;
+  int32 page = 8;
+}
+
+message ListJournalEntriesResponse {
+  repeated JournalEntry entries = 1;
+  int32 total = 2;
+}
+
+message PostingLog {
+  string id = 1;
+  string event_code = 2;
+  string document_type = 3;
+  string document_id = 4;
+  string document_label = 5;
+  // posted, draft or skipped.
+  string status = 6;
+  string reason = 7;
+  string entry_id = 8;
+  int32 attempts = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message ListPostingLogsRequest {
+  string status = 1;
+  string event_code = 2;
+  int32 limit = 3;
+}
+
+message ListPostingLogsResponse {
+  repeated PostingLog logs = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// CashBankService
+// ─────────────────────────────────────────────────────────────
+
+service CashBankService {
+  rpc ListCashBankAccounts(google.protobuf.Empty) returns (ListCashBankAccountsResponse) {
+    option (google.api.http) = {get: "/v1/finance/cash-bank"};
+  }
+  rpc GetCashBankLedger(LedgerRequest) returns (Ledger) {
+    option (google.api.http) = {get: "/v1/finance/cash-bank/{account_id}/ledger"};
+  }
+  rpc ListCashMovements(ListCashMovementsRequest) returns (ListCashMovementsResponse) {
+    option (google.api.http) = {get: "/v1/finance/cash-bank/movements"};
+  }
+  rpc CreateCashMovement(CashMovementInput) returns (CashMovement) {
+    option (google.api.http) = {
+      post: "/v1/finance/cash-bank/movements"
+      body: "*"
+    };
+  }
+  rpc ListCashTransfers(ListCashMovementsRequest) returns (ListCashTransfersResponse) {
+    option (google.api.http) = {get: "/v1/finance/cash-bank/transfers"};
+  }
+  rpc CreateCashTransfer(CashTransferInput) returns (CashTransfer) {
+    option (google.api.http) = {
+      post: "/v1/finance/cash-bank/transfers"
+      body: "*"
+    };
+  }
+}
+
+message CashBankAccount {
+  string id = 1;
+  string code = 2;
+  string code_display = 3;
+  string name = 4;
+  EntrySide normal_balance = 5;
+  string balance = 6;
+  int32 movement_count = 7;
+}
+
+message ListCashBankAccountsResponse {
+  repeated CashBankAccount accounts = 1;
+  string total_balance = 2;
+}
+
+message LedgerRequest {
+  string account_id = 1;
+  string date_from = 2;
+  string date_to = 3;
+}
+
+message LedgerLine {
+  string line_id = 1;
+  string entry_id = 2;
+  string entry_no = 3;
+  string entry_date = 4;
+  EntryType entry_type = 5;
+  string description = 6;
+  string memo = 7;
+  EntrySide entry_side = 8;
+  string debit = 9;
+  string credit = 10;
+  string running_balance = 11;
+}
+
+message Ledger {
+  PostableAccount account = 1;
+  EntrySide normal_balance = 2;
+  string date_from = 3;
+  string date_to = 4;
+  string opening_balance = 5;
+  string closing_balance = 6;
+  string total_debit = 7;
+  string total_credit = 8;
+  repeated LedgerLine lines = 9;
+}
+
+enum CashMovementKind {
+  CASH_MOVEMENT_KIND_UNSPECIFIED = 0;
+  CASH_IN = 1;
+  CASH_OUT = 2;
+}
+
+message CashMovementInput {
+  CashMovementKind kind = 1;
+  string entry_date = 2;
+  string amount = 3;
+  string cash_account_id = 4;
+  string offset_account_id = 5;
+  string description = 6;
+  string memo = 7;
+}
+
+message CashMovement {
+  string id = 1;
+  string entry_no = 2;
+  string entry_date = 3;
+  string description = 4;
+  CashMovementKind kind = 5;
+  string amount = 6;
+  PostableAccount cash_account = 7;
+  PostableAccount offset_account = 8;
+  DocumentStatus status = 9;
+  google.protobuf.Timestamp created_at = 10;
+}
+
+message ListCashMovementsRequest {
+  CashMovementKind kind = 1;
+  string search = 2;
+  string date_from = 3;
+  string date_to = 4;
+  int32 page_size = 5;
+  int32 page = 6;
+}
+
+message ListCashMovementsResponse {
+  repeated CashMovement movements = 1;
+  int32 total = 2;
+}
+
+message CashTransferInput {
+  string entry_date = 1;
+  string amount = 2;
+  string from_account_id = 3;
+  string to_account_id = 4;
+  string description = 5;
+  string memo = 6;
+}
+
+message CashTransfer {
+  string id = 1;
+  string entry_no = 2;
+  string entry_date = 3;
+  string description = 4;
+  string amount = 5;
+  PostableAccount from_account = 6;
+  PostableAccount to_account = 7;
+  DocumentStatus status = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ListCashTransfersResponse {
+  repeated CashTransfer transfers = 1;
+  int32 total = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Invoices and payments, shared by PayableService and ReceivableService
+// ─────────────────────────────────────────────────────────────
+
+message Invoice {
+  string id = 1;
+  LedgerKind kind = 2;
+  string invoice_no = 3;
+  string invoice_date = 4;
+  string due_date = 5;
+  // Vendor (AP) or client (AR).
+  string party_name = 6;
+  // Vendor bill number (AP) or sales invoice number (AR).
+  string reference = 7;
+  // Expense (AP) or revenue (AR) account; empty uses the mapping default.
+  string account_id = 8;
+  string account_name = 9;
+  string currency = 10;
+  string subtotal = 11;
+  string tax_amount = 12;
+  string total_amount = 13;
+  DocumentStatus status = 14;
+  string description = 15;
+  string sales_invoice_id = 16;
+  string client_id = 17;
+  string deal_id = 18;
+  string allocated_amount = 19;
+  string outstanding_amount = 20;
+  // paid, partial, overdue or unpaid.
+  string payment_status = 21;
+  string journal_entry_id = 22;
+  optional google.protobuf.Timestamp posted_at = 23;
+  google.protobuf.Timestamp created_at = 24;
+}
+
+message InvoiceInput {
+  string invoice_date = 1;
+  string due_date = 2;
+  string party_name = 3;
+  string reference = 4;
+  string account_id = 5;
+  string subtotal = 6;
+  string tax_amount = 7;
+  string description = 8;
+  string client_id = 9;
+}
+
+message UpdateInvoiceRequest {
+  string id = 1;
+  InvoiceInput input = 2;
+}
+
+message ListInvoicesRequest {
+  DocumentStatus status = 1;
+  string payment_status = 2;
+  string search = 3;
+  int32 page_size = 4;
+  int32 page = 5;
+}
+
+message ListInvoicesResponse {
+  repeated Invoice invoices = 1;
+  int32 total = 2;
+}
+
+message AgingRequest {
+  string as_of = 1;
+}
+
+message AgingBucket {
+  // current, 1_30, 31_60, 61_90, 90_plus.
+  string bucket = 1;
+  int32 invoice_count = 2;
+  string amount = 3;
+}
+
+message Aging {
+  string as_of = 1;
+  repeated AgingBucket buckets = 2;
+  repeated Invoice invoices = 3;
+  string total_outstanding = 4;
+}
+
+message Allocation {
+  string invoice_id = 1;
+  string invoice_no = 2;
+  string amount = 3;
+}
+
+message Payment {
+  string id = 1;
+  LedgerKind kind = 2;
+  string payment_no = 3;
+  string payment_date = 4;
+  string amount = 5;
+  string method = 6;
+  string cash_account_id = 7;
+  string cash_account_name = 8;
+  string reference_number = 9;
+  string notes = 10;
+  DocumentStatus status = 11;
+  string party_name = 12;
+  repeated Allocation allocations = 13;
+  string void_reason = 14;
+  optional google.protobuf.Timestamp voided_at = 15;
+  string journal_entry_id = 16;
+  google.protobuf.Timestamp created_at = 17;
+}
+
+message PaymentInput {
+  string payment_date = 1;
+  string method = 2;
+  // Cash or bank account; empty uses the mapping default.
+  string cash_account_id = 3;
+  string reference_number = 4;
+  string notes = 5;
+  repeated AllocationInput allocations = 6;
+}
+
+message AllocationInput {
+  string invoice_id = 1;
+  string amount = 2;
+}
+
+message ListPaymentsRequest {
+  string search = 1;
+  int32 page_size = 2;
+  int32 page = 3;
+}
+
+message ListPaymentsResponse {
+  repeated Payment payments = 1;
+  int32 total = 2;
+}
+
+message PaymentResult {
+  Payment payment = 1;
+  repeated Invoice invoices = 2;
+  // Journal outcome ("jurnal posted", "jurnal draft: ...").
+  string note = 3;
+}
+
+message InvoiceResult {
+  Invoice invoice = 1;
+  string note = 2;
+}
+
+message VoidPaymentRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PayableService
+// ─────────────────────────────────────────────────────────────
+
+service PayableService {
+  rpc ListApInvoices(ListInvoicesRequest) returns (ListInvoicesResponse) {
+    option (google.api.http) = {get: "/v1/finance/ap/invoices"};
+  }
+  rpc GetApInvoice(IdRequest) returns (Invoice) {
+    option (google.api.http) = {get: "/v1/finance/ap/invoices/{id}"};
+  }
+  rpc CreateApInvoice(InvoiceInput) returns (Invoice) {
+    option (google.api.http) = {
+      post: "/v1/finance/ap/invoices"
+      body: "*"
+    };
+  }
+  rpc UpdateApInvoice(UpdateInvoiceRequest) returns (Invoice) {
+    option (google.api.http) = {
+      patch: "/v1/finance/ap/invoices/{id}"
+      body: "input"
+    };
+  }
+  rpc DeleteApInvoice(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/ap/invoices/{id}"};
+  }
+  rpc PostApInvoice(IdRequest) returns (InvoiceResult) {
+    option (google.api.http) = {post: "/v1/finance/ap/invoices/{id}:post"};
+  }
+  rpc ListApPayable(google.protobuf.Empty) returns (ListInvoicesResponse) {
+    option (google.api.http) = {get: "/v1/finance/ap/payable"};
+  }
+  rpc GetApAging(AgingRequest) returns (Aging) {
+    option (google.api.http) = {get: "/v1/finance/ap/aging"};
+  }
+  rpc ListApPayments(ListPaymentsRequest) returns (ListPaymentsResponse) {
+    option (google.api.http) = {get: "/v1/finance/ap/payments"};
+  }
+  rpc CreateApPayment(PaymentInput) returns (PaymentResult) {
+    option (google.api.http) = {
+      post: "/v1/finance/ap/payments"
+      body: "*"
+    };
+  }
+  rpc VoidApPayment(VoidPaymentRequest) returns (PaymentResult) {
+    option (google.api.http) = {
+      post: "/v1/finance/ap/payments/{id}:void"
+      body: "*"
+    };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// ReceivableService
+// ─────────────────────────────────────────────────────────────
+
+service ReceivableService {
+  rpc ListArInvoices(ListInvoicesRequest) returns (ListInvoicesResponse) {
+    option (google.api.http) = {get: "/v1/finance/ar/invoices"};
+  }
+  rpc GetArInvoice(IdRequest) returns (Invoice) {
+    option (google.api.http) = {get: "/v1/finance/ar/invoices/{id}"};
+  }
+  rpc GetArInvoiceBySalesInvoice(GetArInvoiceBySalesInvoiceRequest) returns (Invoice) {
+    option (google.api.http) = {get: "/v1/finance/ar/by-sales-invoice/{sales_invoice_id}"};
+  }
+  rpc CreateArInvoice(InvoiceInput) returns (Invoice) {
+    option (google.api.http) = {
+      post: "/v1/finance/ar/invoices"
+      body: "*"
+    };
+  }
+  rpc UpdateArInvoice(UpdateInvoiceRequest) returns (Invoice) {
+    option (google.api.http) = {
+      patch: "/v1/finance/ar/invoices/{id}"
+      body: "input"
+    };
+  }
+  rpc DeleteArInvoice(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/ar/invoices/{id}"};
+  }
+  rpc PostArInvoice(IdRequest) returns (InvoiceResult) {
+    option (google.api.http) = {post: "/v1/finance/ar/invoices/{id}:post"};
+  }
+  rpc ListArReceivable(google.protobuf.Empty) returns (ListInvoicesResponse) {
+    option (google.api.http) = {get: "/v1/finance/ar/receivable"};
+  }
+  rpc GetArAging(AgingRequest) returns (Aging) {
+    option (google.api.http) = {get: "/v1/finance/ar/aging"};
+  }
+  rpc ListArReceipts(ListPaymentsRequest) returns (ListPaymentsResponse) {
+    option (google.api.http) = {get: "/v1/finance/ar/receipts"};
+  }
+  rpc CreateArReceipt(PaymentInput) returns (PaymentResult) {
+    option (google.api.http) = {
+      post: "/v1/finance/ar/receipts"
+      body: "*"
+    };
+  }
+  rpc VoidArReceipt(VoidPaymentRequest) returns (PaymentResult) {
+    option (google.api.http) = {
+      post: "/v1/finance/ar/receipts/{id}:void"
+      body: "*"
+    };
+  }
+}
+
+message GetArInvoiceBySalesInvoiceRequest {
+  string sales_invoice_id = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ReportService
+// ─────────────────────────────────────────────────────────────
+
+service ReportService {
+  rpc GetTrialBalance(AsOfRequest) returns (TrialBalance) {
+    option (google.api.http) = {get: "/v1/finance/reports/trial-balance"};
+  }
+  rpc GetBalanceSheet(AsOfRequest) returns (BalanceSheet) {
+    option (google.api.http) = {get: "/v1/finance/reports/balance-sheet"};
+  }
+  rpc GetIncomeStatement(PeriodRequest) returns (IncomeStatement) {
+    option (google.api.http) = {get: "/v1/finance/reports/income-statement"};
+  }
+  rpc GetCashFlow(PeriodRequest) returns (CashFlow) {
+    option (google.api.http) = {get: "/v1/finance/reports/cash-flow"};
+  }
+  rpc ListGeneralLedgerAccounts(AsOfRequest) returns (ListGeneralLedgerAccountsResponse) {
+    option (google.api.http) = {get: "/v1/finance/reports/general-ledger-accounts"};
+  }
+  rpc GetGeneralLedger(LedgerRequest) returns (Ledger) {
+    option (google.api.http) = {get: "/v1/finance/reports/general-ledger/{account_id}"};
+  }
+  rpc ListSubsidiaryParties(ListSubsidiaryPartiesRequest) returns (ListSubsidiaryPartiesResponse) {
+    option (google.api.http) = {get: "/v1/finance/reports/subsidiary-parties"};
+  }
+  rpc GetSubsidiaryLedger(SubsidiaryLedgerRequest) returns (SubsidiaryLedger) {
+    option (google.api.http) = {get: "/v1/finance/reports/subsidiary-ledger"};
+  }
+  rpc GetDashboard(DashboardRequest) returns (Dashboard) {
+    option (google.api.http) = {get: "/v1/finance/dashboard"};
+  }
+  // Dashboard tabs (new for WHITE): range totals against a comparison
+  // range plus monthly trends, all from posted journals.
+  rpc GetFinanceSummary(FinanceAnalyticsRequest) returns (FinanceSummary) {
+    option (google.api.http) = {get: "/v1/finance/dashboard/summary"};
+  }
+  rpc GetFinanceProfitability(FinanceAnalyticsRequest) returns (FinanceProfitability) {
+    option (google.api.http) = {get: "/v1/finance/dashboard/profitability"};
+  }
+  rpc GetFinanceCashAnalytics(FinanceAnalyticsRequest) returns (FinanceCashAnalytics) {
+    option (google.api.http) = {get: "/v1/finance/dashboard/cash"};
+  }
+  rpc GetFinanceArAp(FinanceAnalyticsRequest) returns (FinanceArAp) {
+    option (google.api.http) = {get: "/v1/finance/dashboard/ar-ap"};
+  }
+  rpc GetFinanceSpend(FinanceAnalyticsRequest) returns (FinanceSpend) {
+    option (google.api.http) = {get: "/v1/finance/dashboard/expenses"};
+  }
+}
+
+message AsOfRequest {
+  // Defaults to today.
+  string as_of = 1;
+}
+
+message PeriodRequest {
+  // Defaults to the first day of the current month and today.
+  string date_from = 1;
+  string date_to = 2;
+}
+
+message AccountBalance {
+  string id = 1;
+  string code = 2;
+  string code_display = 3;
+  string name = 4;
+  string account_type_code = 5;
+  EntrySide normal_balance = 6;
+  bool is_contra = 7;
+  bool is_cash_bank = 8;
+  string cash_flow_category = 9;
+  int32 level = 10;
+  string debit = 11;
+  string credit = 12;
+  string balance = 13;
+}
+
+message TrialBalance {
+  string as_of = 1;
+  repeated AccountBalance rows = 2;
+  string total_debit = 3;
+  string total_credit = 4;
+}
+
+message BalanceSheet {
+  string as_of = 1;
+  repeated AccountBalance assets = 2;
+  repeated AccountBalance liabilities = 3;
+  repeated AccountBalance equity = 4;
+  string current_year_earnings = 5;
+  string total_assets = 6;
+  string total_liabilities = 7;
+  string total_equity = 8;
+  string total_liabilities_and_equity = 9;
+}
+
+message IncomeStatement {
+  string date_from = 1;
+  string date_to = 2;
+  repeated AccountBalance revenue = 3;
+  repeated AccountBalance cogs = 4;
+  repeated AccountBalance expenses = 5;
+  repeated AccountBalance other_income = 6;
+  repeated AccountBalance other_expenses = 7;
+  string total_revenue = 8;
+  string total_cogs = 9;
+  string gross_profit = 10;
+  string total_expenses = 11;
+  string operating_income = 12;
+  string total_other_income = 13;
+  string total_other_expenses = 14;
+  string net_income = 15;
+}
+
+message CashFlowSection {
+  string category = 1;
+  repeated AccountBalance rows = 2;
+  string total = 3;
+}
+
+message CashFlow {
+  string date_from = 1;
+  string date_to = 2;
+  CashFlowSection operating = 3;
+  CashFlowSection investing = 4;
+  CashFlowSection financing = 5;
+  CashFlowSection non_cash = 6;
+  string net_cash_change = 7;
+  string cash_opening = 8;
+  string cash_closing = 9;
+}
+
+message GeneralLedgerAccount {
+  string id = 1;
+  string code = 2;
+  string code_display = 3;
+  string name = 4;
+  string account_type_code = 5;
+  string balance = 6;
+}
+
+message ListGeneralLedgerAccountsResponse {
+  repeated GeneralLedgerAccount accounts = 1;
+}
+
+message ListSubsidiaryPartiesRequest {
+  LedgerKind kind = 1;
+}
+
+message SubsidiaryParty {
+  string party_name = 1;
+  string outstanding = 2;
+  int32 invoice_count = 3;
+}
+
+message ListSubsidiaryPartiesResponse {
+  repeated SubsidiaryParty parties = 1;
+}
+
+message SubsidiaryLedgerRequest {
+  LedgerKind kind = 1;
+  string party_name = 2;
+  string date_from = 3;
+  string date_to = 4;
+}
+
+message SubsidiaryLine {
+  string line_id = 1;
+  string entry_date = 2;
+  // invoice, payment or receipt.
+  string doc_type = 3;
+  string doc_no = 4;
+  string description = 5;
+  string debit = 6;
+  string credit = 7;
+  string source_id = 8;
+  string running_balance = 9;
+}
+
+message SubsidiaryLedger {
+  LedgerKind kind = 1;
+  string party_name = 2;
+  string date_from = 3;
+  string date_to = 4;
+  string opening_balance = 5;
+  string total_debit = 6;
+  string total_credit = 7;
+  string closing_balance = 8;
+  repeated SubsidiaryLine lines = 9;
+}
+
+message DashboardRequest {
+  string as_of = 1;
+  string date_from = 2;
+  string date_to = 3;
+}
+
+message NameValue {
+  string name = 1;
+  string value = 2;
+}
+
+message MonthTrend {
+  string month = 1;
+  string revenue = 2;
+  string expense = 3;
+  string net = 4;
+}
+
+message DashboardKpis {
+  string total_assets = 1;
+  string total_liabilities = 2;
+  string total_equity = 3;
+  string net_income = 4;
+  string cash_balance = 5;
+  string cash_opening = 6;
+  string cash_change = 7;
+  string trial_balance_diff = 8;
+  int32 posted_entries = 9;
+  int32 draft_entries = 10;
+  string receivable_outstanding = 11;
+  string payable_outstanding = 12;
+  int32 pending_reimbursements = 13;
+  // P&L since the covering fiscal year's start; already part of total_equity,
+  // as on the balance sheet.
+  string current_year_earnings = 14;
+}
+
+message Dashboard {
+  string as_of = 1;
+  string date_from = 2;
+  string date_to = 3;
+  DashboardKpis kpis = 4;
+  repeated NameValue balance_composition = 5;
+  repeated NameValue pnl_breakdown = 6;
+  repeated NameValue cash_flow_breakdown = 7;
+  repeated MonthTrend monthly_trend = 8;
+  repeated NameValue top_expense_accounts = 9;
+}
+
+// ─── Dashboard analytics ───────────────────────────────────
+
+message FinanceAnalyticsRequest {
+  // Defaults to the first of the current month through today.
+  string from = 1;
+  string to = 2;
+  // "previous" (same length ending the day before from, the default) or
+  // "year" (the same dates a year earlier).
+  string compare = 3;
+  // Account breakdowns only: one account type code (REVENUE, COGS, ...).
+  string account_type = 4;
+  // Account breakdowns only: descendants of one header account.
+  string account_group = 5;
+  // Reimbursement widgets only: one department name.
+  string department = 6;
+  // Cash balances only: one cash or bank account.
+  string cash_account_id = 7;
+}
+
+message AnalyticsWindow {
+  string from = 1;
+  string to = 2;
+  string compare = 3;
+  string compare_from = 4;
+  string compare_to = 5;
+  // Trend months (YYYY-MM): the range's months when it spans three or
+  // more, else the twelve months ending at to. compare_months align with
+  // them (a year earlier, or the window before).
+  repeated string months = 6;
+  repeated string compare_months = 7;
+}
+
+// One KPI over the range and the comparison range, with its monthly trend.
+// Money is a decimal string; ratios are percentages or days as decimals.
+message AnalyticsKpi {
+  string key = 1;
+  string value = 2;
+  string previous = 3;
+  repeated string trend = 4;
+}
+
+// Monthly values aligned with AnalyticsWindow.months.
+message AnalyticsSeries {
+  string key = 1;
+  string label = 2;
+  repeated string values = 3;
+  repeated string compare_values = 4;
+  string total = 5;
+  // Account code, or empty.
+  string code = 6;
+}
+
+// A ranked slice: an account, a group, a client, a category...
+message AnalyticsAmount {
+  // Account id, client name, category code...
+  string key = 1;
+  string label = 2;
+  string code = 3;
+  string group = 4;
+  string value = 5;
+  string previous = 6;
+  int32 count = 7;
+}
+
+message WaterfallStep {
+  string key = 1;
+  string label = 2;
+  // Signed amount; for a total step, the running total itself.
+  string value = 3;
+  bool total = 4;
+}
+
+message FinanceSummary {
+  AnalyticsWindow window = 1;
+  // revenue, expense, net_income, net_margin, cash, receivable, payable,
+  // pending_reimbursement.
+  repeated AnalyticsKpi kpis = 2;
+  // revenue, expense, net_income per month with comparison values.
+  repeated AnalyticsSeries pnl = 3;
+  // Month-end cash (key "cash") with comparison values.
+  repeated AnalyticsSeries cash = 4;
+  // Balance sheet at to, by header group.
+  repeated AnalyticsAmount assets = 5;
+  repeated AnalyticsAmount liabilities = 6;
+  repeated AnalyticsAmount equity = 7;
+  string trial_balance_diff = 8;
+  int32 posted_entries = 9;
+  int32 draft_entries = 10;
+}
+
+message FinanceProfitability {
+  AnalyticsWindow window = 1;
+  // revenue, gross_profit, gross_margin, operating_margin, net_margin,
+  // opex_ratio.
+  repeated AnalyticsKpi kpis = 2;
+  // Revenue down to net income over the range.
+  repeated WaterfallStep waterfall = 3;
+  // revenue, cogs, expense, other_income, other_expense, gross_profit,
+  // operating_income, net_income.
+  repeated AnalyticsSeries pnl = 4;
+  repeated AnalyticsAmount revenue_accounts = 5;
+  // Posted AR invoice subtotals by client in the range.
+  repeated AnalyticsAmount revenue_clients = 6;
+  repeated AnalyticsAmount expense_groups = 7;
+  repeated AnalyticsAmount expense_accounts = 8;
+  // Profit and loss accounts (after the account filters) per month.
+  repeated AnalyticsSeries account_months = 9;
+}
+
+message CashAccountSummary {
+  string account_id = 1;
+  string code = 2;
+  string name = 3;
+  string opening = 4;
+  string inflow = 5;
+  string outflow = 6;
+  string closing = 7;
+}
+
+message FinanceCashAnalytics {
+  AnalyticsWindow window = 1;
+  // cash, net_change, operating, investing, financing, burn_rate, runway.
+  repeated AnalyticsKpi kpis = 2;
+  // operating, investing, financing, non_cash, net per month.
+  repeated AnalyticsSeries flows = 3;
+  // Month-end balance per cash or bank account.
+  repeated AnalyticsSeries balances = 4;
+  // Opening cash, the three activities, other, closing cash.
+  repeated WaterfallStep bridge = 5;
+  repeated CashAccountSummary accounts = 6;
+}
+
+message AgingRow {
+  // AR or AP.
+  string kind = 1;
+  // current, 1_30, 31_60, 61_90, 90_plus.
+  string bucket = 2;
+  string amount = 3;
+  int32 count = 4;
+}
+
+message PartyBalance {
+  string party_name = 1;
+  string outstanding = 2;
+  string overdue = 3;
+  int32 invoice_count = 4;
+  int32 oldest_days = 5;
+  // Invoiced in the range.
+  string billed = 6;
+}
+
+message OverdueInvoice {
+  string id = 1;
+  string kind = 2;
+  string invoice_no = 3;
+  string party_name = 4;
+  string invoice_date = 5;
+  string due_date = 6;
+  string total = 7;
+  string outstanding = 8;
+  int32 days_overdue = 9;
+}
+
+message FinanceArAp {
+  AnalyticsWindow window = 1;
+  // receivable, payable, overdue_receivable, overdue_payable, dso, dpo.
+  repeated AnalyticsKpi kpis = 2;
+  // Open invoices at to by bucket.
+  repeated AgingRow aging = 3;
+  // Month-end outstanding per bucket (key = bucket).
+  repeated AnalyticsSeries ar_aging_trend = 4;
+  repeated AnalyticsSeries ap_aging_trend = 5;
+  // dso and dpo per month.
+  repeated AnalyticsSeries days = 6;
+  repeated PartyBalance customers = 7;
+  repeated PartyBalance vendors = 8;
+  repeated OverdueInvoice overdue = 9;
+}
+
+message ClaimSummary {
+  string id = 1;
+  string claim_no = 2;
+  string employee_name = 3;
+  string department_name = 4;
+  string category = 5;
+  string transaction_date = 6;
+  string amount = 7;
+  string status = 8;
+  // Days since submission.
+  int32 age_days = 9;
+}
+
+message FinanceSpend {
+  AnalyticsWindow window = 1;
+  // expense, reimburse_paid, reimburse_pending, claims, approval_days,
+  // rejection_rate.
+  repeated AnalyticsKpi kpis = 2;
+  // Expense per header group per month (after the account filters).
+  repeated AnalyticsSeries expense_groups = 3;
+  // Claimed amount per category per month (by transaction date).
+  repeated AnalyticsSeries claim_categories = 4;
+  repeated AnalyticsAmount by_category = 5;
+  repeated AnalyticsAmount by_department = 6;
+  repeated AnalyticsAmount by_status = 7;
+  // Average days per approval stage: value is a decimal, count the claims.
+  repeated AnalyticsAmount lead_time = 8;
+  // Average days from submission to payment, per month paid.
+  repeated AnalyticsSeries lead_time_trend = 9;
+  // Claims waiting for a manager, finance or payment, oldest first.
+  repeated ClaimSummary pending = 10;
+  repeated string departments = 11;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ReimbursementService
+// ─────────────────────────────────────────────────────────────
+
+service ReimbursementService {
+  // Self-service (self.service).
+  rpc ListMyClaims(ListMyClaimsRequest) returns (ListClaimsResponse) {
+    option (google.api.http) = {get: "/v1/finance/my/reimbursements"};
+  }
+  rpc CreateClaim(ClaimInput) returns (Claim) {
+    option (google.api.http) = {
+      post: "/v1/finance/reimbursements"
+      body: "*"
+    };
+  }
+  rpc UpdateClaim(UpdateClaimRequest) returns (Claim) {
+    option (google.api.http) = {
+      patch: "/v1/finance/reimbursements/{id}"
+      body: "input"
+    };
+  }
+  rpc UploadReceipt(UploadReceiptRequest) returns (Claim) {
+    option (google.api.http) = {
+      post: "/v1/finance/reimbursements/{id}/receipts"
+      body: "*"
+    };
+  }
+  rpc DeleteReceipt(DeleteReceiptRequest) returns (Claim) {
+    option (google.api.http) = {delete: "/v1/finance/reimbursements/{id}/receipts/{receipt_id}"};
+  }
+  rpc SubmitClaim(IdRequest) returns (Claim) {
+    option (google.api.http) = {post: "/v1/finance/reimbursements/{id}:submit"};
+  }
+  rpc CancelClaim(IdRequest) returns (Claim) {
+    option (google.api.http) = {post: "/v1/finance/reimbursements/{id}:cancel"};
+  }
+  // Owner, approvers and finance.read.
+  rpc GetClaim(IdRequest) returns (Claim) {
+    option (google.api.http) = {get: "/v1/finance/reimbursements/{id}"};
+  }
+
+  // Approvers: managers see their reports' SUBMITTED claims, finance
+  // (finance.approve) sees APPROVED_MANAGER claims.
+  rpc ListApprovalInbox(google.protobuf.Empty) returns (ListClaimsResponse) {
+    option (google.api.http) = {get: "/v1/finance/reimbursement-inbox"};
+  }
+  rpc ApproveClaim(ApproveClaimRequest) returns (Claim) {
+    option (google.api.http) = {
+      post: "/v1/finance/reimbursements/{id}:approve"
+      body: "*"
+    };
+  }
+  rpc RejectClaim(RejectClaimRequest) returns (Claim) {
+    option (google.api.http) = {
+      post: "/v1/finance/reimbursements/{id}:reject"
+      body: "*"
+    };
+  }
+
+  // Finance.
+  rpc ListClaims(ListClaimsRequest) returns (ListClaimsResponse) {
+    option (google.api.http) = {get: "/v1/finance/reimbursements"};
+  }
+  rpc PayClaims(PayClaimsRequest) returns (ReimbursementBatch) {
+    option (google.api.http) = {
+      post: "/v1/finance/reimbursements:pay"
+      body: "*"
+    };
+  }
+  rpc ListPaymentBatches(ListPaymentBatchesRequest) returns (ListPaymentBatchesResponse) {
+    option (google.api.http) = {get: "/v1/finance/reimbursement-batches"};
+  }
+  rpc GetMonthlySummary(MonthlySummaryRequest) returns (MonthlySummary) {
+    option (google.api.http) = {get: "/v1/finance/reimbursements:summary"};
+  }
+  rpc ListPolicies(google.protobuf.Empty) returns (ListPoliciesResponse) {
+    option (google.api.http) = {get: "/v1/finance/reimbursement-policies"};
+  }
+  rpc UpdatePolicy(PolicyInput) returns (ReimbursementPolicy) {
+    option (google.api.http) = {
+      put: "/v1/finance/reimbursement-policies/{category}"
+      body: "*"
+    };
+  }
+
+  // Internal: receipt bytes for the gateway (same access rules as GetClaim;
+  // the gateway forwards the caller's token).
+  rpc GetReceiptFile(GetReceiptFileRequest) returns (ReceiptFile);
+}
+
+enum ClaimCategory {
+  CLAIM_CATEGORY_UNSPECIFIED = 0;
+  TRANSPORT = 1;
+  MAKAN = 2;
+  AKOMODASI = 3;
+  OPERASIONAL_PROYEK = 4;
+  LAINNYA = 5;
+}
+
+enum ClaimStatus {
+  CLAIM_STATUS_UNSPECIFIED = 0;
+  CLAIM_DRAFT = 1;
+  SUBMITTED = 2;
+  APPROVED_MANAGER = 3;
+  APPROVED_FINANCE = 4;
+  PAID = 5;
+  REJECTED = 6;
+  CANCELLED = 7;
+}
+
+message ClaimReceipt {
+  string id = 1;
+  string filename = 2;
+  string content_type = 3;
+  int64 size_bytes = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message ClaimHistory {
+  string action = 1;
+  string actor_id = 2;
+  string actor_name = 3;
+  string note = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message Claim {
+  string id = 1;
+  string claim_no = 2;
+  string employee_id = 3;
+  string employee_user_id = 4;
+  string employee_name = 5;
+  string department_name = 6;
+  string manager_employee_id = 7;
+  ClaimCategory category = 8;
+  string transaction_date = 9;
+  string amount = 10;
+  string description = 11;
+  string client_id = 12;
+  string project = 13;
+  ClaimStatus status = 14;
+  // Above the per-claim or monthly policy limit: finance.approve required.
+  bool over_limit = 15;
+  string limit_note = 16;
+  string reject_reason = 17;
+  string rejected_stage = 18;
+  repeated ClaimReceipt receipts = 19;
+  repeated ClaimHistory history = 20;
+  optional google.protobuf.Timestamp submitted_at = 21;
+  optional google.protobuf.Timestamp paid_at = 22;
+  string payment_batch_id = 23;
+  google.protobuf.Timestamp created_at = 24;
+  google.protobuf.Timestamp updated_at = 25;
+  // What the caller may do now.
+  bool can_edit = 26;
+  bool can_approve = 27;
+}
+
+message ClaimInput {
+  ClaimCategory category = 1;
+  string transaction_date = 2;
+  string amount = 3;
+  string description = 4;
+  string client_id = 5;
+  string project = 6;
+}
+
+message UpdateClaimRequest {
+  string id = 1;
+  ClaimInput input = 2;
+}
+
+message UploadReceiptRequest {
+  string id = 1;
+  string filename = 2;
+  bytes data = 3;
+}
+
+message DeleteReceiptRequest {
+  string id = 1;
+  string receipt_id = 2;
+}
+
+message ApproveClaimRequest {
+  string id = 1;
+  string note = 2;
+}
+
+message RejectClaimRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message ListMyClaimsRequest {
+  ClaimStatus status = 1;
+}
+
+message ListClaimsRequest {
+  ClaimStatus status = 1;
+  ClaimCategory category = 2;
+  string employee_id = 3;
+  // YYYY-MM of the transaction date.
+  string month = 4;
+  string search = 5;
+  int32 page_size = 6;
+  int32 page = 7;
+}
+
+message ListClaimsResponse {
+  repeated Claim claims = 1;
+  int32 total = 2;
+  string total_amount = 3;
+}
+
+message PayClaimsRequest {
+  repeated string claim_ids = 1;
+  // Empty uses the REIMBURSEMENT_PAYMENT mapping's cash account.
+  string cash_account_id = 2;
+  string paid_at = 3;
+  string notes = 4;
+}
+
+message ReimbursementBatch {
+  string id = 1;
+  string batch_no = 2;
+  string paid_at = 3;
+  string cash_account_id = 4;
+  string cash_account_name = 5;
+  string total_amount = 6;
+  int32 claim_count = 7;
+  string journal_entry_id = 8;
+  // posted, draft or skipped, with the reason when not posted.
+  string journal_status = 9;
+  string journal_reason = 10;
+  string notes = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
+
+message ListPaymentBatchesRequest {
+  int32 limit = 1;
+}
+
+message ListPaymentBatchesResponse {
+  repeated ReimbursementBatch batches = 1;
+}
+
+message MonthlySummaryRequest {
+  // YYYY-MM; defaults to the current month.
+  string month = 1;
+  // Self-service callers only see their own rows.
+  bool mine = 2;
+}
+
+message MonthlySummaryRow {
+  string employee_id = 1;
+  string employee_name = 2;
+  string department_name = 3;
+  ClaimCategory category = 4;
+  int32 claim_count = 5;
+  string submitted_amount = 6;
+  string approved_amount = 7;
+  string paid_amount = 8;
+}
+
+message MonthlySummary {
+  string month = 1;
+  repeated MonthlySummaryRow rows = 2;
+  string total_submitted = 3;
+  string total_approved = 4;
+  string total_paid = 5;
+}
+
+message ReimbursementPolicy {
+  ClaimCategory category = 1;
+  string label = 2;
+  // Empty means no limit.
+  string monthly_limit = 3;
+  string per_claim_limit = 4;
+  string expense_account_id = 5;
+  string expense_account_name = 6;
+  bool is_active = 7;
+  // Claims within the limits skip the finance step.
+  bool auto_approve = 8;
+}
+
+message PolicyInput {
+  ClaimCategory category = 1;
+  string monthly_limit = 2;
+  string per_claim_limit = 3;
+  string expense_account_id = 4;
+  bool is_active = 5;
+  bool auto_approve = 6;
+}
+
+message ListPoliciesResponse {
+  repeated ReimbursementPolicy policies = 1;
+}
+
+message GetReceiptFileRequest {
+  string receipt_id = 1;
+}
+
+message ReceiptFile {
+  bytes data = 1;
+  string content_type = 2;
+  string filename = 3;
+  string etag = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AnalysisService: ratios from the ledger and the AI CFO memo
+// ─────────────────────────────────────────────────────────────
+
+service AnalysisService {
+  rpc GetFinancialAnalysis(FinancialAnalysisRequest) returns (FinancialAnalysis) {
+    option (google.api.http) = {get: "/v1/finance/analysis"};
+  }
+  rpc GenerateFinancialInsight(GenerateFinancialInsightRequest) returns (FinancialInsight) {
+    option (google.api.http) = {
+      post: "/v1/finance/analysis/insights"
+      body: "*"
+    };
+  }
+  rpc ListFinancialInsights(ListFinancialInsightsRequest) returns (ListFinancialInsightsResponse) {
+    option (google.api.http) = {get: "/v1/finance/analysis/insights"};
+  }
+  // Monthly ratios with a benchmark per ratio.
+  rpc GetRatioTrend(RatioTrendRequest) returns (RatioTrend) {
+    option (google.api.http) = {get: "/v1/finance/analysis/trend"};
+  }
+}
+
+message FinancialAnalysisRequest {
+  string from = 1;
+  string to = 2;
+  // Compare with the previous period of the same length.
+  bool compare = 3;
+  // With compare: "previous" (default) or "year" (same dates a year earlier).
+  string compare_mode = 4;
+}
+
+// A ratio or amount with its previous-period delta. Ratios are plain
+// numbers (2.35 = 2.35x); margins are percentages (12.5 = 12.5%).
+message Metric {
+  string key = 1;
+  string label = 2;
+  double value = 3;
+  // Not computable (zero denominator).
+  bool unavailable = 4;
+  optional white.common.v1.Delta delta = 5;
+  bool lower_is_better = 6;
+  // pct, ratio, days, months or idr.
+  string unit = 7;
+}
+
+message ExpenseItem {
+  string account_id = 1;
+  string account_code = 2;
+  string account_name = 3;
+  string amount = 4;
+  string previous_amount = 5;
+  double share_pct = 6;
+  optional white.common.v1.Delta delta = 7;
+}
+
+message FinancialAnalysis {
+  white.common.v1.DateRange current = 1;
+  optional white.common.v1.DateRange previous = 2;
+  repeated Metric profitability = 3;
+  repeated Metric liquidity = 4;
+  repeated Metric leverage = 5;
+  repeated Metric efficiency = 6;
+  repeated Metric cash = 7;
+  repeated ExpenseItem expense_breakdown = 8;
+  // Largest absolute changes vs the previous period.
+  repeated ExpenseItem top_movers = 9;
+  string revenue = 10;
+  string net_income = 11;
+  string cash_balance = 12;
+}
+
+message GenerateFinancialInsightRequest {
+  string from = 1;
+  string to = 2;
+  // "id" (default) or "en".
+  string language = 3;
+}
+
+message FinancialInsight {
+  string id = 1;
+  string date_from = 2;
+  string date_to = 3;
+  string language = 4;
+  string model = 5;
+  string content = 6;
+  google.protobuf.Timestamp created_at = 7;
+  string created_by = 8;
+}
+
+message ListFinancialInsightsRequest {
+  int32 limit = 1;
+}
+
+message ListFinancialInsightsResponse {
+  repeated FinancialInsight insights = 1;
+}
+
+message RatioTrendRequest {
+  // Last month of the trend; defaults to today.
+  string to = 1;
+  // Number of months, default 12, at most 24.
+  int32 months = 2;
+}
+
+message RatioPoint {
+  string month = 1;
+  double value = 2;
+  bool unavailable = 3;
+}
+
+message RatioTrendSeries {
+  string key = 1;
+  string label = 2;
+  // profitability, liquidity, leverage, efficiency or cash.
+  string group = 3;
+  string unit = 4;
+  bool lower_is_better = 5;
+  repeated RatioPoint points = 6;
+  // Healthy threshold for an agency.
+  optional double benchmark = 7;
+}
+
+message RatioTrend {
+  repeated string months = 1;
+  repeated RatioTrendSeries series = 2;
+}

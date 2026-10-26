@@ -66,7 +66,7 @@ func WriteError(w http.ResponseWriter, e *apperr.Error) {
 // IncomingHeaderMatcher forwards the headers services care about.
 func IncomingHeaderMatcher(key string) (string, bool) {
 	switch strings.ToLower(key) {
-	case "authorization", "x-forwarded-for", "x-real-ip", "cookie", "user-agent":
+	case "authorization", "x-forwarded-for", "x-real-ip", "cookie", "user-agent", "x-gateway-token":
 		return strings.ToLower(key), true
 	}
 	return runtime.DefaultHeaderMatcher(key)
@@ -83,4 +83,19 @@ func RemoteIP(ctx context.Context) string {
 		return v[0]
 	}
 	return "local"
+}
+
+// EdgeHeader marks calls that entered through the gateway. The gateway sets
+// it on every forwarded request; service-to-service calls never carry it, so
+// an RPC that trusts internal callers can still reject anonymous edge calls.
+const EdgeHeader = "x-white-edge"
+
+func FromEdge(ctx context.Context) bool {
+	md, _ := metadata.FromIncomingContext(ctx)
+	return len(md.Get(EdgeHeader)) > 0
+}
+
+// EdgeMetadata is the runtime.WithMetadata hook the gateway installs.
+func EdgeMetadata(context.Context, *http.Request) metadata.MD {
+	return metadata.Pairs(EdgeHeader, "1")
 }

@@ -170,7 +170,7 @@ export function SocialModuleCard({
       index="01 · Social"
       icon={<Share2 className="size-4 text-muted-foreground" />}
       title={t.overview.socialCard}
-      meta={`${formatNumber(data.followers)} followers · ${data.posts} ${t.social.posts.toLowerCase()}`}
+      meta={data.hasData ? `${formatNumber(data.followers)} followers · ${data.posts} ${t.social.posts.toLowerCase()}` : `${formatNumber(data.followers)} followers terakhir tersedia · belum ada data baru`}
       href={href}
       quality={data.quality}
       footer={
@@ -233,7 +233,7 @@ export function SeoModuleCard({
       index="02 · SEO"
       icon={<Search className="size-4 text-muted-foreground" />}
       title={t.overview.seoCard}
-      meta={`${formatNumber(data.clicks)} ${t.seo.clicks.toLowerCase()} · ${formatCompact(data.impressions)} ${t.seo.impressions.toLowerCase()}`}
+      meta={data.hasData ? `${formatNumber(data.clicks)} ${t.seo.clicks.toLowerCase()} · ${formatCompact(data.impressions)} ${t.seo.impressions.toLowerCase()}` : "Belum ada data pada periode ini"}
       href={href}
       quality={data.quality}
       footer={
@@ -293,7 +293,7 @@ export function AdsModuleCard({
       index="03 · Ads"
       icon={<Megaphone className="size-4 text-muted-foreground" />}
       title={t.overview.adsCard}
-      meta={`${formatCurrency(data.kpis.spend, currency, { compact: true })} · ${formatNumber(data.kpis.results)} ${t.ads.results.toLowerCase()}`}
+      meta={data.hasData ? `${formatCurrency(data.kpis.spend, currency, { compact: true })} · ${formatNumber(data.kpis.results)} ${t.ads.results.toLowerCase()}` : "Belum ada data pada periode ini"}
       href={href}
       quality={data.quality}
       footer={

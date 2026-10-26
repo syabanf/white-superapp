@@ -19,7 +19,13 @@ export const authConfig = {
         pathname.startsWith("/share/") ||
         pathname.startsWith("/api/auth") ||
         pathname.startsWith("/api/cron") ||
-        pathname.startsWith("/api/share");
+        pathname.startsWith("/api/share") ||
+        // Public client pages for Sales: lead forms, contract signing, onboarding portal, chat widget.
+        pathname.startsWith("/f/") ||
+        pathname.startsWith("/kontrak/") ||
+        pathname.startsWith("/onboarding/") ||
+        pathname === "/chat" ||
+        pathname.startsWith("/api/public-erp/");
       if (isPublic) return true;
       return isLoggedIn;
     },

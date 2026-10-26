@@ -15,6 +15,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:extend-demo": "tsx --env-file=.env scripts/extend-demo-data.ts",
+    "db:seed-insights": "tsx --conditions=react-server --env-file=.env scripts/seed-ai-insights.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
     "smoke": "tsx --env-file=.env scripts/smoke.ts",

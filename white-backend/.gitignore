@@ -2,3 +2,19 @@ bin/
 .env
 .uploads/
 coverage.out
+.run/
+# `go build ./cmd/<svc>` without -o drops the binary here
+/identity
+/integrations
+/analytics
+/publishing
+/seosuite
+/reports
+/content
+/finance
+/hr
+/recruitment
+/sales
+/performance
+/scheduler
+/gateway

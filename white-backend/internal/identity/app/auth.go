@@ -62,7 +62,7 @@ func (a *Auth) Login(ctx context.Context, email, pw, userAgent, ip string) (*Tok
 
 func (a *Auth) issue(ctx context.Context, u domain.User, userAgent, ip string) (*Tokens, error) {
 	now := a.clock.Now()
-	access, exp, err := a.issuer.Issue(authn.Principal{UserID: u.ID, Role: string(u.Role), Name: u.Name, Email: u.Email}, now)
+	access, exp, err := a.issuer.Issue(authn.Principal{UserID: u.ID, Role: string(u.Role), Name: u.Name, Email: u.Email, Perms: u.Permissions}, now)
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +76,20 @@ func (a *Auth) issue(ctx context.Context, u domain.User, userAgent, ip string) (
 		return nil, err
 	}
 	return &Tokens{AccessToken: access, AccessExpiresAt: exp, RefreshToken: refresh, RefreshExpiresAt: sess.ExpiresAt, User: u}, nil
+}
+
+// ServiceToken issues an access token only (no refresh session) for a user
+// the trusted caller has already authenticated. Inactive users get nothing.
+func (a *Auth) ServiceToken(ctx context.Context, userID string) (*Tokens, error) {
+	u, err := a.Me(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	access, exp, err := a.issuer.Issue(authn.Principal{UserID: u.ID, Role: string(u.Role), Name: u.Name, Email: u.Email, Perms: u.Permissions}, a.clock.Now())
+	if err != nil {
+		return nil, err
+	}
+	return &Tokens{AccessToken: access, AccessExpiresAt: exp, User: *u}, nil
 }
 
 // Refresh rotates the refresh token: the old one is revoked, a new pair is

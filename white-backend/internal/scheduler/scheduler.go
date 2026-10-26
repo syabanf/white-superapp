@@ -28,6 +28,14 @@ const (
 	defaultRetentionCron = "30 1 * * *"
 )
 
+// ERP ticks: services key their own jobs off these (reminders, digests,
+// monthly recaps). Daily fires at 00:05 UTC = 07:05 WIB.
+var erpTicks = []struct{ name, spec, subject string }{
+	{"erp-15m", "*/15 * * * *", events.ERPTick15m},
+	{"erp-hourly", "2 * * * *", events.ERPTickHourly},
+	{"erp-daily", "5 0 * * *", events.ERPTickDaily},
+}
+
 type Scheduler struct {
 	logger  *slog.Logger
 	bus     events.Publisher
@@ -79,6 +87,14 @@ func run(ctx context.Context, d pkgapp.Deps) error {
 	}
 	if err := add("retention", config.Env("RETENTION_CRON", defaultRetentionCron), s.Retention); err != nil {
 		return err
+	}
+	for _, t := range erpTicks {
+		subject := t.subject
+		if err := add(t.name, t.spec, func(ctx context.Context) error {
+			return s.bus.Publish(ctx, subject, events.TickPayload{RunAt: time.Now().UTC()})
+		}); err != nil {
+			return err
+		}
 	}
 	c.Start()
 	s.logger.Info("scheduler started", "daily", config.Env("DAILY_CRON", defaultDailyCron), "publish", config.Env("PUBLISH_CRON", defaultPublishCron))

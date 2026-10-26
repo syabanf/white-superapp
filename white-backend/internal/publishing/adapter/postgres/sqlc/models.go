@@ -197,6 +197,7 @@ type PublishingContentPost struct {
 	ApprovedAt   *time.Time
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	Format       string
 }
 
 type PublishingMediaAsset struct {

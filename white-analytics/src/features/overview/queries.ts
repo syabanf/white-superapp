@@ -311,7 +311,7 @@ export const getOverviewSeo = cache(
     const isDemo = props.every((p) => p.connectionId == null);
     return {
       hasSource: true,
-      hasData: rows.length > 0 || prevRows.length > 0,
+      hasData: rows.length > 0,
       isDemo,
       quality: quality(
         true,
@@ -397,7 +397,7 @@ export const getOverviewAds = cache(
     const isDemo = accounts.every((a) => a.connectionId == null);
     return {
       hasSource: true,
-      hasData: rows.length > 0 || prevRows.length > 0,
+      hasData: rows.length > 0,
       isDemo,
       quality: quality(
         true,

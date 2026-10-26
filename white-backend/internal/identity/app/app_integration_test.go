@@ -13,6 +13,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/authn"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/events"
+	"github.com/syabanf/white-superapp/white-backend/pkg/password"
 	pg "github.com/syabanf/white-superapp/white-backend/pkg/postgres"
 )
 
@@ -32,7 +33,8 @@ func setup(t *testing.T) *fixture {
 	pool := pg.TestPool(t, identity.Migrations(), "migrations", identity.Schema)
 	pg.TruncateSchema(t, pool, identity.Schema)
 	store := postgres.NewStore(pool)
-	clk := &clock.Fixed{T: time.Date(2026, 10, 21, 8, 0, 0, 0, time.UTC)}
+	// Real "now": issued tokens are checked by a verifier that reads the wall clock.
+	clk := &clock.Fixed{T: time.Now().UTC().Truncate(time.Second)}
 	priv, _ := authn.KeyPair("", "test-secret")
 	f := &fixture{
 		store:   store,
@@ -267,3 +269,87 @@ func TestIntegrationNotifyAudience(t *testing.T) {
 func errOf[T any](_ T, err error) error { return err }
 
 func errOf2[A, B any](_ A, _ B, err error) error { return err }
+
+func TestIntegrationPermissionsTravelInToken(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	code(t, errOf(f.users.Create(ctx, app.UserInput{Name: "X", Email: "x@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Permissions: []string{"root.all"}})), apperr.Validation)
+	u, err := f.users.Create(ctx, app.UserInput{Name: "Fin", Email: "fin@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Permissions: []string{authn.PermFinanceRead, "hr.*"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tok, err := f.auth.Login(ctx, "fin@white.id", "12345678", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pub, _ := authn.PublicKey("", "", "test-secret")
+	p, err := authn.NewVerifier(pub).Verify(tok.AccessToken)
+	if err != nil || !p.Can(authn.PermFinanceRead) || p.Can(authn.PermFinanceWrite) || !p.Can(authn.PermPayroll) {
+		t.Fatalf("%+v %v", p, err)
+	}
+	// Update replaces the set.
+	if _, err := f.users.Update(ctx, f.admin.ID, u.ID, app.UserInput{Name: "Fin", Email: "fin@white.id", Role: domain.RoleMember, IsActive: true, Permissions: []string{authn.PermSalesRead}}); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := f.store.GetUser(ctx, u.ID)
+	if len(got.Permissions) != 1 || got.Permissions[0] != authn.PermSalesRead {
+		t.Fatalf("%+v", got.Permissions)
+	}
+}
+
+func TestIntegrationLegacySyncAndPermissions(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	hash, _ := password.Hash("legacy-pass")
+	u, err := f.users.SyncLegacy(ctx, domain.User{ID: "cm-legacy-1", Email: " New@White.ID", Name: "Baru", PasswordHash: hash, Role: domain.RoleMember, IsActive: true})
+	if err != nil || u.Email != "new@white.id" {
+		t.Fatalf("%+v %v", u, err)
+	}
+	if _, err := f.users.SetPermissions(ctx, u.ID, []string{authn.PermSalesRead}); err != nil {
+		t.Fatal(err)
+	}
+	// A later sync (rename, deactivate) keeps permissions and blocks login.
+	if _, err := f.users.SyncLegacy(ctx, domain.User{ID: "cm-legacy-1", Email: "new@white.id", Name: "Baru Lagi", PasswordHash: hash, Role: domain.RoleMember, IsActive: false}); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := f.store.GetUser(ctx, "cm-legacy-1")
+	if got.Name != "Baru Lagi" || len(got.Permissions) != 1 || got.IsActive {
+		t.Fatalf("%+v", got)
+	}
+	code(t, errOf(f.auth.Login(ctx, "new@white.id", "legacy-pass", "", "")), apperr.Unauthenticated)
+	code(t, errOf(f.users.SetPermissions(ctx, u.ID, []string{"nope.x"})), apperr.Validation)
+	code(t, errOf(f.users.SetPermissions(ctx, "missing", nil)), apperr.NotFound)
+	if err := f.users.RemoveLegacy(ctx, "cm-legacy-1"); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := f.store.GetUser(ctx, "cm-legacy-1"); got != nil {
+		t.Fatal("not removed")
+	}
+}
+
+func TestIntegrationPermissionHolders(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	mk := func(email string, active bool, perms ...string) {
+		if _, err := f.users.Create(ctx, app.UserInput{Name: email, Email: email, Password: "12345678", Role: domain.RoleMember, IsActive: active, Permissions: perms}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mk("direct@white.id", true, authn.PermFinanceApprove)
+	mk("wild@white.id", true, "finance.*")
+	mk("other@white.id", true, authn.PermFinanceRead)
+	mk("off@white.id", false, authn.PermFinanceApprove)
+
+	got, err := f.users.PermissionHolders(ctx, authn.PermFinanceApprove)
+	if err != nil {
+		t.Fatal(err)
+	}
+	emails := map[string]bool{}
+	for _, u := range got {
+		emails[u.Email] = true
+	}
+	if len(got) != 3 || !emails["direct@white.id"] || !emails["wild@white.id"] || !emails[f.admin.Email] {
+		t.Fatalf("%v", emails)
+	}
+	code(t, errOf(f.users.PermissionHolders(ctx, "root.all")), apperr.Validation)
+}

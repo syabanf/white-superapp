@@ -29,4 +29,14 @@ protoc \
   "${FILES[@]}"
 
 echo "generated $(find "$OUT" -name '*.pb.go' | wc -l | tr -d ' ') Go files"
+# One title for the merged spec and a Bearer scheme so Swagger UI can authorize.
+python3 - "$OPENAPI/white.swagger.json" <<'PY'
+import json, sys
+p = sys.argv[1]
+spec = json.load(open(p))
+spec["info"] = {"title": "WHITE API", "version": "v1", "description": "Login lewat POST /v1/auth/login, lalu tekan Authorize dan isi `Bearer` diikuti accessToken dari respons login."}
+spec["securityDefinitions"] = {"Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}}
+spec["security"] = [{"Bearer": []}]
+json.dump(spec, open(p, "w"), indent=2)
+PY
 cp "$OPENAPI/white.swagger.json" internal/gateway/openapi/white.swagger.json

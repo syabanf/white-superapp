@@ -1,0 +1,1912 @@
+syntax = "proto3";
+
+package white.performance.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/performance/v1;performancev1";
+
+// Performance service: KPI scorecards, quarterly reviews, 360 feedback,
+// department tasks, logbook, daily and monthly work recaps and "things to
+// improve". Status and kind fields are lowercase strings (values listed in
+// the comments) because they are ported verbatim from NüHabit.
+
+// ─────────────────────────────────────────────────────────────
+// Shared
+// ─────────────────────────────────────────────────────────────
+
+message Department {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  optional string head_employee_id = 4;
+}
+
+message Person {
+  string id = 1;
+  string name = 2;
+  optional string department_id = 3;
+  string department_name = 4;
+  string position_name = 5;
+}
+
+message MessageResponse {
+  string message = 1;
+}
+
+// The caller as this service sees them.
+message Me {
+  string user_id = 1;
+  string name = 2;
+  optional string employee_id = 3;
+  optional string department_id = 4;
+  repeated string head_of = 5;
+  repeated string direct_reports = 6;
+  bool hr_read = 7;
+  bool hr_write = 8;
+  bool hr_approve = 9;
+}
+
+// File bytes for exports and attachments (base64 in JSON).
+message FileContent {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// KpiService
+// ─────────────────────────────────────────────────────────────
+
+service KpiService {
+  rpc ListIndicators(ListIndicatorsRequest) returns (ListIndicatorsResponse) {
+    option (google.api.http) = {get: "/v1/performance/kpi/indicators"};
+  }
+  rpc SaveIndicator(Indicator) returns (Indicator) {
+    option (google.api.http) = {post: "/v1/performance/kpi/indicators" body: "*"};
+  }
+  rpc GetKpiConfig(google.protobuf.Empty) returns (KpiConfig) {
+    option (google.api.http) = {get: "/v1/performance/kpi/config"};
+  }
+  rpc SaveDepartmentConfig(SaveDepartmentConfigRequest) returns (MessageResponse) {
+    option (google.api.http) = {put: "/v1/performance/kpi/config/{department_id}" body: "*"};
+  }
+  rpc ListTargets(google.protobuf.Empty) returns (ListTargetsResponse) {
+    option (google.api.http) = {get: "/v1/performance/kpi/targets"};
+  }
+  rpc CreateTarget(KpiTarget) returns (KpiTarget) {
+    option (google.api.http) = {post: "/v1/performance/kpi/targets" body: "*"};
+  }
+  rpc DeleteTarget(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/kpi/targets/{id}"};
+  }
+  rpc RunSnapshot(PeriodRequest) returns (SnapshotSummary) {
+    option (google.api.http) = {post: "/v1/performance/kpi/snapshots:run" body: "*"};
+  }
+  rpc ListScorecards(ListScorecardsRequest) returns (ListScorecardsResponse) {
+    option (google.api.http) = {get: "/v1/performance/kpi/scorecards"};
+  }
+  rpc GetScorecard(IdRequest) returns (ScorecardDetail) {
+    option (google.api.http) = {get: "/v1/performance/kpi/scorecards/{id}"};
+  }
+  rpc SetScorecardStatus(SetScorecardStatusRequest) returns (ScorecardResponse) {
+    option (google.api.http) = {post: "/v1/performance/kpi/scorecards/{id}:status" body: "*"};
+  }
+  // Supervisor rubric 1-5 for an employee and month.
+  rpc SaveRubric(SaveManualRequest) returns (SaveManualResponse) {
+    option (google.api.http) = {post: "/v1/performance/kpi/rubric" body: "*"};
+  }
+  // Actual of a manual indicator (e.g. ROAS, deals won) for a month.
+  rpc RecordManualActual(SaveManualRequest) returns (SaveManualResponse) {
+    option (google.api.http) = {post: "/v1/performance/kpi/actuals" body: "*"};
+  }
+  rpc GetRecommendations(GetRecommendationsRequest) returns (GetRecommendationsResponse) {
+    option (google.api.http) = {get: "/v1/performance/kpi/recommendations"};
+  }
+  // Performance dashboard. Every call takes the same filters; hr.read sees
+  // the company and departments, leads their team, self.service only "me".
+  rpc GetDashboardContext(DashboardRequest) returns (DashboardContext) {
+    option (google.api.http) = {get: "/v1/performance/dashboard/context"};
+  }
+  rpc GetDashboardSummary(DashboardRequest) returns (DashboardSummary) {
+    option (google.api.http) = {get: "/v1/performance/dashboard/summary"};
+  }
+  rpc GetDashboardKpi(DashboardRequest) returns (DashboardKpi) {
+    option (google.api.http) = {get: "/v1/performance/dashboard/kpi"};
+  }
+  rpc GetDashboardTasks(DashboardRequest) returns (DashboardTasks) {
+    option (google.api.http) = {get: "/v1/performance/dashboard/tasks"};
+  }
+  rpc GetDashboardLogbook(DashboardRequest) returns (DashboardLogbook) {
+    option (google.api.http) = {get: "/v1/performance/dashboard/logbook"};
+  }
+  rpc GetDashboardReviews(DashboardRequest) returns (DashboardReviews) {
+    option (google.api.http) = {get: "/v1/performance/dashboard/reviews"};
+  }
+  rpc GetDashboardImprovements(DashboardRequest) returns (DashboardImprovements) {
+    option (google.api.http) = {get: "/v1/performance/dashboard/improvements"};
+  }
+}
+
+message IdRequest {
+  string id = 1;
+}
+
+message PeriodRequest {
+  int32 period_year = 1;
+  int32 period_month = 2;
+}
+
+message Indicator {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string description = 4;
+  string unit = 5;
+  // higher_better | lower_better | boolean
+  string direction = 6;
+  // auto | manual
+  string source_kind = 7;
+  optional double default_target = 8;
+  bool is_active = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message ListIndicatorsRequest {
+  bool include_inactive = 1;
+}
+
+message ListIndicatorsResponse {
+  repeated Indicator indicators = 1;
+}
+
+message DepartmentWeight {
+  string department_id = 1;
+  string indicator_id = 2;
+  string indicator_code = 3;
+  double weight = 4;
+  string updated_by = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message KpiConfig {
+  repeated Department departments = 1;
+  repeated Indicator indicators = 2;
+  repeated DepartmentWeight weights = 3;
+}
+
+message SaveDepartmentConfigRequest {
+  string department_id = 1;
+  message Item {
+    string indicator_id = 1;
+    double weight = 2;
+  }
+  repeated Item items = 2;
+}
+
+message KpiTarget {
+  string id = 1;
+  string indicator_id = 2;
+  optional int32 period_year = 3;
+  optional int32 period_month = 4;
+  optional string department_id = 5;
+  optional string employee_id = 6;
+  double target = 7;
+}
+
+message ListTargetsResponse {
+  repeated KpiTarget targets = 1;
+}
+
+message SnapshotSummary {
+  int32 period_year = 1;
+  int32 period_month = 2;
+  int32 employees = 3;
+  int32 snapshots_upserted = 4;
+  int32 scorecards_upserted = 5;
+  int32 scorecards_skipped_final = 6;
+  map<string, int32> collectors = 7;
+  string message = 8;
+}
+
+message BreakdownRow {
+  string code = 1;
+  double weight = 2;
+  double effective_weight = 3;
+  optional double attainment = 4;
+  double contribution = 5;
+}
+
+message Scorecard {
+  string id = 1;
+  string employee_id = 2;
+  string employee_name = 3;
+  optional string department_id = 4;
+  string department_name = 5;
+  int32 period_year = 6;
+  int32 period_month = 7;
+  optional double score = 8;
+  optional double raw_score = 9;
+  double used_weight = 10;
+  repeated BreakdownRow breakdown = 11;
+  // draft | final
+  string status = 12;
+  optional string reviewed_by = 13;
+  optional google.protobuf.Timestamp reviewed_at = 14;
+  google.protobuf.Timestamp updated_at = 15;
+}
+
+message ListScorecardsRequest {
+  int32 period_year = 1;
+  int32 period_month = 2;
+  // An employee id or "me".
+  string employee_id = 3;
+  // The caller's team (department heads and managers).
+  bool team = 4;
+  // The employee's latest N months (max 24).
+  int32 history = 5;
+}
+
+message ListScorecardsResponse {
+  repeated Scorecard scorecards = 1;
+  repeated Indicator indicators = 2;
+}
+
+message Snapshot {
+  string indicator_id = 1;
+  string indicator_code = 2;
+  string indicator_name = 3;
+  string source_kind = 4;
+  optional double actual = 5;
+  optional double target = 6;
+  optional double attainment = 7;
+  double sample_size = 8;
+  // JSON of the collector detail.
+  string source_detail = 9;
+}
+
+message ScorecardDetail {
+  Scorecard scorecard = 1;
+  repeated Snapshot snapshots = 2;
+  bool can_rate = 3;
+}
+
+message SetScorecardStatusRequest {
+  string id = 1;
+  // finalize | reopen
+  string action = 2;
+}
+
+message ScorecardResponse {
+  Scorecard scorecard = 1;
+  string message = 2;
+}
+
+message SaveManualRequest {
+  string employee_id = 1;
+  // Empty for the supervisor rubric.
+  string indicator_id = 2;
+  int32 period_year = 3;
+  int32 period_month = 4;
+  double value = 5;
+  optional string notes = 6;
+}
+
+message SaveManualResponse {
+  optional double score = 1;
+  // updated | skipped_final | no_components
+  string status = 2;
+  string message = 3;
+}
+
+message GetRecommendationsRequest {
+  repeated string employee_ids = 1;
+}
+
+message GetRecommendationsResponse {
+  message Item {
+    string employee_id = 1;
+    double avg_score = 2;
+    int32 periods = 3;
+    bool has_final = 4;
+  }
+  repeated Item items = 1;
+}
+
+// ─── Dashboard ───────────────────────────────────────────────
+
+message DashboardRequest {
+  // YYYY-MM-DD; empty means this month up to today (WIB).
+  string from = 1;
+  string to = 2;
+  // previous | year | none (empty = previous)
+  string compare = 3;
+  string department_id = 4;
+  string employee_id = 5;
+  // me | team | all; empty picks the widest scope the caller has.
+  string scope = 6;
+}
+
+// The resolved filters every dashboard response carries.
+message DashboardWindow {
+  string from = 1;
+  string to = 2;
+  // Empty when compare is none.
+  string compare_from = 3;
+  string compare_to = 4;
+  string compare = 5;
+  // day | week | month: the bucket of the trend series.
+  string granularity = 6;
+  string scope = 7;
+  string today = 8;
+}
+
+message DashboardContext {
+  DashboardWindow window = 1;
+  // The scopes the caller may pick (me, team, all).
+  repeated string scopes = 2;
+  repeated Department departments = 3;
+  repeated Person people = 4;
+}
+
+// A tile: value in the window, value in the comparison window and the
+// trend over the window's buckets (or months for KPI scores).
+message DashboardMetric {
+  optional double value = 1;
+  optional double previous = 2;
+  repeated double spark = 3;
+}
+
+// A labelled count, with the comparison value when it applies.
+message DashboardCount {
+  string key = 1;
+  double value = 2;
+  optional double previous = 3;
+}
+
+message DepartmentMonthScore {
+  string department_id = 1;
+  string department_name = 2;
+  // YYYY-MM
+  string period = 3;
+  optional double score = 4;
+  int32 scorecards = 5;
+}
+
+message DashboardDepartmentRow {
+  string department_id = 1;
+  string department_name = 2;
+  int32 members = 3;
+  optional double kpi_score = 4;
+  optional double kpi_score_previous = 5;
+  optional double task_completion = 6;
+  optional double on_time_rate = 7;
+  int32 overdue_tasks = 8;
+  optional double logbook_rate = 9;
+  int32 open_improvements = 10;
+}
+
+message DashboardSummary {
+  DashboardWindow window = 1;
+  DashboardMetric kpi_score = 2;
+  DashboardMetric task_completion = 3;
+  DashboardMetric on_time_rate = 4;
+  DashboardMetric overdue_tasks = 5;
+  DashboardMetric logbook_rate = 6;
+  DashboardMetric open_improvements = 7;
+  // Bucket start days of the task and logbook sparks.
+  repeated string buckets = 8;
+  // KPI score per department per month, the 12 months up to "to".
+  repeated string months = 9;
+  repeated DepartmentMonthScore department_trend = 10;
+  repeated DashboardDepartmentRow departments = 11;
+}
+
+message IndicatorAttainment {
+  string indicator_id = 1;
+  string code = 2;
+  string name = 3;
+  string unit = 4;
+  string direction = 5;
+  optional double actual = 6;
+  optional double target = 7;
+  optional double attainment = 8;
+  optional double previous_attainment = 9;
+  int32 samples = 10;
+}
+
+message PersonScore {
+  string employee_id = 1;
+  string name = 2;
+  optional string department_id = 3;
+  string department_name = 4;
+  optional double score = 5;
+  optional double previous = 6;
+  int32 months = 7;
+  int32 final_months = 8;
+}
+
+message DashboardKpi {
+  DashboardWindow window = 1;
+  DashboardMetric avg_score = 2;
+  DashboardMetric final_rate = 3;
+  DashboardMetric scorecards = 4;
+  DashboardMetric below_target = 5;
+  // Score bins: 0-49, 50-59, 60-69, 70-79, 80-89, 90-100.
+  repeated DashboardCount histogram = 6;
+  repeated string months = 7;
+  repeated DepartmentMonthScore department_months = 8;
+  repeated IndicatorAttainment indicators = 9;
+  repeated PersonScore people = 10;
+  // members, scorecard, final
+  repeated DashboardCount funnel = 11;
+}
+
+message TaskBucket {
+  string bucket = 1;
+  int32 due = 2;
+  int32 approved = 3;
+  int32 finished = 4;
+  int32 on_time = 5;
+  int32 overdue = 6;
+  optional double completion = 7;
+  optional double on_time_rate = 8;
+  optional double previous_completion = 9;
+  optional double previous_on_time_rate = 10;
+  optional double turnaround_hours = 11;
+}
+
+message TaskDepartmentStatus {
+  string department_id = 1;
+  string department_name = 2;
+  int32 due = 3;
+  int32 pending = 4;
+  int32 in_progress = 5;
+  int32 waiting_review = 6;
+  int32 approved = 7;
+  int32 rejected = 8;
+  int32 overdue = 9;
+  optional double on_time_rate = 10;
+}
+
+message TaskPerson {
+  string employee_id = 1;
+  string name = 2;
+  string department_name = 3;
+  int32 due = 4;
+  int32 approved = 5;
+  int32 on_time = 6;
+  int32 overdue = 7;
+  int32 waiting_review = 8;
+  int32 rejected = 9;
+  optional double completion = 10;
+}
+
+message DashboardTasks {
+  DashboardWindow window = 1;
+  DashboardMetric due = 2;
+  DashboardMetric completion = 3;
+  DashboardMetric on_time_rate = 4;
+  DashboardMetric overdue = 5;
+  DashboardMetric waiting_review = 6;
+  DashboardMetric turnaround_hours = 7;
+  repeated TaskBucket trend = 8;
+  repeated TaskDepartmentStatus departments = 9;
+  // Overdue age in days: 1-3, 4-7, 8-14, 15-30, 31+
+  repeated DashboardCount aging = 10;
+  // Approval turnaround: lt4h, 4-24h, 1-3d, gt3d
+  repeated DashboardCount turnaround = 11;
+  repeated TaskPerson people = 12;
+}
+
+message LogbookBucket {
+  string bucket = 1;
+  int32 expected = 2;
+  int32 submitted = 3;
+  int32 reviewed = 4;
+  int32 rejected = 5;
+  optional double avg_score = 6;
+  int32 recaps = 7;
+  optional double previous_rate = 8;
+}
+
+message LogbookDepartmentBucket {
+  string bucket = 1;
+  string department_id = 2;
+  string department_name = 3;
+  int32 expected = 4;
+  int32 submitted = 5;
+  optional double avg_score = 6;
+}
+
+message LogbookHeatCell {
+  // Monday of the week
+  string week = 1;
+  // 1 = Monday ... 7 = Sunday
+  int32 weekday = 2;
+  int32 submitted = 3;
+  int32 expected = 4;
+}
+
+message LogbookPerson {
+  string employee_id = 1;
+  string name = 2;
+  string department_name = 3;
+  int32 expected = 4;
+  int32 submitted = 5;
+  int32 reviewed = 6;
+  int32 rejected = 7;
+  optional double avg_score = 8;
+  int32 recaps = 9;
+}
+
+message DashboardLogbook {
+  DashboardWindow window = 1;
+  DashboardMetric submission_rate = 2;
+  DashboardMetric avg_score = 3;
+  DashboardMetric rejection_rate = 4;
+  DashboardMetric recap_coverage = 5;
+  repeated LogbookBucket trend = 6;
+  repeated LogbookDepartmentBucket departments = 7;
+  repeated LogbookHeatCell heatmap = 8;
+  // draft, submitted, reviewed, rejected
+  repeated DashboardCount status = 9;
+  repeated LogbookPerson people = 10;
+}
+
+message ReviewCycleProgress {
+  string cycle_id = 1;
+  string name = 2;
+  string status = 3;
+  string due_date = 4;
+  int32 total = 5;
+  int32 self_assessed = 6;
+  int32 rated = 7;
+  int32 signed = 8;
+  int32 finalized = 9;
+  optional double avg_score = 10;
+}
+
+message FeedbackRelationshipProgress {
+  // self | manager | peer | subordinate
+  string relationship = 1;
+  int32 total = 2;
+  int32 submitted = 3;
+}
+
+message FeedbackCategoryScore {
+  string code = 1;
+  string name = 2;
+  optional double score = 3;
+  optional double previous = 4;
+}
+
+message ReviewDepartmentRow {
+  string department_id = 1;
+  string department_name = 2;
+  int32 reviews = 3;
+  int32 finalized = 4;
+  optional double avg_score = 5;
+  optional double avg_360 = 6;
+}
+
+message DashboardReviews {
+  DashboardWindow window = 1;
+  // The latest cycle overlapping the window (or before it); empty id when none.
+  ReviewCycleProgress cycle = 2;
+  repeated ReviewCycleProgress cycles = 3;
+  // Performance category counts of the cycle; previous = the cycle before.
+  repeated DashboardCount ratings = 4;
+  DashboardMetric review_score = 5;
+  string feedback_cycle_id = 6;
+  string feedback_cycle_name = 7;
+  string previous_feedback_cycle_name = 8;
+  repeated FeedbackRelationshipProgress feedback_progress = 9;
+  repeated FeedbackCategoryScore feedback_categories = 10;
+  DashboardMetric feedback_score = 11;
+  DashboardMetric feedback_completion = 12;
+  repeated ReviewDepartmentRow departments = 13;
+}
+
+message ImprovementBucket {
+  string bucket = 1;
+  int32 manual = 2;
+  int32 ai = 3;
+  int32 retro = 4;
+  // review, feedback, task and logbook rejections
+  int32 automatic = 5;
+  int32 completed = 6;
+  int32 ai_accepted = 7;
+  int32 ai_declined = 8;
+}
+
+message OverdueImprovement {
+  string id = 1;
+  string title = 2;
+  string scope = 3;
+  string source = 4;
+  string status = 5;
+  string owner_name = 6;
+  string department_name = 7;
+  string due_date = 8;
+  int32 days_overdue = 9;
+}
+
+message ImprovementDepartmentRow {
+  string department_id = 1;
+  string department_name = 2;
+  int32 open = 3;
+  int32 in_progress = 4;
+  int32 done = 5;
+  int32 overdue = 6;
+  int32 suggested = 7;
+}
+
+message DashboardImprovements {
+  DashboardWindow window = 1;
+  DashboardMetric open = 2;
+  DashboardMetric created = 3;
+  DashboardMetric completed = 4;
+  DashboardMetric overdue = 5;
+  DashboardMetric ai_acceptance = 6;
+  repeated ImprovementBucket trend = 7;
+  // Status of the items created in the window.
+  repeated DashboardCount status = 8;
+  repeated DashboardCount sources = 9;
+  repeated OverdueImprovement overdue_items = 10;
+  repeated ImprovementDepartmentRow departments = 11;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ReviewService (quarterly performance reviews)
+// ─────────────────────────────────────────────────────────────
+
+service ReviewService {
+  rpc ListReviewCycles(google.protobuf.Empty) returns (ListReviewCyclesResponse) {
+    option (google.api.http) = {get: "/v1/performance/review-cycles"};
+  }
+  rpc OpenReviewCycle(OpenReviewCycleRequest) returns (ReviewCycleResponse) {
+    option (google.api.http) = {post: "/v1/performance/review-cycles" body: "*"};
+  }
+  rpc CloseReviewCycle(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {post: "/v1/performance/review-cycles/{id}:close" body: "*"};
+  }
+  rpc ListReviews(ListReviewsRequest) returns (ListReviewsResponse) {
+    option (google.api.http) = {get: "/v1/performance/review-cycles/{cycle_id}/reviews"};
+  }
+  rpc GetReview(IdRequest) returns (ReviewDetail) {
+    option (google.api.http) = {get: "/v1/performance/reviews/{id}"};
+  }
+  rpc ReviewAction(ReviewActionRequest) returns (MessageResponse) {
+    option (google.api.http) = {post: "/v1/performance/reviews/{id}:act" body: "*"};
+  }
+  rpc RealtimeKpi(RealtimeKpiRequest) returns (RealtimeKpiResponse) {
+    option (google.api.http) = {get: "/v1/performance/kpi/realtime"};
+  }
+}
+
+message ReviewCycle {
+  string id = 1;
+  string name = 2;
+  int32 period_year = 3;
+  int32 period_quarter = 4;
+  string start_date = 5;
+  string end_date = 6;
+  string due_date = 7;
+  // open | closed
+  string status = 8;
+  string created_by_name = 9;
+  int32 total_reviews = 10;
+  int32 final_reviews = 11;
+  int32 rated_reviews = 12;
+}
+
+message ListReviewCyclesResponse {
+  repeated ReviewCycle cycles = 1;
+  bool can_manage = 2;
+}
+
+message OpenReviewCycleRequest {
+  int32 period_year = 1;
+  int32 period_quarter = 2;
+  // YYYY-MM-DD; defaults to 14 days after the quarter.
+  string due_date = 3;
+}
+
+message ReviewCycleResponse {
+  ReviewCycle cycle = 1;
+  string message = 2;
+}
+
+message Review {
+  string id = 1;
+  string cycle_id = 2;
+  string cycle_name = 3;
+  string cycle_status = 4;
+  string cycle_due_date = 5;
+  string employee_id = 6;
+  string employee_name = 7;
+  optional string department_id = 8;
+  string department_name = 9;
+  string period_label = 10;
+  string start_date = 11;
+  string end_date = 12;
+  optional double work_result_score = 13;
+  optional double behavioral_score = 14;
+  optional double project_score = 15;
+  optional double grand_total_score = 16;
+  optional string category = 17;
+  // draft | final
+  string status = 18;
+  optional string self_assessment = 19;
+  optional string reviewer_id = 20;
+  optional string reviewer_name = 21;
+  optional string reviewer_notes = 22;
+  optional string manager_id = 23;
+  optional string manager_notes = 24;
+  optional string employee_sign_date = 25;
+  optional string reviewer_sign_date = 26;
+  int32 rated_items = 27;
+  int32 total_items = 28;
+  optional google.protobuf.Timestamp finalized_at = 29;
+}
+
+message ListReviewsRequest {
+  string cycle_id = 1;
+}
+
+message ListReviewsResponse {
+  repeated Review reviews = 1;
+  bool can_review = 2;
+}
+
+message ReviewItem {
+  string id = 1;
+  string value_name = 2;
+  string competency = 3;
+  string behavioral_standard = 4;
+  repeated string score_descriptions = 5;
+  double weight = 6;
+  optional int32 score = 7;
+  optional double weighted_score = 8;
+  optional string notes = 9;
+  int32 item_order = 10;
+}
+
+message ReviewDetail {
+  Review review = 1;
+  repeated ReviewItem items = 2;
+  repeated Scorecard kpi_months = 3;
+  bool can_rate = 4;
+  bool can_finalize = 5;
+  bool is_owner = 6;
+}
+
+message ReviewActionRequest {
+  string id = 1;
+  // self_assessment | rate_item | reviewer_notes | manager_notes | sign | finalize
+  string action = 2;
+  optional string text = 3;
+  string item_id = 4;
+  optional double score = 5;
+  optional string notes = 6;
+  optional double project_score = 7;
+}
+
+message RealtimeKpiRequest {
+  int32 year = 1;
+  int32 quarter = 2;
+}
+
+message RealtimeKpiResponse {
+  message Row {
+    string employee_id = 1;
+    string employee_name = 2;
+    string department_name = 3;
+    optional double avg_score = 4;
+    repeated Scorecard months = 5;
+  }
+  repeated Row employees = 1;
+  int32 year = 2;
+  int32 quarter = 3;
+  repeated int32 months = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// FeedbackService (360 feedback)
+// ─────────────────────────────────────────────────────────────
+
+service FeedbackService {
+  rpc ListFeedbackCategories(google.protobuf.Empty) returns (ListFeedbackCategoriesResponse) {
+    option (google.api.http) = {get: "/v1/performance/feedback/categories"};
+  }
+  rpc ListFeedbackCycles(ListFeedbackCyclesRequest) returns (ListFeedbackCyclesResponse) {
+    option (google.api.http) = {get: "/v1/performance/feedback/cycles"};
+  }
+  rpc GetFeedbackCycle(IdRequest) returns (FeedbackCycle) {
+    option (google.api.http) = {get: "/v1/performance/feedback/cycles/{id}"};
+  }
+  rpc SaveFeedbackCycle(FeedbackCycle) returns (FeedbackCycle) {
+    option (google.api.http) = {post: "/v1/performance/feedback/cycles" body: "*"};
+  }
+  rpc DeleteFeedbackCycle(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/feedback/cycles/{id}"};
+  }
+  rpc CreateAssignments(CreateAssignmentsRequest) returns (CountResponse) {
+    option (google.api.http) = {post: "/v1/performance/feedback/cycles/{cycle_id}/assignments" body: "*"};
+  }
+  // Self, manager, direct reports and up to `peers` colleagues per employee.
+  rpc AutoAssign(AutoAssignRequest) returns (CountResponse) {
+    option (google.api.http) = {post: "/v1/performance/feedback/cycles/{cycle_id}/assignments:auto" body: "*"};
+  }
+  rpc ListAssignments(ListAssignmentsRequest) returns (ListAssignmentsResponse) {
+    option (google.api.http) = {get: "/v1/performance/feedback/assignments"};
+  }
+  rpc ListMyAssignments(google.protobuf.Empty) returns (ListAssignmentsResponse) {
+    option (google.api.http) = {get: "/v1/performance/feedback/my-assignments"};
+  }
+  rpc GetAssignment(IdRequest) returns (AssignmentDetail) {
+    option (google.api.http) = {get: "/v1/performance/feedback/assignments/{id}"};
+  }
+  rpc SubmitResponses(SubmitResponsesRequest) returns (Assignment) {
+    option (google.api.http) = {post: "/v1/performance/feedback/assignments/{id}/responses" body: "*"};
+  }
+  rpc DecideAssignment(DecideAssignmentRequest) returns (DecideAssignmentResponse) {
+    option (google.api.http) = {post: "/v1/performance/feedback/assignments/{id}:decide" body: "*"};
+  }
+  rpc DeleteAssignment(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/feedback/assignments/{id}"};
+  }
+  // Derives summaries and files weaknesses as improvement items.
+  rpc GenerateSummaries(GenerateSummariesRequest) returns (GenerateSummariesResponse) {
+    option (google.api.http) = {post: "/v1/performance/feedback/cycles/{cycle_id}/summaries:generate" body: "*"};
+  }
+  rpc ListSummaries(ListSummariesRequest) returns (ListSummariesResponse) {
+    option (google.api.http) = {get: "/v1/performance/feedback/summaries"};
+  }
+  rpc UpdateSummary(UpdateSummaryRequest) returns (FeedbackSummary) {
+    option (google.api.http) = {patch: "/v1/performance/feedback/summaries/{id}" body: "*"};
+  }
+}
+
+message FeedbackCriterion {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 display_order = 4;
+}
+
+message FeedbackCategory {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string description = 4;
+  double weight = 5;
+  int32 display_order = 6;
+  repeated FeedbackCriterion criteria = 7;
+}
+
+message ListFeedbackCategoriesResponse {
+  repeated FeedbackCategory categories = 1;
+}
+
+message FeedbackCycle {
+  string id = 1;
+  string name = 2;
+  string period_label = 3;
+  optional string start_date = 4;
+  optional string end_date = 5;
+  // draft | active | closed
+  string status = 6;
+  optional double kpi_weight = 7;
+  optional double feedback_weight = 8;
+  bool is_anonymous = 9;
+  bool allow_self_assessment = 10;
+  bool require_manager_review = 11;
+  int32 assignments_count = 12;
+  int32 submitted_count = 13;
+  int32 summaries_count = 14;
+  google.protobuf.Timestamp created_at = 15;
+}
+
+message ListFeedbackCyclesRequest {
+  string status = 1;
+}
+
+message ListFeedbackCyclesResponse {
+  repeated FeedbackCycle cycles = 1;
+}
+
+message CreateAssignmentsRequest {
+  string cycle_id = 1;
+  message Item {
+    string employee_id = 1;
+    string reviewer_id = 2;
+    // self | manager | peer | subordinate
+    string relationship_type = 3;
+    optional string due_date = 4;
+  }
+  repeated Item items = 2;
+}
+
+message AutoAssignRequest {
+  string cycle_id = 1;
+  int32 peers = 2;
+}
+
+message CountResponse {
+  int32 count = 1;
+  string message = 2;
+}
+
+message Assignment {
+  string id = 1;
+  string cycle_id = 2;
+  string cycle_name = 3;
+  string cycle_status = 4;
+  string employee_id = 5;
+  string employee_name = 6;
+  string reviewer_id = 7;
+  string reviewer_name = 8;
+  string relationship_type = 9;
+  // pending | in_progress | submitted | approved | rejected
+  string status = 10;
+  optional string due_date = 11;
+  optional google.protobuf.Timestamp submitted_at = 12;
+  int32 reminder_count = 13;
+  optional google.protobuf.Timestamp last_reminder_at = 14;
+  optional string manager_comments = 15;
+  optional string rejection_reason = 16;
+}
+
+message ListAssignmentsRequest {
+  string cycle_id = 1;
+  string employee_id = 2;
+  string reviewer_id = 3;
+  string status = 4;
+}
+
+message ListAssignmentsResponse {
+  repeated Assignment assignments = 1;
+}
+
+message FeedbackResponse {
+  string id = 1;
+  string criteria_id = 2;
+  int32 rating = 3;
+  optional string comments = 4;
+}
+
+message AssignmentDetail {
+  Assignment assignment = 1;
+  repeated FeedbackResponse responses = 2;
+  repeated FeedbackCategory categories = 3;
+  bool can_answer = 4;
+  bool can_decide = 5;
+}
+
+message SubmitResponsesRequest {
+  string id = 1;
+  message Answer {
+    string criteria_id = 1;
+    int32 rating = 2;
+    optional string comments = 3;
+  }
+  repeated Answer answers = 2;
+  // false saves a draft.
+  bool submit = 3;
+}
+
+message DecideAssignmentRequest {
+  string id = 1;
+  bool approve = 2;
+  optional string manager_comments = 3;
+  optional string rejection_reason = 4;
+}
+
+message DecideAssignmentResponse {
+  Assignment assignment = 1;
+  string message = 2;
+}
+
+message GenerateSummariesRequest {
+  string cycle_id = 1;
+}
+
+message GenerateSummariesResponse {
+  int32 generated = 1;
+  int32 improvements_filed = 2;
+  string message = 3;
+}
+
+message FeedbackSummary {
+  string id = 1;
+  string cycle_id = 2;
+  string employee_id = 3;
+  string employee_name = 4;
+  string department_name = 5;
+  // Category code -> 0-100 score (leadership, communication, collaboration,
+  // accountability, problem_solving).
+  map<string, double> scores = 6;
+  optional double overall_360_score = 7;
+  optional double kpi_score = 8;
+  optional double final_score = 9;
+  optional string final_grade = 10;
+  repeated string strengths = 11;
+  repeated string weaknesses = 12;
+  optional string manager_comments = 13;
+  int32 responses_count = 14;
+  bool is_locked = 15;
+  google.protobuf.Timestamp generated_at = 16;
+}
+
+message ListSummariesRequest {
+  string cycle_id = 1;
+  string employee_id = 2;
+}
+
+message ListSummariesResponse {
+  repeated FeedbackSummary summaries = 1;
+}
+
+message UpdateSummaryRequest {
+  string id = 1;
+  repeated string strengths = 2;
+  repeated string weaknesses = 3;
+  optional string manager_comments = 4;
+  bool is_locked = 5;
+}
+
+// ─────────────────────────────────────────────────────────────
+// TaskService (department tasks)
+// ─────────────────────────────────────────────────────────────
+
+service TaskService {
+  rpc GetTaskMeta(google.protobuf.Empty) returns (TaskMeta) {
+    option (google.api.http) = {get: "/v1/performance/tasks/meta"};
+  }
+  // scope mine (own list) or team (board); view today|week|month|all.
+  rpc ListTaskItems(ListTaskItemsRequest) returns (ListTaskItemsResponse) {
+    option (google.api.http) = {get: "/v1/performance/tasks/items"};
+  }
+  rpc CreateTask(CreateTaskRequest) returns (IdResponse) {
+    option (google.api.http) = {post: "/v1/performance/tasks" body: "*"};
+  }
+  rpc UpdateTask(UpdateTaskRequest) returns (MessageResponse) {
+    option (google.api.http) = {patch: "/v1/performance/tasks/{id}" body: "*"};
+  }
+  rpc DeactivateTask(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/tasks/{id}"};
+  }
+  rpc GetOccurrence(IdRequest) returns (TaskDetail) {
+    option (google.api.http) = {get: "/v1/performance/tasks/occurrences/{id}"};
+  }
+  rpc OccurrenceAction(OccurrenceActionRequest) returns (OccurrenceActionResponse) {
+    option (google.api.http) = {post: "/v1/performance/tasks/occurrences/{id}:act" body: "*"};
+  }
+  rpc AddAttachment(AddAttachmentRequest) returns (TaskAttachment) {
+    option (google.api.http) = {post: "/v1/performance/tasks/occurrences/{occurrence_id}/attachments" body: "*"};
+  }
+  rpc GetAttachment(AttachmentRequest) returns (FileContent) {
+    option (google.api.http) = {get: "/v1/performance/tasks/occurrences/{occurrence_id}/attachments/{attachment_id}"};
+  }
+  rpc DeleteAttachment(AttachmentRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/tasks/occurrences/{occurrence_id}/attachments/{attachment_id}"};
+  }
+  rpc GetKpiTasks(GetKpiTasksRequest) returns (GetKpiTasksResponse) {
+    option (google.api.http) = {get: "/v1/performance/tasks/kpi"};
+  }
+  rpc ListContributions(ListContributionsRequest) returns (ListContributionsResponse) {
+    option (google.api.http) = {get: "/v1/performance/tasks/kpi/contributions"};
+  }
+  rpc GetMonitor(GetMonitorRequest) returns (MonitorResponse) {
+    option (google.api.http) = {get: "/v1/performance/tasks/monitor"};
+  }
+}
+
+message IdResponse {
+  string id = 1;
+  string message = 2;
+}
+
+message TaskIndicator {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string unit = 4;
+  string direction = 5;
+  repeated string department_ids = 6;
+}
+
+message TaskMeta {
+  Me me = 1;
+  // all | heads | none
+  string team_scope = 2;
+  repeated Department departments = 3;
+  repeated Person members = 4;
+  repeated TaskIndicator indicators = 5;
+  string today = 6;
+  string timezone = 7;
+}
+
+message TaskItem {
+  string occurrence_id = 1;
+  string task_id = 2;
+  string title = 3;
+  string description = 4;
+  string department_id = 5;
+  string department_name = 6;
+  optional string assignee_employee_id = 7;
+  string assignee_name = 8;
+  string created_by_name = 9;
+  string occurrence_date = 10;
+  // pending | in_progress | done | approved | rejected
+  string status = 11;
+  optional int32 progress_percent = 12;
+  optional google.protobuf.Timestamp started_at = 13;
+  optional google.protobuf.Timestamp done_at = 14;
+  optional string done_by_name = 15;
+  optional string review_notes = 16;
+  optional string reviewed_by_name = 17;
+  // once | daily | weekly | monthly
+  string recurrence = 18;
+  // low | normal | high | urgent
+  string priority = 19;
+  bool review_required = 20;
+  optional string kpi_indicator_id = 21;
+  optional string kpi_indicator_code = 22;
+  optional string kpi_indicator_name = 23;
+  optional double kpi_contribution = 24;
+  int32 subtask_count = 25;
+  int32 comment_count = 26;
+  int32 attachment_count = 27;
+  optional string last_note = 28;
+  optional string last_note_by = 29;
+  optional google.protobuf.Timestamp last_note_at = 30;
+  int32 progress = 31;
+  bool overdue = 32;
+  bool mine = 33;
+  bool can_work = 34;
+  bool can_review = 35;
+  bool can_manage = 36;
+  optional int32 weekly_day = 37;
+  optional int32 monthly_day = 38;
+  optional string due_date = 39;
+}
+
+message ListTaskItemsRequest {
+  string scope = 1;
+  string view = 2;
+  string month = 3;
+  string department_id = 4;
+  string assignee_id = 5;
+  string status = 6;
+  string indicator_id = 7;
+  string q = 8;
+}
+
+message ListTaskItemsResponse {
+  repeated TaskItem items = 1;
+}
+
+message CreateTaskRequest {
+  string department_id = 1;
+  string assignee_employee_id = 2;
+  string title = 3;
+  string description = 4;
+  string recurrence = 5;
+  int32 weekly_day = 6;
+  int32 monthly_day = 7;
+  string due_date = 8;
+  string priority = 9;
+  optional string kpi_indicator_id = 10;
+  optional double kpi_contribution = 11;
+  repeated string subtasks = 12;
+}
+
+message UpdateTaskRequest {
+  string id = 1;
+  optional string title = 2;
+  optional string description = 3;
+  optional string priority = 4;
+  // Set with clear_assignee false to change, clear_assignee true to remove.
+  optional string assignee_employee_id = 5;
+  bool clear_assignee = 6;
+  optional string kpi_indicator_id = 7;
+  bool clear_kpi_indicator = 8;
+  optional double kpi_contribution = 9;
+  bool clear_kpi_contribution = 10;
+}
+
+message Subtask {
+  string id = 1;
+  string title = 2;
+  double weight = 3;
+  int32 sort_order = 4;
+  bool is_checked = 5;
+  optional string checked_by_name = 6;
+  optional google.protobuf.Timestamp checked_at = 7;
+}
+
+message TaskUpdate {
+  string id = 1;
+  // progress | comment | status | review | attachment
+  string kind = 2;
+  optional string note = 3;
+  optional int32 progress_percent = 4;
+  string author_name = 5;
+  // JSON
+  string detail = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message TaskAttachment {
+  string id = 1;
+  string occurrence_id = 2;
+  string name = 3;
+  string mime = 4;
+  int64 size_bytes = 5;
+  string uploaded_by_name = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message TaskContribution {
+  string indicator_id = 1;
+  int32 period_year = 2;
+  int32 period_month = 3;
+  optional double amount = 4;
+  google.protobuf.Timestamp recorded_at = 5;
+}
+
+message TaskDetail {
+  TaskItem item = 1;
+  repeated Subtask subtasks = 2;
+  repeated TaskUpdate updates = 3;
+  repeated TaskAttachment attachments = 4;
+  optional TaskContribution contribution = 5;
+}
+
+message OccurrenceActionRequest {
+  string id = 1;
+  // start | progress | check_subtask | comment | done | approve | reject | reopen
+  string action = 2;
+  optional string notes = 3;
+  optional string note = 4;
+  optional int32 progress_percent = 5;
+  string subtask_id = 6;
+  bool checked = 7;
+}
+
+message OccurrenceActionResponse {
+  string message = 1;
+  optional double progress = 2;
+  bool complete = 3;
+}
+
+message AddAttachmentRequest {
+  string occurrence_id = 1;
+  string name = 2;
+  string mime = 3;
+  bytes data = 4;
+}
+
+message AttachmentRequest {
+  string occurrence_id = 1;
+  string attachment_id = 2;
+}
+
+message GetKpiTasksRequest {
+  string department_id = 1;
+  string month = 2;
+}
+
+message IndicatorTasks {
+  string indicator_id = 1;
+  string code = 2;
+  string name = 3;
+  string unit = 4;
+  string direction = 5;
+  optional double weight = 6;
+  int32 total = 7;
+  int32 approved = 8;
+  int32 waiting_review = 9;
+  int32 open = 10;
+  int32 overdue = 11;
+  optional double rate = 12;
+  double expected_total = 13;
+  double contribution_total = 14;
+  repeated TaskItem tasks = 15;
+}
+
+message GetKpiTasksResponse {
+  string department_id = 1;
+  string month = 2;
+  repeated IndicatorTasks indicators = 3;
+}
+
+message ListContributionsRequest {
+  string employee_id = 1;
+  string month = 2;
+}
+
+message ListContributionsResponse {
+  message Item {
+    string indicator_id = 1;
+    string code = 2;
+    int32 tasks_total = 3;
+    int32 tasks_done = 4;
+    double contribution_total = 5;
+  }
+  repeated Item items = 1;
+}
+
+message GetMonitorRequest {
+  string department_id = 1;
+  string month = 2;
+}
+
+message MonitorSummary {
+  int32 scheduled = 1;
+  int32 due = 2;
+  int32 approved = 3;
+  int32 waiting_review = 4;
+  int32 in_progress = 5;
+  int32 not_started = 6;
+  int32 rejected = 7;
+  int32 overdue = 8;
+  optional double completion = 9;
+  optional int32 avg_progress = 10;
+}
+
+message MonitorRow {
+  string occurrence_id = 1;
+  string task_id = 2;
+  string title = 3;
+  string department_id = 4;
+  string department_name = 5;
+  optional string assignee_id = 6;
+  optional string assignee_name = 7;
+  string occurrence_date = 8;
+  string status = 9;
+  int32 progress = 10;
+  optional string last_note = 11;
+}
+
+message MonitorResponse {
+  message Assignee {
+    optional string assignee_id = 1;
+    string assignee_name = 2;
+    MonitorSummary summary = 3;
+  }
+  message DepartmentRow {
+    string department_id = 1;
+    string department_name = 2;
+    MonitorSummary summary = 3;
+    repeated Assignee assignees = 4;
+  }
+  string start = 1;
+  string end = 2;
+  string today = 3;
+  MonitorSummary summary = 4;
+  repeated DepartmentRow departments = 5;
+  repeated MonitorRow overdue = 6;
+  repeated MonitorRow waiting_review = 7;
+  // all | own
+  string scope = 8;
+}
+
+// ─────────────────────────────────────────────────────────────
+// LogbookService
+// ─────────────────────────────────────────────────────────────
+
+service LogbookService {
+  rpc GetLogbookMe(google.protobuf.Empty) returns (LogbookMe) {
+    option (google.api.http) = {get: "/v1/performance/logbook/me"};
+  }
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
+    option (google.api.http) = {get: "/v1/performance/logbook/templates"};
+  }
+  rpc CreateTemplate(CreateTemplateRequest) returns (LogbookTemplate) {
+    option (google.api.http) = {post: "/v1/performance/logbook/templates" body: "*"};
+  }
+  rpc DeleteTemplate(IdRequest) returns (DeleteTemplateResponse) {
+    option (google.api.http) = {delete: "/v1/performance/logbook/templates/{id}"};
+  }
+  rpc ListEntries(ListEntriesRequest) returns (ListEntriesResponse) {
+    option (google.api.http) = {get: "/v1/performance/logbook/entries"};
+  }
+  rpc GetEntry(IdRequest) returns (EntryResponse) {
+    option (google.api.http) = {get: "/v1/performance/logbook/entries/{id}"};
+  }
+  rpc CreateEntry(CreateEntryRequest) returns (LogbookEntry) {
+    option (google.api.http) = {post: "/v1/performance/logbook/entries" body: "*"};
+  }
+  rpc UpdateEntryItem(UpdateEntryItemRequest) returns (LogbookEntry) {
+    option (google.api.http) = {patch: "/v1/performance/logbook/items/{item_id}" body: "*"};
+  }
+  rpc SubmitEntry(SubmitEntryRequest) returns (LogbookEntry) {
+    option (google.api.http) = {post: "/v1/performance/logbook/entries/{id}:submit" body: "*"};
+  }
+  rpc ReviewEntry(ReviewEntryRequest) returns (LogbookEntry) {
+    option (google.api.http) = {post: "/v1/performance/logbook/entries/{id}:review" body: "*"};
+  }
+  rpc DeleteEntry(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/logbook/entries/{id}"};
+  }
+  rpc LogbookSummary(LogbookSummaryRequest) returns (LogbookSummaryResponse) {
+    option (google.api.http) = {get: "/v1/performance/logbook/summary"};
+  }
+}
+
+message LogbookMe {
+  Me me = 1;
+  string department_name = 2;
+  bool can_review = 3;
+  bool is_full_access = 4;
+}
+
+message LogbookTemplateItem {
+  string id = 1;
+  string title = 2;
+  optional string description = 3;
+  double weight = 4;
+  bool is_required = 5;
+  int32 sort_order = 6;
+}
+
+message LogbookTemplate {
+  string id = 1;
+  string department_id = 2;
+  string department_name = 3;
+  string name = 4;
+  optional string description = 5;
+  // daily | weekly | monthly
+  string frequency = 6;
+  bool is_active = 7;
+  repeated LogbookTemplateItem items = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ListTemplatesRequest {
+  string department_id = 1;
+  bool include_inactive = 2;
+}
+
+message ListTemplatesResponse {
+  repeated LogbookTemplate templates = 1;
+}
+
+message CreateTemplateRequest {
+  string department_id = 1;
+  string name = 2;
+  optional string description = 3;
+  string frequency = 4;
+  message Item {
+    string title = 1;
+    optional string description = 2;
+    optional double weight = 3;
+    optional bool is_required = 4;
+  }
+  repeated Item items = 5;
+}
+
+message DeleteTemplateResponse {
+  string message = 1;
+  bool archived = 2;
+}
+
+message LogbookEntryItem {
+  string id = 1;
+  string title = 2;
+  optional string description = 3;
+  double weight = 4;
+  bool is_required = 5;
+  int32 sort_order = 6;
+  bool is_checked = 7;
+  optional google.protobuf.Timestamp checked_at = 8;
+  optional string notes = 9;
+}
+
+message LogbookEntry {
+  string id = 1;
+  string template_id = 2;
+  string template_name = 3;
+  string frequency = 4;
+  string department_id = 5;
+  string department_name = 6;
+  string employee_id = 7;
+  string employee_name = 8;
+  string entry_date = 9;
+  string title = 10;
+  // draft | submitted | reviewed | rejected
+  string status = 11;
+  double completion_percentage = 12;
+  double kpi_score = 13;
+  optional string notes = 14;
+  optional google.protobuf.Timestamp submitted_at = 15;
+  optional google.protobuf.Timestamp reviewed_at = 16;
+  optional string review_notes = 17;
+  repeated LogbookEntryItem items = 18;
+}
+
+message ListEntriesRequest {
+  string department_id = 1;
+  string employee_id = 2;
+  string status = 3;
+  string date = 4;
+  string from = 5;
+  string to = 6;
+  bool mine = 7;
+  int32 page = 8;
+  int32 limit = 9;
+}
+
+message ListEntriesResponse {
+  repeated LogbookEntry entries = 1;
+  int32 count = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message EntryResponse {
+  LogbookEntry entry = 1;
+  bool can_review = 2;
+}
+
+message CreateEntryRequest {
+  string template_id = 1;
+  string entry_date = 2;
+  optional string title = 3;
+  optional string notes = 4;
+}
+
+message UpdateEntryItemRequest {
+  string item_id = 1;
+  optional bool is_checked = 2;
+  optional string notes = 3;
+}
+
+message SubmitEntryRequest {
+  string id = 1;
+  optional string notes = 2;
+}
+
+message ReviewEntryRequest {
+  string id = 1;
+  // reviewed | rejected
+  string status = 2;
+  optional string review_notes = 3;
+}
+
+message LogbookSummaryRequest {
+  string department_id = 1;
+  string from = 2;
+  string to = 3;
+}
+
+message LogbookSummaryResponse {
+  message Row {
+    string department_id = 1;
+    string department_name = 2;
+    int32 total_entries = 3;
+    int32 submitted_entries = 4;
+    int32 reviewed_entries = 5;
+    int32 rejected_entries = 6;
+    double avg_completion = 7;
+    double avg_kpi_score = 8;
+  }
+  repeated Row departments = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RecapService (daily and monthly work recaps)
+// ─────────────────────────────────────────────────────────────
+
+service RecapService {
+  rpc GetMyDailyRecap(DailyRecapRequest) returns (DailyRecap) {
+    option (google.api.http) = {get: "/v1/performance/recaps/daily/me"};
+  }
+  rpc UpdateMyDailyNotes(UpdateDailyNotesRequest) returns (DailyRecap) {
+    option (google.api.http) = {put: "/v1/performance/recaps/daily/me/notes" body: "*"};
+  }
+  rpc RegenerateMyDailyRecap(DailyRecapRequest) returns (DailyRecap) {
+    option (google.api.http) = {post: "/v1/performance/recaps/daily/me:regenerate" body: "*"};
+  }
+  rpc ListTeamDailyRecaps(TeamDailyRecapsRequest) returns (ListDailyRecapsResponse) {
+    option (google.api.http) = {get: "/v1/performance/recaps/daily/team"};
+  }
+  rpc ListDailyRecapHistory(DailyRecapHistoryRequest) returns (ListDailyRecapsResponse) {
+    option (google.api.http) = {get: "/v1/performance/recaps/daily/history"};
+  }
+  rpc ListMonthlyRecaps(ListMonthlyRecapsRequest) returns (ListMonthlyRecapsResponse) {
+    option (google.api.http) = {get: "/v1/performance/recaps/monthly"};
+  }
+  rpc GetMonthlyRecap(IdRequest) returns (MonthlyRecap) {
+    option (google.api.http) = {get: "/v1/performance/recaps/monthly/{id}"};
+  }
+  rpc RegenerateMonthlyRecap(RegenerateMonthlyRecapRequest) returns (RegenerateMonthlyRecapResponse) {
+    option (google.api.http) = {post: "/v1/performance/recaps/monthly:regenerate" body: "*"};
+  }
+  rpc ExportMonthlyRecap(IdRequest) returns (FileContent) {
+    option (google.api.http) = {get: "/v1/performance/recaps/monthly/{id}/pdf"};
+  }
+}
+
+message RecapSubtask {
+  string title = 1;
+  bool checked = 2;
+}
+
+message RecapTask {
+  string occurrence_id = 1;
+  string title = 2;
+  string status = 3;
+  int32 progress = 4;
+  bool completed = 5;
+  string priority = 6;
+  repeated RecapSubtask subtasks = 7;
+  repeated string notes = 8;
+}
+
+message RecapLogbook {
+  string entry_id = 1;
+  string title = 2;
+  string status = 3;
+  double completion = 4;
+  double kpi_score = 5;
+}
+
+message DailyRecap {
+  string id = 1;
+  string employee_id = 2;
+  string employee_name = 3;
+  optional string department_id = 4;
+  string department_name = 5;
+  string recap_date = 6;
+  repeated RecapTask tasks = 7;
+  repeated RecapLogbook logbook = 8;
+  string notes = 9;
+  string generated_summary = 10;
+  string summary_model = 11;
+  optional google.protobuf.Timestamp generated_at = 12;
+  // False for a live preview that was never stored.
+  bool saved = 13;
+}
+
+message DailyRecapRequest {
+  // YYYY-MM-DD, default today (WIB).
+  string date = 1;
+}
+
+message UpdateDailyNotesRequest {
+  string date = 1;
+  string notes = 2;
+}
+
+message TeamDailyRecapsRequest {
+  string date = 1;
+  string department_id = 2;
+}
+
+message DailyRecapHistoryRequest {
+  // An employee id or "me".
+  string employee_id = 1;
+  string from = 2;
+  string to = 3;
+  int32 limit = 4;
+}
+
+message ListDailyRecapsResponse {
+  repeated DailyRecap recaps = 1;
+}
+
+message MonthlyMetrics {
+  int32 tasks_planned = 1;
+  int32 tasks_done = 2;
+  int32 tasks_on_time = 3;
+  int32 tasks_overdue = 4;
+  optional double completion_rate = 5;
+  optional double on_time_rate = 6;
+  optional double kpi_score = 7;
+  int32 logbook_entries = 8;
+  optional double logbook_compliance = 9;
+  int32 working_days = 10;
+  int32 present_days = 11;
+  int32 late_days = 12;
+  int32 absent_days = 13;
+  int32 leave_days = 14;
+  double overtime_hours = 15;
+  bool has_attendance = 16;
+  int32 members = 17;
+  int32 improvements_open = 18;
+}
+
+message MonthlyRecap {
+  string id = 1;
+  // employee | department
+  string scope = 2;
+  string subject_id = 3;
+  string subject_name = 4;
+  optional string department_id = 5;
+  string department_name = 6;
+  int32 period_year = 7;
+  int32 period_month = 8;
+  MonthlyMetrics metrics = 9;
+  repeated string accomplishments = 10;
+  string narrative = 11;
+  string narrative_model = 12;
+  google.protobuf.Timestamp generated_at = 13;
+}
+
+message ListMonthlyRecapsRequest {
+  int32 period_year = 1;
+  int32 period_month = 2;
+  string scope = 3;
+  string employee_id = 4;
+  string department_id = 5;
+}
+
+message ListMonthlyRecapsResponse {
+  repeated MonthlyRecap recaps = 1;
+}
+
+message RegenerateMonthlyRecapRequest {
+  string scope = 1;
+  // Employee id ("me" allowed) or department id.
+  string subject_id = 2;
+  int32 period_year = 3;
+  int32 period_month = 4;
+}
+
+message RegenerateMonthlyRecapResponse {
+  MonthlyRecap recap = 1;
+  int32 suggestions_filed = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ImprovementService ("things to improve" and retros)
+// ─────────────────────────────────────────────────────────────
+
+service ImprovementService {
+  rpc ListImprovements(ListImprovementsRequest) returns (ListImprovementsResponse) {
+    option (google.api.http) = {get: "/v1/performance/improvements"};
+  }
+  rpc GetImprovement(IdRequest) returns (Improvement) {
+    option (google.api.http) = {get: "/v1/performance/improvements/{id}"};
+  }
+  rpc CreateImprovement(ImprovementInput) returns (Improvement) {
+    option (google.api.http) = {post: "/v1/performance/improvements" body: "*"};
+  }
+  rpc UpdateImprovement(ImprovementInput) returns (Improvement) {
+    option (google.api.http) = {patch: "/v1/performance/improvements/{id}" body: "*"};
+  }
+  rpc DeleteImprovement(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/improvements/{id}"};
+  }
+  rpc AcceptSuggestion(DecideSuggestionRequest) returns (Improvement) {
+    option (google.api.http) = {post: "/v1/performance/improvements/{id}:accept" body: "*"};
+  }
+  rpc DeclineSuggestion(DecideSuggestionRequest) returns (Improvement) {
+    option (google.api.http) = {post: "/v1/performance/improvements/{id}:decline" body: "*"};
+  }
+  rpc ListRetros(ListRetrosRequest) returns (ListRetrosResponse) {
+    option (google.api.http) = {get: "/v1/performance/retros"};
+  }
+  rpc GetRetro(IdRequest) returns (Retro) {
+    option (google.api.http) = {get: "/v1/performance/retros/{id}"};
+  }
+  // Saves the department's retro draft of a month (create or replace).
+  rpc SaveRetro(SaveRetroRequest) returns (Retro) {
+    option (google.api.http) = {post: "/v1/performance/retros" body: "*"};
+  }
+  // Closes the retro; every action becomes an improvement item.
+  rpc CloseRetro(IdRequest) returns (CloseRetroResponse) {
+    option (google.api.http) = {post: "/v1/performance/retros/{id}:close" body: "*"};
+  }
+}
+
+message Improvement {
+  string id = 1;
+  // employee | department
+  string scope = 2;
+  optional string employee_id = 3;
+  string employee_name = 4;
+  optional string department_id = 5;
+  string department_name = 6;
+  // review | feedback | task_reject | logbook_reject | retro | manual | ai
+  string source = 7;
+  optional string source_ref = 8;
+  string title = 9;
+  string description = 10;
+  optional string owner_employee_id = 11;
+  string owner_name = 12;
+  optional string due_date = 13;
+  // suggested | open | in_progress | done | dropped | declined
+  string status = 14;
+  optional string linked_task_id = 15;
+  optional google.protobuf.Timestamp completed_at = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+  bool overdue = 19;
+}
+
+message ListImprovementsRequest {
+  string scope = 1;
+  string employee_id = 2;
+  string department_id = 3;
+  string status = 4;
+  string source = 5;
+  bool mine = 6;
+}
+
+message ListImprovementsResponse {
+  repeated Improvement improvements = 1;
+}
+
+// Create: scope plus employee_id or department_id. Update: id plus the
+// fields to change.
+message ImprovementInput {
+  string id = 1;
+  string scope = 2;
+  optional string employee_id = 3;
+  optional string department_id = 4;
+  optional string title = 5;
+  optional string description = 6;
+  optional string owner_employee_id = 7;
+  optional string due_date = 8;
+  optional string status = 9;
+  optional string linked_task_id = 10;
+}
+
+message DecideSuggestionRequest {
+  string id = 1;
+  optional string owner_employee_id = 2;
+  optional string due_date = 3;
+}
+
+message RetroAction {
+  string description = 1;
+  optional string owner_employee_id = 2;
+  optional string due_date = 3;
+  optional string improvement_id = 4;
+}
+
+message Retro {
+  string id = 1;
+  string department_id = 2;
+  string department_name = 3;
+  int32 period_year = 4;
+  int32 period_month = 5;
+  repeated string went_well = 6;
+  repeated string to_improve = 7;
+  repeated RetroAction actions = 8;
+  // draft | closed
+  string status = 9;
+  optional google.protobuf.Timestamp closed_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message ListRetrosRequest {
+  string department_id = 1;
+}
+
+message ListRetrosResponse {
+  repeated Retro retros = 1;
+}
+
+message SaveRetroRequest {
+  string department_id = 1;
+  int32 period_year = 2;
+  int32 period_month = 3;
+  repeated string went_well = 4;
+  repeated string to_improve = 5;
+  repeated RetroAction actions = 6;
+}
+
+message CloseRetroResponse {
+  Retro retro = 1;
+  int32 improvements_filed = 2;
+  string message = 3;
+}

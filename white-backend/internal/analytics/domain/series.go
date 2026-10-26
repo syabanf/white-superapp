@@ -83,14 +83,3 @@ func AlignPrevious(current, previous []DailyPoint, field int) []*float64 {
 	}
 	return out
 }
-
-func F64(n int) float64 { return float64(n) }
-
-// Int64Ptr converts an optional float back to an integer pointer.
-func Int64Ptr(v *float64) *int64 {
-	if v == nil {
-		return nil
-	}
-	n := int64(*v)
-	return &n
-}

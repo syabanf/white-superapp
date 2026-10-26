@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatStrip } from "@/components/dashboard/stat-strip";
 import { DemoBanner } from "@/components/dashboard/banners";
@@ -49,16 +50,24 @@ export default async function PublishCalendarPage(props: PageProps<"/clients/[sl
       {!isPublisherConfigured() ? (
         <DemoBanner message={p.demoBanner} settingsHref={`/clients/${slug}/settings`} />
       ) : null}
+      {stats.inReview > 0 || stats.failed > 0 || stats.overdue > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-300/50 bg-amber-50/70 px-4 py-3 text-sm dark:bg-amber-950/20">
+          <span className="font-medium">Perlu ditindaklanjuti:</span>
+          {stats.failed > 0 ? <Link className="underline underline-offset-2" href={`/clients/${slug}/publish/posts?status=FAILED`}>{stats.failed} gagal</Link> : null}
+          {stats.inReview > 0 ? <Link className="underline underline-offset-2" href={`/clients/${slug}/publish/posts?status=IN_REVIEW`}>{stats.inReview} menunggu review</Link> : null}
+          {stats.overdue > 0 ? <Link className="underline underline-offset-2" href={`/clients/${slug}/publish/posts?status=SCHEDULED&window=overdue`}>{stats.overdue} jadwal terlewat</Link> : null}
+        </div>
+      ) : null}
       <StatStrip
         scrollOnMobile
         mobileScrollHint={p.scrollMetricsHint}
         minWidth={148}
         items={[
-          { label: p.statScheduled7d, value: formatNumber(stats.scheduled7d) },
-          { label: p.statInReview, value: formatNumber(stats.inReview) },
-          { label: p.statDrafts, value: formatNumber(stats.drafts) },
-          { label: p.statPublished30d, value: formatNumber(stats.published30d) },
-          { label: p.statFailed, value: formatNumber(stats.failed) },
+          { label: p.statScheduled7d, value: formatNumber(stats.scheduled7d), href: `/clients/${slug}/publish/posts?status=SCHEDULED&window=next7d` },
+          { label: p.statInReview, value: formatNumber(stats.inReview), href: `/clients/${slug}/publish/posts?status=IN_REVIEW` },
+          { label: p.statDrafts, value: formatNumber(stats.drafts), href: `/clients/${slug}/publish/posts?status=DRAFT` },
+          { label: p.statPublished30d, value: formatNumber(stats.published30d), href: `/clients/${slug}/publish/posts?status=PUBLISHED&window=last30d` },
+          { label: p.statFailed, value: formatNumber(stats.failed), href: `/clients/${slug}/publish/posts?status=FAILED` },
         ]}
       />
       <CalendarView

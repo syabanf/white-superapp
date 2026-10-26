@@ -22,6 +22,7 @@ import (
 	pg "github.com/syabanf/white-superapp/white-backend/pkg/postgres"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -44,12 +45,13 @@ func TestIntegrationGRPC(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
 	srv := grpcx.NewServer(grpcx.ServerOptions{Logger: logger, Verifier: authn.NewVerifier(pub)})
 	grpcapi.Register(srv, grpcapi.Services{
-		Auth:          app.NewAuth(store, authn.NewIssuer(priv, time.Minute), clk),
-		Users:         users,
-		Clients:       app.NewClients(store, events.Noop{}),
-		Notifications: app.NewNotifications(store),
-		Share:         app.NewShare(store, "test-secret", clk),
-		Workspace:     app.NewWorkspace(store, clk),
+		InternalSecret: "s3cret",
+		Auth:           app.NewAuth(store, authn.NewIssuer(priv, time.Minute), clk),
+		Users:          users,
+		Clients:        app.NewClients(store, events.Noop{}),
+		Notifications:  app.NewNotifications(store),
+		Share:          app.NewShare(store, "test-secret", clk),
+		Workspace:      app.NewWorkspace(store, clk),
 	})
 	lis := bufconn.Listen(1 << 20)
 	go func() { _ = srv.Serve(lis) }()
@@ -99,6 +101,19 @@ func TestIntegrationGRPC(t *testing.T) {
 	list, err := clients.ListClients(authed, &emptypb.Empty{})
 	if err != nil || len(list.Clients) != 1 || list.Clients[0].Client.Id != created.Id || list.Clients[0].MyRole != identityv1.ClientAccess_ADMIN_OVERRIDE {
 		t.Fatalf("%v %v", list, err)
+	}
+
+	// Service tokens need the shared secret.
+	if _, err := auth.IssueServiceToken(ctx, &identityv1.IssueServiceTokenRequest{UserId: me.Id}); grpcx.FromStatus(err).Code != apperr.Unauthorized {
+		t.Fatalf("no secret: %v", err)
+	}
+	svcCtx := metadata.AppendToOutgoingContext(ctx, "x-internal-secret", "s3cret")
+	st, err := auth.IssueServiceToken(svcCtx, &identityv1.IssueServiceTokenRequest{UserId: me.Id})
+	if err != nil || st.AccessToken == "" || st.RefreshToken != "" {
+		t.Fatalf("%v %v", st, err)
+	}
+	if _, err := clients.ListClients(grpcx.WithBearer(ctx, st.AccessToken), &emptypb.Empty{}); err != nil {
+		t.Fatal("service token rejected:", err)
 	}
 
 	// Refresh rotates; the old token dies.

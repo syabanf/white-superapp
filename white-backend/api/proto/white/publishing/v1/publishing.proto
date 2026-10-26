@@ -31,6 +31,17 @@ enum MediaKind {
   VIDEO = 2;
 }
 
+// How the post appears on the platform. UNSPECIFIED is treated as FEED so
+// callers that predate formats keep their behaviour.
+enum PostFormat {
+  POST_FORMAT_UNSPECIFIED = 0;
+  FEED = 1;
+  // Instagram/Facebook story: exactly one image or video, no caption.
+  STORY = 2;
+  // One short video.
+  REEL = 3;
+}
+
 // Tabs of the posts list. REJECTED sits with drafts, PUBLISHING with scheduled.
 enum PostsTab {
   POSTS_TAB_UNSPECIFIED = 0;
@@ -276,6 +287,7 @@ message SavePostRequest {
   string first_comment = 10;
   repeated string labels = 11;
   optional google.protobuf.Timestamp scheduled_at = 12;
+  PostFormat format = 13;
 
   message TargetInput {
     string social_account_id = 1;
@@ -381,6 +393,7 @@ message PostDetail {
   repeated MediaAsset media = 20;
   repeated PostComment comments = 21;
   repeated PostActivity activities = 22;
+  PostFormat format = 23;
 }
 
 message PostRow {

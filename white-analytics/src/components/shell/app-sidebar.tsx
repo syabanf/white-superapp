@@ -22,12 +22,32 @@ import { Button } from "@/components/ui/button";
 import { WhiteLogo } from "@/components/brand/logo";
 import { ClientSwitcher, type SwitcherClient } from "@/components/shell/client-switcher";
 import { UserMenu, type ShellUser } from "@/components/shell/user-menu";
-import { adminNav, clientNav, generalNav, isActivePath, type NavItem } from "@/components/shell/nav-config";
+import {
+  adminNav,
+  clientNav,
+  generalNav,
+  isActivePath,
+  visibleErpNav,
+  workspaceOf,
+  type ErpAccess,
+  type NavItem,
+} from "@/components/shell/nav-config";
+import { WorkspaceSwitcher } from "@/components/shell/workspace-switcher";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
 
-export function AppSidebar({ clients, user }: { clients: SwitcherClient[]; user: ShellUser }) {
+export function AppSidebar({
+  clients,
+  user,
+  erpAccess,
+}: {
+  clients: SwitcherClient[];
+  user: ShellUser;
+  erpAccess: ErpAccess | null;
+}) {
   const pathname = usePathname();
+  const inErp = workspaceOf(pathname) === "erp";
+  const erpGroups = visibleErpNav(erpAccess);
   const searchParams = useSearchParams();
   const params = useParams<{ slug?: string }>();
   const slug = typeof params?.slug === "string" ? params.slug : undefined;
@@ -56,26 +76,33 @@ export function AppSidebar({ clients, user }: { clients: SwitcherClient[]; user:
         >
           <WhiteLogo variant={collapsed ? "mark" : "full"} size={collapsed ? 22 : 26} />
         </Link>
-        <ClientSwitcher clients={clients} current={currentClient} collapsed={collapsed} />
+        <WorkspaceSwitcher collapsed={collapsed} showErp={erpGroups.length > 1} />
+        {!inErp ? <ClientSwitcher clients={clients} current={currentClient} collapsed={collapsed} /> : null}
       </SidebarHeader>
 
       <SidebarContent className="scrollbar-thin px-1">
-        <NavGroup label={t.nav.general} items={generalNav} pathname={pathname} withContext={withContext} />
-        {currentClient ? (
-          <NavGroup
-            label={currentClient.name}
-            items={clientNav(currentClient.slug)}
+        {inErp ? (
+          erpGroups.map((g) => (
+            <NavGroup
+              key={g.label}
+              label={g.label}
+              items={g.items}
+              pathname={pathname}
+              withContext={(href) => href}
+            />
+          ))
+        ) : (
+          <MarketingNav
+            currentClient={currentClient}
+            isAdmin={user.role === "ADMIN"}
             pathname={pathname}
             withContext={withContext}
           />
-        ) : null}
-        {user.role === "ADMIN" ? (
-          <NavGroup label={t.nav.admin} items={adminNav} pathname={pathname} withContext={withContext} />
-        ) : null}
+        )}
       </SidebarContent>
 
       <SidebarFooter className="gap-3 p-3">
-        {!collapsed ? (
+        {!collapsed && !inErp ? (
           <Button asChild className="h-10 w-full justify-center">
             {currentClient ? (
               <Link href={withContext(`/clients/${currentClient.slug}/reports`)}>
@@ -92,6 +119,35 @@ export function AppSidebar({ clients, user }: { clients: SwitcherClient[]; user:
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+function MarketingNav({
+  currentClient,
+  isAdmin,
+  pathname,
+  withContext,
+}: {
+  currentClient?: SwitcherClient;
+  isAdmin: boolean;
+  pathname: string;
+  withContext: (href: string) => string;
+}) {
+  return (
+    <>
+      <NavGroup label={t.nav.general} items={generalNav} pathname={pathname} withContext={withContext} />
+      {currentClient ? (
+        <NavGroup
+          label={currentClient.name}
+          items={clientNav(currentClient.slug)}
+          pathname={pathname}
+          withContext={withContext}
+        />
+      ) : null}
+      {isAdmin ? (
+        <NavGroup label={t.nav.admin} items={adminNav} pathname={pathname} withContext={withContext} />
+      ) : null}
+    </>
   );
 }
 

@@ -3,6 +3,7 @@ package gateway
 import (
 	"encoding/json"
 	"log/slog"
+	"net"
 	"net/http"
 	"regexp"
 	"strings"
@@ -21,7 +22,6 @@ import (
 type BrowserRoutes struct {
 	up     *Upstreams
 	logger *slog.Logger
-	verify *authn.Verifier
 }
 
 func NewBrowserRoutes(up *Upstreams, logger *slog.Logger) *BrowserRoutes {
@@ -30,9 +30,7 @@ func NewBrowserRoutes(up *Upstreams, logger *slog.Logger) *BrowserRoutes {
 
 var slugRe = regexp.MustCompile(`^[a-z0-9-]+$`)
 
-const (
-	nonceCookieMaxAge = 600
-)
+const nonceCookieMaxAge = 600
 
 func nonceCookieName(provider string) string { return provider + "_oauth_nonce" }
 
@@ -41,16 +39,23 @@ func (b *BrowserRoutes) Mount(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/connections/{provider}/callback", b.oauthCallback)
 	mux.HandleFunc("POST /api/share/{slug}/unlock", b.shareUnlock)
 	mux.HandleFunc("GET /api/share/{slug}/context", b.shareContext)
+	mux.HandleFunc("POST /internal/session", b.internalSession)
+	mux.HandleFunc("POST /internal/users/sync", b.internalSyncUser)
+	b.mountFiles(mux)
+	b.mountReports(mux)
 }
 
 // forwardAuth copies the browser's Authorization header to the gRPC call.
 func forwardAuth(r *http.Request) metadata.MD {
-	md := metadata.MD{}
+	md := metadata.Pairs(grpcx.EdgeHeader, "1")
 	if v := r.Header.Get("Authorization"); v != "" {
 		md.Set(authn.MetadataHeader, v)
 	}
 	if v := r.Header.Get("X-Forwarded-For"); v != "" {
 		md.Set("x-forwarded-for", v)
+	} else if host, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+		// Same fallback grpc-gateway applies to transcoded routes.
+		md.Set("x-forwarded-for", host)
 	}
 	if v := r.Header.Get("User-Agent"); v != "" {
 		md.Set("user-agent", v)

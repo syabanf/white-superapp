@@ -20,8 +20,13 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { createUserAction, updateUserAction, type UserFormInput } from "@/features/admin/actions";
-import type { AdminUserRow } from "@/features/admin/queries";
+import {
+  createUserAction,
+  setErpPermissionsAction,
+  updateUserAction,
+  type UserFormInput,
+} from "@/features/admin/actions";
+import type { AdminUserRow, ErpPermissionOption } from "@/features/admin/queries";
 import { t } from "@/i18n/id";
 import { ta } from "@/features/admin/strings";
 
@@ -43,6 +48,7 @@ export function UserFormDialog({
   mode,
   user,
   clients,
+  erpOptions,
   trigger,
   open: openProp,
   onOpenChange,
@@ -50,6 +56,7 @@ export function UserFormDialog({
   mode: "create" | "edit";
   user?: AdminUserRow;
   clients: ClientOption[];
+  erpOptions: ErpPermissionOption[];
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -64,7 +71,7 @@ export function UserFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{mode === "create" ? t.admin.newUser : t.admin.editUser}</DialogTitle>
           <DialogDescription>{t.admin.subtitle}</DialogDescription>
@@ -74,6 +81,7 @@ export function UserFormDialog({
           mode={mode}
           user={user}
           clients={clients}
+          erpOptions={erpOptions}
           onClose={() => setOpen(false)}
         />
       </DialogContent>
@@ -85,11 +93,13 @@ function UserFormBody({
   mode,
   user,
   clients,
+  erpOptions,
   onClose,
 }: {
   mode: "create" | "edit";
   user?: AdminUserRow;
   clients: ClientOption[];
+  erpOptions: ErpPermissionOption[];
   onClose: () => void;
 }) {
   const [name, setName] = React.useState(user?.name ?? "");
@@ -102,6 +112,9 @@ function UserFormBody({
     for (const c of user?.clients ?? []) out[c.id] = c.role;
     return out;
   });
+  const initialPerms = user?.erpPermissions ?? [];
+  const [perms, setPerms] = React.useState<string[]>(initialPerms);
+  const permsChanged = perms.length !== initialPerms.length || perms.some((p) => !initialPerms.includes(p));
   const [errors, setErrors] = React.useState<Record<string, string[]> | undefined>(undefined);
   const [pending, startTransition] = React.useTransition();
 
@@ -130,6 +143,14 @@ function UserFormBody({
         setErrors(res.fieldErrors);
         toast.error(res.error);
         return;
+      }
+      const userId = mode === "create" ? (res.data as { id: string }).id : user!.id;
+      if (role === "MEMBER" && permsChanged && erpOptions.length > 0) {
+        const permRes = await setErpPermissionsAction(userId, perms);
+        if (!permRes.ok) {
+          toast.error(`${ta.erpSaveFailed} ${permRes.error}`);
+          return;
+        }
       }
       toast.success(mode === "create" ? t.admin.created : t.admin.updated);
       onClose();
@@ -257,6 +278,38 @@ function UserFormBody({
               </ul>
             </ScrollArea>
           </>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label>{ta.erpAccess}</Label>
+        {role === "ADMIN" ? (
+          <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+            {ta.erpAdminAll}
+          </p>
+        ) : erpOptions.length === 0 ? (
+          <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+            {ta.erpOffline}
+          </p>
+        ) : (
+          <div className="max-h-48 overflow-y-auto rounded-md border">
+            <ul className="divide-y">
+              {erpOptions.map((o) => (
+                <li key={o.key} className="px-3 py-2">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={perms.includes(o.key)}
+                      onCheckedChange={(v) =>
+                        setPerms((prev) => (v === true ? [...prev, o.key] : prev.filter((p) => p !== o.key)))
+                      }
+                      aria-label={o.label}
+                    />
+                    <span className="truncate">{o.label}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
 

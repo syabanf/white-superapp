@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlatformIcon, platformLabel } from "@/features/social/components/platform-icon";
 import { savePost, submitForReview, type SavePostInput } from "@/features/publishing/actions";
-import { PLATFORMS, canTransition, defaultUtm, hasUtm, validatePost, type Platform, type PostRole, type Utm } from "@/features/publishing/lib";
+import { PLATFORMS, canTransition, defaultUtm, hasUtm, validatePost, type Platform, type PostRole, type Utm, type ValidationIssue } from "@/features/publishing/lib";
 import type { BestTimeSlot, MediaRow, OwnAccount, PostDetail } from "@/features/publishing/queries";
 import { fromZoned, toZoned } from "@/features/publishing/time";
 import { p } from "@/features/publishing/strings";
@@ -74,13 +74,34 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
   const [labels, setLabels] = React.useState<string[]>(initial?.labels ?? []);
   const [date, setDate] = React.useState(initialSchedule?.date ?? "");
   const [time, setTime] = React.useState(initialSchedule?.time ?? "");
-  const [issues, setIssues] = React.useState<string[]>([]);
+  const [attemptedMode, setAttemptedMode] = React.useState<"draft" | "review" | null>(null);
 
   const selectedAccounts = accounts.filter((a) => targetIds.includes(a.id));
   const platforms = PLATFORMS.filter((pl) => selectedAccounts.some((a) => a.platform === pl));
   const [previewPlatform, setPreviewPlatform] = React.useState<Platform>(platforms[0] ?? "INSTAGRAM");
   const activePreview = platforms.includes(previewPlatform) ? previewPlatform : platforms[0];
   const previewAccount = selectedAccounts.find((a) => a.platform === activePreview);
+  const currentIssues = attemptedMode ? validatePost({
+    body,
+    targets: targetIds.map((id) => ({ platform: accounts.find((a) => a.id === id)?.platform ?? "INSTAGRAM", bodyOverride: overrides[accounts.find((a) => a.id === id)?.platform ?? "INSTAGRAM"] })),
+    media: media.map((m) => ({ kind: m.kind })),
+    linkUrl,
+    firstComment,
+  }, { level: attemptedMode === "review" ? "full" : "draft" }).issues : [];
+  const issuesFor = (field: string) => Array.from(new Set(currentIssues.filter((issue) => issue.field === field).map(issueLabel)));
+  const fieldErrors = (field: string) => {
+    const messages = issuesFor(field);
+    return messages.length ? <ul role="alert" className="mt-2 space-y-1 text-xs text-destructive">{messages.map((message) => <li key={message}>{message}</li>)}</ul> : null;
+  };
+  const previewCard = (
+    <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="flex items-baseline gap-2 text-sm font-semibold"><span className="label-mono text-brand">07</span> {p.sectionPreview}</h2>
+        {platforms.length > 1 ? <Tabs value={activePreview} onValueChange={(v) => setPreviewPlatform(v as Platform)}><TabsList className="h-8">{platforms.map((pl) => <TabsTrigger key={pl} value={pl} aria-label={platformLabel(pl)}><PlatformIcon platform={pl} className="size-3.5" mono={activePreview !== pl} /></TabsTrigger>)}</TabsList></Tabs> : null}
+      </div>
+      {activePreview && previewAccount ? <PostPreview platform={activePreview} account={previewAccount} caption={overrides[activePreview]?.trim() ? overrides[activePreview]! : body} media={media} linkUrl={linkUrl.trim() || undefined} /> : <p className="py-10 text-center text-sm text-muted-foreground">{p.previewEmpty}</p>}
+    </div>
+  );
 
   const onLink = (v: string) => {
     setLinkUrl(v);
@@ -106,6 +127,7 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
   });
 
   const submit = (mode: "draft" | "review") => {
+    setAttemptedMode(mode);
     const check = validatePost(
       {
         body,
@@ -117,12 +139,12 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
       { level: mode === "review" ? "full" : "draft" },
     );
     if (!check.ok) {
-      const msgs = Array.from(new Set(check.issues.map((i) => (i.scope === "post" ? i.message : `${platformLabel(i.scope)}: ${i.message}`))));
-      setIssues(msgs);
+      const msgs = Array.from(new Set(check.issues.map(issueLabel)));
       toast.error(msgs[0]!);
+      const firstField = check.issues[0]?.field;
+      if (firstField) document.getElementById(`composer-${firstField}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    setIssues([]);
     start(async () => {
       const saved = await savePost(buildPayload());
       if (!saved.ok) {
@@ -151,11 +173,12 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
         {readOnly ? <p className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">{p.viewerReadOnly}</p> : null}
         {initial && initial.status !== "DRAFT" ? <p className="rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground">{p.editResetsNote}</p> : null}
 
-        <Block index="01" title={p.sectionTargets}>
+        <div id="composer-targets"><Block index="01" title={p.sectionTargets}>
           <TargetPicker accounts={accounts} selected={targetIds} onChange={setTargetIds} settingsHref={`/clients/${slug}/settings`} disabled={disabled} />
-        </Block>
+          {fieldErrors("targets")}
+        </Block></div>
 
-        <Block index="02" title={p.sectionCaption}>
+        <div id="composer-body"><Block index="02" title={p.sectionCaption}>
           <div className="mb-3 space-y-1">
             <Label htmlFor="post-title">
               {p.titleLabel} <span className="text-xs font-normal text-muted-foreground">({t.common.optional})</span>
@@ -163,9 +186,10 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
             <Input id="post-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={p.titlePlaceholder} disabled={disabled} className="h-9" maxLength={160} />
           </div>
           <CaptionEditor body={body} onBody={setBody} platforms={platforms} overrides={overrides} onOverride={(pl, v) => setOverrides((o) => ({ ...o, [pl]: v }))} disabled={disabled} />
-        </Block>
+          {fieldErrors("body")}
+        </Block></div>
 
-        <Block index="03" title={p.sectionMedia}>
+        <div id="composer-media"><Block index="03" title={p.sectionMedia}>
           <MediaPicker
             clientId={clientId}
             library={library}
@@ -176,15 +200,20 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
             onAlt={(id, v) => setAlt((a) => ({ ...a, [id]: v }))}
             disabled={disabled}
           />
-        </Block>
+          {fieldErrors("media")}
+        </Block></div>
 
-        <Block index="04" title={p.sectionLink}>
+        <div className="lg:hidden">{previewCard}</div>
+
+        <div id="composer-linkUrl"><Block index="04" title={p.sectionLink}>
           <LinkUtmFields linkUrl={linkUrl} onLink={onLink} utm={utm} onUtm={setUtm} disabled={disabled} />
-        </Block>
+          {fieldErrors("linkUrl")}
+        </Block></div>
 
-        <Block index="05" title={p.sectionExtras}>
+        <div id="composer-firstComment"><Block index="05" title={p.sectionExtras}>
           <ExtrasFields showFirstComment={platforms.includes("INSTAGRAM")} firstComment={firstComment} onFirstComment={setFirstComment} labels={labels} onLabels={setLabels} disabled={disabled} />
-        </Block>
+          {fieldErrors("firstComment")}
+        </Block></div>
 
         <Block index="06" title={p.sectionSchedule} hint={p.timezoneNote(timezone)}>
           <SchedulePicker
@@ -201,14 +230,6 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
           />
         </Block>
 
-        {issues.length ? (
-          <ul role="alert" className="space-y-1 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-            {issues.map((m) => (
-              <li key={m}>{m}</li>
-            ))}
-          </ul>
-        ) : null}
-
         <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:-mx-6 md:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
           <Button type="button" variant="outline" size="sm" onClick={() => submit("draft")} disabled={disabled}>
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
@@ -223,36 +244,12 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
       </div>
 
       <aside className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-        <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="flex items-baseline gap-2 text-sm font-semibold">
-              <span className="label-mono text-brand">07</span> {p.sectionPreview}
-            </h2>
-            {platforms.length > 1 ? (
-              <Tabs value={activePreview} onValueChange={(v) => setPreviewPlatform(v as Platform)}>
-                <TabsList className="h-8">
-                  {platforms.map((pl) => (
-                    <TabsTrigger key={pl} value={pl} aria-label={platformLabel(pl)}>
-                      <PlatformIcon platform={pl} className="size-3.5" mono={activePreview !== pl} />
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            ) : null}
-          </div>
-          {activePreview && previewAccount ? (
-            <PostPreview
-              platform={activePreview}
-              account={previewAccount}
-              caption={overrides[activePreview]?.trim() ? overrides[activePreview]! : body}
-              media={media}
-              linkUrl={linkUrl.trim() || undefined}
-            />
-          ) : (
-            <p className="py-10 text-center text-sm text-muted-foreground">{p.previewEmpty}</p>
-          )}
-        </div>
+        <div className="hidden lg:block">{previewCard}</div>
       </aside>
     </div>
   );
+}
+
+function issueLabel(issue: ValidationIssue): string {
+  return issue.scope === "post" ? issue.message : `${platformLabel(issue.scope)}: ${issue.message}`;
 }

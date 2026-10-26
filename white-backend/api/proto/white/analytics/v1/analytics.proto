@@ -65,6 +65,8 @@ service SourceService {
 
   // Internal. One property by id (seosuite).
   rpc GetSeoProperty(GetSeoPropertyRequest) returns (SeoProperty);
+  // Internal. Own-account posts, newest first (publishing heatmap and report matching).
+  rpc ListSocialPosts(ListSocialPostsRequest) returns (ListSocialPostsResponse);
 }
 
 message SocialAccount {
@@ -212,6 +214,40 @@ message GetClientSourcesResponse {
 
 message GetSeoPropertyRequest {
   string property_id = 1;
+}
+
+message ListSocialPostsRequest {
+  string client_id = 1;
+  // Optional filters.
+  repeated string social_account_ids = 2;
+  repeated string external_ids = 3;
+  // Optional inclusive UTC days on published_at (YYYY-MM-DD).
+  string from_day = 4;
+  string to_day = 5;
+  // Default 400, max 1000.
+  int32 limit = 6;
+}
+
+message SocialPost {
+  string id = 1;
+  string social_account_id = 2;
+  string external_id = 3;
+  string caption = 4;
+  string media_type = 5;
+  optional string product_type = 6;
+  optional string permalink = 7;
+  google.protobuf.Timestamp published_at = 8;
+  int64 likes = 9;
+  int64 comments = 10;
+  int64 shares = 11;
+  int64 saves = 12;
+  int64 views = 13;
+  int64 reach = 14;
+  int64 impressions = 15;
+}
+
+message ListSocialPostsResponse {
+  repeated SocialPost posts = 1;
 }
 
 // ─────────────────────────────────────────────────────────────

@@ -164,6 +164,17 @@ type PostWithAccount struct {
 	Username string
 }
 
+// PostFilter selects own-account posts for other services.
+type PostFilter struct {
+	ClientID    string
+	AccountIDs  []string
+	ExternalIDs []string
+	// From and ToExclusive bound published_at when set.
+	From        *time.Time
+	ToExclusive *time.Time
+	Limit       int
+}
+
 // ProfilePatch updates the public profile of an account after a sync.
 type ProfilePatch struct {
 	Username    *string
@@ -396,6 +407,7 @@ type SocialRepo interface {
 	// ListPosts returns posts published in [from, toExclusive), newest first.
 	ListPosts(ctx context.Context, accountIDs []string, from, toExclusive time.Time) ([]SocialPost, error)
 	ListOwnPosts(ctx context.Context, clientID string, from, toExclusive time.Time) ([]PostWithAccount, error)
+	ListOwnPostsFiltered(ctx context.Context, f PostFilter) ([]SocialPost, error)
 	UpsertPost(ctx context.Context, create SocialPost, patch PostPatch) error
 	InsertPostsIgnore(ctx context.Context, rows []SocialPost) error
 }

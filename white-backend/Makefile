@@ -2,7 +2,7 @@ SHELL := /bin/bash
 GOBIN := $(shell go env GOPATH)/bin
 export PATH := $(PATH):$(GOBIN)
 
-SERVICES := identity integrations publishing seosuite scheduler gateway
+SERVICES := identity integrations analytics publishing seosuite reports content finance hr recruitment sales performance scheduler gateway
 
 .PHONY: tools proto sqlc generate build test lint vet migrate-% run-% up down fmt
 
@@ -26,7 +26,7 @@ generate: proto sqlc
 
 build:
 	@mkdir -p bin
-	@for s in $(SERVICES); do go build -o bin/$$s ./cmd/$$s || exit 1; done
+	@for s in $(SERVICES); do [ -d cmd/$$s ] || continue; go build -o bin/$$s ./cmd/$$s || exit 1; done
 
 ## Integration tests run when WHITE_TEST_DATABASE_URL is set. Packages of one
 ## service share a schema and truncate it, so test packages run one at a time.

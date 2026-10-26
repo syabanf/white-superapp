@@ -161,7 +161,7 @@ func (q *Queries) DeleteTargetsNotIn(ctx context.Context, arg DeleteTargetsNotIn
 }
 
 const getPost = `-- name: GetPost :one
-SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at FROM publishing.content_posts WHERE id = $1
+SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format FROM publishing.content_posts WHERE id = $1
 `
 
 func (q *Queries) GetPost(ctx context.Context, id string) (PublishingContentPost, error) {
@@ -185,12 +185,13 @@ func (q *Queries) GetPost(ctx context.Context, id string) (PublishingContentPost
 		&i.ApprovedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Format,
 	)
 	return i, err
 }
 
 const getPostInClient = `-- name: GetPostInClient :one
-SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at FROM publishing.content_posts WHERE id = $1 AND client_id = $2
+SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format FROM publishing.content_posts WHERE id = $1 AND client_id = $2
 `
 
 type GetPostInClientParams struct {
@@ -219,6 +220,7 @@ func (q *Queries) GetPostInClient(ctx context.Context, arg GetPostInClientParams
 		&i.ApprovedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Format,
 	)
 	return i, err
 }
@@ -276,9 +278,9 @@ func (q *Queries) InsertComment(ctx context.Context, arg InsertCommentParams) (P
 }
 
 const insertPost = `-- name: InsertPost :one
-INSERT INTO publishing.content_posts (id, client_id, title, body, status, scheduled_at, link_url, first_comment, labels, utm, created_by_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-RETURNING id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at
+INSERT INTO publishing.content_posts (id, client_id, title, body, status, scheduled_at, link_url, first_comment, labels, utm, created_by_id, format)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format
 `
 
 type InsertPostParams struct {
@@ -293,6 +295,7 @@ type InsertPostParams struct {
 	Labels       []string
 	Utm          []byte
 	CreatedByID  *string
+	Format       string
 }
 
 func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (PublishingContentPost, error) {
@@ -308,6 +311,7 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Publish
 		arg.Labels,
 		arg.Utm,
 		arg.CreatedByID,
+		arg.Format,
 	)
 	var i PublishingContentPost
 	err := row.Scan(
@@ -328,6 +332,7 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Publish
 		&i.ApprovedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Format,
 	)
 	return i, err
 }
@@ -394,7 +399,7 @@ func (q *Queries) ListActivities(ctx context.Context, postID string) ([]Publishi
 }
 
 const listCalendarPosts = `-- name: ListCalendarPosts :many
-SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at FROM publishing.content_posts
+SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format FROM publishing.content_posts
 WHERE client_id = $1 AND (
     (published_at >= $2::timestamptz AND published_at < $3::timestamptz)
     OR (published_at IS NULL AND scheduled_at >= $2::timestamptz AND scheduled_at < $3::timestamptz)
@@ -435,6 +440,7 @@ func (q *Queries) ListCalendarPosts(ctx context.Context, arg ListCalendarPostsPa
 			&i.ApprovedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Format,
 		); err != nil {
 			return nil, err
 		}
@@ -477,7 +483,7 @@ func (q *Queries) ListComments(ctx context.Context, postID string) ([]Publishing
 }
 
 const listDuePosts = `-- name: ListDuePosts :many
-SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at FROM publishing.content_posts
+SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format FROM publishing.content_posts
 WHERE status = 'SCHEDULED' AND scheduled_at <= $1::timestamptz
 ORDER BY scheduled_at ASC
 LIMIT $2
@@ -515,6 +521,7 @@ func (q *Queries) ListDuePosts(ctx context.Context, arg ListDuePostsParams) ([]P
 			&i.ApprovedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Format,
 		); err != nil {
 			return nil, err
 		}
@@ -527,7 +534,7 @@ func (q *Queries) ListDuePosts(ctx context.Context, arg ListDuePostsParams) ([]P
 }
 
 const listPosts = `-- name: ListPosts :many
-SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at FROM publishing.content_posts WHERE client_id = $1 ORDER BY scheduled_at DESC, created_at DESC
+SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format FROM publishing.content_posts WHERE client_id = $1 ORDER BY scheduled_at DESC, created_at DESC
 `
 
 func (q *Queries) ListPosts(ctx context.Context, clientID string) ([]PublishingContentPost, error) {
@@ -557,6 +564,7 @@ func (q *Queries) ListPosts(ctx context.Context, clientID string) ([]PublishingC
 			&i.ApprovedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Format,
 		); err != nil {
 			return nil, err
 		}
@@ -569,7 +577,7 @@ func (q *Queries) ListPosts(ctx context.Context, clientID string) ([]PublishingC
 }
 
 const listPostsPublishing = `-- name: ListPostsPublishing :many
-SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at FROM publishing.content_posts WHERE id = ANY($1::text[]) AND status = 'PUBLISHING'
+SELECT id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format FROM publishing.content_posts WHERE id = ANY($1::text[]) AND status = 'PUBLISHING'
 `
 
 func (q *Queries) ListPostsPublishing(ctx context.Context, ids []string) ([]PublishingContentPost, error) {
@@ -599,6 +607,7 @@ func (q *Queries) ListPostsPublishing(ctx context.Context, ids []string) ([]Publ
 			&i.ApprovedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Format,
 		); err != nil {
 			return nil, err
 		}
@@ -883,11 +892,12 @@ UPDATE publishing.content_posts SET
     first_comment = $7,
     labels = $8,
     utm = $9,
-    approved_by_id = CASE WHEN $10::bool THEN NULL ELSE approved_by_id END,
-    approved_at = CASE WHEN $10::bool THEN NULL ELSE approved_at END,
+    format = $10,
+    approved_by_id = CASE WHEN $11::bool THEN NULL ELSE approved_by_id END,
+    approved_at = CASE WHEN $11::bool THEN NULL ELSE approved_at END,
     updated_at = now()
 WHERE id = $1
-RETURNING id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at
+RETURNING id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format
 `
 
 type UpdatePostContentParams struct {
@@ -900,6 +910,7 @@ type UpdatePostContentParams struct {
 	FirstComment  *string
 	Labels        []string
 	Utm           []byte
+	Format        string
 	ClearApproval bool
 }
 
@@ -914,6 +925,7 @@ func (q *Queries) UpdatePostContent(ctx context.Context, arg UpdatePostContentPa
 		arg.FirstComment,
 		arg.Labels,
 		arg.Utm,
+		arg.Format,
 		arg.ClearApproval,
 	)
 	var i PublishingContentPost
@@ -935,6 +947,7 @@ func (q *Queries) UpdatePostContent(ctx context.Context, arg UpdatePostContentPa
 		&i.ApprovedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Format,
 	)
 	return i, err
 }
@@ -963,7 +976,7 @@ UPDATE publishing.content_posts SET
     published_at = CASE WHEN $10::bool THEN $11::timestamptz ELSE published_at END,
     updated_at = now()
 WHERE id = $1
-RETURNING id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at
+RETURNING id, client_id, title, body, status, scheduled_at, published_at, link_url, first_comment, labels, utm, review_note, created_by_id, approved_by_id, approved_at, created_at, updated_at, format
 `
 
 type UpdatePostStatusParams struct {
@@ -1013,6 +1026,7 @@ func (q *Queries) UpdatePostStatus(ctx context.Context, arg UpdatePostStatusPara
 		&i.ApprovedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Format,
 	)
 	return i, err
 }

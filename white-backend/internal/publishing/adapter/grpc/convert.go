@@ -43,6 +43,26 @@ var statusPB = map[domain.PostStatus]publishingv1.PostStatus{
 
 func status(s domain.PostStatus) publishingv1.PostStatus { return statusPB[s] }
 
+func formatPB(f domain.PostFormat) publishingv1.PostFormat {
+	switch f {
+	case domain.FormatStory:
+		return publishingv1.PostFormat_STORY
+	case domain.FormatReel:
+		return publishingv1.PostFormat_REEL
+	}
+	return publishingv1.PostFormat_FEED
+}
+
+func formatFrom(f publishingv1.PostFormat) domain.PostFormat {
+	switch f {
+	case publishingv1.PostFormat_STORY:
+		return domain.FormatStory
+	case publishingv1.PostFormat_REEL:
+		return domain.FormatReel
+	}
+	return domain.FormatFeed
+}
+
 func kind(k domain.MediaKind) publishingv1.MediaKind {
 	if k == domain.MediaVideo {
 		return publishingv1.MediaKind_VIDEO
@@ -152,7 +172,7 @@ func detailPB(d *app.PostDetail) *publishingv1.PostDetail {
 		ScheduledAt: tsPtr(p.ScheduledAt), PublishedAt: tsPtr(p.PublishedAt), LinkUrl: p.LinkURL, FirstComment: p.FirstComment,
 		Labels: p.Labels, Utm: utmPB(p.UTM), ReviewNote: p.ReviewNote, CreatedAt: ts(p.CreatedAt), UpdatedAt: ts(p.UpdatedAt),
 		CreatedById: p.CreatedByID, CreatedBy: d.CreatedBy, ApprovedBy: d.ApprovedBy, ApprovedAt: tsPtr(p.ApprovedAt),
-		Media: mediaListPB(d.Media),
+		Media: mediaListPB(d.Media), Format: formatPB(p.Format),
 	}
 	for _, t := range d.Targets {
 		out.Targets = append(out.Targets, &publishingv1.PostTargetView{Id: t.ID, SocialAccountId: t.SocialAccountID, Platform: platform(t.Platform), Username: t.Username, DisplayName: t.DisplayName, AvatarUrl: t.AvatarURL, BodyOverride: t.BodyOverride, Status: status(t.Status), ExternalId: t.ExternalID, Permalink: t.Permalink, Error: t.Error, Attempts: t.Attempts, PublishedAt: tsPtr(t.PublishedAt)})

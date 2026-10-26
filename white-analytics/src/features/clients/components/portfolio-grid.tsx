@@ -31,6 +31,7 @@ export type PortfolioCardData = {
   spendDelta: Delta | null;
   health: number | null;
   modules: { social: boolean; seo: boolean; ads: boolean };
+  coverage: { social: boolean; seo: boolean; ads: boolean };
   /** pre-formatted relative label (computed server-side to avoid hydration drift) */
   lastSyncLabel: string | null;
   contextQuery: string;
@@ -163,13 +164,14 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
 
       <div className="space-y-0.5 rounded-2xl bg-muted/70 p-1.5">
         <MiniMetric label={tc.portfolio.metricFollowers} value={formatCompact(data.followers)} delta={data.followersDelta} />
-        <MiniMetric label={tc.portfolio.metricClicks} value={formatCompact(data.clicks)} delta={data.clicksDelta} />
+        <MiniMetric label={tc.portfolio.metricClicks} value={data.coverage.seo ? formatCompact(data.clicks) : "–"} delta={data.coverage.seo ? data.clicksDelta : null} />
         <MiniMetric
           label={tc.portfolio.metricSpend}
-          value={formatCurrency(data.spend, data.currency, { compact: true })}
-          delta={data.spendDelta}
+          value={data.coverage.ads ? formatCurrency(data.spend, data.currency, { compact: true }) : "–"}
+          delta={data.coverage.ads ? data.spendDelta : null}
         />
       </div>
+      {!data.coverage.social || !data.coverage.seo || !data.coverage.ads ? <p className="text-xs text-muted-foreground">– berarti belum ada data pada periode terpilih.</p> : null}
 
       {activeModules.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5" aria-label={t.portfolio.modulesActive}>

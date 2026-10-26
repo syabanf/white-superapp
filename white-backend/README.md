@@ -1,6 +1,6 @@
 # WHITE Backend (Go)
 
-Backend microservice untuk WHITE Analytics, ditulis ulang dari server action Next.js + Prisma di `../white-analytics`. Enam service Go, satu PostgreSQL dengan skema per service, NATS JetStream untuk kerja asinkron, gRPC antar service, dan grpc-gateway sebagai REST untuk frontend.
+Backend microservice untuk WHITE Analytics, ditulis ulang dari server action Next.js + Prisma di `../white-analytics`. Platform punya dua workspace: Digital Marketing dan ERP (keuangan, SDM, kinerja, penjualan, porting dari NüHabit). Service Go berjalan di atas satu PostgreSQL dengan skema per service, NATS JetStream untuk kerja asinkron, gRPC antar service, dan grpc-gateway sebagai REST untuk frontend.
 
 | Service | Port | Tanggung jawab |
 |---|---|---|
@@ -11,7 +11,13 @@ Backend microservice untuk WHITE Analytics, ditulis ulang dari server action Nex
 | `publishing` | 9004 | Pustaka media, komposer post, alur persetujuan, kalender, penjadwal terbit |
 | `seosuite` | 9005 | Riset kata kunci, rank tracker, backlink, kompetitor domain |
 | `reports` | 9006 | Laporan PDF dan ringkasan AI, disusun dari service lain |
-| `scheduler` | - | Tick harian per klien, tick publish 5 menit, tick retensi |
+| `content` | 9011 | Digital Marketing: editorial plan dengan draft AI, alur edit dan approval konten, tugas desain, aset brand, laporan konten, jadwal feed dan story ke publishing |
+| `finance` | 9007 | ERP: bagan akun, jurnal, periode fiskal, kas-bank, hutang dan piutang, laporan keuangan, reimbursement, analisa rasio dengan AI |
+| `hr` | 9008 | ERP: karyawan, absensi, jadwal, cuti, lembur, kontrak, pengumuman, payroll (PPh21, BPJS), pinjaman, layanan mandiri |
+| `recruitment` | 9009 | ERP: lowongan, kandidat dan pipeline, talent pool, psikotes, wawancara AI, jadwal wawancara, offer letter, portal karier publik |
+| `sales` | 9010 | ERP: lead, pipeline, quotation, tagihan, kontrak dengan tanda tangan digital, pitch deck, onboarding klien, chatbot |
+| `performance` | 9012 | ERP: KPI, review, 360, tugas departemen, logbook, rekap harian dan bulanan, things to improve |
+| `scheduler` | - | Tick harian per klien, tick publish 5 menit, tick retensi, tick ERP (15 menit, per jam, harian) |
 
 Rincian desain ada di [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), aturan kode di [docs/CONVENTIONS.md](docs/CONVENTIONS.md), dan inventaris perilaku aplikasi lama di `docs/inventory/`.
 
@@ -28,9 +34,17 @@ make run-analytics
 make run-publishing
 make run-seosuite
 make run-reports
+make run-content
+make run-hr                     # ERP: hr dulu, finance dan performance membaca direktori karyawannya
+make run-finance
+make run-recruitment
+make run-sales
+make run-performance
 make run-scheduler
-make run-gateway                # REST di http://localhost:8080, spesifikasi di /openapi.json
+make run-gateway                # REST + dokumentasi API (Swagger UI) di http://localhost:8080
 ```
+
+Atau semuanya sekaligus dengan `./scripts/dev-up.sh` (matikan dengan `./scripts/dev-down.sh`). Kalau port 8080 sudah dipakai aplikasi lain, isi `HTTP_ADDR=:8380` di `.env`.
 
 Setiap binary menerima `serve` (default: migrasi + gRPC + worker), `migrate`, atau `worker`.
 
@@ -39,6 +53,14 @@ Dengan Docker:
 ```bash
 make up
 ```
+
+Data demo ERP dan konten untuk agency WHITE (aman dijalankan ulang):
+
+```bash
+for s in hr finance recruitment sales performance content; do go run ./cmd/$s seed; done
+```
+
+Rencana dan keputusan ERP ada di [docs/ERP_PLAN.md](docs/ERP_PLAN.md).
 
 ## Migrasi dari database Prisma
 

@@ -223,7 +223,7 @@ func (x NotifyRequest_Audience) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use NotifyRequest_Audience.Descriptor instead.
 func (NotifyRequest_Audience) EnumDescriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{39, 0}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{44, 0}
 }
 
 type ShareContext_Status int32
@@ -278,7 +278,7 @@ func (x ShareContext_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ShareContext_Status.Descriptor instead.
 func (ShareContext_Status) EnumDescriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{42, 0}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{47, 0}
 }
 
 type MarkSetupRequest_Kind int32
@@ -327,17 +327,19 @@ func (x MarkSetupRequest_Kind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MarkSetupRequest_Kind.Descriptor instead.
 func (MarkSetupRequest_Kind) EnumDescriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{46, 0}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{51, 0}
 }
 
 type User struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Role          UserRole               `protobuf:"varint,4,opt,name=role,proto3,enum=white.identity.v1.UserRole" json:"role,omitempty"`
-	IsActive      bool                   `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email     string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Name      string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Role      UserRole               `protobuf:"varint,4,opt,name=role,proto3,enum=white.identity.v1.UserRole" json:"role,omitempty"`
+	IsActive  bool                   `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// ERP permission keys, e.g. finance.read, hr.*. Admins hold all.
+	Permissions   []string `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -410,6 +412,13 @@ func (x *User) GetIsActive() bool {
 func (x *User) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *User) GetPermissions() []string {
+	if x != nil {
+		return x.Permissions
 	}
 	return nil
 }
@@ -667,6 +676,50 @@ func (x *ClientAccess) GetCanManage() bool {
 	return false
 }
 
+type IssueServiceTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IssueServiceTokenRequest) Reset() {
+	*x = IssueServiceTokenRequest{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IssueServiceTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IssueServiceTokenRequest) ProtoMessage() {}
+
+func (x *IssueServiceTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IssueServiceTokenRequest.ProtoReflect.Descriptor instead.
+func (*IssueServiceTokenRequest) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *IssueServiceTokenRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
@@ -677,7 +730,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[4]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -689,7 +742,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[4]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -702,7 +755,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{4}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *LoginRequest) GetEmail() string {
@@ -732,7 +785,7 @@ type TokenPair struct {
 
 func (x *TokenPair) Reset() {
 	*x = TokenPair{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[5]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -744,7 +797,7 @@ func (x *TokenPair) String() string {
 func (*TokenPair) ProtoMessage() {}
 
 func (x *TokenPair) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[5]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -757,7 +810,7 @@ func (x *TokenPair) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TokenPair.ProtoReflect.Descriptor instead.
 func (*TokenPair) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{5}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *TokenPair) GetAccessToken() string {
@@ -804,7 +857,7 @@ type RefreshRequest struct {
 
 func (x *RefreshRequest) Reset() {
 	*x = RefreshRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[6]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -816,7 +869,7 @@ func (x *RefreshRequest) String() string {
 func (*RefreshRequest) ProtoMessage() {}
 
 func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[6]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -829,7 +882,7 @@ func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshRequest.ProtoReflect.Descriptor instead.
 func (*RefreshRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{6}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RefreshRequest) GetRefreshToken() string {
@@ -848,7 +901,7 @@ type LogoutRequest struct {
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[7]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -860,7 +913,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[7]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -873,7 +926,7 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{7}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *LogoutRequest) GetRefreshToken() string {
@@ -881,6 +934,186 @@ func (x *LogoutRequest) GetRefreshToken() string {
 		return x.RefreshToken
 	}
 	return ""
+}
+
+type SetUserPermissionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Permissions   []string               `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetUserPermissionsRequest) Reset() {
+	*x = SetUserPermissionsRequest{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetUserPermissionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetUserPermissionsRequest) ProtoMessage() {}
+
+func (x *SetUserPermissionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetUserPermissionsRequest.ProtoReflect.Descriptor instead.
+func (*SetUserPermissionsRequest) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SetUserPermissionsRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *SetUserPermissionsRequest) GetPermissions() []string {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
+type SyncLegacyUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	PasswordHash  string                 `protobuf:"bytes,4,opt,name=password_hash,json=passwordHash,proto3" json:"password_hash,omitempty"`
+	Role          UserRole               `protobuf:"varint,5,opt,name=role,proto3,enum=white.identity.v1.UserRole" json:"role,omitempty"`
+	IsActive      bool                   `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncLegacyUserRequest) Reset() {
+	*x = SyncLegacyUserRequest{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncLegacyUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncLegacyUserRequest) ProtoMessage() {}
+
+func (x *SyncLegacyUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncLegacyUserRequest.ProtoReflect.Descriptor instead.
+func (*SyncLegacyUserRequest) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SyncLegacyUserRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SyncLegacyUserRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *SyncLegacyUserRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SyncLegacyUserRequest) GetPasswordHash() string {
+	if x != nil {
+		return x.PasswordHash
+	}
+	return ""
+}
+
+func (x *SyncLegacyUserRequest) GetRole() UserRole {
+	if x != nil {
+		return x.Role
+	}
+	return UserRole_USER_ROLE_UNSPECIFIED
+}
+
+func (x *SyncLegacyUserRequest) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+type ListPermissionsResponse struct {
+	state         protoimpl.MessageState                `protogen:"open.v1"`
+	Permissions   []*ListPermissionsResponse_Permission `protobuf:"bytes,1,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPermissionsResponse) Reset() {
+	*x = ListPermissionsResponse{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPermissionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPermissionsResponse) ProtoMessage() {}
+
+func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPermissionsResponse.ProtoReflect.Descriptor instead.
+func (*ListPermissionsResponse) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListPermissionsResponse) GetPermissions() []*ListPermissionsResponse_Permission {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
 }
 
 type UserWithClients struct {
@@ -893,7 +1126,7 @@ type UserWithClients struct {
 
 func (x *UserWithClients) Reset() {
 	*x = UserWithClients{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[8]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -905,7 +1138,7 @@ func (x *UserWithClients) String() string {
 func (*UserWithClients) ProtoMessage() {}
 
 func (x *UserWithClients) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[8]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -918,7 +1151,7 @@ func (x *UserWithClients) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserWithClients.ProtoReflect.Descriptor instead.
 func (*UserWithClients) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{8}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UserWithClients) GetUser() *User {
@@ -944,7 +1177,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[9]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -956,7 +1189,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[9]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -969,7 +1202,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{9}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListUsersResponse) GetUsers() []*UserWithClients {
@@ -980,17 +1213,19 @@ func (x *ListUsersResponse) GetUsers() []*UserWithClients {
 }
 
 type UserOption struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Email string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	// Filled by ListPermissionHolders only.
+	Admin         bool `protobuf:"varint,4,opt,name=admin,proto3" json:"admin,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UserOption) Reset() {
 	*x = UserOption{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[10]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1002,7 +1237,7 @@ func (x *UserOption) String() string {
 func (*UserOption) ProtoMessage() {}
 
 func (x *UserOption) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[10]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1015,7 +1250,7 @@ func (x *UserOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserOption.ProtoReflect.Descriptor instead.
 func (*UserOption) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{10}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UserOption) GetId() string {
@@ -1039,6 +1274,13 @@ func (x *UserOption) GetEmail() string {
 	return ""
 }
 
+func (x *UserOption) GetAdmin() bool {
+	if x != nil {
+		return x.Admin
+	}
+	return false
+}
+
 type ListUserOptionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Users         []*UserOption          `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
@@ -1048,7 +1290,7 @@ type ListUserOptionsResponse struct {
 
 func (x *ListUserOptionsResponse) Reset() {
 	*x = ListUserOptionsResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[11]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1060,7 +1302,7 @@ func (x *ListUserOptionsResponse) String() string {
 func (*ListUserOptionsResponse) ProtoMessage() {}
 
 func (x *ListUserOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[11]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1073,7 +1315,7 @@ func (x *ListUserOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListUserOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{11}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListUserOptionsResponse) GetUsers() []*UserOption {
@@ -1091,13 +1333,14 @@ type CreateUserRequest struct {
 	Role          UserRole               `protobuf:"varint,4,opt,name=role,proto3,enum=white.identity.v1.UserRole" json:"role,omitempty"`
 	IsActive      bool                   `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	Memberships   []*Membership          `protobuf:"bytes,6,rep,name=memberships,proto3" json:"memberships,omitempty"`
+	Permissions   []string               `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[12]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1109,7 +1352,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[12]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1122,7 +1365,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{12}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateUserRequest) GetName() string {
@@ -1167,6 +1410,13 @@ func (x *CreateUserRequest) GetMemberships() []*Membership {
 	return nil
 }
 
+func (x *CreateUserRequest) GetPermissions() []string {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
 type UpdateUserRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -1177,14 +1427,16 @@ type UpdateUserRequest struct {
 	Role     UserRole `protobuf:"varint,5,opt,name=role,proto3,enum=white.identity.v1.UserRole" json:"role,omitempty"`
 	IsActive bool     `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	// Replaces every membership of the user.
-	Memberships   []*Membership `protobuf:"bytes,7,rep,name=memberships,proto3" json:"memberships,omitempty"`
+	Memberships []*Membership `protobuf:"bytes,7,rep,name=memberships,proto3" json:"memberships,omitempty"`
+	// Replaces every ERP permission of the user.
+	Permissions   []string `protobuf:"bytes,8,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[13]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1196,7 +1448,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[13]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1209,7 +1461,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{13}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateUserRequest) GetUserId() string {
@@ -1261,6 +1513,13 @@ func (x *UpdateUserRequest) GetMemberships() []*Membership {
 	return nil
 }
 
+func (x *UpdateUserRequest) GetPermissions() []string {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
 type SetUserActiveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -1271,7 +1530,7 @@ type SetUserActiveRequest struct {
 
 func (x *SetUserActiveRequest) Reset() {
 	*x = SetUserActiveRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[14]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1283,7 +1542,7 @@ func (x *SetUserActiveRequest) String() string {
 func (*SetUserActiveRequest) ProtoMessage() {}
 
 func (x *SetUserActiveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[14]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1296,7 +1555,7 @@ func (x *SetUserActiveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetUserActiveRequest.ProtoReflect.Descriptor instead.
 func (*SetUserActiveRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{14}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SetUserActiveRequest) GetUserId() string {
@@ -1322,7 +1581,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[15]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1334,7 +1593,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[15]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1347,7 +1606,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{15}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteUserRequest) GetUserId() string {
@@ -1368,7 +1627,7 @@ type ClientSummary struct {
 
 func (x *ClientSummary) Reset() {
 	*x = ClientSummary{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[16]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1380,7 +1639,7 @@ func (x *ClientSummary) String() string {
 func (*ClientSummary) ProtoMessage() {}
 
 func (x *ClientSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[16]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1393,7 +1652,7 @@ func (x *ClientSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientSummary.ProtoReflect.Descriptor instead.
 func (*ClientSummary) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{16}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ClientSummary) GetClient() *Client {
@@ -1426,7 +1685,7 @@ type ListClientsResponse struct {
 
 func (x *ListClientsResponse) Reset() {
 	*x = ListClientsResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[17]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1438,7 +1697,7 @@ func (x *ListClientsResponse) String() string {
 func (*ListClientsResponse) ProtoMessage() {}
 
 func (x *ListClientsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[17]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1451,7 +1710,7 @@ func (x *ListClientsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListClientsResponse.ProtoReflect.Descriptor instead.
 func (*ListClientsResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{17}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListClientsResponse) GetClients() []*ClientSummary {
@@ -1470,7 +1729,7 @@ type GetClientRequest struct {
 
 func (x *GetClientRequest) Reset() {
 	*x = GetClientRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[18]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1482,7 +1741,7 @@ func (x *GetClientRequest) String() string {
 func (*GetClientRequest) ProtoMessage() {}
 
 func (x *GetClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[18]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1495,7 +1754,7 @@ func (x *GetClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetClientRequest.ProtoReflect.Descriptor instead.
 func (*GetClientRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{18}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetClientRequest) GetSlug() string {
@@ -1520,7 +1779,7 @@ type ClientProfile struct {
 
 func (x *ClientProfile) Reset() {
 	*x = ClientProfile{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[19]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1532,7 +1791,7 @@ func (x *ClientProfile) String() string {
 func (*ClientProfile) ProtoMessage() {}
 
 func (x *ClientProfile) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[19]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1545,7 +1804,7 @@ func (x *ClientProfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientProfile.ProtoReflect.Descriptor instead.
 func (*ClientProfile) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{19}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ClientProfile) GetName() string {
@@ -1608,7 +1867,7 @@ type CreateClientRequest struct {
 
 func (x *CreateClientRequest) Reset() {
 	*x = CreateClientRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[20]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1620,7 +1879,7 @@ func (x *CreateClientRequest) String() string {
 func (*CreateClientRequest) ProtoMessage() {}
 
 func (x *CreateClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[20]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1633,7 +1892,7 @@ func (x *CreateClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateClientRequest.ProtoReflect.Descriptor instead.
 func (*CreateClientRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{20}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateClientRequest) GetProfile() *ClientProfile {
@@ -1660,7 +1919,7 @@ type UpdateClientRequest struct {
 
 func (x *UpdateClientRequest) Reset() {
 	*x = UpdateClientRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[21]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1672,7 +1931,7 @@ func (x *UpdateClientRequest) String() string {
 func (*UpdateClientRequest) ProtoMessage() {}
 
 func (x *UpdateClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[21]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1685,7 +1944,7 @@ func (x *UpdateClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateClientRequest.ProtoReflect.Descriptor instead.
 func (*UpdateClientRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{21}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *UpdateClientRequest) GetClientId() string {
@@ -1711,7 +1970,7 @@ type DeleteClientRequest struct {
 
 func (x *DeleteClientRequest) Reset() {
 	*x = DeleteClientRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[22]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1723,7 +1982,7 @@ func (x *DeleteClientRequest) String() string {
 func (*DeleteClientRequest) ProtoMessage() {}
 
 func (x *DeleteClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[22]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1736,7 +1995,7 @@ func (x *DeleteClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteClientRequest.ProtoReflect.Descriptor instead.
 func (*DeleteClientRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{22}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeleteClientRequest) GetClientId() string {
@@ -1760,7 +2019,7 @@ type ClientMember struct {
 
 func (x *ClientMember) Reset() {
 	*x = ClientMember{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[23]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1772,7 +2031,7 @@ func (x *ClientMember) String() string {
 func (*ClientMember) ProtoMessage() {}
 
 func (x *ClientMember) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[23]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1785,7 +2044,7 @@ func (x *ClientMember) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientMember.ProtoReflect.Descriptor instead.
 func (*ClientMember) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{23}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ClientMember) GetUserId() string {
@@ -1839,7 +2098,7 @@ type ListMembersRequest struct {
 
 func (x *ListMembersRequest) Reset() {
 	*x = ListMembersRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[24]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1851,7 +2110,7 @@ func (x *ListMembersRequest) String() string {
 func (*ListMembersRequest) ProtoMessage() {}
 
 func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[24]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1864,7 +2123,7 @@ func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListMembersRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{24}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListMembersRequest) GetClientId() string {
@@ -1883,7 +2142,7 @@ type ListMembersResponse struct {
 
 func (x *ListMembersResponse) Reset() {
 	*x = ListMembersResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[25]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1895,7 +2154,7 @@ func (x *ListMembersResponse) String() string {
 func (*ListMembersResponse) ProtoMessage() {}
 
 func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[25]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1908,7 +2167,7 @@ func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListMembersResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{25}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListMembersResponse) GetMembers() []*ClientMember {
@@ -1929,7 +2188,7 @@ type UpsertMemberRequest struct {
 
 func (x *UpsertMemberRequest) Reset() {
 	*x = UpsertMemberRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[26]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1941,7 +2200,7 @@ func (x *UpsertMemberRequest) String() string {
 func (*UpsertMemberRequest) ProtoMessage() {}
 
 func (x *UpsertMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[26]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1954,7 +2213,7 @@ func (x *UpsertMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertMemberRequest.ProtoReflect.Descriptor instead.
 func (*UpsertMemberRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{26}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpsertMemberRequest) GetClientId() string {
@@ -1988,7 +2247,7 @@ type RemoveMemberRequest struct {
 
 func (x *RemoveMemberRequest) Reset() {
 	*x = RemoveMemberRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[27]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2000,7 +2259,7 @@ func (x *RemoveMemberRequest) String() string {
 func (*RemoveMemberRequest) ProtoMessage() {}
 
 func (x *RemoveMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[27]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2013,7 +2272,7 @@ func (x *RemoveMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveMemberRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{27}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *RemoveMemberRequest) GetClientId() string {
@@ -2043,7 +2302,7 @@ type UpdateShareSettingsRequest struct {
 
 func (x *UpdateShareSettingsRequest) Reset() {
 	*x = UpdateShareSettingsRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[28]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2055,7 +2314,7 @@ func (x *UpdateShareSettingsRequest) String() string {
 func (*UpdateShareSettingsRequest) ProtoMessage() {}
 
 func (x *UpdateShareSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[28]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2068,7 +2327,7 @@ func (x *UpdateShareSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateShareSettingsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateShareSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{28}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *UpdateShareSettingsRequest) GetClientId() string {
@@ -2099,6 +2358,50 @@ func (x *UpdateShareSettingsRequest) GetModules() []v1.ModuleKey {
 	return nil
 }
 
+type ListPermissionHoldersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Permission    string                 `protobuf:"bytes,1,opt,name=permission,proto3" json:"permission,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPermissionHoldersRequest) Reset() {
+	*x = ListPermissionHoldersRequest{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPermissionHoldersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPermissionHoldersRequest) ProtoMessage() {}
+
+func (x *ListPermissionHoldersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPermissionHoldersRequest.ProtoReflect.Descriptor instead.
+func (*ListPermissionHoldersRequest) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ListPermissionHoldersRequest) GetPermission() string {
+	if x != nil {
+		return x.Permission
+	}
+	return ""
+}
+
 type CheckClientAccessRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -2113,7 +2416,7 @@ type CheckClientAccessRequest struct {
 
 func (x *CheckClientAccessRequest) Reset() {
 	*x = CheckClientAccessRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[29]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2125,7 +2428,7 @@ func (x *CheckClientAccessRequest) String() string {
 func (*CheckClientAccessRequest) ProtoMessage() {}
 
 func (x *CheckClientAccessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[29]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +2441,7 @@ func (x *CheckClientAccessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckClientAccessRequest.ProtoReflect.Descriptor instead.
 func (*CheckClientAccessRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{29}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *CheckClientAccessRequest) GetUserId() string {
@@ -2198,7 +2501,7 @@ type GetUserRequest struct {
 
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[30]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2210,7 +2513,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[30]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2223,7 +2526,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{30}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetUserRequest) GetUserId() string {
@@ -2242,7 +2545,7 @@ type ListAccessibleClientIdsRequest struct {
 
 func (x *ListAccessibleClientIdsRequest) Reset() {
 	*x = ListAccessibleClientIdsRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[31]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2254,7 +2557,7 @@ func (x *ListAccessibleClientIdsRequest) String() string {
 func (*ListAccessibleClientIdsRequest) ProtoMessage() {}
 
 func (x *ListAccessibleClientIdsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[31]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2267,7 +2570,7 @@ func (x *ListAccessibleClientIdsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAccessibleClientIdsRequest.ProtoReflect.Descriptor instead.
 func (*ListAccessibleClientIdsRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{31}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListAccessibleClientIdsRequest) GetUserId() string {
@@ -2286,7 +2589,7 @@ type ListAccessibleClientIdsResponse struct {
 
 func (x *ListAccessibleClientIdsResponse) Reset() {
 	*x = ListAccessibleClientIdsResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[32]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2298,7 +2601,7 @@ func (x *ListAccessibleClientIdsResponse) String() string {
 func (*ListAccessibleClientIdsResponse) ProtoMessage() {}
 
 func (x *ListAccessibleClientIdsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[32]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2311,7 +2614,7 @@ func (x *ListAccessibleClientIdsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAccessibleClientIdsResponse.ProtoReflect.Descriptor instead.
 func (*ListAccessibleClientIdsResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{32}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListAccessibleClientIdsResponse) GetClientIds() []string {
@@ -2330,7 +2633,7 @@ type ListAllClientsResponse struct {
 
 func (x *ListAllClientsResponse) Reset() {
 	*x = ListAllClientsResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[33]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2342,7 +2645,7 @@ func (x *ListAllClientsResponse) String() string {
 func (*ListAllClientsResponse) ProtoMessage() {}
 
 func (x *ListAllClientsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[33]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2355,7 +2658,7 @@ func (x *ListAllClientsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAllClientsResponse.ProtoReflect.Descriptor instead.
 func (*ListAllClientsResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{33}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListAllClientsResponse) GetClients() []*Client {
@@ -2380,7 +2683,7 @@ type Notification struct {
 
 func (x *Notification) Reset() {
 	*x = Notification{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[34]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2392,7 +2695,7 @@ func (x *Notification) String() string {
 func (*Notification) ProtoMessage() {}
 
 func (x *Notification) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[34]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2405,7 +2708,7 @@ func (x *Notification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Notification.ProtoReflect.Descriptor instead.
 func (*Notification) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{34}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *Notification) GetId() string {
@@ -2466,7 +2769,7 @@ type ListNotificationsRequest struct {
 
 func (x *ListNotificationsRequest) Reset() {
 	*x = ListNotificationsRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[35]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2478,7 +2781,7 @@ func (x *ListNotificationsRequest) String() string {
 func (*ListNotificationsRequest) ProtoMessage() {}
 
 func (x *ListNotificationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[35]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2491,7 +2794,7 @@ func (x *ListNotificationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNotificationsRequest.ProtoReflect.Descriptor instead.
 func (*ListNotificationsRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{35}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListNotificationsRequest) GetLimit() int32 {
@@ -2511,7 +2814,7 @@ type NotificationFeed struct {
 
 func (x *NotificationFeed) Reset() {
 	*x = NotificationFeed{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[36]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2523,7 +2826,7 @@ func (x *NotificationFeed) String() string {
 func (*NotificationFeed) ProtoMessage() {}
 
 func (x *NotificationFeed) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[36]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2536,7 +2839,7 @@ func (x *NotificationFeed) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotificationFeed.ProtoReflect.Descriptor instead.
 func (*NotificationFeed) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{36}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *NotificationFeed) GetUnread() int32 {
@@ -2562,7 +2865,7 @@ type MarkNotificationReadRequest struct {
 
 func (x *MarkNotificationReadRequest) Reset() {
 	*x = MarkNotificationReadRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[37]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2574,7 +2877,7 @@ func (x *MarkNotificationReadRequest) String() string {
 func (*MarkNotificationReadRequest) ProtoMessage() {}
 
 func (x *MarkNotificationReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[37]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2587,7 +2890,7 @@ func (x *MarkNotificationReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkNotificationReadRequest.ProtoReflect.Descriptor instead.
 func (*MarkNotificationReadRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{37}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *MarkNotificationReadRequest) GetNotificationId() string {
@@ -2606,7 +2909,7 @@ type MarkAllNotificationsReadResponse struct {
 
 func (x *MarkAllNotificationsReadResponse) Reset() {
 	*x = MarkAllNotificationsReadResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[38]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2618,7 +2921,7 @@ func (x *MarkAllNotificationsReadResponse) String() string {
 func (*MarkAllNotificationsReadResponse) ProtoMessage() {}
 
 func (x *MarkAllNotificationsReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[38]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2631,7 +2934,7 @@ func (x *MarkAllNotificationsReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkAllNotificationsReadResponse.ProtoReflect.Descriptor instead.
 func (*MarkAllNotificationsReadResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{38}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *MarkAllNotificationsReadResponse) GetCount() int32 {
@@ -2659,7 +2962,7 @@ type NotifyRequest struct {
 
 func (x *NotifyRequest) Reset() {
 	*x = NotifyRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[39]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2671,7 +2974,7 @@ func (x *NotifyRequest) String() string {
 func (*NotifyRequest) ProtoMessage() {}
 
 func (x *NotifyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[39]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2684,7 +2987,7 @@ func (x *NotifyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotifyRequest.ProtoReflect.Descriptor instead.
 func (*NotifyRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{39}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *NotifyRequest) GetUserIds() []string {
@@ -2752,7 +3055,7 @@ type NotifyResponse struct {
 
 func (x *NotifyResponse) Reset() {
 	*x = NotifyResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[40]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2764,7 +3067,7 @@ func (x *NotifyResponse) String() string {
 func (*NotifyResponse) ProtoMessage() {}
 
 func (x *NotifyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[40]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2777,7 +3080,7 @@ func (x *NotifyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotifyResponse.ProtoReflect.Descriptor instead.
 func (*NotifyResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{40}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *NotifyResponse) GetCount() int32 {
@@ -2797,7 +3100,7 @@ type GetShareContextRequest struct {
 
 func (x *GetShareContextRequest) Reset() {
 	*x = GetShareContextRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[41]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2809,7 +3112,7 @@ func (x *GetShareContextRequest) String() string {
 func (*GetShareContextRequest) ProtoMessage() {}
 
 func (x *GetShareContextRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[41]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2822,7 +3125,7 @@ func (x *GetShareContextRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetShareContextRequest.ProtoReflect.Descriptor instead.
 func (*GetShareContextRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{41}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GetShareContextRequest) GetSlug() string {
@@ -2850,7 +3153,7 @@ type ShareContext struct {
 
 func (x *ShareContext) Reset() {
 	*x = ShareContext{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[42]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2862,7 +3165,7 @@ func (x *ShareContext) String() string {
 func (*ShareContext) ProtoMessage() {}
 
 func (x *ShareContext) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[42]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2875,7 +3178,7 @@ func (x *ShareContext) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShareContext.ProtoReflect.Descriptor instead.
 func (*ShareContext) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{42}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ShareContext) GetStatus() ShareContext_Status {
@@ -2904,7 +3207,7 @@ type VerifySharePinRequest struct {
 
 func (x *VerifySharePinRequest) Reset() {
 	*x = VerifySharePinRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[43]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2916,7 +3219,7 @@ func (x *VerifySharePinRequest) String() string {
 func (*VerifySharePinRequest) ProtoMessage() {}
 
 func (x *VerifySharePinRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[43]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2929,7 +3232,7 @@ func (x *VerifySharePinRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifySharePinRequest.ProtoReflect.Descriptor instead.
 func (*VerifySharePinRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{43}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *VerifySharePinRequest) GetSlug() string {
@@ -2965,7 +3268,7 @@ type VerifySharePinResponse struct {
 
 func (x *VerifySharePinResponse) Reset() {
 	*x = VerifySharePinResponse{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[44]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2977,7 +3280,7 @@ func (x *VerifySharePinResponse) String() string {
 func (*VerifySharePinResponse) ProtoMessage() {}
 
 func (x *VerifySharePinResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[44]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2990,7 +3293,7 @@ func (x *VerifySharePinResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifySharePinResponse.ProtoReflect.Descriptor instead.
 func (*VerifySharePinResponse) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{44}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *VerifySharePinResponse) GetClientId() string {
@@ -3026,7 +3329,7 @@ type SetupState struct {
 
 func (x *SetupState) Reset() {
 	*x = SetupState{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[45]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3038,7 +3341,7 @@ func (x *SetupState) String() string {
 func (*SetupState) ProtoMessage() {}
 
 func (x *SetupState) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[45]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3051,7 +3354,7 @@ func (x *SetupState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetupState.ProtoReflect.Descriptor instead.
 func (*SetupState) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{45}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *SetupState) GetCompletedAt() *timestamppb.Timestamp {
@@ -3084,7 +3387,7 @@ type MarkSetupRequest struct {
 
 func (x *MarkSetupRequest) Reset() {
 	*x = MarkSetupRequest{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[46]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3096,7 +3399,7 @@ func (x *MarkSetupRequest) String() string {
 func (*MarkSetupRequest) ProtoMessage() {}
 
 func (x *MarkSetupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[46]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3109,7 +3412,7 @@ func (x *MarkSetupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkSetupRequest.ProtoReflect.Descriptor instead.
 func (*MarkSetupRequest) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{46}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *MarkSetupRequest) GetKind() MarkSetupRequest_Kind {
@@ -3117,6 +3420,58 @@ func (x *MarkSetupRequest) GetKind() MarkSetupRequest_Kind {
 		return x.Kind
 	}
 	return MarkSetupRequest_KIND_UNSPECIFIED
+}
+
+type ListPermissionsResponse_Permission struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPermissionsResponse_Permission) Reset() {
+	*x = ListPermissionsResponse_Permission{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPermissionsResponse_Permission) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPermissionsResponse_Permission) ProtoMessage() {}
+
+func (x *ListPermissionsResponse_Permission) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPermissionsResponse_Permission.ProtoReflect.Descriptor instead.
+func (*ListPermissionsResponse_Permission) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{11, 0}
+}
+
+func (x *ListPermissionsResponse_Permission) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ListPermissionsResponse_Permission) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
 }
 
 type UserWithClients_UserClient struct {
@@ -3131,7 +3486,7 @@ type UserWithClients_UserClient struct {
 
 func (x *UserWithClients_UserClient) Reset() {
 	*x = UserWithClients_UserClient{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[47]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3143,7 +3498,7 @@ func (x *UserWithClients_UserClient) String() string {
 func (*UserWithClients_UserClient) ProtoMessage() {}
 
 func (x *UserWithClients_UserClient) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[47]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3156,7 +3511,7 @@ func (x *UserWithClients_UserClient) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserWithClients_UserClient.ProtoReflect.Descriptor instead.
 func (*UserWithClients_UserClient) Descriptor() ([]byte, []int) {
-	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{8, 0}
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{12, 0}
 }
 
 func (x *UserWithClients_UserClient) GetId() string {
@@ -3191,7 +3546,7 @@ var File_white_identity_v1_identity_proto protoreflect.FileDescriptor
 
 const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\n" +
-	" white/identity/v1/identity.proto\x12\x11white.identity.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cwhite/common/v1/common.proto\"\xc9\x01\n" +
+	" white/identity/v1/identity.proto\x12\x11white.identity.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cwhite/common/v1/common.proto\"\xeb\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
@@ -3199,7 +3554,8 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\x04role\x18\x04 \x01(\x0e2\x1b.white.identity.v1.UserRoleR\x04role\x12\x1b\n" +
 	"\tis_active\x18\x05 \x01(\bR\bisActive\x129\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"b\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12 \n" +
+	"\vpermissions\x18\a \x03(\tR\vpermissions\"b\n" +
 	"\n" +
 	"Membership\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x127\n" +
@@ -3235,7 +3591,9 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\x0eADMIN_OVERRIDE\x10\x01\x12\v\n" +
 	"\aMANAGER\x10\x02\x12\n" +
 	"\n" +
-	"\x06VIEWER\x10\x03\"@\n" +
+	"\x06VIEWER\x10\x03\"3\n" +
+	"\x18IssueServiceTokenRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"@\n" +
 	"\fLoginRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x92\x02\n" +
@@ -3248,7 +3606,23 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\x0eRefreshRequest\x12#\n" +
 	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"4\n" +
 	"\rLogoutRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\x86\x02\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"V\n" +
+	"\x19SetUserPermissionsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12 \n" +
+	"\vpermissions\x18\x02 \x03(\tR\vpermissions\"\xc4\x01\n" +
+	"\x15SyncLegacyUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12#\n" +
+	"\rpassword_hash\x18\x04 \x01(\tR\fpasswordHash\x12/\n" +
+	"\x04role\x18\x05 \x01(\x0e2\x1b.white.identity.v1.UserRoleR\x04role\x12\x1b\n" +
+	"\tis_active\x18\x06 \x01(\bR\bisActive\"\xa8\x01\n" +
+	"\x17ListPermissionsResponse\x12W\n" +
+	"\vpermissions\x18\x01 \x03(\v25.white.identity.v1.ListPermissionsResponse.PermissionR\vpermissions\x1a4\n" +
+	"\n" +
+	"Permission\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\"\x86\x02\n" +
 	"\x0fUserWithClients\x12+\n" +
 	"\x04user\x18\x01 \x01(\v2\x17.white.identity.v1.UserR\x04user\x12G\n" +
 	"\aclients\x18\x02 \x03(\v2-.white.identity.v1.UserWithClients.UserClientR\aclients\x1a}\n" +
@@ -3259,21 +3633,23 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\x04slug\x18\x03 \x01(\tR\x04slug\x127\n" +
 	"\x04role\x18\x04 \x01(\x0e2#.white.identity.v1.ClientMemberRoleR\x04role\"M\n" +
 	"\x11ListUsersResponse\x128\n" +
-	"\x05users\x18\x01 \x03(\v2\".white.identity.v1.UserWithClientsR\x05users\"F\n" +
+	"\x05users\x18\x01 \x03(\v2\".white.identity.v1.UserWithClientsR\x05users\"\\\n" +
 	"\n" +
 	"UserOption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\"N\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
+	"\x05admin\x18\x04 \x01(\bR\x05admin\"N\n" +
 	"\x17ListUserOptionsResponse\x123\n" +
-	"\x05users\x18\x01 \x03(\v2\x1d.white.identity.v1.UserOptionR\x05users\"\xe8\x01\n" +
+	"\x05users\x18\x01 \x03(\v2\x1d.white.identity.v1.UserOptionR\x05users\"\x8a\x02\n" +
 	"\x11CreateUserRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\x12/\n" +
 	"\x04role\x18\x04 \x01(\x0e2\x1b.white.identity.v1.UserRoleR\x04role\x12\x1b\n" +
 	"\tis_active\x18\x05 \x01(\bR\bisActive\x12?\n" +
-	"\vmemberships\x18\x06 \x03(\v2\x1d.white.identity.v1.MembershipR\vmemberships\"\x81\x02\n" +
+	"\vmemberships\x18\x06 \x03(\v2\x1d.white.identity.v1.MembershipR\vmemberships\x12 \n" +
+	"\vpermissions\x18\a \x03(\tR\vpermissions\"\xa3\x02\n" +
 	"\x11UpdateUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -3281,7 +3657,8 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\bpassword\x18\x04 \x01(\tR\bpassword\x12/\n" +
 	"\x04role\x18\x05 \x01(\x0e2\x1b.white.identity.v1.UserRoleR\x04role\x12\x1b\n" +
 	"\tis_active\x18\x06 \x01(\bR\bisActive\x12?\n" +
-	"\vmemberships\x18\a \x03(\v2\x1d.white.identity.v1.MembershipR\vmemberships\"L\n" +
+	"\vmemberships\x18\a \x03(\v2\x1d.white.identity.v1.MembershipR\vmemberships\x12 \n" +
+	"\vpermissions\x18\b \x03(\tR\vpermissions\"L\n" +
 	"\x14SetUserActiveRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
 	"\tis_active\x18\x02 \x01(\bR\bisActive\",\n" +
@@ -3335,7 +3712,11 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12#\n" +
 	"\rshare_enabled\x18\x02 \x01(\bR\fshareEnabled\x12\x10\n" +
 	"\x03pin\x18\x03 \x01(\tR\x03pin\x124\n" +
-	"\amodules\x18\x04 \x03(\x0e2\x1a.white.common.v1.ModuleKeyR\amodules\"r\n" +
+	"\amodules\x18\x04 \x03(\x0e2\x1a.white.common.v1.ModuleKeyR\amodules\">\n" +
+	"\x1cListPermissionHoldersRequest\x12\x1e\n" +
+	"\n" +
+	"permission\x18\x01 \x01(\tR\n" +
+	"permission\"r\n" +
 	"\x18CheckClientAccessRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\tclient_id\x18\x02 \x01(\tH\x00R\bclientId\x12\x14\n" +
@@ -3429,13 +3810,15 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\x1eCLIENT_MEMBER_ROLE_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aMANAGER\x10\x01\x12\n" +
 	"\n" +
-	"\x06VIEWER\x10\x022\x85\x03\n" +
+	"\x06VIEWER\x10\x022\xe5\x03\n" +
 	"\vAuthService\x12a\n" +
 	"\x05Login\x12\x1f.white.identity.v1.LoginRequest\x1a\x1c.white.identity.v1.TokenPair\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/login\x12g\n" +
 	"\aRefresh\x12!.white.identity.v1.RefreshRequest\x1a\x1c.white.identity.v1.TokenPair\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/auth/refresh\x12^\n" +
 	"\x06Logout\x12 .white.identity.v1.LogoutRequest\x1a\x16.google.protobuf.Empty\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/auth/logout\x12J\n" +
-	"\x02Me\x12\x16.google.protobuf.Empty\x1a\x17.white.identity.v1.User\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/auth/me2\x93\x05\n" +
-	"\vUserService\x12\\\n" +
+	"\x02Me\x12\x16.google.protobuf.Empty\x1a\x17.white.identity.v1.User\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/auth/me\x12^\n" +
+	"\x11IssueServiceToken\x12+.white.identity.v1.IssueServiceTokenRequest\x1a\x1c.white.identity.v1.TokenPair2\xb4\b\n" +
+	"\vUserService\x12n\n" +
+	"\x0fListPermissions\x12\x16.google.protobuf.Empty\x1a*.white.identity.v1.ListPermissionsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/permissions\x12\\\n" +
 	"\tListUsers\x12\x16.google.protobuf.Empty\x1a$.white.identity.v1.ListUsersResponse\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/users\x12p\n" +
 	"\x0fListUserOptions\x12\x16.google.protobuf.Empty\x1a*.white.identity.v1.ListUserOptionsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/users:options\x12a\n" +
 	"\n" +
@@ -3444,7 +3827,10 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"UpdateUser\x12$.white.identity.v1.UpdateUserRequest\x1a\x17.white.identity.v1.User\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/v1/users/{user_id}\x12{\n" +
 	"\rSetUserActive\x12'.white.identity.v1.SetUserActiveRequest\x1a\x17.white.identity.v1.User\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/v1/users/{user_id}:setActive\x12g\n" +
 	"\n" +
-	"DeleteUser\x12$.white.identity.v1.DeleteUserRequest\x1a\x16.google.protobuf.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/v1/users/{user_id}2\xd4\b\n" +
+	"DeleteUser\x12$.white.identity.v1.DeleteUserRequest\x1a\x16.google.protobuf.Empty\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/v1/users/{user_id}\x12\x87\x01\n" +
+	"\x12SetUserPermissions\x12,.white.identity.v1.SetUserPermissionsRequest\x1a\x17.white.identity.v1.User\"*\x82\xd3\xe4\x93\x02$:\x01*\x1a\x1f/v1/users/{user_id}/permissions\x12S\n" +
+	"\x0eSyncLegacyUser\x12(.white.identity.v1.SyncLegacyUserRequest\x1a\x17.white.identity.v1.User\x12P\n" +
+	"\x10RemoveLegacyUser\x12$.white.identity.v1.DeleteUserRequest\x1a\x16.google.protobuf.Empty2\xd4\b\n" +
 	"\rClientService\x12b\n" +
 	"\vListClients\x12\x16.google.protobuf.Empty\x1a&.white.identity.v1.ListClientsResponse\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/clients\x12m\n" +
 	"\tGetClient\x12#.white.identity.v1.GetClientRequest\x1a\x1f.white.identity.v1.ClientAccess\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/clients/{slug}\x12i\n" +
@@ -3454,12 +3840,13 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\vListMembers\x12%.white.identity.v1.ListMembersRequest\x1a&.white.identity.v1.ListMembersResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/clients/{client_id}/members\x12\x84\x01\n" +
 	"\fUpsertMember\x12&.white.identity.v1.UpsertMemberRequest\x1a\x16.google.protobuf.Empty\"4\x82\xd3\xe4\x93\x02.:\x01*\x1a)/v1/clients/{client_id}/members/{user_id}\x12\x81\x01\n" +
 	"\fRemoveMember\x12&.white.identity.v1.RemoveMemberRequest\x1a\x16.google.protobuf.Empty\"1\x82\xd3\xe4\x93\x02+*)/v1/clients/{client_id}/members/{user_id}\x12\x89\x01\n" +
-	"\x13UpdateShareSettings\x12-.white.identity.v1.UpdateShareSettingsRequest\x1a\x19.white.identity.v1.Client\"(\x82\xd3\xe4\x93\x02\":\x01*\x1a\x1d/v1/clients/{client_id}/share2\x91\x03\n" +
+	"\x13UpdateShareSettings\x12-.white.identity.v1.UpdateShareSettingsRequest\x1a\x19.white.identity.v1.Client\"(\x82\xd3\xe4\x93\x02\":\x01*\x1a\x1d/v1/clients/{client_id}/share2\x87\x04\n" +
 	"\rAccessService\x12a\n" +
 	"\x11CheckClientAccess\x12+.white.identity.v1.CheckClientAccessRequest\x1a\x1f.white.identity.v1.ClientAccess\x12E\n" +
 	"\aGetUser\x12!.white.identity.v1.GetUserRequest\x1a\x17.white.identity.v1.User\x12\x80\x01\n" +
 	"\x17ListAccessibleClientIds\x121.white.identity.v1.ListAccessibleClientIdsRequest\x1a2.white.identity.v1.ListAccessibleClientIdsResponse\x12S\n" +
-	"\x0eListAllClients\x12\x16.google.protobuf.Empty\x1a).white.identity.v1.ListAllClientsResponse2\x87\x04\n" +
+	"\x0eListAllClients\x12\x16.google.protobuf.Empty\x1a).white.identity.v1.ListAllClientsResponse\x12t\n" +
+	"\x15ListPermissionHolders\x12/.white.identity.v1.ListPermissionHoldersRequest\x1a*.white.identity.v1.ListUserOptionsResponse2\x87\x04\n" +
 	"\x13NotificationService\x12\x80\x01\n" +
 	"\x11ListNotifications\x12+.white.identity.v1.ListNotificationsRequest\x1a#.white.identity.v1.NotificationFeed\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/notifications\x12\x90\x01\n" +
 	"\x14MarkNotificationRead\x12..white.identity.v1.MarkNotificationReadRequest\x1a\x16.google.protobuf.Empty\"0\x82\xd3\xe4\x93\x02*\"(/v1/notifications/{notification_id}:read\x12\x8a\x01\n" +
@@ -3485,173 +3872,193 @@ func file_white_identity_v1_identity_proto_rawDescGZIP() []byte {
 }
 
 var file_white_identity_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_white_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
+var file_white_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
 var file_white_identity_v1_identity_proto_goTypes = []any{
-	(UserRole)(0),                            // 0: white.identity.v1.UserRole
-	(ClientMemberRole)(0),                    // 1: white.identity.v1.ClientMemberRole
-	(ClientAccess_AccessRole)(0),             // 2: white.identity.v1.ClientAccess.AccessRole
-	(NotifyRequest_Audience)(0),              // 3: white.identity.v1.NotifyRequest.Audience
-	(ShareContext_Status)(0),                 // 4: white.identity.v1.ShareContext.Status
-	(MarkSetupRequest_Kind)(0),               // 5: white.identity.v1.MarkSetupRequest.Kind
-	(*User)(nil),                             // 6: white.identity.v1.User
-	(*Membership)(nil),                       // 7: white.identity.v1.Membership
-	(*Client)(nil),                           // 8: white.identity.v1.Client
-	(*ClientAccess)(nil),                     // 9: white.identity.v1.ClientAccess
-	(*LoginRequest)(nil),                     // 10: white.identity.v1.LoginRequest
-	(*TokenPair)(nil),                        // 11: white.identity.v1.TokenPair
-	(*RefreshRequest)(nil),                   // 12: white.identity.v1.RefreshRequest
-	(*LogoutRequest)(nil),                    // 13: white.identity.v1.LogoutRequest
-	(*UserWithClients)(nil),                  // 14: white.identity.v1.UserWithClients
-	(*ListUsersResponse)(nil),                // 15: white.identity.v1.ListUsersResponse
-	(*UserOption)(nil),                       // 16: white.identity.v1.UserOption
-	(*ListUserOptionsResponse)(nil),          // 17: white.identity.v1.ListUserOptionsResponse
-	(*CreateUserRequest)(nil),                // 18: white.identity.v1.CreateUserRequest
-	(*UpdateUserRequest)(nil),                // 19: white.identity.v1.UpdateUserRequest
-	(*SetUserActiveRequest)(nil),             // 20: white.identity.v1.SetUserActiveRequest
-	(*DeleteUserRequest)(nil),                // 21: white.identity.v1.DeleteUserRequest
-	(*ClientSummary)(nil),                    // 22: white.identity.v1.ClientSummary
-	(*ListClientsResponse)(nil),              // 23: white.identity.v1.ListClientsResponse
-	(*GetClientRequest)(nil),                 // 24: white.identity.v1.GetClientRequest
-	(*ClientProfile)(nil),                    // 25: white.identity.v1.ClientProfile
-	(*CreateClientRequest)(nil),              // 26: white.identity.v1.CreateClientRequest
-	(*UpdateClientRequest)(nil),              // 27: white.identity.v1.UpdateClientRequest
-	(*DeleteClientRequest)(nil),              // 28: white.identity.v1.DeleteClientRequest
-	(*ClientMember)(nil),                     // 29: white.identity.v1.ClientMember
-	(*ListMembersRequest)(nil),               // 30: white.identity.v1.ListMembersRequest
-	(*ListMembersResponse)(nil),              // 31: white.identity.v1.ListMembersResponse
-	(*UpsertMemberRequest)(nil),              // 32: white.identity.v1.UpsertMemberRequest
-	(*RemoveMemberRequest)(nil),              // 33: white.identity.v1.RemoveMemberRequest
-	(*UpdateShareSettingsRequest)(nil),       // 34: white.identity.v1.UpdateShareSettingsRequest
-	(*CheckClientAccessRequest)(nil),         // 35: white.identity.v1.CheckClientAccessRequest
-	(*GetUserRequest)(nil),                   // 36: white.identity.v1.GetUserRequest
-	(*ListAccessibleClientIdsRequest)(nil),   // 37: white.identity.v1.ListAccessibleClientIdsRequest
-	(*ListAccessibleClientIdsResponse)(nil),  // 38: white.identity.v1.ListAccessibleClientIdsResponse
-	(*ListAllClientsResponse)(nil),           // 39: white.identity.v1.ListAllClientsResponse
-	(*Notification)(nil),                     // 40: white.identity.v1.Notification
-	(*ListNotificationsRequest)(nil),         // 41: white.identity.v1.ListNotificationsRequest
-	(*NotificationFeed)(nil),                 // 42: white.identity.v1.NotificationFeed
-	(*MarkNotificationReadRequest)(nil),      // 43: white.identity.v1.MarkNotificationReadRequest
-	(*MarkAllNotificationsReadResponse)(nil), // 44: white.identity.v1.MarkAllNotificationsReadResponse
-	(*NotifyRequest)(nil),                    // 45: white.identity.v1.NotifyRequest
-	(*NotifyResponse)(nil),                   // 46: white.identity.v1.NotifyResponse
-	(*GetShareContextRequest)(nil),           // 47: white.identity.v1.GetShareContextRequest
-	(*ShareContext)(nil),                     // 48: white.identity.v1.ShareContext
-	(*VerifySharePinRequest)(nil),            // 49: white.identity.v1.VerifySharePinRequest
-	(*VerifySharePinResponse)(nil),           // 50: white.identity.v1.VerifySharePinResponse
-	(*SetupState)(nil),                       // 51: white.identity.v1.SetupState
-	(*MarkSetupRequest)(nil),                 // 52: white.identity.v1.MarkSetupRequest
-	(*UserWithClients_UserClient)(nil),       // 53: white.identity.v1.UserWithClients.UserClient
-	(*timestamppb.Timestamp)(nil),            // 54: google.protobuf.Timestamp
-	(v1.ModuleKey)(0),                        // 55: white.common.v1.ModuleKey
-	(*emptypb.Empty)(nil),                    // 56: google.protobuf.Empty
+	(UserRole)(0),                              // 0: white.identity.v1.UserRole
+	(ClientMemberRole)(0),                      // 1: white.identity.v1.ClientMemberRole
+	(ClientAccess_AccessRole)(0),               // 2: white.identity.v1.ClientAccess.AccessRole
+	(NotifyRequest_Audience)(0),                // 3: white.identity.v1.NotifyRequest.Audience
+	(ShareContext_Status)(0),                   // 4: white.identity.v1.ShareContext.Status
+	(MarkSetupRequest_Kind)(0),                 // 5: white.identity.v1.MarkSetupRequest.Kind
+	(*User)(nil),                               // 6: white.identity.v1.User
+	(*Membership)(nil),                         // 7: white.identity.v1.Membership
+	(*Client)(nil),                             // 8: white.identity.v1.Client
+	(*ClientAccess)(nil),                       // 9: white.identity.v1.ClientAccess
+	(*IssueServiceTokenRequest)(nil),           // 10: white.identity.v1.IssueServiceTokenRequest
+	(*LoginRequest)(nil),                       // 11: white.identity.v1.LoginRequest
+	(*TokenPair)(nil),                          // 12: white.identity.v1.TokenPair
+	(*RefreshRequest)(nil),                     // 13: white.identity.v1.RefreshRequest
+	(*LogoutRequest)(nil),                      // 14: white.identity.v1.LogoutRequest
+	(*SetUserPermissionsRequest)(nil),          // 15: white.identity.v1.SetUserPermissionsRequest
+	(*SyncLegacyUserRequest)(nil),              // 16: white.identity.v1.SyncLegacyUserRequest
+	(*ListPermissionsResponse)(nil),            // 17: white.identity.v1.ListPermissionsResponse
+	(*UserWithClients)(nil),                    // 18: white.identity.v1.UserWithClients
+	(*ListUsersResponse)(nil),                  // 19: white.identity.v1.ListUsersResponse
+	(*UserOption)(nil),                         // 20: white.identity.v1.UserOption
+	(*ListUserOptionsResponse)(nil),            // 21: white.identity.v1.ListUserOptionsResponse
+	(*CreateUserRequest)(nil),                  // 22: white.identity.v1.CreateUserRequest
+	(*UpdateUserRequest)(nil),                  // 23: white.identity.v1.UpdateUserRequest
+	(*SetUserActiveRequest)(nil),               // 24: white.identity.v1.SetUserActiveRequest
+	(*DeleteUserRequest)(nil),                  // 25: white.identity.v1.DeleteUserRequest
+	(*ClientSummary)(nil),                      // 26: white.identity.v1.ClientSummary
+	(*ListClientsResponse)(nil),                // 27: white.identity.v1.ListClientsResponse
+	(*GetClientRequest)(nil),                   // 28: white.identity.v1.GetClientRequest
+	(*ClientProfile)(nil),                      // 29: white.identity.v1.ClientProfile
+	(*CreateClientRequest)(nil),                // 30: white.identity.v1.CreateClientRequest
+	(*UpdateClientRequest)(nil),                // 31: white.identity.v1.UpdateClientRequest
+	(*DeleteClientRequest)(nil),                // 32: white.identity.v1.DeleteClientRequest
+	(*ClientMember)(nil),                       // 33: white.identity.v1.ClientMember
+	(*ListMembersRequest)(nil),                 // 34: white.identity.v1.ListMembersRequest
+	(*ListMembersResponse)(nil),                // 35: white.identity.v1.ListMembersResponse
+	(*UpsertMemberRequest)(nil),                // 36: white.identity.v1.UpsertMemberRequest
+	(*RemoveMemberRequest)(nil),                // 37: white.identity.v1.RemoveMemberRequest
+	(*UpdateShareSettingsRequest)(nil),         // 38: white.identity.v1.UpdateShareSettingsRequest
+	(*ListPermissionHoldersRequest)(nil),       // 39: white.identity.v1.ListPermissionHoldersRequest
+	(*CheckClientAccessRequest)(nil),           // 40: white.identity.v1.CheckClientAccessRequest
+	(*GetUserRequest)(nil),                     // 41: white.identity.v1.GetUserRequest
+	(*ListAccessibleClientIdsRequest)(nil),     // 42: white.identity.v1.ListAccessibleClientIdsRequest
+	(*ListAccessibleClientIdsResponse)(nil),    // 43: white.identity.v1.ListAccessibleClientIdsResponse
+	(*ListAllClientsResponse)(nil),             // 44: white.identity.v1.ListAllClientsResponse
+	(*Notification)(nil),                       // 45: white.identity.v1.Notification
+	(*ListNotificationsRequest)(nil),           // 46: white.identity.v1.ListNotificationsRequest
+	(*NotificationFeed)(nil),                   // 47: white.identity.v1.NotificationFeed
+	(*MarkNotificationReadRequest)(nil),        // 48: white.identity.v1.MarkNotificationReadRequest
+	(*MarkAllNotificationsReadResponse)(nil),   // 49: white.identity.v1.MarkAllNotificationsReadResponse
+	(*NotifyRequest)(nil),                      // 50: white.identity.v1.NotifyRequest
+	(*NotifyResponse)(nil),                     // 51: white.identity.v1.NotifyResponse
+	(*GetShareContextRequest)(nil),             // 52: white.identity.v1.GetShareContextRequest
+	(*ShareContext)(nil),                       // 53: white.identity.v1.ShareContext
+	(*VerifySharePinRequest)(nil),              // 54: white.identity.v1.VerifySharePinRequest
+	(*VerifySharePinResponse)(nil),             // 55: white.identity.v1.VerifySharePinResponse
+	(*SetupState)(nil),                         // 56: white.identity.v1.SetupState
+	(*MarkSetupRequest)(nil),                   // 57: white.identity.v1.MarkSetupRequest
+	(*ListPermissionsResponse_Permission)(nil), // 58: white.identity.v1.ListPermissionsResponse.Permission
+	(*UserWithClients_UserClient)(nil),         // 59: white.identity.v1.UserWithClients.UserClient
+	(*timestamppb.Timestamp)(nil),              // 60: google.protobuf.Timestamp
+	(v1.ModuleKey)(0),                          // 61: white.common.v1.ModuleKey
+	(*emptypb.Empty)(nil),                      // 62: google.protobuf.Empty
 }
 var file_white_identity_v1_identity_proto_depIdxs = []int32{
 	0,  // 0: white.identity.v1.User.role:type_name -> white.identity.v1.UserRole
-	54, // 1: white.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	60, // 1: white.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 2: white.identity.v1.Membership.role:type_name -> white.identity.v1.ClientMemberRole
-	55, // 3: white.identity.v1.Client.share_modules:type_name -> white.common.v1.ModuleKey
-	54, // 4: white.identity.v1.Client.created_at:type_name -> google.protobuf.Timestamp
+	61, // 3: white.identity.v1.Client.share_modules:type_name -> white.common.v1.ModuleKey
+	60, // 4: white.identity.v1.Client.created_at:type_name -> google.protobuf.Timestamp
 	8,  // 5: white.identity.v1.ClientAccess.client:type_name -> white.identity.v1.Client
 	2,  // 6: white.identity.v1.ClientAccess.role:type_name -> white.identity.v1.ClientAccess.AccessRole
-	54, // 7: white.identity.v1.TokenPair.access_expires_at:type_name -> google.protobuf.Timestamp
-	54, // 8: white.identity.v1.TokenPair.refresh_expires_at:type_name -> google.protobuf.Timestamp
+	60, // 7: white.identity.v1.TokenPair.access_expires_at:type_name -> google.protobuf.Timestamp
+	60, // 8: white.identity.v1.TokenPair.refresh_expires_at:type_name -> google.protobuf.Timestamp
 	6,  // 9: white.identity.v1.TokenPair.user:type_name -> white.identity.v1.User
-	6,  // 10: white.identity.v1.UserWithClients.user:type_name -> white.identity.v1.User
-	53, // 11: white.identity.v1.UserWithClients.clients:type_name -> white.identity.v1.UserWithClients.UserClient
-	14, // 12: white.identity.v1.ListUsersResponse.users:type_name -> white.identity.v1.UserWithClients
-	16, // 13: white.identity.v1.ListUserOptionsResponse.users:type_name -> white.identity.v1.UserOption
-	0,  // 14: white.identity.v1.CreateUserRequest.role:type_name -> white.identity.v1.UserRole
-	7,  // 15: white.identity.v1.CreateUserRequest.memberships:type_name -> white.identity.v1.Membership
-	0,  // 16: white.identity.v1.UpdateUserRequest.role:type_name -> white.identity.v1.UserRole
-	7,  // 17: white.identity.v1.UpdateUserRequest.memberships:type_name -> white.identity.v1.Membership
-	8,  // 18: white.identity.v1.ClientSummary.client:type_name -> white.identity.v1.Client
-	2,  // 19: white.identity.v1.ClientSummary.my_role:type_name -> white.identity.v1.ClientAccess.AccessRole
-	22, // 20: white.identity.v1.ListClientsResponse.clients:type_name -> white.identity.v1.ClientSummary
-	25, // 21: white.identity.v1.CreateClientRequest.profile:type_name -> white.identity.v1.ClientProfile
-	55, // 22: white.identity.v1.CreateClientRequest.modules:type_name -> white.common.v1.ModuleKey
-	25, // 23: white.identity.v1.UpdateClientRequest.profile:type_name -> white.identity.v1.ClientProfile
-	1,  // 24: white.identity.v1.ClientMember.role:type_name -> white.identity.v1.ClientMemberRole
-	54, // 25: white.identity.v1.ClientMember.created_at:type_name -> google.protobuf.Timestamp
-	29, // 26: white.identity.v1.ListMembersResponse.members:type_name -> white.identity.v1.ClientMember
-	1,  // 27: white.identity.v1.UpsertMemberRequest.role:type_name -> white.identity.v1.ClientMemberRole
-	55, // 28: white.identity.v1.UpdateShareSettingsRequest.modules:type_name -> white.common.v1.ModuleKey
-	8,  // 29: white.identity.v1.ListAllClientsResponse.clients:type_name -> white.identity.v1.Client
-	54, // 30: white.identity.v1.Notification.created_at:type_name -> google.protobuf.Timestamp
-	40, // 31: white.identity.v1.NotificationFeed.items:type_name -> white.identity.v1.Notification
-	3,  // 32: white.identity.v1.NotifyRequest.audience:type_name -> white.identity.v1.NotifyRequest.Audience
-	4,  // 33: white.identity.v1.ShareContext.status:type_name -> white.identity.v1.ShareContext.Status
-	8,  // 34: white.identity.v1.ShareContext.client:type_name -> white.identity.v1.Client
-	54, // 35: white.identity.v1.SetupState.completed_at:type_name -> google.protobuf.Timestamp
-	54, // 36: white.identity.v1.SetupState.skipped_at:type_name -> google.protobuf.Timestamp
-	5,  // 37: white.identity.v1.MarkSetupRequest.kind:type_name -> white.identity.v1.MarkSetupRequest.Kind
-	1,  // 38: white.identity.v1.UserWithClients.UserClient.role:type_name -> white.identity.v1.ClientMemberRole
-	10, // 39: white.identity.v1.AuthService.Login:input_type -> white.identity.v1.LoginRequest
-	12, // 40: white.identity.v1.AuthService.Refresh:input_type -> white.identity.v1.RefreshRequest
-	13, // 41: white.identity.v1.AuthService.Logout:input_type -> white.identity.v1.LogoutRequest
-	56, // 42: white.identity.v1.AuthService.Me:input_type -> google.protobuf.Empty
-	56, // 43: white.identity.v1.UserService.ListUsers:input_type -> google.protobuf.Empty
-	56, // 44: white.identity.v1.UserService.ListUserOptions:input_type -> google.protobuf.Empty
-	18, // 45: white.identity.v1.UserService.CreateUser:input_type -> white.identity.v1.CreateUserRequest
-	19, // 46: white.identity.v1.UserService.UpdateUser:input_type -> white.identity.v1.UpdateUserRequest
-	20, // 47: white.identity.v1.UserService.SetUserActive:input_type -> white.identity.v1.SetUserActiveRequest
-	21, // 48: white.identity.v1.UserService.DeleteUser:input_type -> white.identity.v1.DeleteUserRequest
-	56, // 49: white.identity.v1.ClientService.ListClients:input_type -> google.protobuf.Empty
-	24, // 50: white.identity.v1.ClientService.GetClient:input_type -> white.identity.v1.GetClientRequest
-	26, // 51: white.identity.v1.ClientService.CreateClient:input_type -> white.identity.v1.CreateClientRequest
-	27, // 52: white.identity.v1.ClientService.UpdateClient:input_type -> white.identity.v1.UpdateClientRequest
-	28, // 53: white.identity.v1.ClientService.DeleteClient:input_type -> white.identity.v1.DeleteClientRequest
-	30, // 54: white.identity.v1.ClientService.ListMembers:input_type -> white.identity.v1.ListMembersRequest
-	32, // 55: white.identity.v1.ClientService.UpsertMember:input_type -> white.identity.v1.UpsertMemberRequest
-	33, // 56: white.identity.v1.ClientService.RemoveMember:input_type -> white.identity.v1.RemoveMemberRequest
-	34, // 57: white.identity.v1.ClientService.UpdateShareSettings:input_type -> white.identity.v1.UpdateShareSettingsRequest
-	35, // 58: white.identity.v1.AccessService.CheckClientAccess:input_type -> white.identity.v1.CheckClientAccessRequest
-	36, // 59: white.identity.v1.AccessService.GetUser:input_type -> white.identity.v1.GetUserRequest
-	37, // 60: white.identity.v1.AccessService.ListAccessibleClientIds:input_type -> white.identity.v1.ListAccessibleClientIdsRequest
-	56, // 61: white.identity.v1.AccessService.ListAllClients:input_type -> google.protobuf.Empty
-	41, // 62: white.identity.v1.NotificationService.ListNotifications:input_type -> white.identity.v1.ListNotificationsRequest
-	43, // 63: white.identity.v1.NotificationService.MarkNotificationRead:input_type -> white.identity.v1.MarkNotificationReadRequest
-	56, // 64: white.identity.v1.NotificationService.MarkAllNotificationsRead:input_type -> google.protobuf.Empty
-	45, // 65: white.identity.v1.NotificationService.Notify:input_type -> white.identity.v1.NotifyRequest
-	47, // 66: white.identity.v1.ShareService.GetShareContext:input_type -> white.identity.v1.GetShareContextRequest
-	49, // 67: white.identity.v1.ShareService.VerifySharePin:input_type -> white.identity.v1.VerifySharePinRequest
-	56, // 68: white.identity.v1.WorkspaceService.GetSetupState:input_type -> google.protobuf.Empty
-	52, // 69: white.identity.v1.WorkspaceService.MarkSetup:input_type -> white.identity.v1.MarkSetupRequest
-	11, // 70: white.identity.v1.AuthService.Login:output_type -> white.identity.v1.TokenPair
-	11, // 71: white.identity.v1.AuthService.Refresh:output_type -> white.identity.v1.TokenPair
-	56, // 72: white.identity.v1.AuthService.Logout:output_type -> google.protobuf.Empty
-	6,  // 73: white.identity.v1.AuthService.Me:output_type -> white.identity.v1.User
-	15, // 74: white.identity.v1.UserService.ListUsers:output_type -> white.identity.v1.ListUsersResponse
-	17, // 75: white.identity.v1.UserService.ListUserOptions:output_type -> white.identity.v1.ListUserOptionsResponse
-	6,  // 76: white.identity.v1.UserService.CreateUser:output_type -> white.identity.v1.User
-	6,  // 77: white.identity.v1.UserService.UpdateUser:output_type -> white.identity.v1.User
-	6,  // 78: white.identity.v1.UserService.SetUserActive:output_type -> white.identity.v1.User
-	56, // 79: white.identity.v1.UserService.DeleteUser:output_type -> google.protobuf.Empty
-	23, // 80: white.identity.v1.ClientService.ListClients:output_type -> white.identity.v1.ListClientsResponse
-	9,  // 81: white.identity.v1.ClientService.GetClient:output_type -> white.identity.v1.ClientAccess
-	8,  // 82: white.identity.v1.ClientService.CreateClient:output_type -> white.identity.v1.Client
-	8,  // 83: white.identity.v1.ClientService.UpdateClient:output_type -> white.identity.v1.Client
-	56, // 84: white.identity.v1.ClientService.DeleteClient:output_type -> google.protobuf.Empty
-	31, // 85: white.identity.v1.ClientService.ListMembers:output_type -> white.identity.v1.ListMembersResponse
-	56, // 86: white.identity.v1.ClientService.UpsertMember:output_type -> google.protobuf.Empty
-	56, // 87: white.identity.v1.ClientService.RemoveMember:output_type -> google.protobuf.Empty
-	8,  // 88: white.identity.v1.ClientService.UpdateShareSettings:output_type -> white.identity.v1.Client
-	9,  // 89: white.identity.v1.AccessService.CheckClientAccess:output_type -> white.identity.v1.ClientAccess
-	6,  // 90: white.identity.v1.AccessService.GetUser:output_type -> white.identity.v1.User
-	38, // 91: white.identity.v1.AccessService.ListAccessibleClientIds:output_type -> white.identity.v1.ListAccessibleClientIdsResponse
-	39, // 92: white.identity.v1.AccessService.ListAllClients:output_type -> white.identity.v1.ListAllClientsResponse
-	42, // 93: white.identity.v1.NotificationService.ListNotifications:output_type -> white.identity.v1.NotificationFeed
-	56, // 94: white.identity.v1.NotificationService.MarkNotificationRead:output_type -> google.protobuf.Empty
-	44, // 95: white.identity.v1.NotificationService.MarkAllNotificationsRead:output_type -> white.identity.v1.MarkAllNotificationsReadResponse
-	46, // 96: white.identity.v1.NotificationService.Notify:output_type -> white.identity.v1.NotifyResponse
-	48, // 97: white.identity.v1.ShareService.GetShareContext:output_type -> white.identity.v1.ShareContext
-	50, // 98: white.identity.v1.ShareService.VerifySharePin:output_type -> white.identity.v1.VerifySharePinResponse
-	51, // 99: white.identity.v1.WorkspaceService.GetSetupState:output_type -> white.identity.v1.SetupState
-	51, // 100: white.identity.v1.WorkspaceService.MarkSetup:output_type -> white.identity.v1.SetupState
-	70, // [70:101] is the sub-list for method output_type
-	39, // [39:70] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	0,  // 10: white.identity.v1.SyncLegacyUserRequest.role:type_name -> white.identity.v1.UserRole
+	58, // 11: white.identity.v1.ListPermissionsResponse.permissions:type_name -> white.identity.v1.ListPermissionsResponse.Permission
+	6,  // 12: white.identity.v1.UserWithClients.user:type_name -> white.identity.v1.User
+	59, // 13: white.identity.v1.UserWithClients.clients:type_name -> white.identity.v1.UserWithClients.UserClient
+	18, // 14: white.identity.v1.ListUsersResponse.users:type_name -> white.identity.v1.UserWithClients
+	20, // 15: white.identity.v1.ListUserOptionsResponse.users:type_name -> white.identity.v1.UserOption
+	0,  // 16: white.identity.v1.CreateUserRequest.role:type_name -> white.identity.v1.UserRole
+	7,  // 17: white.identity.v1.CreateUserRequest.memberships:type_name -> white.identity.v1.Membership
+	0,  // 18: white.identity.v1.UpdateUserRequest.role:type_name -> white.identity.v1.UserRole
+	7,  // 19: white.identity.v1.UpdateUserRequest.memberships:type_name -> white.identity.v1.Membership
+	8,  // 20: white.identity.v1.ClientSummary.client:type_name -> white.identity.v1.Client
+	2,  // 21: white.identity.v1.ClientSummary.my_role:type_name -> white.identity.v1.ClientAccess.AccessRole
+	26, // 22: white.identity.v1.ListClientsResponse.clients:type_name -> white.identity.v1.ClientSummary
+	29, // 23: white.identity.v1.CreateClientRequest.profile:type_name -> white.identity.v1.ClientProfile
+	61, // 24: white.identity.v1.CreateClientRequest.modules:type_name -> white.common.v1.ModuleKey
+	29, // 25: white.identity.v1.UpdateClientRequest.profile:type_name -> white.identity.v1.ClientProfile
+	1,  // 26: white.identity.v1.ClientMember.role:type_name -> white.identity.v1.ClientMemberRole
+	60, // 27: white.identity.v1.ClientMember.created_at:type_name -> google.protobuf.Timestamp
+	33, // 28: white.identity.v1.ListMembersResponse.members:type_name -> white.identity.v1.ClientMember
+	1,  // 29: white.identity.v1.UpsertMemberRequest.role:type_name -> white.identity.v1.ClientMemberRole
+	61, // 30: white.identity.v1.UpdateShareSettingsRequest.modules:type_name -> white.common.v1.ModuleKey
+	8,  // 31: white.identity.v1.ListAllClientsResponse.clients:type_name -> white.identity.v1.Client
+	60, // 32: white.identity.v1.Notification.created_at:type_name -> google.protobuf.Timestamp
+	45, // 33: white.identity.v1.NotificationFeed.items:type_name -> white.identity.v1.Notification
+	3,  // 34: white.identity.v1.NotifyRequest.audience:type_name -> white.identity.v1.NotifyRequest.Audience
+	4,  // 35: white.identity.v1.ShareContext.status:type_name -> white.identity.v1.ShareContext.Status
+	8,  // 36: white.identity.v1.ShareContext.client:type_name -> white.identity.v1.Client
+	60, // 37: white.identity.v1.SetupState.completed_at:type_name -> google.protobuf.Timestamp
+	60, // 38: white.identity.v1.SetupState.skipped_at:type_name -> google.protobuf.Timestamp
+	5,  // 39: white.identity.v1.MarkSetupRequest.kind:type_name -> white.identity.v1.MarkSetupRequest.Kind
+	1,  // 40: white.identity.v1.UserWithClients.UserClient.role:type_name -> white.identity.v1.ClientMemberRole
+	11, // 41: white.identity.v1.AuthService.Login:input_type -> white.identity.v1.LoginRequest
+	13, // 42: white.identity.v1.AuthService.Refresh:input_type -> white.identity.v1.RefreshRequest
+	14, // 43: white.identity.v1.AuthService.Logout:input_type -> white.identity.v1.LogoutRequest
+	62, // 44: white.identity.v1.AuthService.Me:input_type -> google.protobuf.Empty
+	10, // 45: white.identity.v1.AuthService.IssueServiceToken:input_type -> white.identity.v1.IssueServiceTokenRequest
+	62, // 46: white.identity.v1.UserService.ListPermissions:input_type -> google.protobuf.Empty
+	62, // 47: white.identity.v1.UserService.ListUsers:input_type -> google.protobuf.Empty
+	62, // 48: white.identity.v1.UserService.ListUserOptions:input_type -> google.protobuf.Empty
+	22, // 49: white.identity.v1.UserService.CreateUser:input_type -> white.identity.v1.CreateUserRequest
+	23, // 50: white.identity.v1.UserService.UpdateUser:input_type -> white.identity.v1.UpdateUserRequest
+	24, // 51: white.identity.v1.UserService.SetUserActive:input_type -> white.identity.v1.SetUserActiveRequest
+	25, // 52: white.identity.v1.UserService.DeleteUser:input_type -> white.identity.v1.DeleteUserRequest
+	15, // 53: white.identity.v1.UserService.SetUserPermissions:input_type -> white.identity.v1.SetUserPermissionsRequest
+	16, // 54: white.identity.v1.UserService.SyncLegacyUser:input_type -> white.identity.v1.SyncLegacyUserRequest
+	25, // 55: white.identity.v1.UserService.RemoveLegacyUser:input_type -> white.identity.v1.DeleteUserRequest
+	62, // 56: white.identity.v1.ClientService.ListClients:input_type -> google.protobuf.Empty
+	28, // 57: white.identity.v1.ClientService.GetClient:input_type -> white.identity.v1.GetClientRequest
+	30, // 58: white.identity.v1.ClientService.CreateClient:input_type -> white.identity.v1.CreateClientRequest
+	31, // 59: white.identity.v1.ClientService.UpdateClient:input_type -> white.identity.v1.UpdateClientRequest
+	32, // 60: white.identity.v1.ClientService.DeleteClient:input_type -> white.identity.v1.DeleteClientRequest
+	34, // 61: white.identity.v1.ClientService.ListMembers:input_type -> white.identity.v1.ListMembersRequest
+	36, // 62: white.identity.v1.ClientService.UpsertMember:input_type -> white.identity.v1.UpsertMemberRequest
+	37, // 63: white.identity.v1.ClientService.RemoveMember:input_type -> white.identity.v1.RemoveMemberRequest
+	38, // 64: white.identity.v1.ClientService.UpdateShareSettings:input_type -> white.identity.v1.UpdateShareSettingsRequest
+	40, // 65: white.identity.v1.AccessService.CheckClientAccess:input_type -> white.identity.v1.CheckClientAccessRequest
+	41, // 66: white.identity.v1.AccessService.GetUser:input_type -> white.identity.v1.GetUserRequest
+	42, // 67: white.identity.v1.AccessService.ListAccessibleClientIds:input_type -> white.identity.v1.ListAccessibleClientIdsRequest
+	62, // 68: white.identity.v1.AccessService.ListAllClients:input_type -> google.protobuf.Empty
+	39, // 69: white.identity.v1.AccessService.ListPermissionHolders:input_type -> white.identity.v1.ListPermissionHoldersRequest
+	46, // 70: white.identity.v1.NotificationService.ListNotifications:input_type -> white.identity.v1.ListNotificationsRequest
+	48, // 71: white.identity.v1.NotificationService.MarkNotificationRead:input_type -> white.identity.v1.MarkNotificationReadRequest
+	62, // 72: white.identity.v1.NotificationService.MarkAllNotificationsRead:input_type -> google.protobuf.Empty
+	50, // 73: white.identity.v1.NotificationService.Notify:input_type -> white.identity.v1.NotifyRequest
+	52, // 74: white.identity.v1.ShareService.GetShareContext:input_type -> white.identity.v1.GetShareContextRequest
+	54, // 75: white.identity.v1.ShareService.VerifySharePin:input_type -> white.identity.v1.VerifySharePinRequest
+	62, // 76: white.identity.v1.WorkspaceService.GetSetupState:input_type -> google.protobuf.Empty
+	57, // 77: white.identity.v1.WorkspaceService.MarkSetup:input_type -> white.identity.v1.MarkSetupRequest
+	12, // 78: white.identity.v1.AuthService.Login:output_type -> white.identity.v1.TokenPair
+	12, // 79: white.identity.v1.AuthService.Refresh:output_type -> white.identity.v1.TokenPair
+	62, // 80: white.identity.v1.AuthService.Logout:output_type -> google.protobuf.Empty
+	6,  // 81: white.identity.v1.AuthService.Me:output_type -> white.identity.v1.User
+	12, // 82: white.identity.v1.AuthService.IssueServiceToken:output_type -> white.identity.v1.TokenPair
+	17, // 83: white.identity.v1.UserService.ListPermissions:output_type -> white.identity.v1.ListPermissionsResponse
+	19, // 84: white.identity.v1.UserService.ListUsers:output_type -> white.identity.v1.ListUsersResponse
+	21, // 85: white.identity.v1.UserService.ListUserOptions:output_type -> white.identity.v1.ListUserOptionsResponse
+	6,  // 86: white.identity.v1.UserService.CreateUser:output_type -> white.identity.v1.User
+	6,  // 87: white.identity.v1.UserService.UpdateUser:output_type -> white.identity.v1.User
+	6,  // 88: white.identity.v1.UserService.SetUserActive:output_type -> white.identity.v1.User
+	62, // 89: white.identity.v1.UserService.DeleteUser:output_type -> google.protobuf.Empty
+	6,  // 90: white.identity.v1.UserService.SetUserPermissions:output_type -> white.identity.v1.User
+	6,  // 91: white.identity.v1.UserService.SyncLegacyUser:output_type -> white.identity.v1.User
+	62, // 92: white.identity.v1.UserService.RemoveLegacyUser:output_type -> google.protobuf.Empty
+	27, // 93: white.identity.v1.ClientService.ListClients:output_type -> white.identity.v1.ListClientsResponse
+	9,  // 94: white.identity.v1.ClientService.GetClient:output_type -> white.identity.v1.ClientAccess
+	8,  // 95: white.identity.v1.ClientService.CreateClient:output_type -> white.identity.v1.Client
+	8,  // 96: white.identity.v1.ClientService.UpdateClient:output_type -> white.identity.v1.Client
+	62, // 97: white.identity.v1.ClientService.DeleteClient:output_type -> google.protobuf.Empty
+	35, // 98: white.identity.v1.ClientService.ListMembers:output_type -> white.identity.v1.ListMembersResponse
+	62, // 99: white.identity.v1.ClientService.UpsertMember:output_type -> google.protobuf.Empty
+	62, // 100: white.identity.v1.ClientService.RemoveMember:output_type -> google.protobuf.Empty
+	8,  // 101: white.identity.v1.ClientService.UpdateShareSettings:output_type -> white.identity.v1.Client
+	9,  // 102: white.identity.v1.AccessService.CheckClientAccess:output_type -> white.identity.v1.ClientAccess
+	6,  // 103: white.identity.v1.AccessService.GetUser:output_type -> white.identity.v1.User
+	43, // 104: white.identity.v1.AccessService.ListAccessibleClientIds:output_type -> white.identity.v1.ListAccessibleClientIdsResponse
+	44, // 105: white.identity.v1.AccessService.ListAllClients:output_type -> white.identity.v1.ListAllClientsResponse
+	21, // 106: white.identity.v1.AccessService.ListPermissionHolders:output_type -> white.identity.v1.ListUserOptionsResponse
+	47, // 107: white.identity.v1.NotificationService.ListNotifications:output_type -> white.identity.v1.NotificationFeed
+	62, // 108: white.identity.v1.NotificationService.MarkNotificationRead:output_type -> google.protobuf.Empty
+	49, // 109: white.identity.v1.NotificationService.MarkAllNotificationsRead:output_type -> white.identity.v1.MarkAllNotificationsReadResponse
+	51, // 110: white.identity.v1.NotificationService.Notify:output_type -> white.identity.v1.NotifyResponse
+	53, // 111: white.identity.v1.ShareService.GetShareContext:output_type -> white.identity.v1.ShareContext
+	55, // 112: white.identity.v1.ShareService.VerifySharePin:output_type -> white.identity.v1.VerifySharePinResponse
+	56, // 113: white.identity.v1.WorkspaceService.GetSetupState:output_type -> white.identity.v1.SetupState
+	56, // 114: white.identity.v1.WorkspaceService.MarkSetup:output_type -> white.identity.v1.SetupState
+	78, // [78:115] is the sub-list for method output_type
+	41, // [41:78] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_white_identity_v1_identity_proto_init() }
@@ -3660,19 +4067,19 @@ func file_white_identity_v1_identity_proto_init() {
 		return
 	}
 	file_white_identity_v1_identity_proto_msgTypes[2].OneofWrappers = []any{}
-	file_white_identity_v1_identity_proto_msgTypes[29].OneofWrappers = []any{
+	file_white_identity_v1_identity_proto_msgTypes[34].OneofWrappers = []any{
 		(*CheckClientAccessRequest_ClientId)(nil),
 		(*CheckClientAccessRequest_Slug)(nil),
 	}
-	file_white_identity_v1_identity_proto_msgTypes[34].OneofWrappers = []any{}
-	file_white_identity_v1_identity_proto_msgTypes[45].OneofWrappers = []any{}
+	file_white_identity_v1_identity_proto_msgTypes[39].OneofWrappers = []any{}
+	file_white_identity_v1_identity_proto_msgTypes[50].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_identity_v1_identity_proto_rawDesc), len(file_white_identity_v1_identity_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   48,
+			NumMessages:   54,
 			NumExtensions: 0,
 			NumServices:   7,
 		},

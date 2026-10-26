@@ -253,6 +253,73 @@ func (q *Queries) LatestFollowersByAccount(ctx context.Context, dollar_1 []strin
 	return items, nil
 }
 
+const listOwnPostsFiltered = `-- name: ListOwnPostsFiltered :many
+SELECT p.id, p.social_account_id, p.external_id, p.caption, p.media_type, p.product_type, p.permalink, p.media_url, p.thumbnail_url, p.published_at, p.likes, p.comments, p.shares, p.saves, p.views, p.reach, p.impressions, p.synced_at FROM analytics.social_posts p
+JOIN analytics.social_accounts a ON a.id = p.social_account_id
+WHERE a.client_id = $1 AND NOT a.is_competitor
+  AND (cardinality($2::text[]) = 0 OR p.social_account_id = ANY($2::text[]))
+  AND (cardinality($3::text[]) = 0 OR p.external_id = ANY($3::text[]))
+  AND ($4::timestamptz IS NULL OR p.published_at >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR p.published_at < $5::timestamptz)
+ORDER BY p.published_at DESC
+LIMIT $6
+`
+
+type ListOwnPostsFilteredParams struct {
+	ClientID    string
+	AccountIds  []string
+	ExternalIds []string
+	FromTs      *time.Time
+	ToTs        *time.Time
+	RowLimit    int32
+}
+
+func (q *Queries) ListOwnPostsFiltered(ctx context.Context, arg ListOwnPostsFilteredParams) ([]AnalyticsSocialPost, error) {
+	rows, err := q.db.Query(ctx, listOwnPostsFiltered,
+		arg.ClientID,
+		arg.AccountIds,
+		arg.ExternalIds,
+		arg.FromTs,
+		arg.ToTs,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AnalyticsSocialPost{}
+	for rows.Next() {
+		var i AnalyticsSocialPost
+		if err := rows.Scan(
+			&i.ID,
+			&i.SocialAccountID,
+			&i.ExternalID,
+			&i.Caption,
+			&i.MediaType,
+			&i.ProductType,
+			&i.Permalink,
+			&i.MediaUrl,
+			&i.ThumbnailUrl,
+			&i.PublishedAt,
+			&i.Likes,
+			&i.Comments,
+			&i.Shares,
+			&i.Saves,
+			&i.Views,
+			&i.Reach,
+			&i.Impressions,
+			&i.SyncedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listOwnPostsForClient = `-- name: ListOwnPostsForClient :many
 SELECT p.id, p.social_account_id, p.external_id, p.caption, p.media_type, p.product_type, p.permalink, p.media_url, p.thumbnail_url, p.published_at, p.likes, p.comments, p.shares, p.saves, p.views, p.reach, p.impressions, p.synced_at, a.platform, a.username
 FROM analytics.social_posts p

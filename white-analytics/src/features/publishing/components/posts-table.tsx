@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ImageOff } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -20,21 +21,41 @@ import { POSTS_TABS, TAB_STATUSES, tabCount, type PostsTab } from "@/features/pu
 
 /* eslint-disable @next/next/no-img-element */
 
-export function PostsTable({ rows, counts, tab, slug, timezone }: { rows: PostRow[]; counts: Record<PostStatusKey, number>; tab: PostsTab; slug: string; timezone: string }) {
+function PostThumbnail({ src }: { src: string | null }) {
+  const [broken, setBroken] = React.useState(false);
+  if (!src || broken) return <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"><ImageOff className="size-4" aria-hidden /></span>;
+  return <img src={src} alt="" loading="lazy" onError={() => setBroken(true)} className="size-9 shrink-0 rounded-md bg-muted object-cover" />;
+}
+
+export function PostsTable({ rows, counts, tab, slug, timezone, nowIso }: { rows: PostRow[]; counts: Record<PostStatusKey, number>; tab: PostsTab; slug: string; timezone: string; nowIso: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
   const [platform, setPlatform] = React.useState<Platform | "ALL">("ALL");
+  const tabsRef = React.useRef<HTMLDivElement>(null);
+  const windowFilter = sp.get("window");
+  React.useEffect(() => {
+    tabsRef.current?.querySelector('[data-state="active"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+  }, [tab]);
 
   const hrefFor = (tb: PostsTab) => {
     const q = new URLSearchParams(sp.toString());
     if (tb === "ALL") q.delete("status");
     else q.set("status", tb);
+    q.delete("window");
     const qs = q.toString();
     return qs ? `${pathname}?${qs}` : pathname;
   };
   const statuses = TAB_STATUSES[tab];
-  const data = rows.filter((r) => (!statuses || statuses.includes(r.status)) && (platform === "ALL" || r.platforms.includes(platform)));
+  const now = new Date(nowIso).getTime();
+  const data = rows.filter((r) => {
+    if (statuses && !statuses.includes(r.status)) return false;
+    if (platform !== "ALL" && !r.platforms.includes(platform)) return false;
+    if (windowFilter === "next7d") return !!r.scheduledAt && new Date(r.scheduledAt).getTime() >= now && new Date(r.scheduledAt).getTime() < now + 7 * 86_400_000;
+    if (windowFilter === "last30d") return !!r.publishedAt && new Date(r.publishedAt).getTime() >= now - 30 * 86_400_000;
+    if (windowFilter === "overdue") return !!r.scheduledAt && new Date(r.scheduledAt).getTime() < now && r.status === "SCHEDULED";
+    return true;
+  });
 
   const columns = React.useMemo<ColumnDef<PostRow>[]>(
     () => [
@@ -61,11 +82,7 @@ export function PostsTable({ rows, counts, tab, slug, timezone }: { rows: PostRo
         header: p.colPost,
         cell: ({ row }) => (
           <span className="flex min-w-0 items-center gap-2.5">
-            {row.original.thumbnailUrl ? (
-              <img src={row.original.thumbnailUrl} alt="" loading="lazy" className="size-9 shrink-0 rounded-md bg-muted object-cover" />
-            ) : (
-              <span className="size-9 shrink-0 rounded-md bg-muted" />
-            )}
+            <PostThumbnail src={row.original.thumbnailUrl} />
             <span className="min-w-0">
               <span className="block max-w-[38ch] truncate text-[13px] font-medium">{row.original.title || p.untitled}</span>
               <span className="block max-w-[38ch] truncate text-xs text-muted-foreground">{row.original.bodyShort}</span>
@@ -101,7 +118,7 @@ export function PostsTable({ rows, counts, tab, slug, timezone }: { rows: PostRo
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto scrollbar-thin">
+      <div ref={tabsRef} className="overflow-x-auto scrollbar-thin">
         <Tabs value={tab}>
           <TabsList aria-label={t.common.status}>
             {POSTS_TABS.map((tb) => (
@@ -115,6 +132,12 @@ export function PostsTable({ rows, counts, tab, slug, timezone }: { rows: PostRo
           </TabsList>
         </Tabs>
       </div>
+      {windowFilter === "next7d" || windowFilter === "last30d" || windowFilter === "overdue" ? (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Periode: {windowFilter === "next7d" ? "7 hari ke depan" : windowFilter === "last30d" ? "30 hari terakhir" : "Jadwal terlewat"}</span>
+          <Link href={`${pathname}?status=${tab}`} className="font-medium text-brand-ink underline underline-offset-2">Hapus filter</Link>
+        </div>
+      ) : null}
       <DataTable
         columns={columns}
         data={data}
@@ -123,8 +146,9 @@ export function PostsTable({ rows, counts, tab, slug, timezone }: { rows: PostRo
         initialSorting={[{ id: "at", desc: true }]}
         pageSize={15}
         exportName={`posts-${slug}`}
-        emptyMessage={p.noPosts}
+        emptyMessage={tab !== "ALL" || platform !== "ALL" || !!windowFilter ? "Tidak ada post untuk filter ini." : p.noPosts}
         onRowClick={(row) => router.push(`/clients/${slug}/publish/posts/${row.original.id}`)}
+        mobileCardBreakpoint="md"
         rowClassName={() => "cursor-pointer"}
         getRowId={(r) => r.id}
         toolbar={

@@ -1,0 +1,1430 @@
+syntax = "proto3";
+
+package white.recruitment.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/recruitment/v1;recruitmentv1";
+
+// Recruitment service: job openings, candidates and their pipeline,
+// talent pool, psikotes, AI interview, interview scheduling with
+// scorecards, offers and the public candidate portals. Ported from the
+// NüHabit recruitment module; status and kind fields are lowercase strings
+// (values listed in the comments) kept verbatim from NüHabit. Days are
+// "YYYY-MM-DD"; money is integer rupiah (int64) or a decimal string.
+//
+// Staff RPCs need recruitment.read (reads) or recruitment.write (writes).
+// PublicRecruitmentService takes no login: it authorizes by a public job
+// slug or an opaque portal token.
+
+// ─────────────────────────────────────────────────────────────
+// Shared
+// ─────────────────────────────────────────────────────────────
+
+// File bytes. The gateway answers this message as a raw download.
+message FileContent {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
+}
+
+message MessageResponse {
+  string message = 1;
+}
+
+// An uploaded file sent inline (base64 in JSON).
+message FileUpload {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// JobOpeningService
+// ─────────────────────────────────────────────────────────────
+
+service JobOpeningService {
+  rpc ListJobOpenings(ListJobOpeningsRequest) returns (ListJobOpeningsResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/job-openings"};
+  }
+  rpc GetJobOpening(JobOpeningRequest) returns (JobOpening) {
+    option (google.api.http) = {get: "/v1/recruitment/job-openings/{id}"};
+  }
+  rpc CreateJobOpening(JobOpeningInput) returns (JobOpening) {
+    option (google.api.http) = {post: "/v1/recruitment/job-openings" body: "*"};
+  }
+  rpc UpdateJobOpening(UpdateJobOpeningRequest) returns (JobOpening) {
+    option (google.api.http) = {patch: "/v1/recruitment/job-openings/{id}" body: "input"};
+  }
+  // Soft delete. Candidates keep their history.
+  rpc DeleteJobOpening(JobOpeningRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/recruitment/job-openings/{id}"};
+  }
+}
+
+message JobOpening {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  // hr department id and its display name.
+  optional string department_id = 4;
+  string department = 5;
+  string location = 6;
+  string employment_type = 7;
+  string work_mode = 8;
+  int32 headcount = 9;
+  string description = 10;
+  string requirements = 11;
+  string benefits = 12;
+  // Salary range for the offer panel (decimal strings, "" when unset).
+  string salary_min = 13;
+  string salary_max = 14;
+  // Identity user notified about applications for this opening.
+  optional string hiring_manager_user_id = 15;
+  // draft | published | closed
+  string status = 16;
+  google.protobuf.Timestamp published_at = 17;
+  optional string closing_date = 18;
+  int32 candidate_count = 19;
+  int32 hired_count = 20;
+  google.protobuf.Timestamp created_at = 21;
+  google.protobuf.Timestamp updated_at = 22;
+}
+
+message JobOpeningInput {
+  string title = 1;
+  // Derived from the title when empty.
+  string slug = 2;
+  optional string department_id = 3;
+  // Defaults to the hr department name, else "Operations".
+  string department = 4;
+  string location = 5;
+  string employment_type = 6;
+  string work_mode = 7;
+  int32 headcount = 8;
+  string description = 9;
+  string requirements = 10;
+  string benefits = 11;
+  string salary_min = 12;
+  string salary_max = 13;
+  optional string hiring_manager_user_id = 14;
+  // draft (default) | published | closed
+  string status = 15;
+  optional string closing_date = 16;
+}
+
+message JobOpeningRequest {
+  string id = 1;
+}
+
+message UpdateJobOpeningRequest {
+  string id = 1;
+  JobOpeningInput input = 2;
+}
+
+message ListJobOpeningsRequest {
+  string status = 1;
+  string search = 2;
+}
+
+message ListJobOpeningsResponse {
+  repeated JobOpening job_openings = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// CandidateService
+// ─────────────────────────────────────────────────────────────
+
+service CandidateService {
+  rpc ListCandidates(ListCandidatesRequest) returns (ListCandidatesResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates"};
+  }
+  rpc GetCandidate(CandidateRequest) returns (Candidate) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{id}"};
+  }
+  rpc CreateCandidate(CandidateInput) returns (Candidate) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates" body: "*"};
+  }
+  rpc UpdateCandidate(UpdateCandidateRequest) returns (Candidate) {
+    option (google.api.http) = {patch: "/v1/recruitment/candidates/{id}" body: "input"};
+  }
+  // Hard delete with every panel (as NüHabit).
+  rpc DeleteCandidate(CandidateRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/recruitment/candidates/{id}"};
+  }
+  // Moves a candidate to any pipeline status and logs the change.
+  rpc MoveCandidateStage(MoveStageRequest) returns (MoveStageResponse) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates/{id}/stage" body: "*"};
+  }
+  // Kanban board: one column per pipeline status.
+  rpc GetPipeline(GetPipelineRequest) returns (Pipeline) {
+    option (google.api.http) = {get: "/v1/recruitment/pipeline"};
+  }
+  // Candidates in talent_pool (and archived when asked).
+  rpc ListTalentPool(ListTalentPoolRequest) returns (ListCandidatesResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/talent-pool"};
+  }
+  rpc GetRecruitmentSummary(google.protobuf.Empty) returns (RecruitmentSummary) {
+    option (google.api.http) = {get: "/v1/recruitment/summary"};
+  }
+  // Analytics page: KPIs with a comparison period, weekly trend, funnel,
+  // stage durations, sources, openings, assessments and offers.
+  rpc GetRecruitmentDashboard(RecruitmentDashboardRequest) returns (RecruitmentDashboard) {
+    option (google.api.http) = {get: "/v1/recruitment/dashboard"};
+  }
+  rpc ListNotes(CandidateRequest) returns (ListNotesResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{id}/notes"};
+  }
+  rpc AddNote(AddNoteRequest) returns (CandidateNote) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates/{id}/notes" body: "*"};
+  }
+  rpc ListActivities(CandidateRequest) returns (ListActivitiesResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{id}/activities"};
+  }
+  rpc GetScreening(CandidateRequest) returns (ScreeningResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{id}/screening"};
+  }
+  rpc SaveScreening(SaveScreeningRequest) returns (Screening) {
+    option (google.api.http) = {put: "/v1/recruitment/candidates/{id}/screening" body: "*"};
+  }
+  // CV upload (pdf, doc, docx, jpg, png; 10 MB).
+  rpc UploadCv(UploadCvRequest) returns (Candidate) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates/{id}/cv" body: "*"};
+  }
+  rpc DeleteCv(CandidateRequest) returns (Candidate) {
+    option (google.api.http) = {delete: "/v1/recruitment/candidates/{id}/cv"};
+  }
+  rpc DownloadCv(CandidateRequest) returns (FileContent) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{id}/cv"};
+  }
+  rpc GetAiAnalysis(CandidateRequest) returns (AiAnalysisResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{id}/ai-analysis"};
+  }
+  // Scores the candidate profile against the job opening (OpenRouter, or
+  // the deterministic mock without a key).
+  rpc AnalyzeCandidate(CandidateRequest) returns (AiAnalysis) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates/{id}/ai-analysis" body: "*"};
+  }
+  // Pipeline report PDF, available from the Offer stage.
+  rpc DownloadPipelineReport(CandidateRequest) returns (FileContent) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{id}/report"};
+  }
+}
+
+message Candidate {
+  string id = 1;
+  string full_name = 2;
+  string email = 3;
+  string phone = 4;
+  string domicile = 5;
+  // portal | internal | referral | jobstreet | instagram | jobfair | walk_in
+  // | internal_referral | headhunter | other
+  string source = 6;
+  optional string job_opening_id = 7;
+  string job_opening_title = 8;
+  // applied | screening | psikotes | interview | offer | hired |
+  // talent_pool | rejected | archived
+  string status = 9;
+  string status_label = 10;
+  string notes = 11;
+  string last_experience = 12;
+  string last_education = 13;
+  // immediate | 1_week | 2_weeks | 1_month
+  string availability = 14;
+  optional int64 expected_salary = 15;
+  bool has_cv = 16;
+  string cv_file_name = 17;
+  google.protobuf.Timestamp hired_at = 18;
+  google.protobuf.Timestamp created_at = 19;
+  google.protobuf.Timestamp updated_at = 20;
+}
+
+message CandidateInput {
+  string full_name = 1;
+  string email = 2;
+  string phone = 3;
+  string domicile = 4;
+  // Defaults to walk_in.
+  string source = 5;
+  optional string job_opening_id = 6;
+  // applied (default) | screening
+  string status = 7;
+  string notes = 8;
+  string last_experience = 9;
+  string last_education = 10;
+  string availability = 11;
+  optional int64 expected_salary = 12;
+}
+
+// Only the fields that are set change. Clear a text field with "".
+message CandidatePatch {
+  optional string full_name = 1;
+  optional string email = 2;
+  optional string phone = 3;
+  optional string domicile = 4;
+  optional string source = 5;
+  optional string job_opening_id = 6;
+  optional string notes = 7;
+  optional string last_experience = 8;
+  optional string last_education = 9;
+  optional string availability = 10;
+  optional int64 expected_salary = 11;
+  // Sends expected_salary = NULL.
+  bool clear_expected_salary = 12;
+}
+
+message CandidateRequest {
+  string id = 1;
+}
+
+message UpdateCandidateRequest {
+  string id = 1;
+  CandidatePatch input = 2;
+}
+
+message ListCandidatesRequest {
+  string status = 1;
+  string job_opening_id = 2;
+  string search = 3;
+  string date_from = 4;
+  string date_to = 5;
+  // created_at (default) | updated_at
+  string sort = 6;
+  int32 page = 7;
+  int32 limit = 8;
+  // Every row on one page.
+  bool all = 9;
+}
+
+message ListCandidatesResponse {
+  repeated Candidate candidates = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  int32 total_pages = 5;
+}
+
+message ListTalentPoolRequest {
+  string search = 1;
+  bool include_archived = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message MoveStageRequest {
+  string id = 1;
+  string status = 2;
+}
+
+message MoveStageResponse {
+  string status = 1;
+  optional string previous = 2;
+  string message = 3;
+}
+
+message GetPipelineRequest {
+  string job_opening_id = 1;
+  string search = 2;
+}
+
+message PipelineColumn {
+  string status = 1;
+  string label = 2;
+  int32 count = 3;
+  repeated Candidate candidates = 4;
+}
+
+message Pipeline {
+  repeated PipelineColumn columns = 1;
+}
+
+message CountByKey {
+  string key = 1;
+  string label = 2;
+  int32 count = 3;
+}
+
+message RecruitmentSummary {
+  int32 open_jobs = 1;
+  int32 active_candidates = 2;
+  int32 applied_last_30_days = 3;
+  int32 hired_last_90_days = 4;
+  int32 interviews_next_7_days = 5;
+  int32 open_offers = 6;
+  repeated CountByKey by_status = 7;
+  repeated CountByKey by_source = 8;
+  // Average days from application to hired over the last 90 days.
+  optional double avg_days_to_hire = 9;
+}
+
+// ─── Dashboard ───────────────────────────────────────────────
+
+message RecruitmentDashboardRequest {
+  // Inclusive WIB days; both empty means the last twelve months.
+  string from = 1;
+  string to = 2;
+  // previous (default) | year
+  string compare = 3;
+  string job_opening_id = 4;
+  // Opening department name.
+  string department = 5;
+  string source = 6;
+  // Current candidate status.
+  string stage = 7;
+}
+
+message DashboardPeriod {
+  string from = 1;
+  string to = 2;
+}
+
+message RecruitmentKpis {
+  // Openings taking applications at the end of the period, and their headcount.
+  int32 open_positions = 1;
+  int32 open_headcount = 2;
+  int32 applicants = 3;
+  // Candidates in an active stage at the end of the period.
+  int32 in_process = 4;
+  int32 offers_sent = 5;
+  int32 offers_accepted = 6;
+  int32 offers_declined = 7;
+  int32 offers_expired = 8;
+  int32 hires = 9;
+  optional double avg_days_to_hire = 10;
+  // Accepted over accepted + declined + expired, 0..100.
+  optional double offer_acceptance_rate = 11;
+}
+
+// One week (Monday start) clipped to the period.
+message RecruitmentTrendPoint {
+  string start = 1;
+  int32 applications = 2;
+  int32 hires = 3;
+  optional double avg_days_to_hire = 4;
+  int32 offers_sent = 5;
+  int32 offers_accepted = 6;
+  int32 offers_declined = 7;
+  int32 offers_expired = 8;
+  // Offers first sent this week that are still being negotiated.
+  int32 offers_negotiating = 9;
+  int32 in_process = 10;
+  int32 open_positions = 11;
+  int32 open_headcount = 12;
+}
+
+message FunnelStage {
+  string stage = 1;
+  string label = 2;
+  // Applications of the period that reached this stage or a later one.
+  int32 reached = 3;
+  int32 current = 4;
+  // Rejected, pooled or archived after reaching this stage last.
+  int32 exited = 5;
+}
+
+message StageDuration {
+  string stage = 1;
+  string label = 2;
+  int32 count = 3;
+  double avg_days = 4;
+  double min_days = 5;
+  double p25_days = 6;
+  double median_days = 7;
+  double p75_days = 8;
+  double max_days = 9;
+}
+
+message OpeningStageCount {
+  string job_opening_id = 1;
+  string title = 2;
+  string status = 3;
+  int32 count = 4;
+}
+
+message StuckCandidate {
+  string id = 1;
+  string full_name = 2;
+  string job_opening_id = 3;
+  string job_opening_title = 4;
+  string status = 5;
+  google.protobuf.Timestamp entered_at = 6;
+  int32 days_in_stage = 7;
+}
+
+message SourceStat {
+  string source = 1;
+  string label = 2;
+  // Listing fees, booths or agency fees.
+  bool paid = 3;
+  int32 applications = 4;
+  int32 screened = 5;
+  int32 interviewed = 6;
+  int32 offered = 7;
+  int32 hires = 8;
+  optional double avg_days_to_hire = 9;
+}
+
+message SourceWeek {
+  string start = 1;
+  string source = 2;
+  int32 count = 3;
+}
+
+message OpeningStat {
+  string id = 1;
+  string title = 2;
+  string department = 3;
+  // published | closed
+  string status = 4;
+  int32 headcount = 5;
+  string opened_on = 6;
+  // Day applications stop: the close or the closing date; empty when open-ended.
+  string window_end = 7;
+  optional string closing_date = 8;
+  // Days from publication to today or to the end of the window, whichever is first.
+  int32 days_open = 9;
+  // Days left until the closing date (negative when passed); unset without one.
+  optional int32 days_to_close = 10;
+  int32 applicants_total = 11;
+  int32 applicants_period = 12;
+  // Current status of every applicant (talent_pool includes archived).
+  repeated CountByKey stages = 13;
+  int32 hires = 14;
+  // Days from publication to the hire that filled the headcount.
+  optional double time_to_fill_days = 15;
+}
+
+message ScoreBucket {
+  string instrument = 1;
+  // Lower bound of the 10-point band; 90 holds 90 to 100.
+  int32 bucket = 2;
+  int32 count = 3;
+  double avg_score = 4;
+}
+
+message CriterionScore {
+  // hrd | hiring_manager
+  string type = 1;
+  string criterion = 2;
+  int32 count = 3;
+  double avg_score = 4;
+}
+
+message InterviewerLoad {
+  string name = 1;
+  string employee_id = 2;
+  int32 scheduled = 3;
+  int32 completed = 4;
+  int32 cancelled = 5;
+  int32 proceed = 6;
+  int32 pool = 7;
+  int32 reject = 8;
+  optional double avg_score = 9;
+}
+
+message DashboardOffer {
+  string candidate_id = 1;
+  string candidate_name = 2;
+  string job_opening_id = 3;
+  string position_title = 4;
+  string status = 5;
+  int64 base_salary = 6;
+  optional int64 salary_min = 7;
+  optional int64 salary_max = 8;
+  optional int64 expected_salary = 9;
+  google.protobuf.Timestamp sent_at = 10;
+  google.protobuf.Timestamp responded_at = 11;
+  // Days from the first version to the response.
+  optional double response_days = 12;
+  int32 versions = 13;
+}
+
+message RecruitmentDashboard {
+  DashboardPeriod period = 1;
+  DashboardPeriod compare_period = 2;
+  // previous | year
+  string compare = 3;
+  RecruitmentKpis kpis = 4;
+  RecruitmentKpis previous_kpis = 5;
+  repeated RecruitmentTrendPoint trend = 6;
+  // Comparison weeks, aligned with trend by index.
+  repeated RecruitmentTrendPoint previous_trend = 7;
+  repeated FunnelStage funnel = 8;
+  repeated StageDuration stage_durations = 9;
+  repeated OpeningStageCount opening_stages = 10;
+  // Active candidates in their stage for 14 days or more, longest first (25 max).
+  repeated StuckCandidate stuck = 11;
+  int32 stuck_after_days = 12;
+  repeated SourceStat sources = 13;
+  repeated SourceWeek source_trend = 14;
+  repeated OpeningStat openings = 15;
+  repeated CountByKey psikotes_status = 16;
+  repeated ScoreBucket psikotes_scores = 17;
+  repeated CountByKey ai_interview_status = 18;
+  repeated CriterionScore scorecards = 19;
+  repeated InterviewerLoad interviewers = 20;
+  repeated DashboardOffer offers = 21;
+}
+
+message CandidateNote {
+  string id = 1;
+  string candidate_id = 2;
+  string content = 3;
+  optional string created_by = 4;
+  string created_by_name = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ListNotesResponse {
+  repeated CandidateNote notes = 1;
+}
+
+message AddNoteRequest {
+  string id = 1;
+  string content = 2;
+}
+
+message CandidateActivity {
+  string id = 1;
+  string candidate_id = 2;
+  string activity_type = 3;
+  string description = 4;
+  optional string created_by = 5;
+  string created_by_name = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ListActivitiesResponse {
+  repeated CandidateActivity activities = 1;
+}
+
+message Screening {
+  string candidate_id = 1;
+  bool contacted = 2;
+  optional bool interested = 3;
+  string availability_note = 4;
+  optional int64 confirmed_salary = 5;
+  optional bool willing_shift = 6;
+  optional bool willing_placement = 7;
+  string notes = 8;
+  // lolos | hold | tidak_lolos ("" when not decided)
+  string recommendation = 9;
+  string updated_by_name = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message ScreeningResponse {
+  // Unset when the screening was never filled in.
+  Screening screening = 1;
+}
+
+message SaveScreeningRequest {
+  string id = 1;
+  bool contacted = 2;
+  optional bool interested = 3;
+  string availability_note = 4;
+  optional int64 confirmed_salary = 5;
+  optional bool willing_shift = 6;
+  optional bool willing_placement = 7;
+  string notes = 8;
+  string recommendation = 9;
+}
+
+message UploadCvRequest {
+  string id = 1;
+  FileUpload file = 2;
+}
+
+message AiAnalysis {
+  string candidate_id = 1;
+  string summary = 2;
+  int32 match_score = 3;
+  string match_reason = 4;
+  repeated string strengths = 5;
+  repeated string gaps = 6;
+  string job_context = 7;
+  string model = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message AiAnalysisResponse {
+  AiAnalysis analysis = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PsikotesService
+// ─────────────────────────────────────────────────────────────
+
+service PsikotesService {
+  rpc ListInstruments(google.protobuf.Empty) returns (ListInstrumentsResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/psikotes/instruments"};
+  }
+  rpc UpdateInstrument(UpdateInstrumentRequest) returns (Instrument) {
+    option (google.api.http) = {put: "/v1/recruitment/psikotes/instruments/{id}" body: "*"};
+  }
+  // The bank with answer keys (staff only).
+  rpc ListQuestions(ListQuestionsRequest) returns (ListQuestionsResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/psikotes/instruments/{instrument_id}/questions"};
+  }
+  rpc CreateQuestion(QuestionInput) returns (Question) {
+    option (google.api.http) = {post: "/v1/recruitment/psikotes/instruments/{instrument_id}/questions" body: "*"};
+  }
+  rpc UpdateQuestion(UpdateQuestionRequest) returns (Question) {
+    option (google.api.http) = {put: "/v1/recruitment/psikotes/questions/{id}" body: "input"};
+  }
+  rpc DeleteQuestion(QuestionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/recruitment/psikotes/questions/{id}"};
+  }
+  // HR panel of a candidate: summary and sessions with tests.
+  rpc GetCandidatePsikotes(CandidatePanelRequest) returns (PsikotesPanel) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{candidate_id}/psikotes"};
+  }
+  rpc InvitePsikotes(InvitePsikotesRequest) returns (PsikotesSession) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates/{candidate_id}/psikotes/sessions" body: "*"};
+  }
+  rpc SavePsikotesSummary(SavePsikotesSummaryRequest) returns (PsikotesSummary) {
+    option (google.api.http) = {put: "/v1/recruitment/candidates/{candidate_id}/psikotes/summary" body: "*"};
+  }
+  rpc GetTestAnswers(SessionTestRequest) returns (TestAnswers) {
+    option (google.api.http) = {get: "/v1/recruitment/psikotes/session-tests/{id}/answers"};
+  }
+  // Manual review of a drawing test.
+  rpc ReviewTest(ReviewTestRequest) returns (SessionTest) {
+    option (google.api.http) = {put: "/v1/recruitment/psikotes/session-tests/{id}/review" body: "*"};
+  }
+  rpc DownloadTestAttachment(SessionTestRequest) returns (FileContent) {
+    option (google.api.http) = {get: "/v1/recruitment/psikotes/session-tests/{id}/attachment"};
+  }
+  // session_type: psikotes | interview
+  rpc ListProctorEvents(ListProctorEventsRequest) returns (ListProctorEventsResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/proctor-events/{session_type}/{session_id}"};
+  }
+}
+
+message Instrument {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  // mcq | forced_choice | drawing
+  string kind = 4;
+  int32 duration_seconds = 5;
+  optional int32 question_count = 6;
+  bool shuffle = 7;
+  string instructions = 8;
+  bool is_active = 9;
+  int32 sort_order = 10;
+  int32 active_questions = 11;
+}
+
+message ListInstrumentsResponse {
+  repeated Instrument instruments = 1;
+}
+
+message UpdateInstrumentRequest {
+  string id = 1;
+  optional string name = 2;
+  optional bool is_active = 3;
+  optional int32 duration_seconds = 4;
+  optional int32 question_count = 5;
+  // Sends question_count = null (every active question).
+  bool clear_question_count = 6;
+  optional bool shuffle = 7;
+  optional string instructions = 8;
+}
+
+message McqOption {
+  string key = 1;
+  string text = 2;
+}
+
+message PapiStatement {
+  string text = 1;
+  // PAPI scale code; empty in candidate views.
+  string scale = 2;
+}
+
+message Question {
+  string id = 1;
+  string instrument_id = 2;
+  string body = 3;
+  // MCQ options (mcq instruments).
+  repeated McqOption options = 4;
+  // Forced-choice pair (forced_choice instruments).
+  PapiStatement statement_a = 5;
+  PapiStatement statement_b = 6;
+  // MCQ answer key; empty in candidate views.
+  string correct_key = 7;
+  int32 sort_order = 8;
+  bool is_active = 9;
+}
+
+message ListQuestionsRequest {
+  string instrument_id = 1;
+}
+
+message ListQuestionsResponse {
+  repeated Question questions = 1;
+}
+
+message QuestionInput {
+  string instrument_id = 1;
+  string body = 2;
+  repeated McqOption options = 3;
+  PapiStatement statement_a = 4;
+  PapiStatement statement_b = 5;
+  string correct_key = 6;
+  int32 sort_order = 7;
+  optional bool is_active = 8;
+}
+
+message UpdateQuestionRequest {
+  string id = 1;
+  QuestionInput input = 2;
+}
+
+message QuestionRequest {
+  string id = 1;
+}
+
+message CandidatePanelRequest {
+  string candidate_id = 1;
+}
+
+message McqItem {
+  string question_id = 1;
+  optional string given = 2;
+  string correct_key = 3;
+  bool is_correct = 4;
+}
+
+message PapiDominant {
+  string code = 1;
+  string label = 2;
+  int32 count = 3;
+}
+
+// Score snapshot of a finished test: mcq_* for MCQ, papi_* for PAPI.
+message ScoreDetail {
+  int32 mcq_total = 1;
+  int32 mcq_correct = 2;
+  repeated McqItem mcq_items = 3;
+  map<string, int32> papi_scales = 4;
+  repeated PapiDominant papi_dominant = 5;
+  int32 papi_answered = 6;
+  int32 papi_total = 7;
+}
+
+message SessionTest {
+  string id = 1;
+  string session_id = 2;
+  string instrument_id = 3;
+  string instrument_code = 4;
+  string instrument_name = 5;
+  string instrument_kind = 6;
+  // pending | in_progress | selesai | perlu_review | reviewed
+  string status = 7;
+  optional double score = 8;
+  ScoreDetail score_detail = 9;
+  bool has_attachment = 10;
+  string review_notes = 11;
+  string reviewed_by_name = 12;
+  int32 sort_order = 13;
+  google.protobuf.Timestamp started_at = 14;
+  google.protobuf.Timestamp completed_at = 15;
+}
+
+message ProctorTally {
+  int32 flags = 1;
+}
+
+message PsikotesSession {
+  string id = 1;
+  string candidate_id = 2;
+  // Portal link token; empty for readers without recruitment.write.
+  string token = 3;
+  // draft | sent | in_progress | completed | expired
+  string status = 4;
+  optional bool webcam_consent = 5;
+  google.protobuf.Timestamp invited_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  google.protobuf.Timestamp started_at = 8;
+  google.protobuf.Timestamp completed_at = 9;
+  string created_by_name = 10;
+  ProctorTally proctor = 11;
+  repeated SessionTest tests = 12;
+}
+
+message PsikotesSummary {
+  string candidate_id = 1;
+  string recommendation = 2;
+  string notes = 3;
+  string updated_by_name = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message PsikotesPanel {
+  PsikotesSummary summary = 1;
+  repeated PsikotesSession sessions = 2;
+}
+
+message InvitePsikotesRequest {
+  string candidate_id = 1;
+  repeated string instrument_ids = 2;
+  // 1 to 30, default 3.
+  int32 expires_days = 3;
+}
+
+message SavePsikotesSummaryRequest {
+  string candidate_id = 1;
+  string recommendation = 2;
+  string notes = 3;
+}
+
+message SessionTestRequest {
+  string id = 1;
+}
+
+message AnswerItem {
+  string question_id = 1;
+  string body = 2;
+  repeated McqOption options = 3;
+  PapiStatement statement_a = 4;
+  PapiStatement statement_b = 5;
+  optional string given = 6;
+  string correct_key = 7;
+  optional bool is_correct = 8;
+}
+
+message TestAnswers {
+  // mcq | forced_choice
+  string kind = 1;
+  repeated AnswerItem items = 2;
+}
+
+message ReviewTestRequest {
+  string id = 1;
+  string review_notes = 2;
+}
+
+message ListProctorEventsRequest {
+  string session_type = 1;
+  string session_id = 2;
+}
+
+message ProctorEvent {
+  string id = 1;
+  string event_type = 2;
+  map<string, string> meta = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message ListProctorEventsResponse {
+  repeated ProctorEvent events = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// InterviewService: AI interview invitations and scheduled interviews
+// ─────────────────────────────────────────────────────────────
+
+service InterviewService {
+  rpc GetCandidateAiInterviews(CandidatePanelRequest) returns (AiInterviewPanel) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{candidate_id}/ai-interviews"};
+  }
+  rpc InviteAiInterview(InviteAiInterviewRequest) returns (AiInterviewSession) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates/{candidate_id}/ai-interviews" body: "*"};
+  }
+  rpc ListInterviews(ListInterviewsRequest) returns (ListInterviewsResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/interviews"};
+  }
+  rpc ScheduleInterview(InterviewInput) returns (Interview) {
+    option (google.api.http) = {post: "/v1/recruitment/interviews" body: "*"};
+  }
+  rpc UpdateInterview(UpdateInterviewRequest) returns (Interview) {
+    option (google.api.http) = {patch: "/v1/recruitment/interviews/{id}" body: "input"};
+  }
+  rpc CancelInterview(CancelInterviewRequest) returns (Interview) {
+    option (google.api.http) = {post: "/v1/recruitment/interviews/{id}:cancel" body: "*"};
+  }
+  // Stores the scorecard and completes the interview.
+  rpc SubmitScorecard(SubmitScorecardRequest) returns (Interview) {
+    option (google.api.http) = {put: "/v1/recruitment/interviews/{id}/scorecard" body: "*"};
+  }
+}
+
+message InterviewSummary {
+  string summary = 1;
+  int32 relevance_score = 2;
+  // relevan | cukup_relevan | kurang_relevan
+  string relevance_conclusion = 3;
+  string relevance_reason = 4;
+  repeated string skills = 5;
+  bool salary_mentioned = 6;
+  string salary_value = 7;
+  string salary_note = 8;
+  repeated string red_flags = 9;
+  repeated string follow_ups = 10;
+  string limitations = 11;
+}
+
+message AiInterviewTurn {
+  string id = 1;
+  int32 turn_no = 2;
+  string topic = 3;
+  string question = 4;
+  string answer_transcript = 5;
+  // voice | text
+  string answer_mode = 6;
+  google.protobuf.Timestamp asked_at = 7;
+  google.protobuf.Timestamp answered_at = 8;
+}
+
+message AiInterviewSession {
+  string id = 1;
+  string candidate_id = 2;
+  // Empty for readers without recruitment.write.
+  string token = 3;
+  // sent | in_progress | completed | expired
+  string status = 4;
+  optional bool webcam_consent = 5;
+  int32 max_questions = 6;
+  InterviewSummary ai_summary = 7;
+  string summary_model = 8;
+  google.protobuf.Timestamp invited_at = 9;
+  google.protobuf.Timestamp expires_at = 10;
+  google.protobuf.Timestamp started_at = 11;
+  google.protobuf.Timestamp completed_at = 12;
+  string created_by_name = 13;
+  ProctorTally proctor = 14;
+  repeated AiInterviewTurn turns = 15;
+}
+
+message AiInterviewPanel {
+  repeated AiInterviewSession sessions = 1;
+}
+
+message InviteAiInterviewRequest {
+  string candidate_id = 1;
+  // 1 to 30, default 7.
+  int32 expires_days = 2;
+  // 3 to 15, default 8.
+  int32 max_questions = 3;
+}
+
+message ScoreItem {
+  string criterion = 1;
+  // 1 to 5
+  int32 score = 2;
+  string note = 3;
+}
+
+message Interview {
+  string id = 1;
+  string candidate_id = 2;
+  string candidate_name = 3;
+  string job_opening_title = 4;
+  optional string interviewer_employee_id = 5;
+  optional string interviewer_user_id = 6;
+  string interviewer_name = 7;
+  google.protobuf.Timestamp interview_date = 8;
+  int32 duration_minutes = 9;
+  // hrd | hiring_manager
+  string type = 10;
+  // offline | online
+  string mode = 11;
+  string meeting_link = 12;
+  string location = 13;
+  // scheduled | completed | cancelled
+  string status = 14;
+  repeated ScoreItem scorecard = 15;
+  optional double overall_score = 16;
+  // proceed | pool | reject ("" until the scorecard)
+  string recommendation = 17;
+  string notes = 18;
+  string cancel_reason = 19;
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+}
+
+message InterviewInput {
+  string candidate_id = 1;
+  optional string interviewer_employee_id = 2;
+  // Used when no hr employee is picked.
+  string interviewer_name = 3;
+  google.protobuf.Timestamp interview_date = 4;
+  int32 duration_minutes = 5;
+  string type = 6;
+  string mode = 7;
+  string meeting_link = 8;
+  string location = 9;
+  string notes = 10;
+}
+
+message UpdateInterviewRequest {
+  string id = 1;
+  InterviewInput input = 2;
+}
+
+message CancelInterviewRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message SubmitScorecardRequest {
+  string id = 1;
+  repeated ScoreItem scorecard = 2;
+  string recommendation = 3;
+  string notes = 4;
+}
+
+message ListInterviewsRequest {
+  string candidate_id = 1;
+  string status = 2;
+  string interviewer_employee_id = 3;
+  // Inclusive day range (WIB) on interview_date.
+  string date_from = 4;
+  string date_to = 5;
+}
+
+message ListInterviewsResponse {
+  repeated Interview interviews = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// OfferService
+// ─────────────────────────────────────────────────────────────
+
+service OfferService {
+  rpc GetCandidateOffers(CandidatePanelRequest) returns (OfferPanel) {
+    option (google.api.http) = {get: "/v1/recruitment/candidates/{candidate_id}/offers"};
+  }
+  // A new version; open versions expire.
+  rpc CreateOffer(CreateOfferRequest) returns (Offer) {
+    option (google.api.http) = {post: "/v1/recruitment/candidates/{candidate_id}/offers" body: "*"};
+  }
+  // A response HR took by phone or WhatsApp.
+  rpc RecordOfferResponse(RecordOfferResponseRequest) returns (Offer) {
+    option (google.api.http) = {put: "/v1/recruitment/offers/{id}/response" body: "*"};
+  }
+  rpc DownloadOfferLetter(OfferRequest) returns (FileContent) {
+    option (google.api.http) = {get: "/v1/recruitment/offers/{id}/letter"};
+  }
+}
+
+message Offer {
+  string id = 1;
+  string candidate_id = 2;
+  int32 version = 3;
+  // Empty for readers without recruitment.write.
+  string token = 4;
+  // sent | negotiating | accepted | declined | expired
+  string status = 5;
+  string position_title = 6;
+  // Decimal string.
+  string base_salary = 7;
+  repeated string benefits = 8;
+  optional string start_date = 9;
+  string notes = 10;
+  string response_note = 11;
+  google.protobuf.Timestamp responded_at = 12;
+  // portal | manual
+  string response_source = 13;
+  google.protobuf.Timestamp sent_at = 14;
+  google.protobuf.Timestamp expires_at = 15;
+  string created_by_name = 16;
+  google.protobuf.Timestamp created_at = 17;
+}
+
+message SalaryReference {
+  optional int64 expected_salary = 1;
+  // Salary expectation from the latest AI interview summary.
+  string interview_expectation = 2;
+  string position_title = 3;
+  string salary_min = 4;
+  string salary_max = 5;
+  optional int64 confirmed_salary = 6;
+}
+
+message OfferPanel {
+  SalaryReference salary_reference = 1;
+  repeated Offer offers = 2;
+}
+
+message CreateOfferRequest {
+  string candidate_id = 1;
+  // Decimal string, 0 to 1,000,000,000,000.
+  string base_salary = 2;
+  repeated string benefits = 3;
+  optional string start_date = 4;
+  string notes = 5;
+  // 1 to 30, default 7.
+  int32 expires_days = 6;
+  // Defaults to the job opening title.
+  string position_title = 7;
+}
+
+message RecordOfferResponseRequest {
+  string id = 1;
+  // negotiating | accepted | declined
+  string status = 2;
+  string note = 3;
+}
+
+message OfferRequest {
+  string id = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PublicRecruitmentService: no login
+// ─────────────────────────────────────────────────────────────
+
+service PublicRecruitmentService {
+  // Published openings that are not past their closing date.
+  rpc ListPublicJobs(ListPublicJobsRequest) returns (ListPublicJobsResponse) {
+    option (google.api.http) = {get: "/v1/recruitment/public/jobs"};
+  }
+  rpc GetPublicJob(PublicJobRequest) returns (PublicJob) {
+    option (google.api.http) = {get: "/v1/recruitment/public/jobs/{slug}"};
+  }
+  // The career form: creates an applied candidate with an optional CV
+  // (pdf, doc, docx; 10 MB). Rate limited per network.
+  rpc Apply(ApplyRequest) returns (ApplyResponse) {
+    option (google.api.http) = {post: "/v1/recruitment/public/jobs/{slug}/apply" body: "*"};
+  }
+
+  rpc GetPsikotesPortal(PortalTokenRequest) returns (PsikotesPortal) {
+    option (google.api.http) = {get: "/v1/recruitment/public/psikotes/{token}"};
+  }
+  rpc StartPsikotes(StartPortalRequest) returns (PsikotesPortal) {
+    option (google.api.http) = {post: "/v1/recruitment/public/psikotes/{token}/start" body: "*"};
+  }
+  rpc StartPsikotesTest(PortalTestRequest) returns (PortalTestRun) {
+    option (google.api.http) = {post: "/v1/recruitment/public/psikotes/{token}/tests/{test_id}/start" body: "*"};
+  }
+  rpc SavePsikotesAnswers(SaveAnswersRequest) returns (SaveAnswersResponse) {
+    option (google.api.http) = {put: "/v1/recruitment/public/psikotes/{token}/tests/{test_id}/answers" body: "*"};
+  }
+  rpc FinishPsikotesTest(SaveAnswersRequest) returns (PortalActionResponse) {
+    option (google.api.http) = {post: "/v1/recruitment/public/psikotes/{token}/tests/{test_id}/finish" body: "*"};
+  }
+  // Photo of a drawing test (jpg, png, webp; 8 MB).
+  rpc UploadPsikotesDrawing(UploadDrawingRequest) returns (PortalActionResponse) {
+    option (google.api.http) = {post: "/v1/recruitment/public/psikotes/{token}/tests/{test_id}/upload" body: "*"};
+  }
+  rpc FinishPsikotes(PortalTokenRequest) returns (PortalActionResponse) {
+    option (google.api.http) = {post: "/v1/recruitment/public/psikotes/{token}/finish" body: "*"};
+  }
+  rpc RecordPsikotesProctorEvent(ProctorEventRequest) returns (ProctorEvent) {
+    option (google.api.http) = {post: "/v1/recruitment/public/psikotes/{token}/proctor-events" body: "*"};
+  }
+
+  rpc GetInterviewPortal(PortalTokenRequest) returns (InterviewPortal) {
+    option (google.api.http) = {get: "/v1/recruitment/public/interviews/{token}"};
+  }
+  rpc StartAiInterview(StartPortalRequest) returns (InterviewTurnResponse) {
+    option (google.api.http) = {post: "/v1/recruitment/public/interviews/{token}/start" body: "*"};
+  }
+  // Text answers; the next question or the end of the interview.
+  rpc AnswerAiInterview(AnswerInterviewRequest) returns (InterviewTurnResponse) {
+    option (google.api.http) = {post: "/v1/recruitment/public/interviews/{token}/answer" body: "*"};
+  }
+  rpc RecordInterviewProctorEvent(ProctorEventRequest) returns (ProctorEvent) {
+    option (google.api.http) = {post: "/v1/recruitment/public/interviews/{token}/proctor-events" body: "*"};
+  }
+
+  rpc GetOfferPortal(PortalTokenRequest) returns (OfferPortal) {
+    option (google.api.http) = {get: "/v1/recruitment/public/offers/{token}"};
+  }
+  rpc RespondOffer(RespondOfferRequest) returns (OfferPortal) {
+    option (google.api.http) = {post: "/v1/recruitment/public/offers/{token}/respond" body: "*"};
+  }
+  rpc DownloadPublicOfferLetter(PortalTokenRequest) returns (FileContent) {
+    option (google.api.http) = {get: "/v1/recruitment/public/offers/{token}/letter"};
+  }
+}
+
+message PublicJob {
+  string slug = 1;
+  string title = 2;
+  string department = 3;
+  string location = 4;
+  string employment_type = 5;
+  string work_mode = 6;
+  int32 headcount = 7;
+  string description = 8;
+  string requirements = 9;
+  string benefits = 10;
+  google.protobuf.Timestamp published_at = 11;
+  optional string closing_date = 12;
+}
+
+message ListPublicJobsRequest {
+  string search = 1;
+  string department = 2;
+}
+
+message ListPublicJobsResponse {
+  repeated PublicJob jobs = 1;
+}
+
+message PublicJobRequest {
+  string slug = 1;
+}
+
+message ApplyRequest {
+  string slug = 1;
+  string full_name = 2;
+  string email = 3;
+  string phone = 4;
+  string domicile = 5;
+  // Defaults to portal.
+  string source = 6;
+  string last_experience = 7;
+  string last_education = 8;
+  string availability = 9;
+  optional int64 expected_salary = 10;
+  string notes = 11;
+  FileUpload cv = 12;
+}
+
+message ApplyResponse {
+  string candidate_id = 1;
+  string message = 2;
+}
+
+message PortalTokenRequest {
+  string token = 1;
+}
+
+message StartPortalRequest {
+  string token = 1;
+  bool webcam_consent = 2;
+}
+
+message PortalInstrument {
+  string code = 1;
+  string name = 2;
+  string kind = 3;
+  int32 duration_seconds = 4;
+  string instructions = 5;
+}
+
+message PortalTest {
+  string id = 1;
+  string status = 2;
+  int32 sort_order = 3;
+  google.protobuf.Timestamp started_at = 4;
+  google.protobuf.Timestamp completed_at = 5;
+  bool has_attachment = 6;
+  PortalInstrument instrument = 7;
+}
+
+message PsikotesPortal {
+  string status = 1;
+  string candidate_name = 2;
+  string position_title = 3;
+  optional bool webcam_consent = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+  repeated PortalTest tests = 8;
+}
+
+message PortalTestRequest {
+  string token = 1;
+  string test_id = 2;
+}
+
+message PortalTestRun {
+  PortalTest test = 1;
+  // Without answer keys or PAPI scales.
+  repeated Question questions = 2;
+  map<string, string> saved_answers = 3;
+  google.protobuf.Timestamp ends_at = 4;
+}
+
+message SaveAnswersRequest {
+  string token = 1;
+  string test_id = 2;
+  // question id -> choice
+  map<string, string> answers = 3;
+}
+
+message SaveAnswersResponse {
+  int32 saved = 1;
+}
+
+message PortalActionResponse {
+  string status = 1;
+  string message = 2;
+}
+
+message UploadDrawingRequest {
+  string token = 1;
+  string test_id = 2;
+  FileUpload file = 3;
+}
+
+message ProctorEventRequest {
+  string token = 1;
+  // psikotes: tab_blur | fullscreen_exit | paste | disconnect;
+  // interview adds face_not_detected | multiple_faces | camera_off
+  string event_type = 2;
+  map<string, string> meta = 3;
+}
+
+message PortalTurn {
+  string id = 1;
+  int32 turn_no = 2;
+  string question = 3;
+  string answer_transcript = 4;
+  google.protobuf.Timestamp asked_at = 5;
+  google.protobuf.Timestamp answered_at = 6;
+}
+
+message InterviewPortal {
+  string status = 1;
+  string candidate_name = 2;
+  string position_title = 3;
+  optional bool webcam_consent = 4;
+  int32 max_questions = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  google.protobuf.Timestamp started_at = 7;
+  google.protobuf.Timestamp completed_at = 8;
+  repeated PortalTurn turns = 9;
+  PortalTurn current_turn = 10;
+}
+
+message InterviewTurnResponse {
+  bool done = 1;
+  PortalTurn turn = 2;
+}
+
+message AnswerInterviewRequest {
+  string token = 1;
+  string turn_id = 2;
+  string answer_text = 3;
+}
+
+message OfferPortal {
+  string status = 1;
+  int32 version = 2;
+  string candidate_name = 3;
+  string company_name = 4;
+  string position_title = 5;
+  string base_salary = 6;
+  repeated string benefits = 7;
+  optional string start_date = 8;
+  string response_note = 9;
+  google.protobuf.Timestamp responded_at = 10;
+  google.protobuf.Timestamp sent_at = 11;
+  google.protobuf.Timestamp expires_at = 12;
+}
+
+message RespondOfferRequest {
+  string token = 1;
+  // accept | negotiate | decline
+  string action = 2;
+  string note = 3;
+}

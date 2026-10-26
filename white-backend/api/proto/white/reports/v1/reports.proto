@@ -1,0 +1,338 @@
+syntax = "proto3";
+
+package white.reports.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "white/common/v1/common.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/reports/v1;reportsv1";
+
+// ─────────────────────────────────────────────────────────────
+// ReportService: saved reports, AI strategic summaries, report extras,
+// branded PDF rendering and the public share dashboard data.
+// ─────────────────────────────────────────────────────────────
+
+service ReportService {
+  // Report history of a client, newest first. Any member.
+  rpc ListReports(ListReportsRequest) returns (ListReportsResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/reports"};
+  }
+  // Any member, VIEWER included. With include_ai the OVERVIEW insight is
+  // generated (and cached) first; a provider failure aborts the creation.
+  rpc CreateReport(CreateReportRequest) returns (Report) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/reports" body: "*"};
+  }
+  // MANAGER or ADMIN.
+  rpc DeleteReport(DeleteReportRequest) returns (DeleteReportResponse) {
+    option (google.api.http) = {delete: "/v1/clients/{client_id}/reports/{report_id}"};
+  }
+  // Generates (or regenerates) the strategic insight of a module for a
+  // range and caches it. Any member.
+  rpc GenerateInsight(GenerateInsightRequest) returns (Insight) {
+    option (google.api.http) = {post: "/v1/clients/{client_id}/reports/insights:generate" body: "*"};
+  }
+  // Latest cached insight for the exact module and range. Any member.
+  rpc GetLatestInsight(GetLatestInsightRequest) returns (GetLatestInsightResponse) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/reports/insights/latest"};
+  }
+  // Extra blocks per module (publishing under SOCIAL; rank tracker and
+  // backlinks under SEO), pre-formatted like the PDF. Any member.
+  rpc GetReportSections(GetReportSectionsRequest) returns (ReportSections) {
+    option (google.api.http) = {get: "/v1/clients/{client_id}/reports/sections"};
+  }
+
+  // Internal: the gateway serves these as /api/reports/{id}/pdf,
+  // /api/share/{slug}/pdf and /api/share/{slug}/dashboard.
+  rpc RenderReportPdf(RenderReportPdfRequest) returns (PdfFile);
+  rpc RenderSharePdf(RenderSharePdfRequest) returns (SharePdf);
+  rpc GetShareDashboard(GetShareDashboardRequest) returns (ShareDashboard);
+}
+
+enum InsightModule {
+  INSIGHT_MODULE_UNSPECIFIED = 0;
+  OVERVIEW = 1;
+  SOCIAL = 2;
+  SEO = 3;
+  ADS = 4;
+}
+
+enum ShareStatus {
+  SHARE_STATUS_UNSPECIFIED = 0;
+  OK = 1;
+  NOT_FOUND = 2;
+  DISABLED = 3;
+  // A PIN is set and the unlock token is missing or stale (HTTP 401 PIN_REQUIRED).
+  LOCKED = 4;
+}
+
+message Report {
+  string id = 1;
+  string client_id = 2;
+  string title = 3;
+  string date_from = 4; // YYYY-MM-DD
+  string date_to = 5;   // YYYY-MM-DD
+  repeated white.common.v1.ModuleKey modules = 6;
+  // "id" | "en"
+  string language = 7;
+  bool compare = 8;
+  bool has_ai_summary = 9;
+  optional string created_by_name = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message ListReportsRequest {
+  string client_id = 1;
+}
+
+message ListReportsResponse {
+  repeated Report reports = 1;
+}
+
+message CreateReportRequest {
+  string client_id = 1;
+  string title = 2;
+  repeated white.common.v1.ModuleKey modules = 3;
+  bool compare = 4;
+  bool include_ai = 5;
+  // "id" (default) | "en"
+  string language = 6;
+  string from = 7; // YYYY-MM-DD
+  string to = 8;   // YYYY-MM-DD
+}
+
+message DeleteReportRequest {
+  string client_id = 1;
+  string report_id = 2;
+}
+
+message DeleteReportResponse {
+  string id = 1;
+}
+
+message Insight {
+  string id = 1;
+  InsightModule module = 2;
+  string date_from = 3;
+  string date_to = 4;
+  string language = 5;
+  // "mock" for the deterministic template adapter.
+  string model = 6;
+  // Markdown-lite: ## headings, - bullets, numbered lists, **bold**.
+  string content = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message GenerateInsightRequest {
+  string client_id = 1;
+  InsightModule module = 2;
+  string from = 3;
+  string to = 4;
+  // "en" stays "en"; anything else becomes "id".
+  string language = 5;
+}
+
+message GetLatestInsightRequest {
+  string client_id = 1;
+  InsightModule module = 2;
+  string from = 3;
+  string to = 4;
+}
+
+message GetLatestInsightResponse {
+  optional Insight insight = 1;
+}
+
+message GetReportSectionsRequest {
+  string client_id = 1;
+  string from = 2;
+  string to = 3;
+  bool compare = 4;
+  repeated white.common.v1.ModuleKey modules = 5;
+  // Label language: "en" | "id" (default).
+  string language = 6;
+}
+
+message SectionKpi {
+  string label = 1;
+  string value = 2;
+  // Absent when compare is off or the KPI has no comparison.
+  white.common.v1.Delta delta = 3;
+  bool lower_is_better = 4;
+}
+
+message TableColumn {
+  string label = 1;
+  // Percent of the table width.
+  int32 width = 2;
+  // "left" | "right"
+  string align = 3;
+}
+
+message TableRow {
+  repeated string cells = 1;
+}
+
+message ReportTable {
+  string title = 1;
+  repeated TableColumn columns = 2;
+  repeated TableRow rows = 3;
+}
+
+message ReportSection {
+  // "RANK" | "BACKLINKS" | "PUBLISHING"
+  string key = 1;
+  string title = 2;
+  repeated SectionKpi kpis = 3;
+  optional ReportTable table = 4;
+}
+
+message ReportSections {
+  repeated ReportSection social = 1;
+  repeated ReportSection seo = 2;
+}
+
+message RenderReportPdfRequest {
+  string report_id = 1;
+  // Caller whose access to the report's client is checked. Falls back to
+  // the bearer token's user when empty.
+  string user_id = 2;
+}
+
+message PdfFile {
+  // Laporan_{slug}_{from}_{to}.pdf
+  string filename = 1;
+  bytes pdf = 2;
+}
+
+message RenderSharePdfRequest {
+  string slug = 1;
+  // Value of the share_<client_id> cookie.
+  string unlock_token = 2;
+  // 7d | 28d | 90d; anything else becomes 28d.
+  string preset = 3;
+}
+
+message SharePdf {
+  ShareStatus status = 1;
+  // Empty unless status is OK.
+  string filename = 2;
+  bytes pdf = 3;
+}
+
+message GetShareDashboardRequest {
+  string slug = 1;
+  string unlock_token = 2;
+  // 7d | 28d | 90d; anything else becomes 28d.
+  string preset = 3;
+}
+
+message ShareClient {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string currency = 4;
+  repeated white.common.v1.ModuleKey modules = 5;
+}
+
+message ShareFollowersPoint {
+  string date = 1;
+  int64 followers = 2;
+}
+
+message ShareTopPost {
+  string id = 1;
+  white.common.v1.SocialPlatform platform = 2;
+  string username = 3;
+  // Truncated to 90 characters.
+  string caption = 4;
+  // Reels | Video | Carousel | Foto | Story
+  string type = 5;
+  int64 likes = 6;
+  int64 comments = 7;
+  int64 engagements = 8;
+  google.protobuf.Timestamp published_at = 9;
+}
+
+message ShareSocial {
+  int64 followers = 1;
+  white.common.v1.Delta followers_delta = 2;
+  double engagement_rate = 3;
+  white.common.v1.Delta engagement_rate_delta = 4;
+  int64 reach = 5;
+  white.common.v1.Delta reach_delta = 6;
+  int64 posts = 7;
+  white.common.v1.Delta posts_delta = 8;
+  repeated ShareFollowersPoint daily = 9;
+  repeated ShareTopPost top_posts = 10;
+}
+
+// A day GSC did not report keeps clicks/impressions absent, never 0.
+message ShareSeoDailyPoint {
+  string date = 1;
+  optional int64 clicks = 2;
+  optional int64 impressions = 3;
+}
+
+message ShareTopQuery {
+  string query = 1;
+  int64 clicks = 2;
+  int64 impressions = 3;
+  double ctr = 4;
+  double position = 5;
+}
+
+message ShareSeo {
+  int64 clicks = 1;
+  white.common.v1.Delta clicks_delta = 2;
+  int64 impressions = 3;
+  white.common.v1.Delta impressions_delta = 4;
+  double ctr = 5;
+  white.common.v1.Delta ctr_delta = 6;
+  double position = 7;
+  white.common.v1.Delta position_delta = 8;
+  repeated ShareSeoDailyPoint daily = 9;
+  repeated ShareTopQuery top_queries = 10;
+}
+
+message ShareAdsDailyPoint {
+  string date = 1;
+  double spend = 2;
+  int64 results = 3;
+}
+
+message ShareCampaign {
+  string id = 1;
+  string name = 2;
+  string objective = 3;
+  double spend = 4;
+  int64 results = 5;
+  optional string result_type = 6;
+  double cpr = 7;
+  bool is_conversion = 8;
+}
+
+message ShareAds {
+  string currency = 1;
+  double spend = 2;
+  white.common.v1.Delta spend_delta = 3;
+  int64 results = 4;
+  white.common.v1.Delta results_delta = 5;
+  double cpr = 6;
+  white.common.v1.Delta cpr_delta = 7;
+  double ctr = 8;
+  repeated ShareAdsDailyPoint daily = 9;
+  repeated ShareCampaign campaigns = 10;
+}
+
+message ShareDashboard {
+  ShareStatus status = 1;
+  // Present unless status is NOT_FOUND.
+  ShareClient client = 2;
+  // The blocks below are filled only when status is OK. A module that is
+  // not shared or has no data stays absent.
+  white.common.v1.ResolvedRange range = 3;
+  optional ShareSocial social = 4;
+  optional ShareSeo seo = 5;
+  optional ShareAds ads = 6;
+}

@@ -1,0 +1,1107 @@
+syntax = "proto3";
+
+package white.content.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "white/common/v1/common.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/content/v1;contentv1";
+
+// Content operations for marketing clients: editorial plans (EP), content
+// items through copywriting, design, review and publishing, the brand
+// asset library and monthly content reports. Every RPC is client-scoped:
+// VIEWER members read and comment, MANAGER members and admins write.
+
+// ─────────────────────────────────────────────────────────────
+// Shared enums and messages
+// ─────────────────────────────────────────────────────────────
+
+enum PlanStatus {
+  PLAN_STATUS_UNSPECIFIED = 0;
+  PLAN_DRAFT = 1;
+  PLAN_IN_REVIEW = 2;
+  PLAN_APPROVED = 3;
+}
+
+enum ContentFormat {
+  CONTENT_FORMAT_UNSPECIFIED = 0;
+  FEED = 1;
+  CAROUSEL = 2;
+  REEL = 3;
+  STORY = 4;
+}
+
+enum ItemStatus {
+  ITEM_STATUS_UNSPECIFIED = 0;
+  IDEA = 1;
+  COPYWRITING = 2;
+  DESIGN = 3;
+  REVIEW = 4;
+  REVISION = 5;
+  APPROVED = 6;
+  SCHEDULED = 7;
+  PUBLISHED = 8;
+  FAILED = 9;
+}
+
+enum DesignStatus {
+  DESIGN_STATUS_UNSPECIFIED = 0;
+  DESIGN_TODO = 1;
+  DESIGN_IN_PROGRESS = 2;
+  DESIGN_IN_REVIEW = 3;
+  DESIGN_CHANGES_REQUESTED = 4;
+  DESIGN_APPROVED = 5;
+}
+
+enum ReviewDecision {
+  REVIEW_DECISION_UNSPECIFIED = 0;
+  COMMENT = 1;
+  REQUEST_CHANGES = 2;
+  APPROVE = 3;
+}
+
+enum AssetKind {
+  ASSET_KIND_UNSPECIFIED = 0;
+  LOGO = 1;
+  BRAND_GUIDELINE = 2;
+  FONT = 3;
+  PHOTO = 4;
+  TEMPLATE = 5;
+  OTHER = 6;
+}
+
+// A file to download. The gateway serves it as raw bytes.
+message FileBytes {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
+}
+
+// A file to upload, bytes inside the JSON body (base64).
+message UploadFile {
+  string filename = 1;
+  bytes content = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PlanService: editorial plans (EP), one per client per month
+// ─────────────────────────────────────────────────────────────
+
+service PlanService {
+  rpc ListPlans(ClientRequest) returns (ListPlansResponse) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/plans"};
+  }
+  rpc CreatePlan(CreatePlanRequest) returns (PlanDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/plans"
+      body: "*"
+    };
+  }
+  rpc GetPlan(PlanRef) returns (PlanDetail) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/plans/{plan_id}"};
+  }
+  // Title and brief; draft plans only.
+  rpc UpdatePlan(UpdatePlanRequest) returns (PlanDetail) {
+    option (google.api.http) = {
+      patch: "/v1/content/clients/{client_id}/plans/{plan_id}"
+      body: "*"
+    };
+  }
+  // Draft plans only.
+  rpc DeletePlan(PlanRef) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/content/clients/{client_id}/plans/{plan_id}"};
+  }
+  // Proposes items from the brief and the client's recent top posts
+  // (OpenRouter, or the deterministic mock without a key). Draft plans only.
+  rpc GeneratePlanDraft(GeneratePlanDraftRequest) returns (PlanDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/plans/{plan_id}:generate"
+      body: "*"
+    };
+  }
+  rpc SubmitPlan(PlanRef) returns (PlanDetail) {
+    option (google.api.http) = {post: "/v1/content/clients/{client_id}/plans/{plan_id}:submit"};
+  }
+  // A MANAGER may not approve a plan they submitted; ADMIN may.
+  rpc ApprovePlan(PlanNoteRequest) returns (PlanDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/plans/{plan_id}:approve"
+      body: "*"
+    };
+  }
+  // Back to draft with a required note.
+  rpc RequestPlanChanges(PlanNoteRequest) returns (PlanDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/plans/{plan_id}:requestChanges"
+      body: "*"
+    };
+  }
+  // Any member, VIEWER included.
+  rpc AddPlanComment(AddPlanCommentRequest) returns (PlanComment) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/plans/{plan_id}/comments"
+      body: "*"
+    };
+  }
+}
+
+message ClientRequest {
+  string client_id = 1;
+}
+
+message PlanRef {
+  string client_id = 1;
+  string plan_id = 2;
+}
+
+message PlatformFrequency {
+  white.common.v1.SocialPlatform platform = 1;
+  int32 posts_per_week = 2;
+}
+
+message PlanBrief {
+  string goals = 1;
+  repeated string pillars = 2;
+  repeated PlatformFrequency frequency = 3;
+  string tone = 4;
+  string notes = 5;
+}
+
+message Plan {
+  string id = 1;
+  string client_id = 2;
+  // YYYY-MM
+  string month = 3;
+  string title = 4;
+  PlanStatus status = 5;
+  PlanBrief brief = 6;
+  int32 item_count = 7;
+  int32 published_count = 8;
+  // "mock" or the OpenRouter model of the last generation.
+  optional string ai_model = 9;
+  optional google.protobuf.Timestamp generated_at = 10;
+  optional string submitted_by = 11;
+  optional google.protobuf.Timestamp submitted_at = 12;
+  optional string approved_by = 13;
+  optional google.protobuf.Timestamp approved_at = 14;
+  optional string review_note = 15;
+  optional string created_by = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+message PlanComment {
+  string id = 1;
+  optional string user_id = 2;
+  string user_name = 3;
+  string body = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message PlanDetail {
+  Plan plan = 1;
+  repeated Item items = 2;
+  repeated PlanComment comments = 3;
+}
+
+message ListPlansResponse {
+  repeated Plan plans = 1;
+}
+
+message CreatePlanRequest {
+  string client_id = 1;
+  // YYYY-MM
+  string month = 2;
+  // Defaults to "EP <Bulan> <Tahun>".
+  string title = 3;
+  PlanBrief brief = 4;
+}
+
+message UpdatePlanRequest {
+  string client_id = 1;
+  string plan_id = 2;
+  optional string title = 3;
+  // Present: replace the whole brief.
+  PlanBrief brief = 4;
+}
+
+message GeneratePlanDraftRequest {
+  string client_id = 1;
+  string plan_id = 2;
+  // Remove the plan's untouched IDEA items before adding the proposal.
+  bool replace = 3;
+}
+
+message PlanNoteRequest {
+  string client_id = 1;
+  string plan_id = 2;
+  string note = 3;
+}
+
+message AddPlanCommentRequest {
+  string client_id = 1;
+  string plan_id = 2;
+  string body = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ItemService: content items, caption revisions, review, scheduling
+// ─────────────────────────────────────────────────────────────
+
+service ItemService {
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/items"};
+  }
+  rpc CreateItem(CreateItemRequest) returns (ItemDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/plans/{plan_id}/items"
+      body: "*"
+    };
+  }
+  rpc GetItem(ItemRef) returns (ItemDetail) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/items/{item_id}"};
+  }
+  // Planning fields. The caption changes through ReviseCaption.
+  rpc UpdateItem(UpdateItemRequest) returns (ItemDetail) {
+    option (google.api.http) = {
+      patch: "/v1/content/clients/{client_id}/items/{item_id}"
+      body: "*"
+    };
+  }
+  rpc DeleteItem(ItemRef) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/content/clients/{client_id}/items/{item_id}"};
+  }
+  // Workflow move: IDEA -> COPYWRITING -> DESIGN -> REVIEW -> APPROVED, or
+  // REVIEW -> REVISION (note required, new revision round) -> REVIEW.
+  rpc MoveItem(MoveItemRequest) returns (ItemDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/items/{item_id}:move"
+      body: "*"
+    };
+  }
+  // New caption version. Revising an approved item sends it back to review.
+  rpc ReviseCaption(ReviseCaptionRequest) returns (ItemDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/items/{item_id}/revisions"
+      body: "*"
+    };
+  }
+  // Any member, VIEWER included.
+  rpc AddItemComment(AddItemCommentRequest) returns (ItemComment) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/items/{item_id}/comments"
+      body: "*"
+    };
+  }
+  // Approved item with a final design: uploads the design to publishing,
+  // creates, approves and schedules the post (feed, reel or story).
+  rpc ScheduleItem(ScheduleItemRequest) returns (ItemDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/items/{item_id}:schedule"
+      body: "*"
+    };
+  }
+  // Reads the publishing post now and marks the item published or failed.
+  rpc SyncItemStatus(ItemRef) returns (ItemDetail) {
+    option (google.api.http) = {post: "/v1/content/clients/{client_id}/items/{item_id}:sync"};
+  }
+}
+
+message ItemRef {
+  string client_id = 1;
+  string item_id = 2;
+}
+
+message Item {
+  string id = 1;
+  string plan_id = 2;
+  string client_id = 3;
+  // YYYY-MM-DD
+  string planned_date = 4;
+  optional google.protobuf.Timestamp publish_at = 5;
+  white.common.v1.SocialPlatform platform = 6;
+  ContentFormat format = 7;
+  string pillar = 8;
+  string title = 9;
+  string hook = 10;
+  string caption = 11;
+  repeated string hashtags = 12;
+  string visual_brief = 13;
+  optional string copywriter_id = 14;
+  optional string designer_id = 15;
+  // YYYY-MM-DD deadlines.
+  optional string copy_due = 16;
+  optional string design_due = 17;
+  optional string review_due = 18;
+  ItemStatus status = 19;
+  int32 revision_round = 20;
+  int32 caption_version = 21;
+  optional string publishing_post_id = 22;
+  optional google.protobuf.Timestamp published_at = 23;
+  optional string permalink = 24;
+  optional string publish_error = 25;
+  bool has_final_design = 26;
+  optional string approved_by = 27;
+  optional google.protobuf.Timestamp approved_at = 28;
+  optional string created_by = 29;
+  optional string updated_by = 30;
+  google.protobuf.Timestamp created_at = 31;
+  google.protobuf.Timestamp updated_at = 32;
+}
+
+message CaptionRevision {
+  string id = 1;
+  int32 version = 2;
+  string caption = 3;
+  string hook = 4;
+  repeated string hashtags = 5;
+  string note = 6;
+  optional string created_by = 7;
+  string created_by_name = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ItemComment {
+  string id = 1;
+  optional string user_id = 2;
+  string user_name = 3;
+  string body = 4;
+  // COMMENT, CHANGES_REQUESTED or APPROVED.
+  string kind = 5;
+  int32 round = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ItemActivity {
+  string id = 1;
+  optional string user_id = 2;
+  string user_name = 3;
+  string type = 4;
+  optional string from_status = 5;
+  optional string to_status = 6;
+  optional string note = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message ItemDetail {
+  Item item = 1;
+  repeated CaptionRevision revisions = 2;
+  repeated ItemComment comments = 3;
+  repeated ItemActivity activities = 4;
+  repeated DesignTask design_tasks = 5;
+  // Moves the caller may make now.
+  repeated ItemStatus allowed_moves = 6;
+}
+
+message ListItemsRequest {
+  string client_id = 1;
+  string plan_id = 2;
+  ItemStatus status = 3;
+  // Copywriter or designer.
+  string assignee_id = 4;
+  // YYYY-MM on the planned date.
+  string month = 5;
+}
+
+message ListItemsResponse {
+  repeated Item items = 1;
+}
+
+message ItemInput {
+  // YYYY-MM-DD inside the plan's month.
+  string planned_date = 1;
+  optional google.protobuf.Timestamp publish_at = 2;
+  white.common.v1.SocialPlatform platform = 3;
+  ContentFormat format = 4;
+  string pillar = 5;
+  string title = 6;
+  string visual_brief = 7;
+  string copywriter_id = 8;
+  string designer_id = 9;
+  string copy_due = 10;
+  string design_due = 11;
+  string review_due = 12;
+}
+
+message CreateItemRequest {
+  string client_id = 1;
+  string plan_id = 2;
+  ItemInput item = 3;
+  // First caption version, optional.
+  string hook = 4;
+  string caption = 5;
+  repeated string hashtags = 6;
+}
+
+message UpdateItemRequest {
+  string client_id = 1;
+  string item_id = 2;
+  // Replaces every planning field (empty strings clear optional ones).
+  ItemInput item = 3;
+}
+
+message MoveItemRequest {
+  string client_id = 1;
+  string item_id = 2;
+  ItemStatus to = 3;
+  // Required when sending back to REVISION.
+  string note = 4;
+}
+
+message ReviseCaptionRequest {
+  string client_id = 1;
+  string item_id = 2;
+  string hook = 3;
+  string caption = 4;
+  repeated string hashtags = 5;
+  string note = 6;
+}
+
+message AddItemCommentRequest {
+  string client_id = 1;
+  string item_id = 2;
+  string body = 3;
+}
+
+message ScheduleItemRequest {
+  string client_id = 1;
+  string item_id = 2;
+  // Defaults to the item's publish_at.
+  optional google.protobuf.Timestamp publish_at = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// DesignService: design tasks, versioned design files, feedback
+// ─────────────────────────────────────────────────────────────
+
+service DesignService {
+  rpc ListSizePresets(google.protobuf.Empty) returns (ListSizePresetsResponse) {
+    option (google.api.http) = {get: "/v1/content/design-size-presets"};
+  }
+  rpc ListDesignTasks(ListDesignTasksRequest) returns (ListDesignTasksResponse) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/design-tasks"};
+  }
+  rpc CreateDesignTask(CreateDesignTaskRequest) returns (DesignTaskDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/items/{item_id}/design-tasks"
+      body: "*"
+    };
+  }
+  rpc GetDesignTask(DesignTaskRef) returns (DesignTaskDetail) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/design-tasks/{task_id}"};
+  }
+  rpc UpdateDesignTask(UpdateDesignTaskRequest) returns (DesignTaskDetail) {
+    option (google.api.http) = {
+      patch: "/v1/content/clients/{client_id}/design-tasks/{task_id}"
+      body: "*"
+    };
+  }
+  // All files of one call form the next version (carousel slides in order).
+  rpc UploadDesignFiles(UploadDesignFilesRequest) returns (DesignTaskDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/design-tasks/{task_id}/files"
+      body: "*"
+    };
+  }
+  // COMMENT any member; REQUEST_CHANGES and APPROVE are the reviewer's.
+  rpc ReviewDesign(ReviewDesignRequest) returns (DesignTaskDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/design-tasks/{task_id}:review"
+      body: "*"
+    };
+  }
+  rpc DownloadDesignFile(DesignFileRef) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/design-files/{file_id}/download"};
+  }
+}
+
+message SizePreset {
+  string key = 1;
+  string label = 2;
+  int32 width = 3;
+  int32 height = 4;
+  ContentFormat format = 5;
+}
+
+message ListSizePresetsResponse {
+  repeated SizePreset presets = 1;
+}
+
+message DesignTask {
+  string id = 1;
+  string item_id = 2;
+  string client_id = 3;
+  string title = 4;
+  string brief = 5;
+  repeated string references = 6;
+  string size_preset = 7;
+  int32 width = 8;
+  int32 height = 9;
+  optional string designer_id = 10;
+  // YYYY-MM-DD
+  optional string due_date = 11;
+  DesignStatus status = 12;
+  int32 current_version = 13;
+  optional string created_by = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+}
+
+message DesignFile {
+  string id = 1;
+  string task_id = 2;
+  int32 version = 3;
+  int32 sort_order = 4;
+  string file_name = 5;
+  string mime_type = 6;
+  int64 size_bytes = 7;
+  optional string uploaded_by = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message DesignFeedback {
+  string id = 1;
+  optional string file_id = 2;
+  int32 version = 3;
+  optional string user_id = 4;
+  string user_name = 5;
+  ReviewDecision decision = 6;
+  string body = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message DesignTaskDetail {
+  DesignTask task = 1;
+  repeated DesignFile files = 2;
+  repeated DesignFeedback feedback = 3;
+}
+
+message ListDesignTasksRequest {
+  string client_id = 1;
+  string item_id = 2;
+  string designer_id = 3;
+  DesignStatus status = 4;
+}
+
+message ListDesignTasksResponse {
+  repeated DesignTask tasks = 1;
+}
+
+message DesignTaskRef {
+  string client_id = 1;
+  string task_id = 2;
+}
+
+message DesignTaskInput {
+  string title = 1;
+  string brief = 2;
+  repeated string references = 3;
+  // A key from ListSizePresets; empty picks the format's default.
+  string size_preset = 4;
+  string designer_id = 5;
+  string due_date = 6;
+}
+
+message CreateDesignTaskRequest {
+  string client_id = 1;
+  string item_id = 2;
+  DesignTaskInput task = 3;
+}
+
+message UpdateDesignTaskRequest {
+  string client_id = 1;
+  string task_id = 2;
+  DesignTaskInput task = 3;
+  // TODO or IN_PROGRESS by hand; review states come from ReviewDesign.
+  DesignStatus status = 4;
+}
+
+message UploadDesignFilesRequest {
+  string client_id = 1;
+  string task_id = 2;
+  repeated UploadFile files = 3;
+  // Optional feedback note posted with the version.
+  string note = 4;
+}
+
+message ReviewDesignRequest {
+  string client_id = 1;
+  string task_id = 2;
+  ReviewDecision decision = 3;
+  string body = 4;
+  string file_id = 5;
+}
+
+message DesignFileRef {
+  string client_id = 1;
+  string file_id = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AssetService: per-client brand assets with folders, tags, versions
+// ─────────────────────────────────────────────────────────────
+
+service AssetService {
+  rpc ListAssetFolders(ClientRequest) returns (ListAssetFoldersResponse) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/asset-folders"};
+  }
+  rpc CreateAssetFolder(CreateAssetFolderRequest) returns (AssetFolder) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/asset-folders"
+      body: "*"
+    };
+  }
+  rpc RenameAssetFolder(RenameAssetFolderRequest) returns (AssetFolder) {
+    option (google.api.http) = {
+      patch: "/v1/content/clients/{client_id}/asset-folders/{folder_id}"
+      body: "*"
+    };
+  }
+  // Only empty folders.
+  rpc DeleteAssetFolder(AssetFolderRef) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/content/clients/{client_id}/asset-folders/{folder_id}"};
+  }
+  // Name, description and tags match `query` (case-insensitive).
+  rpc SearchAssets(SearchAssetsRequest) returns (SearchAssetsResponse) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/assets"};
+  }
+  rpc CreateAsset(CreateAssetRequest) returns (AssetDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/assets"
+      body: "*"
+    };
+  }
+  rpc GetAsset(AssetRef) returns (AssetDetail) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/assets/{asset_id}"};
+  }
+  rpc UpdateAsset(UpdateAssetRequest) returns (AssetDetail) {
+    option (google.api.http) = {
+      patch: "/v1/content/clients/{client_id}/assets/{asset_id}"
+      body: "*"
+    };
+  }
+  // The upload becomes the current version; older versions stay downloadable.
+  rpc UploadAssetVersion(UploadAssetVersionRequest) returns (AssetDetail) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/assets/{asset_id}/versions"
+      body: "*"
+    };
+  }
+  rpc DeleteAsset(AssetRef) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/content/clients/{client_id}/assets/{asset_id}"};
+  }
+  // `version` 0 is the current version.
+  rpc DownloadAsset(DownloadAssetRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/assets/{asset_id}/download"};
+  }
+}
+
+message AssetFolder {
+  string id = 1;
+  string client_id = 2;
+  optional string parent_id = 3;
+  string name = 4;
+  int32 asset_count = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message AssetVersion {
+  string id = 1;
+  int32 version = 2;
+  string file_name = 3;
+  string mime_type = 4;
+  int64 size_bytes = 5;
+  string note = 6;
+  optional string uploaded_by = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message Asset {
+  string id = 1;
+  string client_id = 2;
+  optional string folder_id = 3;
+  AssetKind kind = 4;
+  string name = 5;
+  string description = 6;
+  repeated string tags = 7;
+  int32 current_version = 8;
+  AssetVersion current = 9;
+  optional string created_by = 10;
+  optional string updated_by = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+message AssetDetail {
+  Asset asset = 1;
+  repeated AssetVersion versions = 2;
+}
+
+message ListAssetFoldersResponse {
+  repeated AssetFolder folders = 1;
+}
+
+message CreateAssetFolderRequest {
+  string client_id = 1;
+  string name = 2;
+  string parent_id = 3;
+}
+
+message RenameAssetFolderRequest {
+  string client_id = 1;
+  string folder_id = 2;
+  string name = 3;
+}
+
+message AssetFolderRef {
+  string client_id = 1;
+  string folder_id = 2;
+}
+
+message SearchAssetsRequest {
+  string client_id = 1;
+  string query = 2;
+  AssetKind kind = 3;
+  string folder_id = 4;
+  string tag = 5;
+}
+
+message SearchAssetsResponse {
+  repeated Asset assets = 1;
+}
+
+message CreateAssetRequest {
+  string client_id = 1;
+  string name = 2;
+  AssetKind kind = 3;
+  string description = 4;
+  repeated string tags = 5;
+  string folder_id = 6;
+  UploadFile file = 7;
+}
+
+message AssetRef {
+  string client_id = 1;
+  string asset_id = 2;
+}
+
+message UpdateAssetRequest {
+  string client_id = 1;
+  string asset_id = 2;
+  string name = 3;
+  AssetKind kind = 4;
+  string description = 5;
+  repeated string tags = 6;
+  // Empty moves the asset to the root.
+  string folder_id = 7;
+}
+
+message UploadAssetVersionRequest {
+  string client_id = 1;
+  string asset_id = 2;
+  UploadFile file = 3;
+  string note = 4;
+}
+
+message DownloadAssetRequest {
+  string client_id = 1;
+  string asset_id = 2;
+  int32 version = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ReportService: monthly content report per client
+// ─────────────────────────────────────────────────────────────
+
+service ReportService {
+  rpc ListReports(ClientRequest) returns (ListReportsResponse) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/reports"};
+  }
+  // Computes (or recomputes) the month: planned vs published, on-time
+  // rate, revisions, engagement from analytics (best effort) and the AI
+  // summary with recommendations.
+  rpc GenerateReport(GenerateReportRequest) returns (ContentReport) {
+    option (google.api.http) = {
+      post: "/v1/content/clients/{client_id}/reports"
+      body: "*"
+    };
+  }
+  rpc GetReport(ReportRef) returns (ContentReport) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/reports/{report_id}"};
+  }
+  rpc DownloadReportPdf(ReportRef) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/content/clients/{client_id}/reports/{report_id}/pdf"};
+  }
+  // Content overview analytics for a window and its comparison window:
+  // production, calendar, engagement, design and asset numbers. VIEWER
+  // members may read.
+  rpc GetDashboard(DashboardRequest) returns (ContentDashboard) {
+    option (google.api.http) = {get: "/v1/content/dashboard/clients/{client_id}"};
+  }
+}
+
+message GenerateReportRequest {
+  string client_id = 1;
+  // YYYY-MM
+  string month = 2;
+}
+
+message ReportRef {
+  string client_id = 1;
+  string report_id = 2;
+}
+
+message ReportBreakdown {
+  string key = 1;
+  int32 planned = 2;
+  int32 published = 3;
+}
+
+message ReportPost {
+  string item_id = 1;
+  string title = 2;
+  white.common.v1.SocialPlatform platform = 3;
+  ContentFormat format = 4;
+  string planned_date = 5;
+  optional google.protobuf.Timestamp published_at = 6;
+  optional string permalink = 7;
+  bool has_metrics = 8;
+  int64 likes = 9;
+  int64 comments = 10;
+  int64 shares = 11;
+  int64 saves = 12;
+  int64 reach = 13;
+  int64 views = 14;
+  int64 engagements = 15;
+}
+
+message ContentReport {
+  string id = 1;
+  string client_id = 2;
+  // YYYY-MM
+  string month = 3;
+  int32 planned = 4;
+  int32 published = 5;
+  int32 failed = 6;
+  int32 scheduled = 7;
+  int32 in_progress = 8;
+  int32 deadlines_met = 9;
+  int32 deadlines_total = 10;
+  // Percent, one decimal.
+  double on_time_rate = 11;
+  int32 revisions_total = 12;
+  double revision_avg = 13;
+  int32 caption_versions = 14;
+  repeated ReportBreakdown per_platform = 15;
+  repeated ReportBreakdown per_format = 16;
+  bool engagement_available = 17;
+  int64 total_engagements = 18;
+  int64 total_reach = 19;
+  repeated ReportPost posts = 20;
+  repeated ReportPost top = 21;
+  repeated ReportPost bottom = 22;
+  // Markdown: summary and recommendations.
+  string summary = 23;
+  string ai_model = 24;
+  optional string created_by = 25;
+  google.protobuf.Timestamp created_at = 26;
+  google.protobuf.Timestamp updated_at = 27;
+}
+
+message ListReportsResponse {
+  repeated ContentReport reports = 1;
+}
+
+// ─── Dashboard ───────────────────────────────────────────────
+
+message DashboardRequest {
+  string client_id = 1;
+  // YYYY-MM-DD, inclusive agency days. Both empty: the last 28 complete days.
+  string from = 2;
+  string to = 3;
+  // "previous" (default): same length ending the day before; "year": same days a year earlier.
+  string compare = 4;
+  // Optional filters: INSTAGRAM | FACEBOOK | TIKTOK, FEED | CAROUSEL | REEL | STORY.
+  string platform = 5;
+  string format = 6;
+  string pillar = 7;
+  // Copywriter or designer of the item (or designer of the design task).
+  string assignee_id = 8;
+  string plan_id = 9;
+}
+
+message DashboardKpis {
+  int32 planned = 1;
+  int32 published = 2;
+  int32 failed = 3;
+  // Items in REVIEW or REVISION now.
+  int32 in_review = 4;
+  // Items past the deadline of their current stage now.
+  int32 overdue = 5;
+  int32 deadlines_met = 6;
+  int32 deadlines_total = 7;
+  double on_time_rate = 8;
+  int32 revisions_total = 9;
+  double revision_avg = 10;
+  int64 engagements = 11;
+  int64 reach = 12;
+  // Engagements / reach, percent.
+  double engagement_rate = 13;
+  int32 measured_posts = 14;
+  // Days from item creation to publish, published items.
+  double cycle_days_avg = 15;
+  int32 design_tasks = 16;
+  int32 design_approved = 17;
+  // Days from design task creation to first approval.
+  double design_turnaround_days = 18;
+  // Approved designs without a change request, percent.
+  double first_pass_rate = 19;
+  int32 asset_uploads = 20;
+}
+
+// One week (Monday start) or month of the window. Planned and deadlines by
+// planned date; published and engagement by publish day; stage_* count work
+// in progress at the end of the bucket.
+message DashboardBucket {
+  string start = 1;
+  int32 planned = 2;
+  int32 published = 3;
+  int64 engagements = 4;
+  int64 reach = 5;
+  int32 deadlines_met = 6;
+  int32 deadlines_total = 7;
+  double on_time_rate = 8;
+  double revision_avg = 9;
+  int32 stage_copy = 10;
+  int32 stage_design = 11;
+  int32 stage_review = 12;
+  int32 stage_ready = 13;
+  double design_turnaround_days = 14;
+  int32 asset_uploads = 15;
+}
+
+message DashboardCount {
+  string key = 1;
+  int32 count = 2;
+}
+
+message DashboardStageCycle {
+  // COPY | DESIGN | REVIEW | PUBLISH
+  string stage = 1;
+  double avg_days = 2;
+  double median_days = 3;
+  int32 count = 4;
+}
+
+// One assignee in one role (COPYWRITER or DESIGNER).
+message DashboardPerson {
+  string user_id = 1;
+  string role = 2;
+  int32 assigned = 3;
+  int32 published = 4;
+  int32 overdue = 5;
+  int32 overdue_copy = 6;
+  int32 overdue_design = 7;
+  int32 overdue_review = 8;
+  double revision_avg = 9;
+  double on_time_rate = 10;
+  int32 design_tasks = 11;
+  int32 design_approved = 12;
+  double turnaround_days = 13;
+  double first_pass_rate = 14;
+}
+
+message DashboardDay {
+  string date = 1;
+  int32 planned = 2;
+  int32 published = 3;
+}
+
+message DashboardHeatCell {
+  // 0 = Monday, agency time.
+  int32 weekday = 1;
+  int32 hour = 2;
+  int32 posts = 3;
+  int64 engagements = 4;
+}
+
+message DashboardBreakdown {
+  string key = 1;
+  int32 planned = 2;
+  int32 published = 3;
+  int64 engagements = 4;
+  int64 reach = 5;
+  int32 measured = 6;
+}
+
+message DashboardPost {
+  string item_id = 1;
+  string title = 2;
+  white.common.v1.SocialPlatform platform = 3;
+  ContentFormat format = 4;
+  string pillar = 5;
+  string planned_date = 6;
+  optional google.protobuf.Timestamp published_at = 7;
+  optional string permalink = 8;
+  // First file of the approved design; empty when none.
+  string thumbnail_file_id = 9;
+  bool has_metrics = 10;
+  int64 likes = 11;
+  int64 comments = 12;
+  int64 shares = 13;
+  int64 saves = 14;
+  int64 reach = 15;
+  int64 views = 16;
+  int64 engagements = 17;
+}
+
+message DashboardAsset {
+  string asset_id = 1;
+  string name = 2;
+  AssetKind kind = 3;
+  int32 uploads = 4;
+  int32 current_version = 5;
+  google.protobuf.Timestamp last_uploaded_at = 6;
+}
+
+message DashboardWindow {
+  // week | month
+  string granularity = 1;
+  DashboardKpis kpis = 2;
+  repeated DashboardBucket buckets = 3;
+  // Items that reached each happy-path status (IDEA .. PUBLISHED).
+  repeated DashboardCount funnel = 4;
+  // Current status of the window's items.
+  repeated DashboardCount statuses = 5;
+  repeated DashboardStageCycle stage_cycles = 6;
+  repeated DashboardCount overdue_by_stage = 7;
+  // Keys 0, 1, 2, 3+.
+  repeated DashboardCount revision_rounds = 8;
+  // Design versions per task, keys 1, 2, 3+.
+  repeated DashboardCount design_versions = 9;
+  repeated DashboardPerson people = 10;
+  repeated DashboardDay days = 11;
+  repeated DashboardHeatCell posting_heat = 12;
+  repeated DashboardBreakdown by_platform = 13;
+  repeated DashboardBreakdown by_format = 14;
+  repeated DashboardBreakdown by_pillar = 15;
+  // Published posts, most engagement first (at most 300).
+  repeated DashboardPost posts = 16;
+  // Assets with the most uploads in the window (at most 10).
+  repeated DashboardAsset top_assets = 17;
+  repeated DashboardCount asset_uploads_by_kind = 18;
+}
+
+message ContentDashboard {
+  string from = 1;
+  string to = 2;
+  string prev_from = 3;
+  string prev_to = 4;
+  string compare = 5;
+  DashboardWindow current = 6;
+  DashboardWindow previous = 7;
+  // Every pillar used by the client's items (filter options).
+  repeated string pillars = 8;
+}

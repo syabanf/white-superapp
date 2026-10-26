@@ -10,20 +10,36 @@ SELECT * FROM identity.users ORDER BY created_at ASC;
 -- name: ListActiveUserOptions :many
 SELECT id, name, email FROM identity.users WHERE is_active ORDER BY name ASC;
 
+-- name: ListPermissionHolders :many
+SELECT id, name, email, role FROM identity.users
+WHERE is_active
+  AND (role = 'ADMIN' OR @permission::text = ANY(permissions) OR split_part(@permission::text, '.', 1) || '.*' = ANY(permissions))
+ORDER BY name ASC;
+
 -- name: ListUsersByIDs :many
 SELECT * FROM identity.users WHERE id = ANY(@ids::text[]);
 
 -- name: InsertUser :one
-INSERT INTO identity.users (id, email, name, password_hash, role, is_active)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO identity.users (id, email, name, password_hash, role, is_active, permissions)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: UpdateUser :one
 UPDATE identity.users
-SET name = $2, email = $3, role = $4, is_active = $5,
+SET name = $2, email = $3, role = $4, is_active = $5, permissions = $6,
     password_hash = COALESCE(sqlc.narg('password_hash'), password_hash),
     updated_at = now()
 WHERE id = $1
+RETURNING *;
+
+-- name: SetUserPermissions :one
+UPDATE identity.users SET permissions = $2, updated_at = now() WHERE id = $1 RETURNING *;
+
+-- name: UpsertLegacyUser :one
+INSERT INTO identity.users (id, email, name, password_hash, role, is_active)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, password_hash = EXCLUDED.password_hash,
+    role = EXCLUDED.role, is_active = EXCLUDED.is_active, updated_at = now()
 RETURNING *;
 
 -- name: SetUserActive :one

@@ -33,6 +33,26 @@ const (
 	SyncDailySeoSuite  = "white.sync.daily.seosuite"
 	PublishTick        = "white.publish.tick"
 	RetentionTick      = "white.retention.tick"
+
+	// ERP ticks (TickPayload). Services schedule their own jobs off these.
+	ERPTick15m    = "white.erp.tick.15m"
+	ERPTickHourly = "white.erp.tick.hourly"
+	ERPTickDaily  = "white.erp.tick.daily"
+
+	// ERP domain events (payload types live with the publishing service's
+	// proto or in the service package; consumers decode JSON).
+	HRPayrollPaid            = "white.hr.payroll.paid"
+	SalesInvoiceIssued       = "white.sales.invoice.issued"
+	SalesPaymentRecorded     = "white.sales.payment.recorded"
+	SalesDealWon             = "white.sales.deal.won"
+	FinanceReimbursementPaid = "white.finance.reimbursement.paid"
+	// Payload: recruitment domain.CandidateHiredPayload.
+	RecruitmentCandidateHired = "white.recruitment.candidate.hired"
+
+	// Published by publishing when a post reaches a final publish outcome
+	// (PublishPostPayload).
+	PublishingPostPublished = "white.publishing.post.published"
+	PublishingPostFailed    = "white.publishing.post.failed"
 )
 
 type ClientCreatedPayload struct {
@@ -64,6 +84,19 @@ type SyncDailyPayload struct {
 	ClientID string    `json:"clientId"`
 	Slug     string    `json:"slug"`
 	RunAt    time.Time `json:"runAt"`
+}
+
+// PublishPostPayload reports a post's final publish outcome. ExternalID and
+// Permalink come from the first published target; Error from the first
+// failed one.
+type PublishPostPayload struct {
+	PostID     string    `json:"postId"`
+	ClientID   string    `json:"clientId"`
+	Status     string    `json:"status"`
+	ExternalID string    `json:"externalId,omitempty"`
+	Permalink  string    `json:"permalink,omitempty"`
+	Error      string    `json:"error,omitempty"`
+	At         time.Time `json:"at"`
 }
 
 type TickPayload struct {

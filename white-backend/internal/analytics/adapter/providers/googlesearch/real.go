@@ -79,7 +79,8 @@ func (r *Real) QuerySearchAnalytics(ctx context.Context, token string, req GscQu
 	}
 	body := map[string]any{"startDate": req.StartDate, "endDate": req.EndDate, "dimensions": req.Dimensions, "rowLimit": rowLimit, "startRow": req.StartRow}
 	var out rawGsc
-	u := r.GSCBase + "/sites/" + url.PathEscape(req.SiteURL) + "/searchAnalytics/query"
+	// encodeURIComponent: ":" and "/" must be escaped too.
+	u := r.GSCBase + "/sites/" + strings.ReplaceAll(url.QueryEscape(req.SiteURL), "+", "%20") + "/searchAnalytics/query"
 	if err := r.post(ctx, u, token, body, "Google Search Console", &out); err != nil {
 		return nil, err
 	}

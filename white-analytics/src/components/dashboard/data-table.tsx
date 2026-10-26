@@ -46,6 +46,7 @@ export type DataTableProps<TData, TValue> = {
   getRowId?: (row: TData, index: number) => string;
   /** Show regular tables as labeled stacked rows below the sm breakpoint. */
   mobileCards?: boolean;
+  mobileCardBreakpoint?: "sm" | "md";
 };
 
 export function DataTable<TData, TValue>({
@@ -67,6 +68,7 @@ export function DataTable<TData, TValue>({
   stickyHeader,
   getRowId,
   mobileCards,
+  mobileCardBreakpoint = "sm",
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -144,12 +146,14 @@ export function DataTable<TData, TValue>({
         </div>
       ) : null}
       <div className="overflow-hidden rounded-lg border">
-        <div className={cn("scrollbar-thin", useMobileCards ? "sm:overflow-x-auto" : "overflow-x-auto")}>
+        <div className={cn("scrollbar-thin", useMobileCards ? (mobileCardBreakpoint === "md" ? "md:overflow-x-auto" : "sm:overflow-x-auto") : "overflow-x-auto")}>
           <Table
             className={cn(
               dense && "[&_td]:py-1.5 [&_th]:h-8",
               useMobileCards &&
-                "max-sm:block max-sm:[&_thead]:hidden max-sm:[&_tbody]:block max-sm:[&_tr]:mb-2 max-sm:[&_tr]:block max-sm:[&_tr]:rounded-lg max-sm:[&_tr]:border max-sm:[&_tr]:bg-card max-sm:[&_td]:flex max-sm:[&_td]:items-start max-sm:[&_td]:justify-between max-sm:[&_td]:gap-4 max-sm:[&_td]:border-b max-sm:[&_td]:text-right max-sm:[&_td]:before:text-left max-sm:[&_td]:before:text-xs max-sm:[&_td]:before:font-medium max-sm:[&_td]:before:text-muted-foreground max-sm:[&_td]:before:content-[attr(data-label)] max-sm:[&_td:last-child]:border-b-0",
+                (mobileCardBreakpoint === "md"
+                  ? "max-md:block max-md:[&_thead]:hidden max-md:[&_tbody]:block max-md:[&_tr]:mb-2 max-md:[&_tr]:block max-md:[&_tr]:rounded-lg max-md:[&_tr]:border max-md:[&_tr]:bg-card max-md:[&_td]:flex max-md:[&_td]:items-start max-md:[&_td]:justify-between max-md:[&_td]:gap-4 max-md:[&_td]:border-b max-md:[&_td]:text-right max-md:[&_td]:before:text-left max-md:[&_td]:before:text-xs max-md:[&_td]:before:font-medium max-md:[&_td]:before:text-muted-foreground max-md:[&_td]:before:content-[attr(data-label)] max-md:[&_td:last-child]:border-b-0"
+                  : "max-sm:block max-sm:[&_thead]:hidden max-sm:[&_tbody]:block max-sm:[&_tr]:mb-2 max-sm:[&_tr]:block max-sm:[&_tr]:rounded-lg max-sm:[&_tr]:border max-sm:[&_tr]:bg-card max-sm:[&_td]:flex max-sm:[&_td]:items-start max-sm:[&_td]:justify-between max-sm:[&_td]:gap-4 max-sm:[&_td]:border-b max-sm:[&_td]:text-right max-sm:[&_td]:before:text-left max-sm:[&_td]:before:text-xs max-sm:[&_td]:before:font-medium max-sm:[&_td]:before:text-muted-foreground max-sm:[&_td]:before:content-[attr(data-label)] max-sm:[&_td:last-child]:border-b-0"),
             )}
           >
             <TableHeader className={cn(stickyHeader && "sticky top-0 z-10 bg-card")}>

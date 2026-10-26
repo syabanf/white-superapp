@@ -257,3 +257,66 @@ func TestMock(t *testing.T) {
 		t.Fatal("pick")
 	}
 }
+
+func TestInstagramStoryImageHasNoCaption(t *testing.T) {
+	stub := newStub()
+	stub.on("POST", "/178/media", `{"id":"st1"}`)
+	stub.on("POST", "/178/media_publish", `{"id":"m9"}`)
+	stub.on("GET", "/m9", `{"permalink":"https://www.instagram.com/stories/kopi/m9/"}`)
+	res, err := newReal(t, stub).Publish(context.Background(), domain.PublishInput{Platform: domain.PlatformInstagram, Format: domain.FormatStory, AccessToken: "tok", AccountExternalID: "178", Text: "abaikan", Media: []domain.PublishMedia{{URL: "https://x/s.jpg", Kind: domain.MediaImage}}, FirstComment: "tidak dikirim"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.ExternalID != "m9" || res.Permalink == nil {
+		t.Fatalf("%+v", res)
+	}
+	form := stub.calls[0].Form
+	if form.Get("media_type") != "STORIES" || form.Get("image_url") != "https://x/s.jpg" || form.Has("caption") {
+		t.Fatalf("%+v", form)
+	}
+	if len(stub.calls) != 3 {
+		t.Fatalf("story must not post a first comment: %+v", stub.calls)
+	}
+}
+
+func TestInstagramStoryVideoWaitsForContainer(t *testing.T) {
+	stub := newStub()
+	stub.on("POST", "/178/media", `{"id":"sv"}`)
+	stub.on("GET", "/sv", `{"status_code":"IN_PROGRESS"}`, `{"status_code":"FINISHED"}`)
+	stub.on("POST", "/178/media_publish", `{"id":"m10"}`)
+	stub.on("GET", "/m10", `{}`)
+	res, err := newReal(t, stub).Publish(context.Background(), domain.PublishInput{Platform: domain.PlatformInstagram, Format: domain.FormatStory, AccessToken: "tok", AccountExternalID: "178", Media: []domain.PublishMedia{{URL: "https://x/s.mp4", Kind: domain.MediaVideo}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.ExternalID != "m10" || res.Permalink != nil {
+		t.Fatalf("%+v", res)
+	}
+	if f := stub.calls[0].Form; f.Get("media_type") != "STORIES" || f.Get("video_url") != "https://x/s.mp4" {
+		t.Fatalf("%+v", f)
+	}
+}
+
+func TestFacebookPhotoStory(t *testing.T) {
+	stub := newStub()
+	stub.on("POST", "/p1/photos", `{"id":"ph1"}`)
+	stub.on("POST", "/p1/photo_stories", `{"success":true,"post_id":"p1_77"}`)
+	res, err := newReal(t, stub).Publish(context.Background(), domain.PublishInput{Platform: domain.PlatformFacebook, Format: domain.FormatStory, AccessToken: "tok", AccountExternalID: "p1", Media: []domain.PublishMedia{{URL: "https://x/s.jpg", Kind: domain.MediaImage}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.ExternalID != "p1_77" {
+		t.Fatal(res.ExternalID)
+	}
+	if stub.calls[0].Form.Get("published") != "false" || stub.calls[1].Form.Get("photo_id") != "ph1" {
+		t.Fatalf("%+v", stub.calls)
+	}
+}
+
+func TestFacebookVideoStoryRefused(t *testing.T) {
+	stub := newStub()
+	_, err := newReal(t, stub).Publish(context.Background(), domain.PublishInput{Platform: domain.PlatformFacebook, Format: domain.FormatStory, Media: []domain.PublishMedia{{URL: "https://x/s.mp4", Kind: domain.MediaVideo}}})
+	if !apperr.Is(err, apperr.Permission) || len(stub.calls) != 0 {
+		t.Fatalf("err=%v calls=%d", err, len(stub.calls))
+	}
+}

@@ -85,6 +85,31 @@ func TestValidatePostTikTokFacebook(t *testing.T) {
 	}
 }
 
+func TestValidatePostFormats(t *testing.T) {
+	check := func(format PostFormat, platform Platform, media ...MediaKind) []string {
+		return msgs(ValidatePost(DraftInput{Format: format, Targets: []DraftTarget{{Platform: platform}}, Media: media}, ValidateOptions{Full: true, Now: now}))
+	}
+	if len(check(FormatStory, PlatformInstagram, MediaImage)) != 0 || len(check(FormatStory, PlatformFacebook, MediaVideo)) != 0 {
+		t.Fatal("valid stories rejected")
+	}
+	if !has(check(FormatStory, PlatformInstagram, MediaImage, MediaImage), MsgStoryOneMedia) || !has(check(FormatStory, PlatformFacebook), MsgStoryOneMedia) {
+		t.Fatal("story media count")
+	}
+	if !has(check(FormatStory, PlatformTikTok, MediaVideo), MsgStoryTikTok) {
+		t.Fatal("tiktok story")
+	}
+	if len(check(FormatReel, PlatformInstagram, MediaVideo)) != 0 || !has(check(FormatReel, PlatformInstagram, MediaImage), MsgReelOneVideo) {
+		t.Fatal("reel")
+	}
+	// Drafts skip the shape rules; empty format behaves as FEED.
+	if len(ValidatePost(DraftInput{Format: FormatStory, Targets: []DraftTarget{{Platform: PlatformInstagram}}}, ValidateOptions{Now: now})) != 0 {
+		t.Fatal("draft story validated as full")
+	}
+	if ToFormat("") != FormatFeed || ToFormat("bogus") != FormatFeed || ToFormat("STORY") != FormatStory {
+		t.Fatal("ToFormat")
+	}
+}
+
 func TestValidatePostLimits(t *testing.T) {
 	long := strings.Repeat("a", PlatformLimits[PlatformInstagram].Caption+1)
 	r := ValidatePost(DraftInput{Body: long, Targets: []DraftTarget{{Platform: PlatformInstagram}, {Platform: PlatformFacebook}}, Media: []MediaKind{MediaImage}}, ValidateOptions{Full: true, Now: now})

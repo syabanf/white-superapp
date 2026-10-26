@@ -8,6 +8,7 @@ import (
 
 	"github.com/syabanf/white-superapp/white-backend/internal/publishing/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
+	"github.com/syabanf/white-superapp/white-backend/pkg/events"
 	"github.com/syabanf/white-superapp/white-backend/pkg/ids"
 )
 
@@ -104,8 +105,13 @@ func (p *Publishing) PublishPost(ctx context.Context, postID string, opts Publis
 
 	var pending []domain.PostTarget
 	var outcomes []domain.TargetOutcome
+	// The event carries the first published target's ids.
+	var externalID, permalink string
 	for _, t := range targets {
 		if t.Status == domain.StatusPublished {
+			if externalID == "" && t.ExternalID != nil {
+				externalID, permalink = *t.ExternalID, deref(t.Permalink)
+			}
 			outcomes = append(outcomes, domain.TargetOutcome{Status: domain.StatusPublished, Attempts: t.Attempts})
 		} else {
 			pending = append(pending, t)
@@ -150,6 +156,9 @@ func (p *Publishing) PublishPost(ctx context.Context, postID string, opts Publis
 			return nil, err
 		}
 		outcomes = append(outcomes, domain.TargetOutcome{Status: domain.StatusPublished, Attempts: attempts})
+		if externalID == "" {
+			externalID, permalink = res.ExternalID, deref(res.Permalink)
+		}
 	}
 
 	status := domain.ResolvePostOutcome(outcomes, domain.MaxPublishAttempts, opts.Manual)
@@ -218,6 +227,12 @@ func (p *Publishing) PublishPost(ctx context.Context, postID string, opts Publis
 		}
 		p.notify(ctx, NotifyInput{ClientID: post.ClientID, Audience: AudienceClientAll, Type: NotifPostFailed, Title: notifFailed(title), Body: body, Href: href})
 	}
+	firstErr := ""
+	if len(errs) > 0 {
+		firstErr = errs[0].Error
+	}
+	p.emitOutcome(ctx, events.PublishPostPayload{PostID: post.ID, ClientID: post.ClientID, Status: string(status),
+		ExternalID: externalID, Permalink: permalink, Error: firstErr, At: now})
 	return &PublishOutcome{Status: status, Published: published, Failed: failed, Errors: errs}, nil
 }
 
@@ -237,11 +252,32 @@ func (p *Publishing) sendTarget(ctx context.Context, acc domain.SocialAccount, k
 			return nil, err
 		}
 	}
-	in := domain.PublishInput{Platform: platform, AccessToken: token, AccountExternalID: acc.ExternalID, Text: text, Media: media, LinkURL: link}
+	in := domain.PublishInput{Platform: platform, Format: post.Format, AccessToken: token, AccountExternalID: acc.ExternalID, Text: text, Media: media, LinkURL: link}
 	if platform == domain.PlatformInstagram && post.FirstComment != nil {
 		in.FirstComment = *post.FirstComment
 	}
 	return publisher.Publish(ctx, in)
+}
+
+// emitOutcome publishes a final outcome (published or failed) so content
+// updates its items without polling; a post queued for retry emits nothing.
+// Best effort, like notifications.
+func (p *Publishing) emitOutcome(ctx context.Context, payload events.PublishPostPayload) {
+	var subject string
+	switch domain.PostStatus(payload.Status) {
+	case domain.StatusPublished:
+		subject = events.PublishingPostPublished
+	case domain.StatusFailed:
+		subject = events.PublishingPostFailed
+	default:
+		return
+	}
+	if p.Events == nil {
+		return
+	}
+	if err := p.Events.Publish(ctx, subject, payload); err != nil {
+		p.log().Warn("publish outcome event failed", "post", payload.PostID, "err", err)
+	}
 }
 
 func (p *Publishing) notify(ctx context.Context, in NotifyInput) {
@@ -315,6 +351,7 @@ func (p *Publishing) PublishDuePosts(ctx context.Context, now time.Time, limit i
 			if aerr := p.Store.InsertActivity(ctx, domain.PostActivity{ID: ids.New(), PostID: post.ID, Type: domain.ActPublishFailed, Meta: map[string]any{"error": err.Error()}}); aerr != nil {
 				p.log().Warn("record failure", "post", post.ID, "err", aerr)
 			}
+			p.emitOutcome(ctx, events.PublishPostPayload{PostID: post.ID, ClientID: post.ClientID, Status: string(domain.StatusFailed), Error: err.Error(), At: now})
 		case res != nil && res.Status == domain.StatusPublished:
 			run.Published++
 			a.published++
@@ -340,4 +377,11 @@ func (p *Publishing) PublishDuePosts(ctx context.Context, now time.Time, limit i
 		}
 	}
 	return run, nil
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

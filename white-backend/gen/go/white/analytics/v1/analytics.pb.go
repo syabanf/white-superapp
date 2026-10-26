@@ -1553,6 +1553,293 @@ func (x *GetSeoPropertyRequest) GetPropertyId() string {
 	return ""
 }
 
+type ListSocialPostsRequest struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	ClientId string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// Optional filters.
+	SocialAccountIds []string `protobuf:"bytes,2,rep,name=social_account_ids,json=socialAccountIds,proto3" json:"social_account_ids,omitempty"`
+	ExternalIds      []string `protobuf:"bytes,3,rep,name=external_ids,json=externalIds,proto3" json:"external_ids,omitempty"`
+	// Optional inclusive UTC days on published_at (YYYY-MM-DD).
+	FromDay string `protobuf:"bytes,4,opt,name=from_day,json=fromDay,proto3" json:"from_day,omitempty"`
+	ToDay   string `protobuf:"bytes,5,opt,name=to_day,json=toDay,proto3" json:"to_day,omitempty"`
+	// Default 400, max 1000.
+	Limit         int32 `protobuf:"varint,6,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSocialPostsRequest) Reset() {
+	*x = ListSocialPostsRequest{}
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSocialPostsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSocialPostsRequest) ProtoMessage() {}
+
+func (x *ListSocialPostsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSocialPostsRequest.ProtoReflect.Descriptor instead.
+func (*ListSocialPostsRequest) Descriptor() ([]byte, []int) {
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ListSocialPostsRequest) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *ListSocialPostsRequest) GetSocialAccountIds() []string {
+	if x != nil {
+		return x.SocialAccountIds
+	}
+	return nil
+}
+
+func (x *ListSocialPostsRequest) GetExternalIds() []string {
+	if x != nil {
+		return x.ExternalIds
+	}
+	return nil
+}
+
+func (x *ListSocialPostsRequest) GetFromDay() string {
+	if x != nil {
+		return x.FromDay
+	}
+	return ""
+}
+
+func (x *ListSocialPostsRequest) GetToDay() string {
+	if x != nil {
+		return x.ToDay
+	}
+	return ""
+}
+
+func (x *ListSocialPostsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type SocialPost struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SocialAccountId string                 `protobuf:"bytes,2,opt,name=social_account_id,json=socialAccountId,proto3" json:"social_account_id,omitempty"`
+	ExternalId      string                 `protobuf:"bytes,3,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	Caption         string                 `protobuf:"bytes,4,opt,name=caption,proto3" json:"caption,omitempty"`
+	MediaType       string                 `protobuf:"bytes,5,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	ProductType     *string                `protobuf:"bytes,6,opt,name=product_type,json=productType,proto3,oneof" json:"product_type,omitempty"`
+	Permalink       *string                `protobuf:"bytes,7,opt,name=permalink,proto3,oneof" json:"permalink,omitempty"`
+	PublishedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=published_at,json=publishedAt,proto3" json:"published_at,omitempty"`
+	Likes           int64                  `protobuf:"varint,9,opt,name=likes,proto3" json:"likes,omitempty"`
+	Comments        int64                  `protobuf:"varint,10,opt,name=comments,proto3" json:"comments,omitempty"`
+	Shares          int64                  `protobuf:"varint,11,opt,name=shares,proto3" json:"shares,omitempty"`
+	Saves           int64                  `protobuf:"varint,12,opt,name=saves,proto3" json:"saves,omitempty"`
+	Views           int64                  `protobuf:"varint,13,opt,name=views,proto3" json:"views,omitempty"`
+	Reach           int64                  `protobuf:"varint,14,opt,name=reach,proto3" json:"reach,omitempty"`
+	Impressions     int64                  `protobuf:"varint,15,opt,name=impressions,proto3" json:"impressions,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SocialPost) Reset() {
+	*x = SocialPost{}
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SocialPost) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SocialPost) ProtoMessage() {}
+
+func (x *SocialPost) ProtoReflect() protoreflect.Message {
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SocialPost.ProtoReflect.Descriptor instead.
+func (*SocialPost) Descriptor() ([]byte, []int) {
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *SocialPost) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SocialPost) GetSocialAccountId() string {
+	if x != nil {
+		return x.SocialAccountId
+	}
+	return ""
+}
+
+func (x *SocialPost) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *SocialPost) GetCaption() string {
+	if x != nil {
+		return x.Caption
+	}
+	return ""
+}
+
+func (x *SocialPost) GetMediaType() string {
+	if x != nil {
+		return x.MediaType
+	}
+	return ""
+}
+
+func (x *SocialPost) GetProductType() string {
+	if x != nil && x.ProductType != nil {
+		return *x.ProductType
+	}
+	return ""
+}
+
+func (x *SocialPost) GetPermalink() string {
+	if x != nil && x.Permalink != nil {
+		return *x.Permalink
+	}
+	return ""
+}
+
+func (x *SocialPost) GetPublishedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.PublishedAt
+	}
+	return nil
+}
+
+func (x *SocialPost) GetLikes() int64 {
+	if x != nil {
+		return x.Likes
+	}
+	return 0
+}
+
+func (x *SocialPost) GetComments() int64 {
+	if x != nil {
+		return x.Comments
+	}
+	return 0
+}
+
+func (x *SocialPost) GetShares() int64 {
+	if x != nil {
+		return x.Shares
+	}
+	return 0
+}
+
+func (x *SocialPost) GetSaves() int64 {
+	if x != nil {
+		return x.Saves
+	}
+	return 0
+}
+
+func (x *SocialPost) GetViews() int64 {
+	if x != nil {
+		return x.Views
+	}
+	return 0
+}
+
+func (x *SocialPost) GetReach() int64 {
+	if x != nil {
+		return x.Reach
+	}
+	return 0
+}
+
+func (x *SocialPost) GetImpressions() int64 {
+	if x != nil {
+		return x.Impressions
+	}
+	return 0
+}
+
+type ListSocialPostsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Posts         []*SocialPost          `protobuf:"bytes,1,rep,name=posts,proto3" json:"posts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSocialPostsResponse) Reset() {
+	*x = ListSocialPostsResponse{}
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSocialPostsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSocialPostsResponse) ProtoMessage() {}
+
+func (x *ListSocialPostsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSocialPostsResponse.ProtoReflect.Descriptor instead.
+func (*ListSocialPostsResponse) Descriptor() ([]byte, []int) {
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListSocialPostsResponse) GetPosts() []*SocialPost {
+	if x != nil {
+		return x.Posts
+	}
+	return nil
+}
+
 // Freshness of one module for one client.
 type DataQuality struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1568,7 +1855,7 @@ type DataQuality struct {
 
 func (x *DataQuality) Reset() {
 	*x = DataQuality{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[23]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1580,7 +1867,7 @@ func (x *DataQuality) String() string {
 func (*DataQuality) ProtoMessage() {}
 
 func (x *DataQuality) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[23]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1593,7 +1880,7 @@ func (x *DataQuality) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataQuality.ProtoReflect.Descriptor instead.
 func (*DataQuality) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{23}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DataQuality) GetState() v1.DataState {
@@ -1645,7 +1932,7 @@ type AdKpis struct {
 
 func (x *AdKpis) Reset() {
 	*x = AdKpis{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[24]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1657,7 +1944,7 @@ func (x *AdKpis) String() string {
 func (*AdKpis) ProtoMessage() {}
 
 func (x *AdKpis) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[24]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1670,7 +1957,7 @@ func (x *AdKpis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdKpis.ProtoReflect.Descriptor instead.
 func (*AdKpis) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{24}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *AdKpis) GetSpend() float64 {
@@ -1768,7 +2055,7 @@ type OverviewSocialAccount struct {
 
 func (x *OverviewSocialAccount) Reset() {
 	*x = OverviewSocialAccount{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[25]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1780,7 +2067,7 @@ func (x *OverviewSocialAccount) String() string {
 func (*OverviewSocialAccount) ProtoMessage() {}
 
 func (x *OverviewSocialAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[25]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1793,7 +2080,7 @@ func (x *OverviewSocialAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OverviewSocialAccount.ProtoReflect.Descriptor instead.
 func (*OverviewSocialAccount) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{25}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *OverviewSocialAccount) GetPlatform() v1.SocialPlatform {
@@ -1840,7 +2127,7 @@ type OverviewSocial struct {
 
 func (x *OverviewSocial) Reset() {
 	*x = OverviewSocial{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[26]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1852,7 +2139,7 @@ func (x *OverviewSocial) String() string {
 func (*OverviewSocial) ProtoMessage() {}
 
 func (x *OverviewSocial) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[26]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1865,7 +2152,7 @@ func (x *OverviewSocial) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OverviewSocial.ProtoReflect.Descriptor instead.
 func (*OverviewSocial) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{26}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *OverviewSocial) GetHasSource() bool {
@@ -1978,7 +2265,7 @@ type SeoDailyPoint struct {
 
 func (x *SeoDailyPoint) Reset() {
 	*x = SeoDailyPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[27]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1990,7 +2277,7 @@ func (x *SeoDailyPoint) String() string {
 func (*SeoDailyPoint) ProtoMessage() {}
 
 func (x *SeoDailyPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[27]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2003,7 +2290,7 @@ func (x *SeoDailyPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeoDailyPoint.ProtoReflect.Descriptor instead.
 func (*SeoDailyPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{27}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SeoDailyPoint) GetDate() string {
@@ -2050,7 +2337,7 @@ type OverviewSeo struct {
 
 func (x *OverviewSeo) Reset() {
 	*x = OverviewSeo{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[28]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2062,7 +2349,7 @@ func (x *OverviewSeo) String() string {
 func (*OverviewSeo) ProtoMessage() {}
 
 func (x *OverviewSeo) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[28]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2075,7 +2362,7 @@ func (x *OverviewSeo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OverviewSeo.ProtoReflect.Descriptor instead.
 func (*OverviewSeo) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{28}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *OverviewSeo) GetHasSource() bool {
@@ -2196,7 +2483,7 @@ type AdsDailyPoint struct {
 
 func (x *AdsDailyPoint) Reset() {
 	*x = AdsDailyPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[29]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2208,7 +2495,7 @@ func (x *AdsDailyPoint) String() string {
 func (*AdsDailyPoint) ProtoMessage() {}
 
 func (x *AdsDailyPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[29]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2221,7 +2508,7 @@ func (x *AdsDailyPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsDailyPoint.ProtoReflect.Descriptor instead.
 func (*AdsDailyPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{29}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *AdsDailyPoint) GetDate() string {
@@ -2278,7 +2565,7 @@ type OverviewAds struct {
 
 func (x *OverviewAds) Reset() {
 	*x = OverviewAds{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[30]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2290,7 +2577,7 @@ func (x *OverviewAds) String() string {
 func (*OverviewAds) ProtoMessage() {}
 
 func (x *OverviewAds) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[30]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2303,7 +2590,7 @@ func (x *OverviewAds) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OverviewAds.ProtoReflect.Descriptor instead.
 func (*OverviewAds) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{30}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *OverviewAds) GetHasSource() bool {
@@ -2393,7 +2680,7 @@ type GetOverviewRequest struct {
 
 func (x *GetOverviewRequest) Reset() {
 	*x = GetOverviewRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[31]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2405,7 +2692,7 @@ func (x *GetOverviewRequest) String() string {
 func (*GetOverviewRequest) ProtoMessage() {}
 
 func (x *GetOverviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[31]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2418,7 +2705,7 @@ func (x *GetOverviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOverviewRequest.ProtoReflect.Descriptor instead.
 func (*GetOverviewRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{31}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetOverviewRequest) GetClientId() string {
@@ -2447,7 +2734,7 @@ type Overview struct {
 
 func (x *Overview) Reset() {
 	*x = Overview{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[32]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2459,7 +2746,7 @@ func (x *Overview) String() string {
 func (*Overview) ProtoMessage() {}
 
 func (x *Overview) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[32]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2472,7 +2759,7 @@ func (x *Overview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Overview.ProtoReflect.Descriptor instead.
 func (*Overview) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{32}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *Overview) GetRange() *v1.ResolvedRange {
@@ -2513,7 +2800,7 @@ type GetPortfolioTotalsRequest struct {
 
 func (x *GetPortfolioTotalsRequest) Reset() {
 	*x = GetPortfolioTotalsRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[33]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2525,7 +2812,7 @@ func (x *GetPortfolioTotalsRequest) String() string {
 func (*GetPortfolioTotalsRequest) ProtoMessage() {}
 
 func (x *GetPortfolioTotalsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[33]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2538,7 +2825,7 @@ func (x *GetPortfolioTotalsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPortfolioTotalsRequest.ProtoReflect.Descriptor instead.
 func (*GetPortfolioTotalsRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{33}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetPortfolioTotalsRequest) GetClientIds() []string {
@@ -2570,7 +2857,7 @@ type PortfolioTotals struct {
 
 func (x *PortfolioTotals) Reset() {
 	*x = PortfolioTotals{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[34]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2582,7 +2869,7 @@ func (x *PortfolioTotals) String() string {
 func (*PortfolioTotals) ProtoMessage() {}
 
 func (x *PortfolioTotals) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[34]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2595,7 +2882,7 @@ func (x *PortfolioTotals) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortfolioTotals.ProtoReflect.Descriptor instead.
 func (*PortfolioTotals) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{34}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *PortfolioTotals) GetRange() *v1.ResolvedRange {
@@ -2663,7 +2950,7 @@ type SyncJob struct {
 
 func (x *SyncJob) Reset() {
 	*x = SyncJob{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[35]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2675,7 +2962,7 @@ func (x *SyncJob) String() string {
 func (*SyncJob) ProtoMessage() {}
 
 func (x *SyncJob) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[35]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2688,7 +2975,7 @@ func (x *SyncJob) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncJob.ProtoReflect.Descriptor instead.
 func (*SyncJob) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{35}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *SyncJob) GetId() string {
@@ -2758,7 +3045,7 @@ type ListSyncJobsRequest struct {
 
 func (x *ListSyncJobsRequest) Reset() {
 	*x = ListSyncJobsRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[36]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2770,7 +3057,7 @@ func (x *ListSyncJobsRequest) String() string {
 func (*ListSyncJobsRequest) ProtoMessage() {}
 
 func (x *ListSyncJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[36]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2783,7 +3070,7 @@ func (x *ListSyncJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSyncJobsRequest.ProtoReflect.Descriptor instead.
 func (*ListSyncJobsRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{36}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListSyncJobsRequest) GetClientId() string {
@@ -2809,7 +3096,7 @@ type ListSyncJobsResponse struct {
 
 func (x *ListSyncJobsResponse) Reset() {
 	*x = ListSyncJobsResponse{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[37]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2821,7 +3108,7 @@ func (x *ListSyncJobsResponse) String() string {
 func (*ListSyncJobsResponse) ProtoMessage() {}
 
 func (x *ListSyncJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[37]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2834,7 +3121,7 @@ func (x *ListSyncJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSyncJobsResponse.ProtoReflect.Descriptor instead.
 func (*ListSyncJobsResponse) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{37}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListSyncJobsResponse) GetJobs() []*SyncJob {
@@ -2853,7 +3140,7 @@ type GetLatestSyncByClientsRequest struct {
 
 func (x *GetLatestSyncByClientsRequest) Reset() {
 	*x = GetLatestSyncByClientsRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[38]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2865,7 +3152,7 @@ func (x *GetLatestSyncByClientsRequest) String() string {
 func (*GetLatestSyncByClientsRequest) ProtoMessage() {}
 
 func (x *GetLatestSyncByClientsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[38]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2878,7 +3165,7 @@ func (x *GetLatestSyncByClientsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLatestSyncByClientsRequest.ProtoReflect.Descriptor instead.
 func (*GetLatestSyncByClientsRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{38}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetLatestSyncByClientsRequest) GetClientIds() []string {
@@ -2897,7 +3184,7 @@ type GetLatestSyncByClientsResponse struct {
 
 func (x *GetLatestSyncByClientsResponse) Reset() {
 	*x = GetLatestSyncByClientsResponse{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[39]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2909,7 +3196,7 @@ func (x *GetLatestSyncByClientsResponse) String() string {
 func (*GetLatestSyncByClientsResponse) ProtoMessage() {}
 
 func (x *GetLatestSyncByClientsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[39]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2922,7 +3209,7 @@ func (x *GetLatestSyncByClientsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLatestSyncByClientsResponse.ProtoReflect.Descriptor instead.
 func (*GetLatestSyncByClientsResponse) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{39}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GetLatestSyncByClientsResponse) GetLatest() map[string]*timestamppb.Timestamp {
@@ -2958,7 +3245,7 @@ type SocialPostRow struct {
 
 func (x *SocialPostRow) Reset() {
 	*x = SocialPostRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[40]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2970,7 +3257,7 @@ func (x *SocialPostRow) String() string {
 func (*SocialPostRow) ProtoMessage() {}
 
 func (x *SocialPostRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[40]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2983,7 +3270,7 @@ func (x *SocialPostRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SocialPostRow.ProtoReflect.Descriptor instead.
 func (*SocialPostRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{40}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *SocialPostRow) GetId() string {
@@ -3120,7 +3407,7 @@ type SocialKpis struct {
 
 func (x *SocialKpis) Reset() {
 	*x = SocialKpis{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[41]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3132,7 +3419,7 @@ func (x *SocialKpis) String() string {
 func (*SocialKpis) ProtoMessage() {}
 
 func (x *SocialKpis) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[41]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3145,7 +3432,7 @@ func (x *SocialKpis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SocialKpis.ProtoReflect.Descriptor instead.
 func (*SocialKpis) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{41}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *SocialKpis) GetFollowers() int64 {
@@ -3257,7 +3544,7 @@ type GrowthPoint struct {
 
 func (x *GrowthPoint) Reset() {
 	*x = GrowthPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[42]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3269,7 +3556,7 @@ func (x *GrowthPoint) String() string {
 func (*GrowthPoint) ProtoMessage() {}
 
 func (x *GrowthPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[42]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3282,7 +3569,7 @@ func (x *GrowthPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrowthPoint.ProtoReflect.Descriptor instead.
 func (*GrowthPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{42}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GrowthPoint) GetDate() string {
@@ -3317,7 +3604,7 @@ type ReachPoint struct {
 
 func (x *ReachPoint) Reset() {
 	*x = ReachPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[43]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3329,7 +3616,7 @@ func (x *ReachPoint) String() string {
 func (*ReachPoint) ProtoMessage() {}
 
 func (x *ReachPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[43]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3342,7 +3629,7 @@ func (x *ReachPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReachPoint.ProtoReflect.Descriptor instead.
 func (*ReachPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{43}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ReachPoint) GetDate() string {
@@ -3377,7 +3664,7 @@ type ErByType struct {
 
 func (x *ErByType) Reset() {
 	*x = ErByType{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[44]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3389,7 +3676,7 @@ func (x *ErByType) String() string {
 func (*ErByType) ProtoMessage() {}
 
 func (x *ErByType) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[44]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3402,7 +3689,7 @@ func (x *ErByType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErByType.ProtoReflect.Descriptor instead.
 func (*ErByType) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{44}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ErByType) GetType() string {
@@ -3439,7 +3726,7 @@ type HeatCell struct {
 
 func (x *HeatCell) Reset() {
 	*x = HeatCell{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[45]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3451,7 +3738,7 @@ func (x *HeatCell) String() string {
 func (*HeatCell) ProtoMessage() {}
 
 func (x *HeatCell) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[45]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3464,7 +3751,7 @@ func (x *HeatCell) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeatCell.ProtoReflect.Descriptor instead.
 func (*HeatCell) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{45}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *HeatCell) GetDay() int32 {
@@ -3507,7 +3794,7 @@ type SocialDashboardAccount struct {
 
 func (x *SocialDashboardAccount) Reset() {
 	*x = SocialDashboardAccount{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[46]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3519,7 +3806,7 @@ func (x *SocialDashboardAccount) String() string {
 func (*SocialDashboardAccount) ProtoMessage() {}
 
 func (x *SocialDashboardAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[46]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3532,7 +3819,7 @@ func (x *SocialDashboardAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SocialDashboardAccount.ProtoReflect.Descriptor instead.
 func (*SocialDashboardAccount) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{46}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *SocialDashboardAccount) GetId() string {
@@ -3574,7 +3861,7 @@ type GetSocialDashboardRequest struct {
 
 func (x *GetSocialDashboardRequest) Reset() {
 	*x = GetSocialDashboardRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[47]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3586,7 +3873,7 @@ func (x *GetSocialDashboardRequest) String() string {
 func (*GetSocialDashboardRequest) ProtoMessage() {}
 
 func (x *GetSocialDashboardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[47]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3599,7 +3886,7 @@ func (x *GetSocialDashboardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSocialDashboardRequest.ProtoReflect.Descriptor instead.
 func (*GetSocialDashboardRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{47}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetSocialDashboardRequest) GetClientId() string {
@@ -3641,7 +3928,7 @@ type SocialDashboard struct {
 
 func (x *SocialDashboard) Reset() {
 	*x = SocialDashboard{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[48]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3653,7 +3940,7 @@ func (x *SocialDashboard) String() string {
 func (*SocialDashboard) ProtoMessage() {}
 
 func (x *SocialDashboard) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[48]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3666,7 +3953,7 @@ func (x *SocialDashboard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SocialDashboard.ProtoReflect.Descriptor instead.
 func (*SocialDashboard) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{48}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *SocialDashboard) GetRange() *v1.ResolvedRange {
@@ -3759,7 +4046,7 @@ type CompetitorRow struct {
 
 func (x *CompetitorRow) Reset() {
 	*x = CompetitorRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[49]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3771,7 +4058,7 @@ func (x *CompetitorRow) String() string {
 func (*CompetitorRow) ProtoMessage() {}
 
 func (x *CompetitorRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[49]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3784,7 +4071,7 @@ func (x *CompetitorRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompetitorRow.ProtoReflect.Descriptor instead.
 func (*CompetitorRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{49}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CompetitorRow) GetAccountId() string {
@@ -3881,7 +4168,7 @@ type CompetitorChartValue struct {
 
 func (x *CompetitorChartValue) Reset() {
 	*x = CompetitorChartValue{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[50]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3893,7 +4180,7 @@ func (x *CompetitorChartValue) String() string {
 func (*CompetitorChartValue) ProtoMessage() {}
 
 func (x *CompetitorChartValue) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[50]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3906,7 +4193,7 @@ func (x *CompetitorChartValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompetitorChartValue.ProtoReflect.Descriptor instead.
 func (*CompetitorChartValue) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{50}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *CompetitorChartValue) GetKey() string {
@@ -3933,7 +4220,7 @@ type CompetitorChartPoint struct {
 
 func (x *CompetitorChartPoint) Reset() {
 	*x = CompetitorChartPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[51]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3945,7 +4232,7 @@ func (x *CompetitorChartPoint) String() string {
 func (*CompetitorChartPoint) ProtoMessage() {}
 
 func (x *CompetitorChartPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[51]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3958,7 +4245,7 @@ func (x *CompetitorChartPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompetitorChartPoint.ProtoReflect.Descriptor instead.
 func (*CompetitorChartPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{51}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *CompetitorChartPoint) GetDate() string {
@@ -3985,7 +4272,7 @@ type CompetitorSeries struct {
 
 func (x *CompetitorSeries) Reset() {
 	*x = CompetitorSeries{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[52]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3997,7 +4284,7 @@ func (x *CompetitorSeries) String() string {
 func (*CompetitorSeries) ProtoMessage() {}
 
 func (x *CompetitorSeries) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[52]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4010,7 +4297,7 @@ func (x *CompetitorSeries) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompetitorSeries.ProtoReflect.Descriptor instead.
 func (*CompetitorSeries) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{52}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *CompetitorSeries) GetKey() string {
@@ -4037,7 +4324,7 @@ type GetCompetitorDashboardRequest struct {
 
 func (x *GetCompetitorDashboardRequest) Reset() {
 	*x = GetCompetitorDashboardRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[53]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4049,7 +4336,7 @@ func (x *GetCompetitorDashboardRequest) String() string {
 func (*GetCompetitorDashboardRequest) ProtoMessage() {}
 
 func (x *GetCompetitorDashboardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[53]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4062,7 +4349,7 @@ func (x *GetCompetitorDashboardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCompetitorDashboardRequest.ProtoReflect.Descriptor instead.
 func (*GetCompetitorDashboardRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{53}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GetCompetitorDashboardRequest) GetClientId() string {
@@ -4093,7 +4380,7 @@ type CompetitorDashboard struct {
 
 func (x *CompetitorDashboard) Reset() {
 	*x = CompetitorDashboard{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[54]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4105,7 +4392,7 @@ func (x *CompetitorDashboard) String() string {
 func (*CompetitorDashboard) ProtoMessage() {}
 
 func (x *CompetitorDashboard) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[54]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4118,7 +4405,7 @@ func (x *CompetitorDashboard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompetitorDashboard.ProtoReflect.Descriptor instead.
 func (*CompetitorDashboard) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{54}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *CompetitorDashboard) GetRange() *v1.ResolvedRange {
@@ -4173,7 +4460,7 @@ type SyncSocialRequest struct {
 
 func (x *SyncSocialRequest) Reset() {
 	*x = SyncSocialRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[55]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4185,7 +4472,7 @@ func (x *SyncSocialRequest) String() string {
 func (*SyncSocialRequest) ProtoMessage() {}
 
 func (x *SyncSocialRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[55]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4198,7 +4485,7 @@ func (x *SyncSocialRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncSocialRequest.ProtoReflect.Descriptor instead.
 func (*SyncSocialRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{55}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *SyncSocialRequest) GetClientId() string {
@@ -4224,7 +4511,7 @@ type SyncSocialResponse struct {
 
 func (x *SyncSocialResponse) Reset() {
 	*x = SyncSocialResponse{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[56]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4236,7 +4523,7 @@ func (x *SyncSocialResponse) String() string {
 func (*SyncSocialResponse) ProtoMessage() {}
 
 func (x *SyncSocialResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[56]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4249,7 +4536,7 @@ func (x *SyncSocialResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncSocialResponse.ProtoReflect.Descriptor instead.
 func (*SyncSocialResponse) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{56}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *SyncSocialResponse) GetUpdated() int32 {
@@ -4270,7 +4557,7 @@ type SeoPropertyRangeRequest struct {
 
 func (x *SeoPropertyRangeRequest) Reset() {
 	*x = SeoPropertyRangeRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[57]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4282,7 +4569,7 @@ func (x *SeoPropertyRangeRequest) String() string {
 func (*SeoPropertyRangeRequest) ProtoMessage() {}
 
 func (x *SeoPropertyRangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[57]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4295,7 +4582,7 @@ func (x *SeoPropertyRangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeoPropertyRangeRequest.ProtoReflect.Descriptor instead.
 func (*SeoPropertyRangeRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{57}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *SeoPropertyRangeRequest) GetClientId() string {
@@ -4329,7 +4616,7 @@ type SeoPropertyRequest struct {
 
 func (x *SeoPropertyRequest) Reset() {
 	*x = SeoPropertyRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[58]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4341,7 +4628,7 @@ func (x *SeoPropertyRequest) String() string {
 func (*SeoPropertyRequest) ProtoMessage() {}
 
 func (x *SeoPropertyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[58]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4354,7 +4641,7 @@ func (x *SeoPropertyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeoPropertyRequest.ProtoReflect.Descriptor instead.
 func (*SeoPropertyRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{58}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *SeoPropertyRequest) GetClientId() string {
@@ -4386,7 +4673,7 @@ type SearchDailyPoint struct {
 
 func (x *SearchDailyPoint) Reset() {
 	*x = SearchDailyPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[59]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4398,7 +4685,7 @@ func (x *SearchDailyPoint) String() string {
 func (*SearchDailyPoint) ProtoMessage() {}
 
 func (x *SearchDailyPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[59]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4411,7 +4698,7 @@ func (x *SearchDailyPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchDailyPoint.ProtoReflect.Descriptor instead.
 func (*SearchDailyPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{59}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *SearchDailyPoint) GetDate() string {
@@ -4474,7 +4761,7 @@ type Ga4DailyPoint struct {
 
 func (x *Ga4DailyPoint) Reset() {
 	*x = Ga4DailyPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[60]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4486,7 +4773,7 @@ func (x *Ga4DailyPoint) String() string {
 func (*Ga4DailyPoint) ProtoMessage() {}
 
 func (x *Ga4DailyPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[60]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4499,7 +4786,7 @@ func (x *Ga4DailyPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ga4DailyPoint.ProtoReflect.Descriptor instead.
 func (*Ga4DailyPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{60}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *Ga4DailyPoint) GetDate() string {
@@ -4535,7 +4822,7 @@ type SeoKpis struct {
 
 func (x *SeoKpis) Reset() {
 	*x = SeoKpis{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[61]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4547,7 +4834,7 @@ func (x *SeoKpis) String() string {
 func (*SeoKpis) ProtoMessage() {}
 
 func (x *SeoKpis) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[61]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4560,7 +4847,7 @@ func (x *SeoKpis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeoKpis.ProtoReflect.Descriptor instead.
 func (*SeoKpis) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{61}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *SeoKpis) GetClicks() int64 {
@@ -4603,7 +4890,7 @@ type SeoDeltas struct {
 
 func (x *SeoDeltas) Reset() {
 	*x = SeoDeltas{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[62]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4615,7 +4902,7 @@ func (x *SeoDeltas) String() string {
 func (*SeoDeltas) ProtoMessage() {}
 
 func (x *SeoDeltas) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[62]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4628,7 +4915,7 @@ func (x *SeoDeltas) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeoDeltas.ProtoReflect.Descriptor instead.
 func (*SeoDeltas) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{62}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *SeoDeltas) GetClicks() *v1.Delta {
@@ -4674,7 +4961,7 @@ type Ga4Summary struct {
 
 func (x *Ga4Summary) Reset() {
 	*x = Ga4Summary{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[63]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4686,7 +4973,7 @@ func (x *Ga4Summary) String() string {
 func (*Ga4Summary) ProtoMessage() {}
 
 func (x *Ga4Summary) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[63]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4699,7 +4986,7 @@ func (x *Ga4Summary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ga4Summary.ProtoReflect.Descriptor instead.
 func (*Ga4Summary) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{63}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *Ga4Summary) GetHasData() bool {
@@ -4769,7 +5056,7 @@ type SeoOverview struct {
 
 func (x *SeoOverview) Reset() {
 	*x = SeoOverview{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[64]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4781,7 +5068,7 @@ func (x *SeoOverview) String() string {
 func (*SeoOverview) ProtoMessage() {}
 
 func (x *SeoOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[64]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4794,7 +5081,7 @@ func (x *SeoOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeoOverview.ProtoReflect.Descriptor instead.
 func (*SeoOverview) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{64}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *SeoOverview) GetRange() *v1.ResolvedRange {
@@ -4880,7 +5167,7 @@ type DimAgg struct {
 
 func (x *DimAgg) Reset() {
 	*x = DimAgg{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[65]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4892,7 +5179,7 @@ func (x *DimAgg) String() string {
 func (*DimAgg) ProtoMessage() {}
 
 func (x *DimAgg) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[65]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4905,7 +5192,7 @@ func (x *DimAgg) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DimAgg.ProtoReflect.Descriptor instead.
 func (*DimAgg) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{65}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *DimAgg) GetKey() string {
@@ -4961,7 +5248,7 @@ type QueryAgg struct {
 
 func (x *QueryAgg) Reset() {
 	*x = QueryAgg{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[66]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4973,7 +5260,7 @@ func (x *QueryAgg) String() string {
 func (*QueryAgg) ProtoMessage() {}
 
 func (x *QueryAgg) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[66]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4986,7 +5273,7 @@ func (x *QueryAgg) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryAgg.ProtoReflect.Descriptor instead.
 func (*QueryAgg) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{66}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *QueryAgg) GetKey() string {
@@ -5065,7 +5352,7 @@ type PositionBucketRow struct {
 
 func (x *PositionBucketRow) Reset() {
 	*x = PositionBucketRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[67]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5077,7 +5364,7 @@ func (x *PositionBucketRow) String() string {
 func (*PositionBucketRow) ProtoMessage() {}
 
 func (x *PositionBucketRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[67]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5090,7 +5377,7 @@ func (x *PositionBucketRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PositionBucketRow.ProtoReflect.Descriptor instead.
 func (*PositionBucketRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{67}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *PositionBucketRow) GetBucket() string {
@@ -5139,7 +5426,7 @@ type Opportunity struct {
 
 func (x *Opportunity) Reset() {
 	*x = Opportunity{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[68]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5151,7 +5438,7 @@ func (x *Opportunity) String() string {
 func (*Opportunity) ProtoMessage() {}
 
 func (x *Opportunity) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[68]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5164,7 +5451,7 @@ func (x *Opportunity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Opportunity.ProtoReflect.Descriptor instead.
 func (*Opportunity) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{68}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *Opportunity) GetKind() string {
@@ -5242,7 +5529,7 @@ type KeywordOpportunities struct {
 
 func (x *KeywordOpportunities) Reset() {
 	*x = KeywordOpportunities{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[69]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5254,7 +5541,7 @@ func (x *KeywordOpportunities) String() string {
 func (*KeywordOpportunities) ProtoMessage() {}
 
 func (x *KeywordOpportunities) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[69]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5267,7 +5554,7 @@ func (x *KeywordOpportunities) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeywordOpportunities.ProtoReflect.Descriptor instead.
 func (*KeywordOpportunities) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{69}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *KeywordOpportunities) GetStriking() []*Opportunity {
@@ -5310,7 +5597,7 @@ type QueryStats struct {
 
 func (x *QueryStats) Reset() {
 	*x = QueryStats{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[70]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5322,7 +5609,7 @@ func (x *QueryStats) String() string {
 func (*QueryStats) ProtoMessage() {}
 
 func (x *QueryStats) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[70]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5335,7 +5622,7 @@ func (x *QueryStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryStats.ProtoReflect.Descriptor instead.
 func (*QueryStats) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{70}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *QueryStats) GetRange() *v1.ResolvedRange {
@@ -5376,7 +5663,7 @@ type PageStats struct {
 
 func (x *PageStats) Reset() {
 	*x = PageStats{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[71]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5388,7 +5675,7 @@ func (x *PageStats) String() string {
 func (*PageStats) ProtoMessage() {}
 
 func (x *PageStats) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[71]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5401,7 +5688,7 @@ func (x *PageStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PageStats.ProtoReflect.Descriptor instead.
 func (*PageStats) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{71}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *PageStats) GetRange() *v1.ResolvedRange {
@@ -5429,7 +5716,7 @@ type DimBreakdown struct {
 
 func (x *DimBreakdown) Reset() {
 	*x = DimBreakdown{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[72]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5441,7 +5728,7 @@ func (x *DimBreakdown) String() string {
 func (*DimBreakdown) ProtoMessage() {}
 
 func (x *DimBreakdown) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[72]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5454,7 +5741,7 @@ func (x *DimBreakdown) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DimBreakdown.ProtoReflect.Descriptor instead.
 func (*DimBreakdown) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{72}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *DimBreakdown) GetRange() *v1.ResolvedRange {
@@ -5501,7 +5788,7 @@ type AuditRow struct {
 
 func (x *AuditRow) Reset() {
 	*x = AuditRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[73]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5513,7 +5800,7 @@ func (x *AuditRow) String() string {
 func (*AuditRow) ProtoMessage() {}
 
 func (x *AuditRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[73]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5526,7 +5813,7 @@ func (x *AuditRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditRow.ProtoReflect.Descriptor instead.
 func (*AuditRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{73}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *AuditRow) GetId() string {
@@ -5647,7 +5934,7 @@ type ScoreHistoryPoint struct {
 
 func (x *ScoreHistoryPoint) Reset() {
 	*x = ScoreHistoryPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[74]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5659,7 +5946,7 @@ func (x *ScoreHistoryPoint) String() string {
 func (*ScoreHistoryPoint) ProtoMessage() {}
 
 func (x *ScoreHistoryPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[74]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5672,7 +5959,7 @@ func (x *ScoreHistoryPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScoreHistoryPoint.ProtoReflect.Descriptor instead.
 func (*ScoreHistoryPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{74}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ScoreHistoryPoint) GetDate() string {
@@ -5725,7 +6012,7 @@ type CrawlSummary struct {
 
 func (x *CrawlSummary) Reset() {
 	*x = CrawlSummary{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[75]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5737,7 +6024,7 @@ func (x *CrawlSummary) String() string {
 func (*CrawlSummary) ProtoMessage() {}
 
 func (x *CrawlSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[75]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5750,7 +6037,7 @@ func (x *CrawlSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CrawlSummary.ProtoReflect.Descriptor instead.
 func (*CrawlSummary) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{75}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *CrawlSummary) GetId() string {
@@ -5821,7 +6108,7 @@ type CrawlPageRow struct {
 
 func (x *CrawlPageRow) Reset() {
 	*x = CrawlPageRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[76]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5833,7 +6120,7 @@ func (x *CrawlPageRow) String() string {
 func (*CrawlPageRow) ProtoMessage() {}
 
 func (x *CrawlPageRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[76]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5846,7 +6133,7 @@ func (x *CrawlPageRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CrawlPageRow.ProtoReflect.Descriptor instead.
 func (*CrawlPageRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{76}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *CrawlPageRow) GetId() string {
@@ -5939,7 +6226,7 @@ type IssueRow struct {
 
 func (x *IssueRow) Reset() {
 	*x = IssueRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[77]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5951,7 +6238,7 @@ func (x *IssueRow) String() string {
 func (*IssueRow) ProtoMessage() {}
 
 func (x *IssueRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[77]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5964,7 +6251,7 @@ func (x *IssueRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueRow.ProtoReflect.Descriptor instead.
 func (*IssueRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{77}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *IssueRow) GetId() string {
@@ -6013,7 +6300,7 @@ type SeverityCounts struct {
 
 func (x *SeverityCounts) Reset() {
 	*x = SeverityCounts{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[78]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6025,7 +6312,7 @@ func (x *SeverityCounts) String() string {
 func (*SeverityCounts) ProtoMessage() {}
 
 func (x *SeverityCounts) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[78]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6038,7 +6325,7 @@ func (x *SeverityCounts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeverityCounts.ProtoReflect.Descriptor instead.
 func (*SeverityCounts) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{78}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *SeverityCounts) GetErrors() int32 {
@@ -6072,7 +6359,7 @@ type CodeCount struct {
 
 func (x *CodeCount) Reset() {
 	*x = CodeCount{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[79]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6084,7 +6371,7 @@ func (x *CodeCount) String() string {
 func (*CodeCount) ProtoMessage() {}
 
 func (x *CodeCount) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[79]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6097,7 +6384,7 @@ func (x *CodeCount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CodeCount.ProtoReflect.Descriptor instead.
 func (*CodeCount) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{79}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *CodeCount) GetCode() string {
@@ -6131,7 +6418,7 @@ type AuditData struct {
 
 func (x *AuditData) Reset() {
 	*x = AuditData{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[80]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6143,7 +6430,7 @@ func (x *AuditData) String() string {
 func (*AuditData) ProtoMessage() {}
 
 func (x *AuditData) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[80]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6156,7 +6443,7 @@ func (x *AuditData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditData.ProtoReflect.Descriptor instead.
 func (*AuditData) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{80}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *AuditData) GetLatestMobile() *AuditRow {
@@ -6235,7 +6522,7 @@ type IssueTrendPoint struct {
 
 func (x *IssueTrendPoint) Reset() {
 	*x = IssueTrendPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[81]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6247,7 +6534,7 @@ func (x *IssueTrendPoint) String() string {
 func (*IssueTrendPoint) ProtoMessage() {}
 
 func (x *IssueTrendPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[81]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6260,7 +6547,7 @@ func (x *IssueTrendPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueTrendPoint.ProtoReflect.Descriptor instead.
 func (*IssueTrendPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{81}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *IssueTrendPoint) GetDate() string {
@@ -6307,7 +6594,7 @@ type IssueTrend struct {
 
 func (x *IssueTrend) Reset() {
 	*x = IssueTrend{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[82]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6319,7 +6606,7 @@ func (x *IssueTrend) String() string {
 func (*IssueTrend) ProtoMessage() {}
 
 func (x *IssueTrend) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[82]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6332,7 +6619,7 @@ func (x *IssueTrend) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueTrend.ProtoReflect.Descriptor instead.
 func (*IssueTrend) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{82}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *IssueTrend) GetPoints() []*IssueTrendPoint {
@@ -6354,7 +6641,7 @@ type RunAuditRequest struct {
 
 func (x *RunAuditRequest) Reset() {
 	*x = RunAuditRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[83]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6366,7 +6653,7 @@ func (x *RunAuditRequest) String() string {
 func (*RunAuditRequest) ProtoMessage() {}
 
 func (x *RunAuditRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[83]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6379,7 +6666,7 @@ func (x *RunAuditRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunAuditRequest.ProtoReflect.Descriptor instead.
 func (*RunAuditRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{83}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *RunAuditRequest) GetClientId() string {
@@ -6415,7 +6702,7 @@ type RunAuditResponse struct {
 
 func (x *RunAuditResponse) Reset() {
 	*x = RunAuditResponse{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[84]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6427,7 +6714,7 @@ func (x *RunAuditResponse) String() string {
 func (*RunAuditResponse) ProtoMessage() {}
 
 func (x *RunAuditResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[84]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6440,7 +6727,7 @@ func (x *RunAuditResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunAuditResponse.ProtoReflect.Descriptor instead.
 func (*RunAuditResponse) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{84}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *RunAuditResponse) GetMessage() string {
@@ -6480,7 +6767,7 @@ type SyncSeoRequest struct {
 
 func (x *SyncSeoRequest) Reset() {
 	*x = SyncSeoRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[85]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6492,7 +6779,7 @@ func (x *SyncSeoRequest) String() string {
 func (*SyncSeoRequest) ProtoMessage() {}
 
 func (x *SyncSeoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[85]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6505,7 +6792,7 @@ func (x *SyncSeoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncSeoRequest.ProtoReflect.Descriptor instead.
 func (*SyncSeoRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{85}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *SyncSeoRequest) GetClientId() string {
@@ -6527,7 +6814,7 @@ type SyncSeoResponse struct {
 
 func (x *SyncSeoResponse) Reset() {
 	*x = SyncSeoResponse{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[86]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6539,7 +6826,7 @@ func (x *SyncSeoResponse) String() string {
 func (*SyncSeoResponse) ProtoMessage() {}
 
 func (x *SyncSeoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[86]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6552,7 +6839,7 @@ func (x *SyncSeoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncSeoResponse.ProtoReflect.Descriptor instead.
 func (*SyncSeoResponse) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{86}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *SyncSeoResponse) GetMode() string {
@@ -6588,7 +6875,7 @@ type GetAdsDashboardRequest struct {
 
 func (x *GetAdsDashboardRequest) Reset() {
 	*x = GetAdsDashboardRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[87]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6600,7 +6887,7 @@ func (x *GetAdsDashboardRequest) String() string {
 func (*GetAdsDashboardRequest) ProtoMessage() {}
 
 func (x *GetAdsDashboardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[87]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6613,7 +6900,7 @@ func (x *GetAdsDashboardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAdsDashboardRequest.ProtoReflect.Descriptor instead.
 func (*GetAdsDashboardRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{87}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *GetAdsDashboardRequest) GetClientId() string {
@@ -6656,7 +6943,7 @@ type AdsDeltas struct {
 
 func (x *AdsDeltas) Reset() {
 	*x = AdsDeltas{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[88]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6668,7 +6955,7 @@ func (x *AdsDeltas) String() string {
 func (*AdsDeltas) ProtoMessage() {}
 
 func (x *AdsDeltas) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[88]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6681,7 +6968,7 @@ func (x *AdsDeltas) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsDeltas.ProtoReflect.Descriptor instead.
 func (*AdsDeltas) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{88}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *AdsDeltas) GetSpend() *v1.Delta {
@@ -6779,7 +7066,7 @@ type AdsNodeKpis struct {
 
 func (x *AdsNodeKpis) Reset() {
 	*x = AdsNodeKpis{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[89]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6791,7 +7078,7 @@ func (x *AdsNodeKpis) String() string {
 func (*AdsNodeKpis) ProtoMessage() {}
 
 func (x *AdsNodeKpis) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[89]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6804,7 +7091,7 @@ func (x *AdsNodeKpis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsNodeKpis.ProtoReflect.Descriptor instead.
 func (*AdsNodeKpis) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{89}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *AdsNodeKpis) GetSpend() float64 {
@@ -6890,7 +7177,7 @@ type AdsAdNode struct {
 
 func (x *AdsAdNode) Reset() {
 	*x = AdsAdNode{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[90]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6902,7 +7189,7 @@ func (x *AdsAdNode) String() string {
 func (*AdsAdNode) ProtoMessage() {}
 
 func (x *AdsAdNode) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[90]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6915,7 +7202,7 @@ func (x *AdsAdNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsAdNode.ProtoReflect.Descriptor instead.
 func (*AdsAdNode) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{90}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *AdsAdNode) GetId() string {
@@ -6966,7 +7253,7 @@ type AdsAdSetNode struct {
 
 func (x *AdsAdSetNode) Reset() {
 	*x = AdsAdSetNode{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[91]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6978,7 +7265,7 @@ func (x *AdsAdSetNode) String() string {
 func (*AdsAdSetNode) ProtoMessage() {}
 
 func (x *AdsAdSetNode) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[91]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6991,7 +7278,7 @@ func (x *AdsAdSetNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsAdSetNode.ProtoReflect.Descriptor instead.
 func (*AdsAdSetNode) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{91}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *AdsAdSetNode) GetId() string {
@@ -7043,7 +7330,7 @@ type AdsCampaignNode struct {
 
 func (x *AdsCampaignNode) Reset() {
 	*x = AdsCampaignNode{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[92]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7055,7 +7342,7 @@ func (x *AdsCampaignNode) String() string {
 func (*AdsCampaignNode) ProtoMessage() {}
 
 func (x *AdsCampaignNode) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[92]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7068,7 +7355,7 @@ func (x *AdsCampaignNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsCampaignNode.ProtoReflect.Descriptor instead.
 func (*AdsCampaignNode) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{92}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *AdsCampaignNode) GetId() string {
@@ -7126,7 +7413,7 @@ type AdsCampaignShare struct {
 
 func (x *AdsCampaignShare) Reset() {
 	*x = AdsCampaignShare{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[93]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7138,7 +7425,7 @@ func (x *AdsCampaignShare) String() string {
 func (*AdsCampaignShare) ProtoMessage() {}
 
 func (x *AdsCampaignShare) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[93]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7151,7 +7438,7 @@ func (x *AdsCampaignShare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsCampaignShare.ProtoReflect.Descriptor instead.
 func (*AdsCampaignShare) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{93}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *AdsCampaignShare) GetId() string {
@@ -7207,7 +7494,7 @@ type AdsTopAd struct {
 
 func (x *AdsTopAd) Reset() {
 	*x = AdsTopAd{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[94]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7219,7 +7506,7 @@ func (x *AdsTopAd) String() string {
 func (*AdsTopAd) ProtoMessage() {}
 
 func (x *AdsTopAd) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[94]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7232,7 +7519,7 @@ func (x *AdsTopAd) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsTopAd.ProtoReflect.Descriptor instead.
 func (*AdsTopAd) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{94}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *AdsTopAd) GetId() string {
@@ -7317,7 +7604,7 @@ type AdsDemographicRow struct {
 
 func (x *AdsDemographicRow) Reset() {
 	*x = AdsDemographicRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[95]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7329,7 +7616,7 @@ func (x *AdsDemographicRow) String() string {
 func (*AdsDemographicRow) ProtoMessage() {}
 
 func (x *AdsDemographicRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[95]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7342,7 +7629,7 @@ func (x *AdsDemographicRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsDemographicRow.ProtoReflect.Descriptor instead.
 func (*AdsDemographicRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{95}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *AdsDemographicRow) GetAge() string {
@@ -7385,7 +7672,7 @@ type AdsDemographics struct {
 
 func (x *AdsDemographics) Reset() {
 	*x = AdsDemographics{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[96]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7397,7 +7684,7 @@ func (x *AdsDemographics) String() string {
 func (*AdsDemographics) ProtoMessage() {}
 
 func (x *AdsDemographics) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[96]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7410,7 +7697,7 @@ func (x *AdsDemographics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsDemographics.ProtoReflect.Descriptor instead.
 func (*AdsDemographics) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{96}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *AdsDemographics) GetHasData() bool {
@@ -7451,7 +7738,7 @@ type CampaignOption struct {
 
 func (x *CampaignOption) Reset() {
 	*x = CampaignOption{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[97]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7463,7 +7750,7 @@ func (x *CampaignOption) String() string {
 func (*CampaignOption) ProtoMessage() {}
 
 func (x *CampaignOption) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[97]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7476,7 +7763,7 @@ func (x *CampaignOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CampaignOption.ProtoReflect.Descriptor instead.
 func (*CampaignOption) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{97}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *CampaignOption) GetId() string {
@@ -7517,7 +7804,7 @@ type AdsDashboard struct {
 
 func (x *AdsDashboard) Reset() {
 	*x = AdsDashboard{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[98]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7529,7 +7816,7 @@ func (x *AdsDashboard) String() string {
 func (*AdsDashboard) ProtoMessage() {}
 
 func (x *AdsDashboard) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[98]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7542,7 +7829,7 @@ func (x *AdsDashboard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdsDashboard.ProtoReflect.Descriptor instead.
 func (*AdsDashboard) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{98}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *AdsDashboard) GetRange() *v1.ResolvedRange {
@@ -7669,7 +7956,7 @@ type ImportAdsCsvRequest struct {
 
 func (x *ImportAdsCsvRequest) Reset() {
 	*x = ImportAdsCsvRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[99]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7681,7 +7968,7 @@ func (x *ImportAdsCsvRequest) String() string {
 func (*ImportAdsCsvRequest) ProtoMessage() {}
 
 func (x *ImportAdsCsvRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[99]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7694,7 +7981,7 @@ func (x *ImportAdsCsvRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportAdsCsvRequest.ProtoReflect.Descriptor instead.
 func (*ImportAdsCsvRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{99}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *ImportAdsCsvRequest) GetClientId() string {
@@ -7739,7 +8026,7 @@ type ImportSummary struct {
 
 func (x *ImportSummary) Reset() {
 	*x = ImportSummary{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[100]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7751,7 +8038,7 @@ func (x *ImportSummary) String() string {
 func (*ImportSummary) ProtoMessage() {}
 
 func (x *ImportSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[100]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7764,7 +8051,7 @@ func (x *ImportSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportSummary.ProtoReflect.Descriptor instead.
 func (*ImportSummary) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{100}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *ImportSummary) GetCampaigns() int32 {
@@ -7818,7 +8105,7 @@ type SyncAdsRequest struct {
 
 func (x *SyncAdsRequest) Reset() {
 	*x = SyncAdsRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[101]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7830,7 +8117,7 @@ func (x *SyncAdsRequest) String() string {
 func (*SyncAdsRequest) ProtoMessage() {}
 
 func (x *SyncAdsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[101]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7843,7 +8130,7 @@ func (x *SyncAdsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncAdsRequest.ProtoReflect.Descriptor instead.
 func (*SyncAdsRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{101}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *SyncAdsRequest) GetClientId() string {
@@ -7862,7 +8149,7 @@ type SyncAdsResponse struct {
 
 func (x *SyncAdsResponse) Reset() {
 	*x = SyncAdsResponse{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[102]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7874,7 +8161,7 @@ func (x *SyncAdsResponse) String() string {
 func (*SyncAdsResponse) ProtoMessage() {}
 
 func (x *SyncAdsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[102]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7887,7 +8174,7 @@ func (x *SyncAdsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncAdsResponse.ProtoReflect.Descriptor instead.
 func (*SyncAdsResponse) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{102}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *SyncAdsResponse) GetLastSyncedAt() *timestamppb.Timestamp {
@@ -7913,7 +8200,7 @@ type GetReportDataRequest struct {
 
 func (x *GetReportDataRequest) Reset() {
 	*x = GetReportDataRequest{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[103]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7925,7 +8212,7 @@ func (x *GetReportDataRequest) String() string {
 func (*GetReportDataRequest) ProtoMessage() {}
 
 func (x *GetReportDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[103]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7938,7 +8225,7 @@ func (x *GetReportDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetReportDataRequest.ProtoReflect.Descriptor instead.
 func (*GetReportDataRequest) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{103}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *GetReportDataRequest) GetClientId() string {
@@ -7986,7 +8273,7 @@ type DailyFollowersPoint struct {
 
 func (x *DailyFollowersPoint) Reset() {
 	*x = DailyFollowersPoint{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[104]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7998,7 +8285,7 @@ func (x *DailyFollowersPoint) String() string {
 func (*DailyFollowersPoint) ProtoMessage() {}
 
 func (x *DailyFollowersPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[104]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8011,7 +8298,7 @@ func (x *DailyFollowersPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DailyFollowersPoint.ProtoReflect.Descriptor instead.
 func (*DailyFollowersPoint) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{104}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *DailyFollowersPoint) GetDate() string {
@@ -8050,7 +8337,7 @@ type TopPostRow struct {
 
 func (x *TopPostRow) Reset() {
 	*x = TopPostRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[105]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8062,7 +8349,7 @@ func (x *TopPostRow) String() string {
 func (*TopPostRow) ProtoMessage() {}
 
 func (x *TopPostRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[105]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8075,7 +8362,7 @@ func (x *TopPostRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopPostRow.ProtoReflect.Descriptor instead.
 func (*TopPostRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{105}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *TopPostRow) GetId() string {
@@ -8189,7 +8476,7 @@ type TopQueryRow struct {
 
 func (x *TopQueryRow) Reset() {
 	*x = TopQueryRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[106]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8201,7 +8488,7 @@ func (x *TopQueryRow) String() string {
 func (*TopQueryRow) ProtoMessage() {}
 
 func (x *TopQueryRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[106]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8214,7 +8501,7 @@ func (x *TopQueryRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopQueryRow.ProtoReflect.Descriptor instead.
 func (*TopQueryRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{106}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *TopQueryRow) GetQuery() string {
@@ -8271,7 +8558,7 @@ type CampaignRow struct {
 
 func (x *CampaignRow) Reset() {
 	*x = CampaignRow{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[107]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8283,7 +8570,7 @@ func (x *CampaignRow) String() string {
 func (*CampaignRow) ProtoMessage() {}
 
 func (x *CampaignRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[107]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8296,7 +8583,7 @@ func (x *CampaignRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CampaignRow.ProtoReflect.Descriptor instead.
 func (*CampaignRow) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{107}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *CampaignRow) GetId() string {
@@ -8381,7 +8668,7 @@ type ReportSocial struct {
 
 func (x *ReportSocial) Reset() {
 	*x = ReportSocial{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[108]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8393,7 +8680,7 @@ func (x *ReportSocial) String() string {
 func (*ReportSocial) ProtoMessage() {}
 
 func (x *ReportSocial) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[108]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8406,7 +8693,7 @@ func (x *ReportSocial) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportSocial.ProtoReflect.Descriptor instead.
 func (*ReportSocial) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{108}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *ReportSocial) GetOverview() *OverviewSocial {
@@ -8440,7 +8727,7 @@ type ReportSeo struct {
 
 func (x *ReportSeo) Reset() {
 	*x = ReportSeo{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[109]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8452,7 +8739,7 @@ func (x *ReportSeo) String() string {
 func (*ReportSeo) ProtoMessage() {}
 
 func (x *ReportSeo) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[109]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8465,7 +8752,7 @@ func (x *ReportSeo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportSeo.ProtoReflect.Descriptor instead.
 func (*ReportSeo) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{109}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *ReportSeo) GetOverview() *OverviewSeo {
@@ -8492,7 +8779,7 @@ type ReportAds struct {
 
 func (x *ReportAds) Reset() {
 	*x = ReportAds{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[110]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8504,7 +8791,7 @@ func (x *ReportAds) String() string {
 func (*ReportAds) ProtoMessage() {}
 
 func (x *ReportAds) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[110]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8517,7 +8804,7 @@ func (x *ReportAds) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportAds.ProtoReflect.Descriptor instead.
 func (*ReportAds) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{110}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *ReportAds) GetOverview() *OverviewAds {
@@ -8547,7 +8834,7 @@ type ReportData struct {
 
 func (x *ReportData) Reset() {
 	*x = ReportData{}
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[111]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8559,7 +8846,7 @@ func (x *ReportData) String() string {
 func (*ReportData) ProtoMessage() {}
 
 func (x *ReportData) ProtoReflect() protoreflect.Message {
-	mi := &file_white_analytics_v1_analytics_proto_msgTypes[111]
+	mi := &file_white_analytics_v1_analytics_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8572,7 +8859,7 @@ func (x *ReportData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportData.ProtoReflect.Descriptor instead.
 func (*ReportData) Descriptor() ([]byte, []int) {
-	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{111}
+	return file_white_analytics_v1_analytics_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *ReportData) GetCurrent() *v1.DateRange {
@@ -8731,7 +9018,39 @@ const file_white_analytics_v1_analytics_proto_rawDesc = "" +
 	"adAccounts\"8\n" +
 	"\x15GetSeoPropertyRequest\x12\x1f\n" +
 	"\vproperty_id\x18\x01 \x01(\tR\n" +
-	"propertyId\"\xab\x02\n" +
+	"propertyId\"\xce\x01\n" +
+	"\x16ListSocialPostsRequest\x12\x1b\n" +
+	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12,\n" +
+	"\x12social_account_ids\x18\x02 \x03(\tR\x10socialAccountIds\x12!\n" +
+	"\fexternal_ids\x18\x03 \x03(\tR\vexternalIds\x12\x19\n" +
+	"\bfrom_day\x18\x04 \x01(\tR\afromDay\x12\x15\n" +
+	"\x06to_day\x18\x05 \x01(\tR\x05toDay\x12\x14\n" +
+	"\x05limit\x18\x06 \x01(\x05R\x05limit\"\xf9\x03\n" +
+	"\n" +
+	"SocialPost\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
+	"\x11social_account_id\x18\x02 \x01(\tR\x0fsocialAccountId\x12\x1f\n" +
+	"\vexternal_id\x18\x03 \x01(\tR\n" +
+	"externalId\x12\x18\n" +
+	"\acaption\x18\x04 \x01(\tR\acaption\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x05 \x01(\tR\tmediaType\x12&\n" +
+	"\fproduct_type\x18\x06 \x01(\tH\x00R\vproductType\x88\x01\x01\x12!\n" +
+	"\tpermalink\x18\a \x01(\tH\x01R\tpermalink\x88\x01\x01\x12=\n" +
+	"\fpublished_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\vpublishedAt\x12\x14\n" +
+	"\x05likes\x18\t \x01(\x03R\x05likes\x12\x1a\n" +
+	"\bcomments\x18\n" +
+	" \x01(\x03R\bcomments\x12\x16\n" +
+	"\x06shares\x18\v \x01(\x03R\x06shares\x12\x14\n" +
+	"\x05saves\x18\f \x01(\x03R\x05saves\x12\x14\n" +
+	"\x05views\x18\r \x01(\x03R\x05views\x12\x14\n" +
+	"\x05reach\x18\x0e \x01(\x03R\x05reach\x12 \n" +
+	"\vimpressions\x18\x0f \x01(\x03R\vimpressionsB\x0f\n" +
+	"\r_product_typeB\f\n" +
+	"\n" +
+	"_permalink\"O\n" +
+	"\x17ListSocialPostsResponse\x124\n" +
+	"\x05posts\x18\x01 \x03(\v2\x1e.white.analytics.v1.SocialPostR\x05posts\"\xab\x02\n" +
 	"\vDataQuality\x120\n" +
 	"\x05state\x18\x01 \x01(\x0e2\x1a.white.common.v1.DataStateR\x05state\x12E\n" +
 	"\x0elast_synced_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\flastSyncedAt\x88\x01\x01\x12<\n" +
@@ -9464,7 +9783,7 @@ const file_white_analytics_v1_analytics_proto_rawDesc = "" +
 	"\x05ERROR\x10\x01\x12\v\n" +
 	"\aWARNING\x10\x02\x12\n" +
 	"\n" +
-	"\x06NOTICE\x10\x032\xce\x10\n" +
+	"\x06NOTICE\x10\x032\xba\x11\n" +
 	"\rSourceService\x12\xa4\x01\n" +
 	"\x12ListSocialAccounts\x12-.white.analytics.v1.ListSocialAccountsRequest\x1a..white.analytics.v1.ListSocialAccountsResponse\"/\x82\xd3\xe4\x93\x02)\x12'/v1/clients/{client_id}/social-accounts\x12\xa0\x01\n" +
 	"\x11ListSeoProperties\x12,.white.analytics.v1.ListSeoPropertiesRequest\x1a-.white.analytics.v1.ListSeoPropertiesResponse\".\x82\xd3\xe4\x93\x02(\x12&/v1/clients/{client_id}/seo-properties\x12\x94\x01\n" +
@@ -9479,7 +9798,8 @@ const file_white_analytics_v1_analytics_proto_rawDesc = "" +
 	"\fAddAdAccount\x12'.white.analytics.v1.AddAdAccountRequest\x1a\x1d.white.analytics.v1.AdAccount\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/clients/{client_id}/ad-accounts\x12\x8f\x01\n" +
 	"\x0fRemoveAdAccount\x12*.white.analytics.v1.RemoveAdAccountRequest\x1a\x16.google.protobuf.Empty\"8\x82\xd3\xe4\x93\x022*0/v1/clients/{client_id}/ad-accounts/{account_id}\x12\x96\x01\n" +
 	"\x10GetClientSources\x12+.white.analytics.v1.GetClientSourcesRequest\x1a,.white.analytics.v1.GetClientSourcesResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/clients/{client_id}/sources\x12\\\n" +
-	"\x0eGetSeoProperty\x12).white.analytics.v1.GetSeoPropertyRequest\x1a\x1f.white.analytics.v1.SeoProperty2\xac\x04\n" +
+	"\x0eGetSeoProperty\x12).white.analytics.v1.GetSeoPropertyRequest\x1a\x1f.white.analytics.v1.SeoProperty\x12j\n" +
+	"\x0fListSocialPosts\x12*.white.analytics.v1.ListSocialPostsRequest\x1a+.white.analytics.v1.ListSocialPostsResponse2\xac\x04\n" +
 	"\x0fOverviewService\x12}\n" +
 	"\vGetOverview\x12&.white.analytics.v1.GetOverviewRequest\x1a\x1c.white.analytics.v1.Overview\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/clients/{client_id}/overview\x12\x89\x01\n" +
 	"\x12GetPortfolioTotals\x12-.white.analytics.v1.GetPortfolioTotalsRequest\x1a#.white.analytics.v1.PortfolioTotals\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/portfolio:totals\x12\x8c\x01\n" +
@@ -9522,7 +9842,7 @@ func file_white_analytics_v1_analytics_proto_rawDescGZIP() []byte {
 }
 
 var file_white_analytics_v1_analytics_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_white_analytics_v1_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 113)
+var file_white_analytics_v1_analytics_proto_msgTypes = make([]protoimpl.MessageInfo, 116)
 var file_white_analytics_v1_analytics_proto_goTypes = []any{
 	(AuditCadence)(0),                      // 0: white.analytics.v1.AuditCadence
 	(AuditStrategy)(0),                     // 1: white.analytics.v1.AuditStrategy
@@ -9550,352 +9870,359 @@ var file_white_analytics_v1_analytics_proto_goTypes = []any{
 	(*GetClientSourcesRequest)(nil),        // 23: white.analytics.v1.GetClientSourcesRequest
 	(*GetClientSourcesResponse)(nil),       // 24: white.analytics.v1.GetClientSourcesResponse
 	(*GetSeoPropertyRequest)(nil),          // 25: white.analytics.v1.GetSeoPropertyRequest
-	(*DataQuality)(nil),                    // 26: white.analytics.v1.DataQuality
-	(*AdKpis)(nil),                         // 27: white.analytics.v1.AdKpis
-	(*OverviewSocialAccount)(nil),          // 28: white.analytics.v1.OverviewSocialAccount
-	(*OverviewSocial)(nil),                 // 29: white.analytics.v1.OverviewSocial
-	(*SeoDailyPoint)(nil),                  // 30: white.analytics.v1.SeoDailyPoint
-	(*OverviewSeo)(nil),                    // 31: white.analytics.v1.OverviewSeo
-	(*AdsDailyPoint)(nil),                  // 32: white.analytics.v1.AdsDailyPoint
-	(*OverviewAds)(nil),                    // 33: white.analytics.v1.OverviewAds
-	(*GetOverviewRequest)(nil),             // 34: white.analytics.v1.GetOverviewRequest
-	(*Overview)(nil),                       // 35: white.analytics.v1.Overview
-	(*GetPortfolioTotalsRequest)(nil),      // 36: white.analytics.v1.GetPortfolioTotalsRequest
-	(*PortfolioTotals)(nil),                // 37: white.analytics.v1.PortfolioTotals
-	(*SyncJob)(nil),                        // 38: white.analytics.v1.SyncJob
-	(*ListSyncJobsRequest)(nil),            // 39: white.analytics.v1.ListSyncJobsRequest
-	(*ListSyncJobsResponse)(nil),           // 40: white.analytics.v1.ListSyncJobsResponse
-	(*GetLatestSyncByClientsRequest)(nil),  // 41: white.analytics.v1.GetLatestSyncByClientsRequest
-	(*GetLatestSyncByClientsResponse)(nil), // 42: white.analytics.v1.GetLatestSyncByClientsResponse
-	(*SocialPostRow)(nil),                  // 43: white.analytics.v1.SocialPostRow
-	(*SocialKpis)(nil),                     // 44: white.analytics.v1.SocialKpis
-	(*GrowthPoint)(nil),                    // 45: white.analytics.v1.GrowthPoint
-	(*ReachPoint)(nil),                     // 46: white.analytics.v1.ReachPoint
-	(*ErByType)(nil),                       // 47: white.analytics.v1.ErByType
-	(*HeatCell)(nil),                       // 48: white.analytics.v1.HeatCell
-	(*SocialDashboardAccount)(nil),         // 49: white.analytics.v1.SocialDashboardAccount
-	(*GetSocialDashboardRequest)(nil),      // 50: white.analytics.v1.GetSocialDashboardRequest
-	(*SocialDashboard)(nil),                // 51: white.analytics.v1.SocialDashboard
-	(*CompetitorRow)(nil),                  // 52: white.analytics.v1.CompetitorRow
-	(*CompetitorChartValue)(nil),           // 53: white.analytics.v1.CompetitorChartValue
-	(*CompetitorChartPoint)(nil),           // 54: white.analytics.v1.CompetitorChartPoint
-	(*CompetitorSeries)(nil),               // 55: white.analytics.v1.CompetitorSeries
-	(*GetCompetitorDashboardRequest)(nil),  // 56: white.analytics.v1.GetCompetitorDashboardRequest
-	(*CompetitorDashboard)(nil),            // 57: white.analytics.v1.CompetitorDashboard
-	(*SyncSocialRequest)(nil),              // 58: white.analytics.v1.SyncSocialRequest
-	(*SyncSocialResponse)(nil),             // 59: white.analytics.v1.SyncSocialResponse
-	(*SeoPropertyRangeRequest)(nil),        // 60: white.analytics.v1.SeoPropertyRangeRequest
-	(*SeoPropertyRequest)(nil),             // 61: white.analytics.v1.SeoPropertyRequest
-	(*SearchDailyPoint)(nil),               // 62: white.analytics.v1.SearchDailyPoint
-	(*Ga4DailyPoint)(nil),                  // 63: white.analytics.v1.Ga4DailyPoint
-	(*SeoKpis)(nil),                        // 64: white.analytics.v1.SeoKpis
-	(*SeoDeltas)(nil),                      // 65: white.analytics.v1.SeoDeltas
-	(*Ga4Summary)(nil),                     // 66: white.analytics.v1.Ga4Summary
-	(*SeoOverview)(nil),                    // 67: white.analytics.v1.SeoOverview
-	(*DimAgg)(nil),                         // 68: white.analytics.v1.DimAgg
-	(*QueryAgg)(nil),                       // 69: white.analytics.v1.QueryAgg
-	(*PositionBucketRow)(nil),              // 70: white.analytics.v1.PositionBucketRow
-	(*Opportunity)(nil),                    // 71: white.analytics.v1.Opportunity
-	(*KeywordOpportunities)(nil),           // 72: white.analytics.v1.KeywordOpportunities
-	(*QueryStats)(nil),                     // 73: white.analytics.v1.QueryStats
-	(*PageStats)(nil),                      // 74: white.analytics.v1.PageStats
-	(*DimBreakdown)(nil),                   // 75: white.analytics.v1.DimBreakdown
-	(*AuditRow)(nil),                       // 76: white.analytics.v1.AuditRow
-	(*ScoreHistoryPoint)(nil),              // 77: white.analytics.v1.ScoreHistoryPoint
-	(*CrawlSummary)(nil),                   // 78: white.analytics.v1.CrawlSummary
-	(*CrawlPageRow)(nil),                   // 79: white.analytics.v1.CrawlPageRow
-	(*IssueRow)(nil),                       // 80: white.analytics.v1.IssueRow
-	(*SeverityCounts)(nil),                 // 81: white.analytics.v1.SeverityCounts
-	(*CodeCount)(nil),                      // 82: white.analytics.v1.CodeCount
-	(*AuditData)(nil),                      // 83: white.analytics.v1.AuditData
-	(*IssueTrendPoint)(nil),                // 84: white.analytics.v1.IssueTrendPoint
-	(*IssueTrend)(nil),                     // 85: white.analytics.v1.IssueTrend
-	(*RunAuditRequest)(nil),                // 86: white.analytics.v1.RunAuditRequest
-	(*RunAuditResponse)(nil),               // 87: white.analytics.v1.RunAuditResponse
-	(*SyncSeoRequest)(nil),                 // 88: white.analytics.v1.SyncSeoRequest
-	(*SyncSeoResponse)(nil),                // 89: white.analytics.v1.SyncSeoResponse
-	(*GetAdsDashboardRequest)(nil),         // 90: white.analytics.v1.GetAdsDashboardRequest
-	(*AdsDeltas)(nil),                      // 91: white.analytics.v1.AdsDeltas
-	(*AdsNodeKpis)(nil),                    // 92: white.analytics.v1.AdsNodeKpis
-	(*AdsAdNode)(nil),                      // 93: white.analytics.v1.AdsAdNode
-	(*AdsAdSetNode)(nil),                   // 94: white.analytics.v1.AdsAdSetNode
-	(*AdsCampaignNode)(nil),                // 95: white.analytics.v1.AdsCampaignNode
-	(*AdsCampaignShare)(nil),               // 96: white.analytics.v1.AdsCampaignShare
-	(*AdsTopAd)(nil),                       // 97: white.analytics.v1.AdsTopAd
-	(*AdsDemographicRow)(nil),              // 98: white.analytics.v1.AdsDemographicRow
-	(*AdsDemographics)(nil),                // 99: white.analytics.v1.AdsDemographics
-	(*CampaignOption)(nil),                 // 100: white.analytics.v1.CampaignOption
-	(*AdsDashboard)(nil),                   // 101: white.analytics.v1.AdsDashboard
-	(*ImportAdsCsvRequest)(nil),            // 102: white.analytics.v1.ImportAdsCsvRequest
-	(*ImportSummary)(nil),                  // 103: white.analytics.v1.ImportSummary
-	(*SyncAdsRequest)(nil),                 // 104: white.analytics.v1.SyncAdsRequest
-	(*SyncAdsResponse)(nil),                // 105: white.analytics.v1.SyncAdsResponse
-	(*GetReportDataRequest)(nil),           // 106: white.analytics.v1.GetReportDataRequest
-	(*DailyFollowersPoint)(nil),            // 107: white.analytics.v1.DailyFollowersPoint
-	(*TopPostRow)(nil),                     // 108: white.analytics.v1.TopPostRow
-	(*TopQueryRow)(nil),                    // 109: white.analytics.v1.TopQueryRow
-	(*CampaignRow)(nil),                    // 110: white.analytics.v1.CampaignRow
-	(*ReportSocial)(nil),                   // 111: white.analytics.v1.ReportSocial
-	(*ReportSeo)(nil),                      // 112: white.analytics.v1.ReportSeo
-	(*ReportAds)(nil),                      // 113: white.analytics.v1.ReportAds
-	(*ReportData)(nil),                     // 114: white.analytics.v1.ReportData
-	nil,                                    // 115: white.analytics.v1.GetLatestSyncByClientsResponse.LatestEntry
-	(v1.SocialPlatform)(0),                 // 116: white.common.v1.SocialPlatform
-	(*timestamppb.Timestamp)(nil),          // 117: google.protobuf.Timestamp
-	(v1.DataState)(0),                      // 118: white.common.v1.DataState
-	(*v1.Delta)(nil),                       // 119: white.common.v1.Delta
-	(*v1.RangeQuery)(nil),                  // 120: white.common.v1.RangeQuery
-	(*v1.ResolvedRange)(nil),               // 121: white.common.v1.ResolvedRange
-	(v1.JobStatus)(0),                      // 122: white.common.v1.JobStatus
-	(*v1.DateRange)(nil),                   // 123: white.common.v1.DateRange
-	(v1.ModuleKey)(0),                      // 124: white.common.v1.ModuleKey
-	(*emptypb.Empty)(nil),                  // 125: google.protobuf.Empty
+	(*ListSocialPostsRequest)(nil),         // 26: white.analytics.v1.ListSocialPostsRequest
+	(*SocialPost)(nil),                     // 27: white.analytics.v1.SocialPost
+	(*ListSocialPostsResponse)(nil),        // 28: white.analytics.v1.ListSocialPostsResponse
+	(*DataQuality)(nil),                    // 29: white.analytics.v1.DataQuality
+	(*AdKpis)(nil),                         // 30: white.analytics.v1.AdKpis
+	(*OverviewSocialAccount)(nil),          // 31: white.analytics.v1.OverviewSocialAccount
+	(*OverviewSocial)(nil),                 // 32: white.analytics.v1.OverviewSocial
+	(*SeoDailyPoint)(nil),                  // 33: white.analytics.v1.SeoDailyPoint
+	(*OverviewSeo)(nil),                    // 34: white.analytics.v1.OverviewSeo
+	(*AdsDailyPoint)(nil),                  // 35: white.analytics.v1.AdsDailyPoint
+	(*OverviewAds)(nil),                    // 36: white.analytics.v1.OverviewAds
+	(*GetOverviewRequest)(nil),             // 37: white.analytics.v1.GetOverviewRequest
+	(*Overview)(nil),                       // 38: white.analytics.v1.Overview
+	(*GetPortfolioTotalsRequest)(nil),      // 39: white.analytics.v1.GetPortfolioTotalsRequest
+	(*PortfolioTotals)(nil),                // 40: white.analytics.v1.PortfolioTotals
+	(*SyncJob)(nil),                        // 41: white.analytics.v1.SyncJob
+	(*ListSyncJobsRequest)(nil),            // 42: white.analytics.v1.ListSyncJobsRequest
+	(*ListSyncJobsResponse)(nil),           // 43: white.analytics.v1.ListSyncJobsResponse
+	(*GetLatestSyncByClientsRequest)(nil),  // 44: white.analytics.v1.GetLatestSyncByClientsRequest
+	(*GetLatestSyncByClientsResponse)(nil), // 45: white.analytics.v1.GetLatestSyncByClientsResponse
+	(*SocialPostRow)(nil),                  // 46: white.analytics.v1.SocialPostRow
+	(*SocialKpis)(nil),                     // 47: white.analytics.v1.SocialKpis
+	(*GrowthPoint)(nil),                    // 48: white.analytics.v1.GrowthPoint
+	(*ReachPoint)(nil),                     // 49: white.analytics.v1.ReachPoint
+	(*ErByType)(nil),                       // 50: white.analytics.v1.ErByType
+	(*HeatCell)(nil),                       // 51: white.analytics.v1.HeatCell
+	(*SocialDashboardAccount)(nil),         // 52: white.analytics.v1.SocialDashboardAccount
+	(*GetSocialDashboardRequest)(nil),      // 53: white.analytics.v1.GetSocialDashboardRequest
+	(*SocialDashboard)(nil),                // 54: white.analytics.v1.SocialDashboard
+	(*CompetitorRow)(nil),                  // 55: white.analytics.v1.CompetitorRow
+	(*CompetitorChartValue)(nil),           // 56: white.analytics.v1.CompetitorChartValue
+	(*CompetitorChartPoint)(nil),           // 57: white.analytics.v1.CompetitorChartPoint
+	(*CompetitorSeries)(nil),               // 58: white.analytics.v1.CompetitorSeries
+	(*GetCompetitorDashboardRequest)(nil),  // 59: white.analytics.v1.GetCompetitorDashboardRequest
+	(*CompetitorDashboard)(nil),            // 60: white.analytics.v1.CompetitorDashboard
+	(*SyncSocialRequest)(nil),              // 61: white.analytics.v1.SyncSocialRequest
+	(*SyncSocialResponse)(nil),             // 62: white.analytics.v1.SyncSocialResponse
+	(*SeoPropertyRangeRequest)(nil),        // 63: white.analytics.v1.SeoPropertyRangeRequest
+	(*SeoPropertyRequest)(nil),             // 64: white.analytics.v1.SeoPropertyRequest
+	(*SearchDailyPoint)(nil),               // 65: white.analytics.v1.SearchDailyPoint
+	(*Ga4DailyPoint)(nil),                  // 66: white.analytics.v1.Ga4DailyPoint
+	(*SeoKpis)(nil),                        // 67: white.analytics.v1.SeoKpis
+	(*SeoDeltas)(nil),                      // 68: white.analytics.v1.SeoDeltas
+	(*Ga4Summary)(nil),                     // 69: white.analytics.v1.Ga4Summary
+	(*SeoOverview)(nil),                    // 70: white.analytics.v1.SeoOverview
+	(*DimAgg)(nil),                         // 71: white.analytics.v1.DimAgg
+	(*QueryAgg)(nil),                       // 72: white.analytics.v1.QueryAgg
+	(*PositionBucketRow)(nil),              // 73: white.analytics.v1.PositionBucketRow
+	(*Opportunity)(nil),                    // 74: white.analytics.v1.Opportunity
+	(*KeywordOpportunities)(nil),           // 75: white.analytics.v1.KeywordOpportunities
+	(*QueryStats)(nil),                     // 76: white.analytics.v1.QueryStats
+	(*PageStats)(nil),                      // 77: white.analytics.v1.PageStats
+	(*DimBreakdown)(nil),                   // 78: white.analytics.v1.DimBreakdown
+	(*AuditRow)(nil),                       // 79: white.analytics.v1.AuditRow
+	(*ScoreHistoryPoint)(nil),              // 80: white.analytics.v1.ScoreHistoryPoint
+	(*CrawlSummary)(nil),                   // 81: white.analytics.v1.CrawlSummary
+	(*CrawlPageRow)(nil),                   // 82: white.analytics.v1.CrawlPageRow
+	(*IssueRow)(nil),                       // 83: white.analytics.v1.IssueRow
+	(*SeverityCounts)(nil),                 // 84: white.analytics.v1.SeverityCounts
+	(*CodeCount)(nil),                      // 85: white.analytics.v1.CodeCount
+	(*AuditData)(nil),                      // 86: white.analytics.v1.AuditData
+	(*IssueTrendPoint)(nil),                // 87: white.analytics.v1.IssueTrendPoint
+	(*IssueTrend)(nil),                     // 88: white.analytics.v1.IssueTrend
+	(*RunAuditRequest)(nil),                // 89: white.analytics.v1.RunAuditRequest
+	(*RunAuditResponse)(nil),               // 90: white.analytics.v1.RunAuditResponse
+	(*SyncSeoRequest)(nil),                 // 91: white.analytics.v1.SyncSeoRequest
+	(*SyncSeoResponse)(nil),                // 92: white.analytics.v1.SyncSeoResponse
+	(*GetAdsDashboardRequest)(nil),         // 93: white.analytics.v1.GetAdsDashboardRequest
+	(*AdsDeltas)(nil),                      // 94: white.analytics.v1.AdsDeltas
+	(*AdsNodeKpis)(nil),                    // 95: white.analytics.v1.AdsNodeKpis
+	(*AdsAdNode)(nil),                      // 96: white.analytics.v1.AdsAdNode
+	(*AdsAdSetNode)(nil),                   // 97: white.analytics.v1.AdsAdSetNode
+	(*AdsCampaignNode)(nil),                // 98: white.analytics.v1.AdsCampaignNode
+	(*AdsCampaignShare)(nil),               // 99: white.analytics.v1.AdsCampaignShare
+	(*AdsTopAd)(nil),                       // 100: white.analytics.v1.AdsTopAd
+	(*AdsDemographicRow)(nil),              // 101: white.analytics.v1.AdsDemographicRow
+	(*AdsDemographics)(nil),                // 102: white.analytics.v1.AdsDemographics
+	(*CampaignOption)(nil),                 // 103: white.analytics.v1.CampaignOption
+	(*AdsDashboard)(nil),                   // 104: white.analytics.v1.AdsDashboard
+	(*ImportAdsCsvRequest)(nil),            // 105: white.analytics.v1.ImportAdsCsvRequest
+	(*ImportSummary)(nil),                  // 106: white.analytics.v1.ImportSummary
+	(*SyncAdsRequest)(nil),                 // 107: white.analytics.v1.SyncAdsRequest
+	(*SyncAdsResponse)(nil),                // 108: white.analytics.v1.SyncAdsResponse
+	(*GetReportDataRequest)(nil),           // 109: white.analytics.v1.GetReportDataRequest
+	(*DailyFollowersPoint)(nil),            // 110: white.analytics.v1.DailyFollowersPoint
+	(*TopPostRow)(nil),                     // 111: white.analytics.v1.TopPostRow
+	(*TopQueryRow)(nil),                    // 112: white.analytics.v1.TopQueryRow
+	(*CampaignRow)(nil),                    // 113: white.analytics.v1.CampaignRow
+	(*ReportSocial)(nil),                   // 114: white.analytics.v1.ReportSocial
+	(*ReportSeo)(nil),                      // 115: white.analytics.v1.ReportSeo
+	(*ReportAds)(nil),                      // 116: white.analytics.v1.ReportAds
+	(*ReportData)(nil),                     // 117: white.analytics.v1.ReportData
+	nil,                                    // 118: white.analytics.v1.GetLatestSyncByClientsResponse.LatestEntry
+	(v1.SocialPlatform)(0),                 // 119: white.common.v1.SocialPlatform
+	(*timestamppb.Timestamp)(nil),          // 120: google.protobuf.Timestamp
+	(v1.DataState)(0),                      // 121: white.common.v1.DataState
+	(*v1.Delta)(nil),                       // 122: white.common.v1.Delta
+	(*v1.RangeQuery)(nil),                  // 123: white.common.v1.RangeQuery
+	(*v1.ResolvedRange)(nil),               // 124: white.common.v1.ResolvedRange
+	(v1.JobStatus)(0),                      // 125: white.common.v1.JobStatus
+	(*v1.DateRange)(nil),                   // 126: white.common.v1.DateRange
+	(v1.ModuleKey)(0),                      // 127: white.common.v1.ModuleKey
+	(*emptypb.Empty)(nil),                  // 128: google.protobuf.Empty
 }
 var file_white_analytics_v1_analytics_proto_depIdxs = []int32{
-	116, // 0: white.analytics.v1.SocialAccount.platform:type_name -> white.common.v1.SocialPlatform
-	117, // 1: white.analytics.v1.SocialAccount.created_at:type_name -> google.protobuf.Timestamp
-	116, // 2: white.analytics.v1.ListSocialAccountsRequest.platform:type_name -> white.common.v1.SocialPlatform
+	119, // 0: white.analytics.v1.SocialAccount.platform:type_name -> white.common.v1.SocialPlatform
+	120, // 1: white.analytics.v1.SocialAccount.created_at:type_name -> google.protobuf.Timestamp
+	119, // 2: white.analytics.v1.ListSocialAccountsRequest.platform:type_name -> white.common.v1.SocialPlatform
 	3,   // 3: white.analytics.v1.ListSocialAccountsResponse.accounts:type_name -> white.analytics.v1.SocialAccount
 	0,   // 4: white.analytics.v1.SeoProperty.audit_cadence:type_name -> white.analytics.v1.AuditCadence
-	117, // 5: white.analytics.v1.SeoProperty.created_at:type_name -> google.protobuf.Timestamp
+	120, // 5: white.analytics.v1.SeoProperty.created_at:type_name -> google.protobuf.Timestamp
 	6,   // 6: white.analytics.v1.ListSeoPropertiesResponse.properties:type_name -> white.analytics.v1.SeoProperty
-	117, // 7: white.analytics.v1.AdAccount.last_synced_at:type_name -> google.protobuf.Timestamp
-	117, // 8: white.analytics.v1.AdAccount.created_at:type_name -> google.protobuf.Timestamp
+	120, // 7: white.analytics.v1.AdAccount.last_synced_at:type_name -> google.protobuf.Timestamp
+	120, // 8: white.analytics.v1.AdAccount.created_at:type_name -> google.protobuf.Timestamp
 	9,   // 9: white.analytics.v1.ListAdAccountsResponse.accounts:type_name -> white.analytics.v1.AdAccount
-	116, // 10: white.analytics.v1.AddSocialAccountRequest.platform:type_name -> white.common.v1.SocialPlatform
+	119, // 10: white.analytics.v1.AddSocialAccountRequest.platform:type_name -> white.common.v1.SocialPlatform
 	0,   // 11: white.analytics.v1.SetAuditCadenceRequest.cadence:type_name -> white.analytics.v1.AuditCadence
 	0,   // 12: white.analytics.v1.SetAuditCadenceResponse.cadence:type_name -> white.analytics.v1.AuditCadence
 	3,   // 13: white.analytics.v1.GetClientSourcesResponse.social_accounts:type_name -> white.analytics.v1.SocialAccount
 	6,   // 14: white.analytics.v1.GetClientSourcesResponse.seo_properties:type_name -> white.analytics.v1.SeoProperty
 	9,   // 15: white.analytics.v1.GetClientSourcesResponse.ad_accounts:type_name -> white.analytics.v1.AdAccount
-	118, // 16: white.analytics.v1.DataQuality.state:type_name -> white.common.v1.DataState
-	117, // 17: white.analytics.v1.DataQuality.last_synced_at:type_name -> google.protobuf.Timestamp
-	117, // 18: white.analytics.v1.DataQuality.data_from:type_name -> google.protobuf.Timestamp
-	117, // 19: white.analytics.v1.DataQuality.data_to:type_name -> google.protobuf.Timestamp
-	116, // 20: white.analytics.v1.OverviewSocialAccount.platform:type_name -> white.common.v1.SocialPlatform
-	26,  // 21: white.analytics.v1.OverviewSocial.quality:type_name -> white.analytics.v1.DataQuality
-	119, // 22: white.analytics.v1.OverviewSocial.followers_delta:type_name -> white.common.v1.Delta
-	119, // 23: white.analytics.v1.OverviewSocial.posts_delta:type_name -> white.common.v1.Delta
-	119, // 24: white.analytics.v1.OverviewSocial.engagement_rate_delta:type_name -> white.common.v1.Delta
-	119, // 25: white.analytics.v1.OverviewSocial.reach_delta:type_name -> white.common.v1.Delta
-	28,  // 26: white.analytics.v1.OverviewSocial.accounts:type_name -> white.analytics.v1.OverviewSocialAccount
-	26,  // 27: white.analytics.v1.OverviewSeo.quality:type_name -> white.analytics.v1.DataQuality
-	119, // 28: white.analytics.v1.OverviewSeo.clicks_delta:type_name -> white.common.v1.Delta
-	119, // 29: white.analytics.v1.OverviewSeo.impressions_delta:type_name -> white.common.v1.Delta
-	119, // 30: white.analytics.v1.OverviewSeo.ctr_delta:type_name -> white.common.v1.Delta
-	119, // 31: white.analytics.v1.OverviewSeo.position_delta:type_name -> white.common.v1.Delta
-	30,  // 32: white.analytics.v1.OverviewSeo.daily:type_name -> white.analytics.v1.SeoDailyPoint
-	26,  // 33: white.analytics.v1.OverviewAds.quality:type_name -> white.analytics.v1.DataQuality
-	27,  // 34: white.analytics.v1.OverviewAds.kpis:type_name -> white.analytics.v1.AdKpis
-	27,  // 35: white.analytics.v1.OverviewAds.prev:type_name -> white.analytics.v1.AdKpis
-	119, // 36: white.analytics.v1.OverviewAds.spend_delta:type_name -> white.common.v1.Delta
-	119, // 37: white.analytics.v1.OverviewAds.results_delta:type_name -> white.common.v1.Delta
-	119, // 38: white.analytics.v1.OverviewAds.cpr_delta:type_name -> white.common.v1.Delta
-	32,  // 39: white.analytics.v1.OverviewAds.daily:type_name -> white.analytics.v1.AdsDailyPoint
-	120, // 40: white.analytics.v1.GetOverviewRequest.range:type_name -> white.common.v1.RangeQuery
-	121, // 41: white.analytics.v1.Overview.range:type_name -> white.common.v1.ResolvedRange
-	29,  // 42: white.analytics.v1.Overview.social:type_name -> white.analytics.v1.OverviewSocial
-	31,  // 43: white.analytics.v1.Overview.seo:type_name -> white.analytics.v1.OverviewSeo
-	33,  // 44: white.analytics.v1.Overview.ads:type_name -> white.analytics.v1.OverviewAds
-	120, // 45: white.analytics.v1.GetPortfolioTotalsRequest.range:type_name -> white.common.v1.RangeQuery
-	121, // 46: white.analytics.v1.PortfolioTotals.range:type_name -> white.common.v1.ResolvedRange
-	119, // 47: white.analytics.v1.PortfolioTotals.followers_delta:type_name -> white.common.v1.Delta
-	119, // 48: white.analytics.v1.PortfolioTotals.clicks_delta:type_name -> white.common.v1.Delta
-	119, // 49: white.analytics.v1.PortfolioTotals.spend_delta:type_name -> white.common.v1.Delta
-	122, // 50: white.analytics.v1.SyncJob.status:type_name -> white.common.v1.JobStatus
-	117, // 51: white.analytics.v1.SyncJob.started_at:type_name -> google.protobuf.Timestamp
-	117, // 52: white.analytics.v1.SyncJob.finished_at:type_name -> google.protobuf.Timestamp
-	38,  // 53: white.analytics.v1.ListSyncJobsResponse.jobs:type_name -> white.analytics.v1.SyncJob
-	115, // 54: white.analytics.v1.GetLatestSyncByClientsResponse.latest:type_name -> white.analytics.v1.GetLatestSyncByClientsResponse.LatestEntry
-	117, // 55: white.analytics.v1.SocialPostRow.published_at:type_name -> google.protobuf.Timestamp
-	119, // 56: white.analytics.v1.SocialKpis.followers_delta:type_name -> white.common.v1.Delta
-	119, // 57: white.analytics.v1.SocialKpis.er_delta:type_name -> white.common.v1.Delta
-	119, // 58: white.analytics.v1.SocialKpis.reach_delta:type_name -> white.common.v1.Delta
-	119, // 59: white.analytics.v1.SocialKpis.impressions_delta:type_name -> white.common.v1.Delta
-	119, // 60: white.analytics.v1.SocialKpis.posts_delta:type_name -> white.common.v1.Delta
-	116, // 61: white.analytics.v1.GetSocialDashboardRequest.platform:type_name -> white.common.v1.SocialPlatform
-	120, // 62: white.analytics.v1.GetSocialDashboardRequest.range:type_name -> white.common.v1.RangeQuery
-	121, // 63: white.analytics.v1.SocialDashboard.range:type_name -> white.common.v1.ResolvedRange
-	49,  // 64: white.analytics.v1.SocialDashboard.account:type_name -> white.analytics.v1.SocialDashboardAccount
-	44,  // 65: white.analytics.v1.SocialDashboard.kpis:type_name -> white.analytics.v1.SocialKpis
-	45,  // 66: white.analytics.v1.SocialDashboard.growth_series:type_name -> white.analytics.v1.GrowthPoint
-	46,  // 67: white.analytics.v1.SocialDashboard.reach_series:type_name -> white.analytics.v1.ReachPoint
-	47,  // 68: white.analytics.v1.SocialDashboard.er_by_type:type_name -> white.analytics.v1.ErByType
-	48,  // 69: white.analytics.v1.SocialDashboard.heatmap:type_name -> white.analytics.v1.HeatCell
-	43,  // 70: white.analytics.v1.SocialDashboard.top_posts:type_name -> white.analytics.v1.SocialPostRow
-	43,  // 71: white.analytics.v1.SocialDashboard.posts:type_name -> white.analytics.v1.SocialPostRow
-	119, // 72: white.analytics.v1.CompetitorRow.growth_delta:type_name -> white.common.v1.Delta
-	53,  // 73: white.analytics.v1.CompetitorChartPoint.values:type_name -> white.analytics.v1.CompetitorChartValue
-	120, // 74: white.analytics.v1.GetCompetitorDashboardRequest.range:type_name -> white.common.v1.RangeQuery
-	121, // 75: white.analytics.v1.CompetitorDashboard.range:type_name -> white.common.v1.ResolvedRange
-	52,  // 76: white.analytics.v1.CompetitorDashboard.rows:type_name -> white.analytics.v1.CompetitorRow
-	54,  // 77: white.analytics.v1.CompetitorDashboard.chart:type_name -> white.analytics.v1.CompetitorChartPoint
-	55,  // 78: white.analytics.v1.CompetitorDashboard.series:type_name -> white.analytics.v1.CompetitorSeries
-	43,  // 79: white.analytics.v1.CompetitorDashboard.top_posts:type_name -> white.analytics.v1.SocialPostRow
-	116, // 80: white.analytics.v1.SyncSocialRequest.platform:type_name -> white.common.v1.SocialPlatform
-	120, // 81: white.analytics.v1.SeoPropertyRangeRequest.range:type_name -> white.common.v1.RangeQuery
-	119, // 82: white.analytics.v1.SeoDeltas.clicks:type_name -> white.common.v1.Delta
-	119, // 83: white.analytics.v1.SeoDeltas.impressions:type_name -> white.common.v1.Delta
-	119, // 84: white.analytics.v1.SeoDeltas.ctr:type_name -> white.common.v1.Delta
-	119, // 85: white.analytics.v1.SeoDeltas.position:type_name -> white.common.v1.Delta
-	119, // 86: white.analytics.v1.Ga4Summary.organic_delta:type_name -> white.common.v1.Delta
-	119, // 87: white.analytics.v1.Ga4Summary.conversions_delta:type_name -> white.common.v1.Delta
-	121, // 88: white.analytics.v1.SeoOverview.range:type_name -> white.common.v1.ResolvedRange
-	64,  // 89: white.analytics.v1.SeoOverview.kpis:type_name -> white.analytics.v1.SeoKpis
-	65,  // 90: white.analytics.v1.SeoOverview.deltas:type_name -> white.analytics.v1.SeoDeltas
-	62,  // 91: white.analytics.v1.SeoOverview.daily:type_name -> white.analytics.v1.SearchDailyPoint
-	66,  // 92: white.analytics.v1.SeoOverview.ga4:type_name -> white.analytics.v1.Ga4Summary
-	63,  // 93: white.analytics.v1.SeoOverview.ga4_daily:type_name -> white.analytics.v1.Ga4DailyPoint
-	71,  // 94: white.analytics.v1.KeywordOpportunities.striking:type_name -> white.analytics.v1.Opportunity
-	71,  // 95: white.analytics.v1.KeywordOpportunities.low_ctr:type_name -> white.analytics.v1.Opportunity
-	71,  // 96: white.analytics.v1.KeywordOpportunities.declining:type_name -> white.analytics.v1.Opportunity
-	71,  // 97: white.analytics.v1.KeywordOpportunities.rising:type_name -> white.analytics.v1.Opportunity
-	121, // 98: white.analytics.v1.QueryStats.range:type_name -> white.common.v1.ResolvedRange
-	69,  // 99: white.analytics.v1.QueryStats.rows:type_name -> white.analytics.v1.QueryAgg
-	70,  // 100: white.analytics.v1.QueryStats.distribution:type_name -> white.analytics.v1.PositionBucketRow
-	72,  // 101: white.analytics.v1.QueryStats.opportunities:type_name -> white.analytics.v1.KeywordOpportunities
-	121, // 102: white.analytics.v1.PageStats.range:type_name -> white.common.v1.ResolvedRange
-	69,  // 103: white.analytics.v1.PageStats.rows:type_name -> white.analytics.v1.QueryAgg
-	121, // 104: white.analytics.v1.DimBreakdown.range:type_name -> white.common.v1.ResolvedRange
-	68,  // 105: white.analytics.v1.DimBreakdown.devices:type_name -> white.analytics.v1.DimAgg
-	68,  // 106: white.analytics.v1.DimBreakdown.countries:type_name -> white.analytics.v1.DimAgg
-	1,   // 107: white.analytics.v1.AuditRow.strategy:type_name -> white.analytics.v1.AuditStrategy
-	117, // 108: white.analytics.v1.AuditRow.run_at:type_name -> google.protobuf.Timestamp
-	122, // 109: white.analytics.v1.CrawlSummary.status:type_name -> white.common.v1.JobStatus
-	117, // 110: white.analytics.v1.CrawlSummary.started_at:type_name -> google.protobuf.Timestamp
-	117, // 111: white.analytics.v1.CrawlSummary.finished_at:type_name -> google.protobuf.Timestamp
-	2,   // 112: white.analytics.v1.IssueRow.severity:type_name -> white.analytics.v1.IssueSeverity
-	76,  // 113: white.analytics.v1.AuditData.latest_mobile:type_name -> white.analytics.v1.AuditRow
-	76,  // 114: white.analytics.v1.AuditData.latest_desktop:type_name -> white.analytics.v1.AuditRow
-	117, // 115: white.analytics.v1.AuditData.last_run_at:type_name -> google.protobuf.Timestamp
-	77,  // 116: white.analytics.v1.AuditData.history:type_name -> white.analytics.v1.ScoreHistoryPoint
-	78,  // 117: white.analytics.v1.AuditData.crawl:type_name -> white.analytics.v1.CrawlSummary
-	79,  // 118: white.analytics.v1.AuditData.pages:type_name -> white.analytics.v1.CrawlPageRow
-	80,  // 119: white.analytics.v1.AuditData.issues:type_name -> white.analytics.v1.IssueRow
-	81,  // 120: white.analytics.v1.AuditData.severity_counts:type_name -> white.analytics.v1.SeverityCounts
-	82,  // 121: white.analytics.v1.AuditData.code_counts:type_name -> white.analytics.v1.CodeCount
-	84,  // 122: white.analytics.v1.IssueTrend.points:type_name -> white.analytics.v1.IssueTrendPoint
-	120, // 123: white.analytics.v1.GetAdsDashboardRequest.range:type_name -> white.common.v1.RangeQuery
-	119, // 124: white.analytics.v1.AdsDeltas.spend:type_name -> white.common.v1.Delta
-	119, // 125: white.analytics.v1.AdsDeltas.results:type_name -> white.common.v1.Delta
-	119, // 126: white.analytics.v1.AdsDeltas.cpr:type_name -> white.common.v1.Delta
-	119, // 127: white.analytics.v1.AdsDeltas.impressions:type_name -> white.common.v1.Delta
-	119, // 128: white.analytics.v1.AdsDeltas.reach:type_name -> white.common.v1.Delta
-	119, // 129: white.analytics.v1.AdsDeltas.link_clicks:type_name -> white.common.v1.Delta
-	119, // 130: white.analytics.v1.AdsDeltas.ctr:type_name -> white.common.v1.Delta
-	119, // 131: white.analytics.v1.AdsDeltas.cpc:type_name -> white.common.v1.Delta
-	119, // 132: white.analytics.v1.AdsDeltas.cpm:type_name -> white.common.v1.Delta
-	119, // 133: white.analytics.v1.AdsDeltas.frequency:type_name -> white.common.v1.Delta
-	119, // 134: white.analytics.v1.AdsDeltas.roas:type_name -> white.common.v1.Delta
-	92,  // 135: white.analytics.v1.AdsAdNode.kpis:type_name -> white.analytics.v1.AdsNodeKpis
-	92,  // 136: white.analytics.v1.AdsAdSetNode.kpis:type_name -> white.analytics.v1.AdsNodeKpis
-	93,  // 137: white.analytics.v1.AdsAdSetNode.ads:type_name -> white.analytics.v1.AdsAdNode
-	92,  // 138: white.analytics.v1.AdsCampaignNode.kpis:type_name -> white.analytics.v1.AdsNodeKpis
-	94,  // 139: white.analytics.v1.AdsCampaignNode.ad_sets:type_name -> white.analytics.v1.AdsAdSetNode
-	98,  // 140: white.analytics.v1.AdsDemographics.by_age:type_name -> white.analytics.v1.AdsDemographicRow
-	98,  // 141: white.analytics.v1.AdsDemographics.by_gender:type_name -> white.analytics.v1.AdsDemographicRow
-	98,  // 142: white.analytics.v1.AdsDemographics.matrix:type_name -> white.analytics.v1.AdsDemographicRow
-	121, // 143: white.analytics.v1.AdsDashboard.range:type_name -> white.common.v1.ResolvedRange
-	9,   // 144: white.analytics.v1.AdsDashboard.account:type_name -> white.analytics.v1.AdAccount
-	100, // 145: white.analytics.v1.AdsDashboard.campaign_options:type_name -> white.analytics.v1.CampaignOption
-	27,  // 146: white.analytics.v1.AdsDashboard.kpis:type_name -> white.analytics.v1.AdKpis
-	27,  // 147: white.analytics.v1.AdsDashboard.prev:type_name -> white.analytics.v1.AdKpis
-	91,  // 148: white.analytics.v1.AdsDashboard.deltas:type_name -> white.analytics.v1.AdsDeltas
-	32,  // 149: white.analytics.v1.AdsDashboard.daily:type_name -> white.analytics.v1.AdsDailyPoint
-	96,  // 150: white.analytics.v1.AdsDashboard.campaign_share:type_name -> white.analytics.v1.AdsCampaignShare
-	95,  // 151: white.analytics.v1.AdsDashboard.breakdown:type_name -> white.analytics.v1.AdsCampaignNode
-	99,  // 152: white.analytics.v1.AdsDashboard.demographics:type_name -> white.analytics.v1.AdsDemographics
-	97,  // 153: white.analytics.v1.AdsDashboard.top_ads:type_name -> white.analytics.v1.AdsTopAd
-	117, // 154: white.analytics.v1.SyncAdsResponse.last_synced_at:type_name -> google.protobuf.Timestamp
-	123, // 155: white.analytics.v1.GetReportDataRequest.current:type_name -> white.common.v1.DateRange
-	123, // 156: white.analytics.v1.GetReportDataRequest.previous:type_name -> white.common.v1.DateRange
-	124, // 157: white.analytics.v1.GetReportDataRequest.modules:type_name -> white.common.v1.ModuleKey
-	116, // 158: white.analytics.v1.TopPostRow.platform:type_name -> white.common.v1.SocialPlatform
-	117, // 159: white.analytics.v1.TopPostRow.published_at:type_name -> google.protobuf.Timestamp
-	29,  // 160: white.analytics.v1.ReportSocial.overview:type_name -> white.analytics.v1.OverviewSocial
-	107, // 161: white.analytics.v1.ReportSocial.daily_followers:type_name -> white.analytics.v1.DailyFollowersPoint
-	108, // 162: white.analytics.v1.ReportSocial.top_posts:type_name -> white.analytics.v1.TopPostRow
-	31,  // 163: white.analytics.v1.ReportSeo.overview:type_name -> white.analytics.v1.OverviewSeo
-	109, // 164: white.analytics.v1.ReportSeo.top_queries:type_name -> white.analytics.v1.TopQueryRow
-	33,  // 165: white.analytics.v1.ReportAds.overview:type_name -> white.analytics.v1.OverviewAds
-	110, // 166: white.analytics.v1.ReportAds.campaigns:type_name -> white.analytics.v1.CampaignRow
-	123, // 167: white.analytics.v1.ReportData.current:type_name -> white.common.v1.DateRange
-	123, // 168: white.analytics.v1.ReportData.previous:type_name -> white.common.v1.DateRange
-	111, // 169: white.analytics.v1.ReportData.social:type_name -> white.analytics.v1.ReportSocial
-	112, // 170: white.analytics.v1.ReportData.seo:type_name -> white.analytics.v1.ReportSeo
-	113, // 171: white.analytics.v1.ReportData.ads:type_name -> white.analytics.v1.ReportAds
-	117, // 172: white.analytics.v1.GetLatestSyncByClientsResponse.LatestEntry.value:type_name -> google.protobuf.Timestamp
-	4,   // 173: white.analytics.v1.SourceService.ListSocialAccounts:input_type -> white.analytics.v1.ListSocialAccountsRequest
-	7,   // 174: white.analytics.v1.SourceService.ListSeoProperties:input_type -> white.analytics.v1.ListSeoPropertiesRequest
-	10,  // 175: white.analytics.v1.SourceService.ListAdAccounts:input_type -> white.analytics.v1.ListAdAccountsRequest
-	12,  // 176: white.analytics.v1.SourceService.AddSocialAccount:input_type -> white.analytics.v1.AddSocialAccountRequest
-	13,  // 177: white.analytics.v1.SourceService.RemoveSocialAccount:input_type -> white.analytics.v1.RemoveSocialAccountRequest
-	14,  // 178: white.analytics.v1.SourceService.AddCompetitor:input_type -> white.analytics.v1.AddCompetitorRequest
-	16,  // 179: white.analytics.v1.SourceService.RemoveCompetitor:input_type -> white.analytics.v1.RemoveCompetitorRequest
-	17,  // 180: white.analytics.v1.SourceService.AddSeoProperty:input_type -> white.analytics.v1.AddSeoPropertyRequest
-	18,  // 181: white.analytics.v1.SourceService.RemoveSeoProperty:input_type -> white.analytics.v1.RemoveSeoPropertyRequest
-	19,  // 182: white.analytics.v1.SourceService.SetAuditCadence:input_type -> white.analytics.v1.SetAuditCadenceRequest
-	21,  // 183: white.analytics.v1.SourceService.AddAdAccount:input_type -> white.analytics.v1.AddAdAccountRequest
-	22,  // 184: white.analytics.v1.SourceService.RemoveAdAccount:input_type -> white.analytics.v1.RemoveAdAccountRequest
-	23,  // 185: white.analytics.v1.SourceService.GetClientSources:input_type -> white.analytics.v1.GetClientSourcesRequest
-	25,  // 186: white.analytics.v1.SourceService.GetSeoProperty:input_type -> white.analytics.v1.GetSeoPropertyRequest
-	34,  // 187: white.analytics.v1.OverviewService.GetOverview:input_type -> white.analytics.v1.GetOverviewRequest
-	36,  // 188: white.analytics.v1.OverviewService.GetPortfolioTotals:input_type -> white.analytics.v1.GetPortfolioTotalsRequest
-	39,  // 189: white.analytics.v1.OverviewService.ListSyncJobs:input_type -> white.analytics.v1.ListSyncJobsRequest
-	41,  // 190: white.analytics.v1.OverviewService.GetLatestSyncByClients:input_type -> white.analytics.v1.GetLatestSyncByClientsRequest
-	50,  // 191: white.analytics.v1.SocialService.GetSocialDashboard:input_type -> white.analytics.v1.GetSocialDashboardRequest
-	56,  // 192: white.analytics.v1.SocialService.GetCompetitorDashboard:input_type -> white.analytics.v1.GetCompetitorDashboardRequest
-	58,  // 193: white.analytics.v1.SocialService.SyncSocial:input_type -> white.analytics.v1.SyncSocialRequest
-	60,  // 194: white.analytics.v1.SeoService.GetSeoOverview:input_type -> white.analytics.v1.SeoPropertyRangeRequest
-	60,  // 195: white.analytics.v1.SeoService.GetQueryStats:input_type -> white.analytics.v1.SeoPropertyRangeRequest
-	60,  // 196: white.analytics.v1.SeoService.GetPageStats:input_type -> white.analytics.v1.SeoPropertyRangeRequest
-	60,  // 197: white.analytics.v1.SeoService.GetDimBreakdown:input_type -> white.analytics.v1.SeoPropertyRangeRequest
-	61,  // 198: white.analytics.v1.SeoService.GetAuditData:input_type -> white.analytics.v1.SeoPropertyRequest
-	61,  // 199: white.analytics.v1.SeoService.GetIssueTrend:input_type -> white.analytics.v1.SeoPropertyRequest
-	86,  // 200: white.analytics.v1.SeoService.RunAudit:input_type -> white.analytics.v1.RunAuditRequest
-	88,  // 201: white.analytics.v1.SeoService.SyncSeo:input_type -> white.analytics.v1.SyncSeoRequest
-	90,  // 202: white.analytics.v1.AdsService.GetAdsDashboard:input_type -> white.analytics.v1.GetAdsDashboardRequest
-	102, // 203: white.analytics.v1.AdsService.ImportAdsCsv:input_type -> white.analytics.v1.ImportAdsCsvRequest
-	104, // 204: white.analytics.v1.AdsService.SyncAds:input_type -> white.analytics.v1.SyncAdsRequest
-	106, // 205: white.analytics.v1.ReportDataService.GetReportData:input_type -> white.analytics.v1.GetReportDataRequest
-	5,   // 206: white.analytics.v1.SourceService.ListSocialAccounts:output_type -> white.analytics.v1.ListSocialAccountsResponse
-	8,   // 207: white.analytics.v1.SourceService.ListSeoProperties:output_type -> white.analytics.v1.ListSeoPropertiesResponse
-	11,  // 208: white.analytics.v1.SourceService.ListAdAccounts:output_type -> white.analytics.v1.ListAdAccountsResponse
-	3,   // 209: white.analytics.v1.SourceService.AddSocialAccount:output_type -> white.analytics.v1.SocialAccount
-	125, // 210: white.analytics.v1.SourceService.RemoveSocialAccount:output_type -> google.protobuf.Empty
-	15,  // 211: white.analytics.v1.SourceService.AddCompetitor:output_type -> white.analytics.v1.AddCompetitorResponse
-	125, // 212: white.analytics.v1.SourceService.RemoveCompetitor:output_type -> google.protobuf.Empty
-	6,   // 213: white.analytics.v1.SourceService.AddSeoProperty:output_type -> white.analytics.v1.SeoProperty
-	125, // 214: white.analytics.v1.SourceService.RemoveSeoProperty:output_type -> google.protobuf.Empty
-	20,  // 215: white.analytics.v1.SourceService.SetAuditCadence:output_type -> white.analytics.v1.SetAuditCadenceResponse
-	9,   // 216: white.analytics.v1.SourceService.AddAdAccount:output_type -> white.analytics.v1.AdAccount
-	125, // 217: white.analytics.v1.SourceService.RemoveAdAccount:output_type -> google.protobuf.Empty
-	24,  // 218: white.analytics.v1.SourceService.GetClientSources:output_type -> white.analytics.v1.GetClientSourcesResponse
-	6,   // 219: white.analytics.v1.SourceService.GetSeoProperty:output_type -> white.analytics.v1.SeoProperty
-	35,  // 220: white.analytics.v1.OverviewService.GetOverview:output_type -> white.analytics.v1.Overview
-	37,  // 221: white.analytics.v1.OverviewService.GetPortfolioTotals:output_type -> white.analytics.v1.PortfolioTotals
-	40,  // 222: white.analytics.v1.OverviewService.ListSyncJobs:output_type -> white.analytics.v1.ListSyncJobsResponse
-	42,  // 223: white.analytics.v1.OverviewService.GetLatestSyncByClients:output_type -> white.analytics.v1.GetLatestSyncByClientsResponse
-	51,  // 224: white.analytics.v1.SocialService.GetSocialDashboard:output_type -> white.analytics.v1.SocialDashboard
-	57,  // 225: white.analytics.v1.SocialService.GetCompetitorDashboard:output_type -> white.analytics.v1.CompetitorDashboard
-	59,  // 226: white.analytics.v1.SocialService.SyncSocial:output_type -> white.analytics.v1.SyncSocialResponse
-	67,  // 227: white.analytics.v1.SeoService.GetSeoOverview:output_type -> white.analytics.v1.SeoOverview
-	73,  // 228: white.analytics.v1.SeoService.GetQueryStats:output_type -> white.analytics.v1.QueryStats
-	74,  // 229: white.analytics.v1.SeoService.GetPageStats:output_type -> white.analytics.v1.PageStats
-	75,  // 230: white.analytics.v1.SeoService.GetDimBreakdown:output_type -> white.analytics.v1.DimBreakdown
-	83,  // 231: white.analytics.v1.SeoService.GetAuditData:output_type -> white.analytics.v1.AuditData
-	85,  // 232: white.analytics.v1.SeoService.GetIssueTrend:output_type -> white.analytics.v1.IssueTrend
-	87,  // 233: white.analytics.v1.SeoService.RunAudit:output_type -> white.analytics.v1.RunAuditResponse
-	89,  // 234: white.analytics.v1.SeoService.SyncSeo:output_type -> white.analytics.v1.SyncSeoResponse
-	101, // 235: white.analytics.v1.AdsService.GetAdsDashboard:output_type -> white.analytics.v1.AdsDashboard
-	103, // 236: white.analytics.v1.AdsService.ImportAdsCsv:output_type -> white.analytics.v1.ImportSummary
-	105, // 237: white.analytics.v1.AdsService.SyncAds:output_type -> white.analytics.v1.SyncAdsResponse
-	114, // 238: white.analytics.v1.ReportDataService.GetReportData:output_type -> white.analytics.v1.ReportData
-	206, // [206:239] is the sub-list for method output_type
-	173, // [173:206] is the sub-list for method input_type
-	173, // [173:173] is the sub-list for extension type_name
-	173, // [173:173] is the sub-list for extension extendee
-	0,   // [0:173] is the sub-list for field type_name
+	120, // 16: white.analytics.v1.SocialPost.published_at:type_name -> google.protobuf.Timestamp
+	27,  // 17: white.analytics.v1.ListSocialPostsResponse.posts:type_name -> white.analytics.v1.SocialPost
+	121, // 18: white.analytics.v1.DataQuality.state:type_name -> white.common.v1.DataState
+	120, // 19: white.analytics.v1.DataQuality.last_synced_at:type_name -> google.protobuf.Timestamp
+	120, // 20: white.analytics.v1.DataQuality.data_from:type_name -> google.protobuf.Timestamp
+	120, // 21: white.analytics.v1.DataQuality.data_to:type_name -> google.protobuf.Timestamp
+	119, // 22: white.analytics.v1.OverviewSocialAccount.platform:type_name -> white.common.v1.SocialPlatform
+	29,  // 23: white.analytics.v1.OverviewSocial.quality:type_name -> white.analytics.v1.DataQuality
+	122, // 24: white.analytics.v1.OverviewSocial.followers_delta:type_name -> white.common.v1.Delta
+	122, // 25: white.analytics.v1.OverviewSocial.posts_delta:type_name -> white.common.v1.Delta
+	122, // 26: white.analytics.v1.OverviewSocial.engagement_rate_delta:type_name -> white.common.v1.Delta
+	122, // 27: white.analytics.v1.OverviewSocial.reach_delta:type_name -> white.common.v1.Delta
+	31,  // 28: white.analytics.v1.OverviewSocial.accounts:type_name -> white.analytics.v1.OverviewSocialAccount
+	29,  // 29: white.analytics.v1.OverviewSeo.quality:type_name -> white.analytics.v1.DataQuality
+	122, // 30: white.analytics.v1.OverviewSeo.clicks_delta:type_name -> white.common.v1.Delta
+	122, // 31: white.analytics.v1.OverviewSeo.impressions_delta:type_name -> white.common.v1.Delta
+	122, // 32: white.analytics.v1.OverviewSeo.ctr_delta:type_name -> white.common.v1.Delta
+	122, // 33: white.analytics.v1.OverviewSeo.position_delta:type_name -> white.common.v1.Delta
+	33,  // 34: white.analytics.v1.OverviewSeo.daily:type_name -> white.analytics.v1.SeoDailyPoint
+	29,  // 35: white.analytics.v1.OverviewAds.quality:type_name -> white.analytics.v1.DataQuality
+	30,  // 36: white.analytics.v1.OverviewAds.kpis:type_name -> white.analytics.v1.AdKpis
+	30,  // 37: white.analytics.v1.OverviewAds.prev:type_name -> white.analytics.v1.AdKpis
+	122, // 38: white.analytics.v1.OverviewAds.spend_delta:type_name -> white.common.v1.Delta
+	122, // 39: white.analytics.v1.OverviewAds.results_delta:type_name -> white.common.v1.Delta
+	122, // 40: white.analytics.v1.OverviewAds.cpr_delta:type_name -> white.common.v1.Delta
+	35,  // 41: white.analytics.v1.OverviewAds.daily:type_name -> white.analytics.v1.AdsDailyPoint
+	123, // 42: white.analytics.v1.GetOverviewRequest.range:type_name -> white.common.v1.RangeQuery
+	124, // 43: white.analytics.v1.Overview.range:type_name -> white.common.v1.ResolvedRange
+	32,  // 44: white.analytics.v1.Overview.social:type_name -> white.analytics.v1.OverviewSocial
+	34,  // 45: white.analytics.v1.Overview.seo:type_name -> white.analytics.v1.OverviewSeo
+	36,  // 46: white.analytics.v1.Overview.ads:type_name -> white.analytics.v1.OverviewAds
+	123, // 47: white.analytics.v1.GetPortfolioTotalsRequest.range:type_name -> white.common.v1.RangeQuery
+	124, // 48: white.analytics.v1.PortfolioTotals.range:type_name -> white.common.v1.ResolvedRange
+	122, // 49: white.analytics.v1.PortfolioTotals.followers_delta:type_name -> white.common.v1.Delta
+	122, // 50: white.analytics.v1.PortfolioTotals.clicks_delta:type_name -> white.common.v1.Delta
+	122, // 51: white.analytics.v1.PortfolioTotals.spend_delta:type_name -> white.common.v1.Delta
+	125, // 52: white.analytics.v1.SyncJob.status:type_name -> white.common.v1.JobStatus
+	120, // 53: white.analytics.v1.SyncJob.started_at:type_name -> google.protobuf.Timestamp
+	120, // 54: white.analytics.v1.SyncJob.finished_at:type_name -> google.protobuf.Timestamp
+	41,  // 55: white.analytics.v1.ListSyncJobsResponse.jobs:type_name -> white.analytics.v1.SyncJob
+	118, // 56: white.analytics.v1.GetLatestSyncByClientsResponse.latest:type_name -> white.analytics.v1.GetLatestSyncByClientsResponse.LatestEntry
+	120, // 57: white.analytics.v1.SocialPostRow.published_at:type_name -> google.protobuf.Timestamp
+	122, // 58: white.analytics.v1.SocialKpis.followers_delta:type_name -> white.common.v1.Delta
+	122, // 59: white.analytics.v1.SocialKpis.er_delta:type_name -> white.common.v1.Delta
+	122, // 60: white.analytics.v1.SocialKpis.reach_delta:type_name -> white.common.v1.Delta
+	122, // 61: white.analytics.v1.SocialKpis.impressions_delta:type_name -> white.common.v1.Delta
+	122, // 62: white.analytics.v1.SocialKpis.posts_delta:type_name -> white.common.v1.Delta
+	119, // 63: white.analytics.v1.GetSocialDashboardRequest.platform:type_name -> white.common.v1.SocialPlatform
+	123, // 64: white.analytics.v1.GetSocialDashboardRequest.range:type_name -> white.common.v1.RangeQuery
+	124, // 65: white.analytics.v1.SocialDashboard.range:type_name -> white.common.v1.ResolvedRange
+	52,  // 66: white.analytics.v1.SocialDashboard.account:type_name -> white.analytics.v1.SocialDashboardAccount
+	47,  // 67: white.analytics.v1.SocialDashboard.kpis:type_name -> white.analytics.v1.SocialKpis
+	48,  // 68: white.analytics.v1.SocialDashboard.growth_series:type_name -> white.analytics.v1.GrowthPoint
+	49,  // 69: white.analytics.v1.SocialDashboard.reach_series:type_name -> white.analytics.v1.ReachPoint
+	50,  // 70: white.analytics.v1.SocialDashboard.er_by_type:type_name -> white.analytics.v1.ErByType
+	51,  // 71: white.analytics.v1.SocialDashboard.heatmap:type_name -> white.analytics.v1.HeatCell
+	46,  // 72: white.analytics.v1.SocialDashboard.top_posts:type_name -> white.analytics.v1.SocialPostRow
+	46,  // 73: white.analytics.v1.SocialDashboard.posts:type_name -> white.analytics.v1.SocialPostRow
+	122, // 74: white.analytics.v1.CompetitorRow.growth_delta:type_name -> white.common.v1.Delta
+	56,  // 75: white.analytics.v1.CompetitorChartPoint.values:type_name -> white.analytics.v1.CompetitorChartValue
+	123, // 76: white.analytics.v1.GetCompetitorDashboardRequest.range:type_name -> white.common.v1.RangeQuery
+	124, // 77: white.analytics.v1.CompetitorDashboard.range:type_name -> white.common.v1.ResolvedRange
+	55,  // 78: white.analytics.v1.CompetitorDashboard.rows:type_name -> white.analytics.v1.CompetitorRow
+	57,  // 79: white.analytics.v1.CompetitorDashboard.chart:type_name -> white.analytics.v1.CompetitorChartPoint
+	58,  // 80: white.analytics.v1.CompetitorDashboard.series:type_name -> white.analytics.v1.CompetitorSeries
+	46,  // 81: white.analytics.v1.CompetitorDashboard.top_posts:type_name -> white.analytics.v1.SocialPostRow
+	119, // 82: white.analytics.v1.SyncSocialRequest.platform:type_name -> white.common.v1.SocialPlatform
+	123, // 83: white.analytics.v1.SeoPropertyRangeRequest.range:type_name -> white.common.v1.RangeQuery
+	122, // 84: white.analytics.v1.SeoDeltas.clicks:type_name -> white.common.v1.Delta
+	122, // 85: white.analytics.v1.SeoDeltas.impressions:type_name -> white.common.v1.Delta
+	122, // 86: white.analytics.v1.SeoDeltas.ctr:type_name -> white.common.v1.Delta
+	122, // 87: white.analytics.v1.SeoDeltas.position:type_name -> white.common.v1.Delta
+	122, // 88: white.analytics.v1.Ga4Summary.organic_delta:type_name -> white.common.v1.Delta
+	122, // 89: white.analytics.v1.Ga4Summary.conversions_delta:type_name -> white.common.v1.Delta
+	124, // 90: white.analytics.v1.SeoOverview.range:type_name -> white.common.v1.ResolvedRange
+	67,  // 91: white.analytics.v1.SeoOverview.kpis:type_name -> white.analytics.v1.SeoKpis
+	68,  // 92: white.analytics.v1.SeoOverview.deltas:type_name -> white.analytics.v1.SeoDeltas
+	65,  // 93: white.analytics.v1.SeoOverview.daily:type_name -> white.analytics.v1.SearchDailyPoint
+	69,  // 94: white.analytics.v1.SeoOverview.ga4:type_name -> white.analytics.v1.Ga4Summary
+	66,  // 95: white.analytics.v1.SeoOverview.ga4_daily:type_name -> white.analytics.v1.Ga4DailyPoint
+	74,  // 96: white.analytics.v1.KeywordOpportunities.striking:type_name -> white.analytics.v1.Opportunity
+	74,  // 97: white.analytics.v1.KeywordOpportunities.low_ctr:type_name -> white.analytics.v1.Opportunity
+	74,  // 98: white.analytics.v1.KeywordOpportunities.declining:type_name -> white.analytics.v1.Opportunity
+	74,  // 99: white.analytics.v1.KeywordOpportunities.rising:type_name -> white.analytics.v1.Opportunity
+	124, // 100: white.analytics.v1.QueryStats.range:type_name -> white.common.v1.ResolvedRange
+	72,  // 101: white.analytics.v1.QueryStats.rows:type_name -> white.analytics.v1.QueryAgg
+	73,  // 102: white.analytics.v1.QueryStats.distribution:type_name -> white.analytics.v1.PositionBucketRow
+	75,  // 103: white.analytics.v1.QueryStats.opportunities:type_name -> white.analytics.v1.KeywordOpportunities
+	124, // 104: white.analytics.v1.PageStats.range:type_name -> white.common.v1.ResolvedRange
+	72,  // 105: white.analytics.v1.PageStats.rows:type_name -> white.analytics.v1.QueryAgg
+	124, // 106: white.analytics.v1.DimBreakdown.range:type_name -> white.common.v1.ResolvedRange
+	71,  // 107: white.analytics.v1.DimBreakdown.devices:type_name -> white.analytics.v1.DimAgg
+	71,  // 108: white.analytics.v1.DimBreakdown.countries:type_name -> white.analytics.v1.DimAgg
+	1,   // 109: white.analytics.v1.AuditRow.strategy:type_name -> white.analytics.v1.AuditStrategy
+	120, // 110: white.analytics.v1.AuditRow.run_at:type_name -> google.protobuf.Timestamp
+	125, // 111: white.analytics.v1.CrawlSummary.status:type_name -> white.common.v1.JobStatus
+	120, // 112: white.analytics.v1.CrawlSummary.started_at:type_name -> google.protobuf.Timestamp
+	120, // 113: white.analytics.v1.CrawlSummary.finished_at:type_name -> google.protobuf.Timestamp
+	2,   // 114: white.analytics.v1.IssueRow.severity:type_name -> white.analytics.v1.IssueSeverity
+	79,  // 115: white.analytics.v1.AuditData.latest_mobile:type_name -> white.analytics.v1.AuditRow
+	79,  // 116: white.analytics.v1.AuditData.latest_desktop:type_name -> white.analytics.v1.AuditRow
+	120, // 117: white.analytics.v1.AuditData.last_run_at:type_name -> google.protobuf.Timestamp
+	80,  // 118: white.analytics.v1.AuditData.history:type_name -> white.analytics.v1.ScoreHistoryPoint
+	81,  // 119: white.analytics.v1.AuditData.crawl:type_name -> white.analytics.v1.CrawlSummary
+	82,  // 120: white.analytics.v1.AuditData.pages:type_name -> white.analytics.v1.CrawlPageRow
+	83,  // 121: white.analytics.v1.AuditData.issues:type_name -> white.analytics.v1.IssueRow
+	84,  // 122: white.analytics.v1.AuditData.severity_counts:type_name -> white.analytics.v1.SeverityCounts
+	85,  // 123: white.analytics.v1.AuditData.code_counts:type_name -> white.analytics.v1.CodeCount
+	87,  // 124: white.analytics.v1.IssueTrend.points:type_name -> white.analytics.v1.IssueTrendPoint
+	123, // 125: white.analytics.v1.GetAdsDashboardRequest.range:type_name -> white.common.v1.RangeQuery
+	122, // 126: white.analytics.v1.AdsDeltas.spend:type_name -> white.common.v1.Delta
+	122, // 127: white.analytics.v1.AdsDeltas.results:type_name -> white.common.v1.Delta
+	122, // 128: white.analytics.v1.AdsDeltas.cpr:type_name -> white.common.v1.Delta
+	122, // 129: white.analytics.v1.AdsDeltas.impressions:type_name -> white.common.v1.Delta
+	122, // 130: white.analytics.v1.AdsDeltas.reach:type_name -> white.common.v1.Delta
+	122, // 131: white.analytics.v1.AdsDeltas.link_clicks:type_name -> white.common.v1.Delta
+	122, // 132: white.analytics.v1.AdsDeltas.ctr:type_name -> white.common.v1.Delta
+	122, // 133: white.analytics.v1.AdsDeltas.cpc:type_name -> white.common.v1.Delta
+	122, // 134: white.analytics.v1.AdsDeltas.cpm:type_name -> white.common.v1.Delta
+	122, // 135: white.analytics.v1.AdsDeltas.frequency:type_name -> white.common.v1.Delta
+	122, // 136: white.analytics.v1.AdsDeltas.roas:type_name -> white.common.v1.Delta
+	95,  // 137: white.analytics.v1.AdsAdNode.kpis:type_name -> white.analytics.v1.AdsNodeKpis
+	95,  // 138: white.analytics.v1.AdsAdSetNode.kpis:type_name -> white.analytics.v1.AdsNodeKpis
+	96,  // 139: white.analytics.v1.AdsAdSetNode.ads:type_name -> white.analytics.v1.AdsAdNode
+	95,  // 140: white.analytics.v1.AdsCampaignNode.kpis:type_name -> white.analytics.v1.AdsNodeKpis
+	97,  // 141: white.analytics.v1.AdsCampaignNode.ad_sets:type_name -> white.analytics.v1.AdsAdSetNode
+	101, // 142: white.analytics.v1.AdsDemographics.by_age:type_name -> white.analytics.v1.AdsDemographicRow
+	101, // 143: white.analytics.v1.AdsDemographics.by_gender:type_name -> white.analytics.v1.AdsDemographicRow
+	101, // 144: white.analytics.v1.AdsDemographics.matrix:type_name -> white.analytics.v1.AdsDemographicRow
+	124, // 145: white.analytics.v1.AdsDashboard.range:type_name -> white.common.v1.ResolvedRange
+	9,   // 146: white.analytics.v1.AdsDashboard.account:type_name -> white.analytics.v1.AdAccount
+	103, // 147: white.analytics.v1.AdsDashboard.campaign_options:type_name -> white.analytics.v1.CampaignOption
+	30,  // 148: white.analytics.v1.AdsDashboard.kpis:type_name -> white.analytics.v1.AdKpis
+	30,  // 149: white.analytics.v1.AdsDashboard.prev:type_name -> white.analytics.v1.AdKpis
+	94,  // 150: white.analytics.v1.AdsDashboard.deltas:type_name -> white.analytics.v1.AdsDeltas
+	35,  // 151: white.analytics.v1.AdsDashboard.daily:type_name -> white.analytics.v1.AdsDailyPoint
+	99,  // 152: white.analytics.v1.AdsDashboard.campaign_share:type_name -> white.analytics.v1.AdsCampaignShare
+	98,  // 153: white.analytics.v1.AdsDashboard.breakdown:type_name -> white.analytics.v1.AdsCampaignNode
+	102, // 154: white.analytics.v1.AdsDashboard.demographics:type_name -> white.analytics.v1.AdsDemographics
+	100, // 155: white.analytics.v1.AdsDashboard.top_ads:type_name -> white.analytics.v1.AdsTopAd
+	120, // 156: white.analytics.v1.SyncAdsResponse.last_synced_at:type_name -> google.protobuf.Timestamp
+	126, // 157: white.analytics.v1.GetReportDataRequest.current:type_name -> white.common.v1.DateRange
+	126, // 158: white.analytics.v1.GetReportDataRequest.previous:type_name -> white.common.v1.DateRange
+	127, // 159: white.analytics.v1.GetReportDataRequest.modules:type_name -> white.common.v1.ModuleKey
+	119, // 160: white.analytics.v1.TopPostRow.platform:type_name -> white.common.v1.SocialPlatform
+	120, // 161: white.analytics.v1.TopPostRow.published_at:type_name -> google.protobuf.Timestamp
+	32,  // 162: white.analytics.v1.ReportSocial.overview:type_name -> white.analytics.v1.OverviewSocial
+	110, // 163: white.analytics.v1.ReportSocial.daily_followers:type_name -> white.analytics.v1.DailyFollowersPoint
+	111, // 164: white.analytics.v1.ReportSocial.top_posts:type_name -> white.analytics.v1.TopPostRow
+	34,  // 165: white.analytics.v1.ReportSeo.overview:type_name -> white.analytics.v1.OverviewSeo
+	112, // 166: white.analytics.v1.ReportSeo.top_queries:type_name -> white.analytics.v1.TopQueryRow
+	36,  // 167: white.analytics.v1.ReportAds.overview:type_name -> white.analytics.v1.OverviewAds
+	113, // 168: white.analytics.v1.ReportAds.campaigns:type_name -> white.analytics.v1.CampaignRow
+	126, // 169: white.analytics.v1.ReportData.current:type_name -> white.common.v1.DateRange
+	126, // 170: white.analytics.v1.ReportData.previous:type_name -> white.common.v1.DateRange
+	114, // 171: white.analytics.v1.ReportData.social:type_name -> white.analytics.v1.ReportSocial
+	115, // 172: white.analytics.v1.ReportData.seo:type_name -> white.analytics.v1.ReportSeo
+	116, // 173: white.analytics.v1.ReportData.ads:type_name -> white.analytics.v1.ReportAds
+	120, // 174: white.analytics.v1.GetLatestSyncByClientsResponse.LatestEntry.value:type_name -> google.protobuf.Timestamp
+	4,   // 175: white.analytics.v1.SourceService.ListSocialAccounts:input_type -> white.analytics.v1.ListSocialAccountsRequest
+	7,   // 176: white.analytics.v1.SourceService.ListSeoProperties:input_type -> white.analytics.v1.ListSeoPropertiesRequest
+	10,  // 177: white.analytics.v1.SourceService.ListAdAccounts:input_type -> white.analytics.v1.ListAdAccountsRequest
+	12,  // 178: white.analytics.v1.SourceService.AddSocialAccount:input_type -> white.analytics.v1.AddSocialAccountRequest
+	13,  // 179: white.analytics.v1.SourceService.RemoveSocialAccount:input_type -> white.analytics.v1.RemoveSocialAccountRequest
+	14,  // 180: white.analytics.v1.SourceService.AddCompetitor:input_type -> white.analytics.v1.AddCompetitorRequest
+	16,  // 181: white.analytics.v1.SourceService.RemoveCompetitor:input_type -> white.analytics.v1.RemoveCompetitorRequest
+	17,  // 182: white.analytics.v1.SourceService.AddSeoProperty:input_type -> white.analytics.v1.AddSeoPropertyRequest
+	18,  // 183: white.analytics.v1.SourceService.RemoveSeoProperty:input_type -> white.analytics.v1.RemoveSeoPropertyRequest
+	19,  // 184: white.analytics.v1.SourceService.SetAuditCadence:input_type -> white.analytics.v1.SetAuditCadenceRequest
+	21,  // 185: white.analytics.v1.SourceService.AddAdAccount:input_type -> white.analytics.v1.AddAdAccountRequest
+	22,  // 186: white.analytics.v1.SourceService.RemoveAdAccount:input_type -> white.analytics.v1.RemoveAdAccountRequest
+	23,  // 187: white.analytics.v1.SourceService.GetClientSources:input_type -> white.analytics.v1.GetClientSourcesRequest
+	25,  // 188: white.analytics.v1.SourceService.GetSeoProperty:input_type -> white.analytics.v1.GetSeoPropertyRequest
+	26,  // 189: white.analytics.v1.SourceService.ListSocialPosts:input_type -> white.analytics.v1.ListSocialPostsRequest
+	37,  // 190: white.analytics.v1.OverviewService.GetOverview:input_type -> white.analytics.v1.GetOverviewRequest
+	39,  // 191: white.analytics.v1.OverviewService.GetPortfolioTotals:input_type -> white.analytics.v1.GetPortfolioTotalsRequest
+	42,  // 192: white.analytics.v1.OverviewService.ListSyncJobs:input_type -> white.analytics.v1.ListSyncJobsRequest
+	44,  // 193: white.analytics.v1.OverviewService.GetLatestSyncByClients:input_type -> white.analytics.v1.GetLatestSyncByClientsRequest
+	53,  // 194: white.analytics.v1.SocialService.GetSocialDashboard:input_type -> white.analytics.v1.GetSocialDashboardRequest
+	59,  // 195: white.analytics.v1.SocialService.GetCompetitorDashboard:input_type -> white.analytics.v1.GetCompetitorDashboardRequest
+	61,  // 196: white.analytics.v1.SocialService.SyncSocial:input_type -> white.analytics.v1.SyncSocialRequest
+	63,  // 197: white.analytics.v1.SeoService.GetSeoOverview:input_type -> white.analytics.v1.SeoPropertyRangeRequest
+	63,  // 198: white.analytics.v1.SeoService.GetQueryStats:input_type -> white.analytics.v1.SeoPropertyRangeRequest
+	63,  // 199: white.analytics.v1.SeoService.GetPageStats:input_type -> white.analytics.v1.SeoPropertyRangeRequest
+	63,  // 200: white.analytics.v1.SeoService.GetDimBreakdown:input_type -> white.analytics.v1.SeoPropertyRangeRequest
+	64,  // 201: white.analytics.v1.SeoService.GetAuditData:input_type -> white.analytics.v1.SeoPropertyRequest
+	64,  // 202: white.analytics.v1.SeoService.GetIssueTrend:input_type -> white.analytics.v1.SeoPropertyRequest
+	89,  // 203: white.analytics.v1.SeoService.RunAudit:input_type -> white.analytics.v1.RunAuditRequest
+	91,  // 204: white.analytics.v1.SeoService.SyncSeo:input_type -> white.analytics.v1.SyncSeoRequest
+	93,  // 205: white.analytics.v1.AdsService.GetAdsDashboard:input_type -> white.analytics.v1.GetAdsDashboardRequest
+	105, // 206: white.analytics.v1.AdsService.ImportAdsCsv:input_type -> white.analytics.v1.ImportAdsCsvRequest
+	107, // 207: white.analytics.v1.AdsService.SyncAds:input_type -> white.analytics.v1.SyncAdsRequest
+	109, // 208: white.analytics.v1.ReportDataService.GetReportData:input_type -> white.analytics.v1.GetReportDataRequest
+	5,   // 209: white.analytics.v1.SourceService.ListSocialAccounts:output_type -> white.analytics.v1.ListSocialAccountsResponse
+	8,   // 210: white.analytics.v1.SourceService.ListSeoProperties:output_type -> white.analytics.v1.ListSeoPropertiesResponse
+	11,  // 211: white.analytics.v1.SourceService.ListAdAccounts:output_type -> white.analytics.v1.ListAdAccountsResponse
+	3,   // 212: white.analytics.v1.SourceService.AddSocialAccount:output_type -> white.analytics.v1.SocialAccount
+	128, // 213: white.analytics.v1.SourceService.RemoveSocialAccount:output_type -> google.protobuf.Empty
+	15,  // 214: white.analytics.v1.SourceService.AddCompetitor:output_type -> white.analytics.v1.AddCompetitorResponse
+	128, // 215: white.analytics.v1.SourceService.RemoveCompetitor:output_type -> google.protobuf.Empty
+	6,   // 216: white.analytics.v1.SourceService.AddSeoProperty:output_type -> white.analytics.v1.SeoProperty
+	128, // 217: white.analytics.v1.SourceService.RemoveSeoProperty:output_type -> google.protobuf.Empty
+	20,  // 218: white.analytics.v1.SourceService.SetAuditCadence:output_type -> white.analytics.v1.SetAuditCadenceResponse
+	9,   // 219: white.analytics.v1.SourceService.AddAdAccount:output_type -> white.analytics.v1.AdAccount
+	128, // 220: white.analytics.v1.SourceService.RemoveAdAccount:output_type -> google.protobuf.Empty
+	24,  // 221: white.analytics.v1.SourceService.GetClientSources:output_type -> white.analytics.v1.GetClientSourcesResponse
+	6,   // 222: white.analytics.v1.SourceService.GetSeoProperty:output_type -> white.analytics.v1.SeoProperty
+	28,  // 223: white.analytics.v1.SourceService.ListSocialPosts:output_type -> white.analytics.v1.ListSocialPostsResponse
+	38,  // 224: white.analytics.v1.OverviewService.GetOverview:output_type -> white.analytics.v1.Overview
+	40,  // 225: white.analytics.v1.OverviewService.GetPortfolioTotals:output_type -> white.analytics.v1.PortfolioTotals
+	43,  // 226: white.analytics.v1.OverviewService.ListSyncJobs:output_type -> white.analytics.v1.ListSyncJobsResponse
+	45,  // 227: white.analytics.v1.OverviewService.GetLatestSyncByClients:output_type -> white.analytics.v1.GetLatestSyncByClientsResponse
+	54,  // 228: white.analytics.v1.SocialService.GetSocialDashboard:output_type -> white.analytics.v1.SocialDashboard
+	60,  // 229: white.analytics.v1.SocialService.GetCompetitorDashboard:output_type -> white.analytics.v1.CompetitorDashboard
+	62,  // 230: white.analytics.v1.SocialService.SyncSocial:output_type -> white.analytics.v1.SyncSocialResponse
+	70,  // 231: white.analytics.v1.SeoService.GetSeoOverview:output_type -> white.analytics.v1.SeoOverview
+	76,  // 232: white.analytics.v1.SeoService.GetQueryStats:output_type -> white.analytics.v1.QueryStats
+	77,  // 233: white.analytics.v1.SeoService.GetPageStats:output_type -> white.analytics.v1.PageStats
+	78,  // 234: white.analytics.v1.SeoService.GetDimBreakdown:output_type -> white.analytics.v1.DimBreakdown
+	86,  // 235: white.analytics.v1.SeoService.GetAuditData:output_type -> white.analytics.v1.AuditData
+	88,  // 236: white.analytics.v1.SeoService.GetIssueTrend:output_type -> white.analytics.v1.IssueTrend
+	90,  // 237: white.analytics.v1.SeoService.RunAudit:output_type -> white.analytics.v1.RunAuditResponse
+	92,  // 238: white.analytics.v1.SeoService.SyncSeo:output_type -> white.analytics.v1.SyncSeoResponse
+	104, // 239: white.analytics.v1.AdsService.GetAdsDashboard:output_type -> white.analytics.v1.AdsDashboard
+	106, // 240: white.analytics.v1.AdsService.ImportAdsCsv:output_type -> white.analytics.v1.ImportSummary
+	108, // 241: white.analytics.v1.AdsService.SyncAds:output_type -> white.analytics.v1.SyncAdsResponse
+	117, // 242: white.analytics.v1.ReportDataService.GetReportData:output_type -> white.analytics.v1.ReportData
+	209, // [209:243] is the sub-list for method output_type
+	175, // [175:209] is the sub-list for method input_type
+	175, // [175:175] is the sub-list for extension type_name
+	175, // [175:175] is the sub-list for extension extendee
+	0,   // [0:175] is the sub-list for field type_name
 }
 
 func init() { file_white_analytics_v1_analytics_proto_init() }
@@ -9906,43 +10233,44 @@ func file_white_analytics_v1_analytics_proto_init() {
 	file_white_analytics_v1_analytics_proto_msgTypes[0].OneofWrappers = []any{}
 	file_white_analytics_v1_analytics_proto_msgTypes[3].OneofWrappers = []any{}
 	file_white_analytics_v1_analytics_proto_msgTypes[6].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[23].OneofWrappers = []any{}
 	file_white_analytics_v1_analytics_proto_msgTypes[24].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[26].OneofWrappers = []any{}
 	file_white_analytics_v1_analytics_proto_msgTypes[27].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[28].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[29].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[35].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[40].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[41].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[42].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[46].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[48].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[30].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[31].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[32].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[38].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[43].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[44].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[45].OneofWrappers = []any{}
 	file_white_analytics_v1_analytics_proto_msgTypes[49].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[50].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[59].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[64].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[66].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[68].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[73].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[75].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[51].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[52].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[53].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[62].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[67].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[69].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[71].OneofWrappers = []any{}
 	file_white_analytics_v1_analytics_proto_msgTypes[76].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[80].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[88].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[89].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[90].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[78].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[79].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[83].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[91].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[92].OneofWrappers = []any{}
 	file_white_analytics_v1_analytics_proto_msgTypes[93].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[94].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[98].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[105].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[107].OneofWrappers = []any{}
-	file_white_analytics_v1_analytics_proto_msgTypes[111].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[96].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[97].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[101].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[108].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[110].OneofWrappers = []any{}
+	file_white_analytics_v1_analytics_proto_msgTypes[114].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_analytics_v1_analytics_proto_rawDesc), len(file_white_analytics_v1_analytics_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   113,
+			NumMessages:   116,
 			NumExtensions: 0,
 			NumServices:   6,
 		},

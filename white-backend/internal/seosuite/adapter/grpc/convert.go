@@ -11,7 +11,6 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/seosuite/app"
 	"github.com/syabanf/white-superapp/white-backend/internal/seosuite/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/dates"
-	"github.com/syabanf/white-superapp/white-backend/pkg/metrics"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -188,8 +187,6 @@ func labelCounts(rows []domain.LabelCount) []*seosuitev1.LabelCount {
 	return out
 }
 
-func deltaProto(d metrics.Delta) *commonv1.Delta { return d.Proto() }
-
 func backlinkData(r *app.BacklinkDataResult) *seosuitev1.BacklinkData {
 	out := &seosuitev1.BacklinkData{
 		Latest:        backlinkSnapshot(r.Latest),
@@ -201,7 +198,7 @@ func backlinkData(r *app.BacklinkDataResult) *seosuitev1.BacklinkData {
 		Provider:      providerMode(r.Mode),
 	}
 	if r.Deltas != nil {
-		out.Deltas = &seosuitev1.BacklinkDeltas{Backlinks: deltaProto(r.Deltas.Backlinks), ReferringDomains: deltaProto(r.Deltas.ReferringDomains), DomainRank: deltaProto(r.Deltas.DomainRank), DofollowShare: deltaProto(r.Deltas.DofollowShare)}
+		out.Deltas = &seosuitev1.BacklinkDeltas{Backlinks: r.Deltas.Backlinks.Proto(), ReferringDomains: r.Deltas.ReferringDomains.Proto(), DomainRank: r.Deltas.DomainRank.Proto(), DofollowShare: r.Deltas.DofollowShare.Proto()}
 	}
 	for _, p := range r.Daily {
 		out.Daily = append(out.Daily, &seosuitev1.BacklinkDailyPoint{Date: dates.Format(p.Date), ReferringDomains: p.ReferringDomains})

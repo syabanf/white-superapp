@@ -104,3 +104,14 @@ INSERT INTO analytics.social_posts (id, social_account_id, external_id, caption,
                                     published_at, likes, comments, shares, saves, views, reach, impressions)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 ON CONFLICT DO NOTHING;
+
+-- name: ListOwnPostsFiltered :many
+SELECT p.* FROM analytics.social_posts p
+JOIN analytics.social_accounts a ON a.id = p.social_account_id
+WHERE a.client_id = sqlc.arg(client_id) AND NOT a.is_competitor
+  AND (cardinality(sqlc.arg(account_ids)::text[]) = 0 OR p.social_account_id = ANY(sqlc.arg(account_ids)::text[]))
+  AND (cardinality(sqlc.arg(external_ids)::text[]) = 0 OR p.external_id = ANY(sqlc.arg(external_ids)::text[]))
+  AND (sqlc.narg(from_ts)::timestamptz IS NULL OR p.published_at >= sqlc.narg(from_ts)::timestamptz)
+  AND (sqlc.narg(to_ts)::timestamptz IS NULL OR p.published_at < sqlc.narg(to_ts)::timestamptz)
+ORDER BY p.published_at DESC
+LIMIT sqlc.arg(row_limit);

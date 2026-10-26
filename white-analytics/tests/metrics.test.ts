@@ -195,6 +195,8 @@ describe("format (id-ID)", () => {
     expect(formatPercent(4.234)).toBe("4,23%");
     expect(formatDeltaPercent(12.34)).toBe("+12,3%");
     expect(formatDeltaPercent(-4)).toBe("−4,0%");
+    expect(formatDeltaPercent(59985)).toBe("+>999%");
+    expect(formatDeltaPercent(999)).toBe("+999,0%");
     expect(formatDeltaPercent(null)).toBe("–");
   });
   it("currency IDR without decimals", () => {

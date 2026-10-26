@@ -18,6 +18,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/dates"
+	"github.com/syabanf/white-superapp/white-backend/pkg/events"
 	pg "github.com/syabanf/white-superapp/white-backend/pkg/postgres"
 )
 
@@ -87,8 +88,39 @@ func (f fakeAnalytics) OwnAccounts(context.Context, string) ([]domain.SocialAcco
 	return f.accounts, nil
 }
 
-func (f fakeAnalytics) PostingHeatmap(context.Context, string, string) ([]domain.HeatCell, error) {
+func (f fakeAnalytics) SyncedPosts(context.Context, string, []string, int32) ([]domain.SyncedPost, error) {
 	return nil, nil
+}
+
+// fakeEvents records published outcome events.
+type fakeEvents struct {
+	mu   sync.Mutex
+	sent []events.PublishPostPayload
+	subj []string
+}
+
+func (f *fakeEvents) Publish(_ context.Context, subject string, payload any) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.subj = append(f.subj, subject)
+	f.sent = append(f.sent, payload.(events.PublishPostPayload))
+	return nil
+}
+
+func (f *fakeEvents) count() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return len(f.sent)
+}
+
+func (f *fakeEvents) last(t *testing.T) (string, events.PublishPostPayload) {
+	t.Helper()
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if len(f.sent) == 0 {
+		t.Fatal("no event published")
+	}
+	return f.subj[len(f.subj)-1], f.sent[len(f.sent)-1]
 }
 
 // ─── fixture ─────────────────────────────────────────────────
@@ -102,6 +134,7 @@ type fixture struct {
 	maintenance *app.Maintenance
 	reports     *app.Reports
 	identity    *fakeIdentity
+	events      *fakeEvents
 	clock       *clock.Fixed
 	uploads     string
 }
@@ -117,7 +150,9 @@ func setup(t *testing.T) *fixture {
 		names: map[string]string{adminID: "Admin", mgrID: "Mira", mgr2ID: "Maya", viewerID: "Vio"},
 	}
 	uploads := t.TempDir()
+	ev := &fakeEvents{}
 	deps := app.Deps{
+		Events:       ev,
 		Store:        store,
 		Storage:      storage.NewLocal(uploads, "https://app.white.id"),
 		Identity:     id,
@@ -133,7 +168,7 @@ func setup(t *testing.T) *fixture {
 	pub := app.NewPublishing(deps)
 	return &fixture{
 		store: store, media: app.NewMedia(deps), posts: app.NewPosts(deps, pub), queries: app.NewQueries(deps),
-		publishing: pub, maintenance: app.NewMaintenance(deps), reports: app.NewReports(deps), identity: id, clock: clk, uploads: uploads,
+		publishing: pub, maintenance: app.NewMaintenance(deps), reports: app.NewReports(deps), identity: id, events: ev, clock: clk, uploads: uploads,
 	}
 }
 
@@ -280,6 +315,10 @@ func TestIntegrationHappyPathToPublished(t *testing.T) {
 			t.Fatalf("%+v", tg)
 		}
 	}
+	if subj, ev := f.events.last(t); f.events.count() != 1 || subj != events.PublishingPostPublished || ev.PostID != saved.ID || ev.ClientID != clientID ||
+		ev.Status != "PUBLISHED" || !strings.HasPrefix(ev.ExternalID, "mock_") || ev.Permalink == "" || ev.Error != "" || !ev.At.Equal(f.clock.T) {
+		t.Fatalf("event %s %+v", subj, ev)
+	}
 	acts := f.activities(t, saved.ID)
 	if acts[0].Type != domain.ActPublished || acts[0].Meta["mock"] != true || acts[0].Meta["published"] != float64(2) || acts[0].UserID != nil {
 		t.Fatalf("%+v", acts[0])
@@ -340,6 +379,9 @@ func TestIntegrationFailureAndRetry(t *testing.T) {
 	if n.Type != app.NotifPostFailed || n.Body != res.Errors[0].Error {
 		t.Fatalf("%+v", n)
 	}
+	if subj, ev := f.events.last(t); subj != events.PublishingPostFailed || ev.PostID != saved.ID || ev.Status != "FAILED" || ev.Error != res.Errors[0].Error || ev.ExternalID != "" {
+		t.Fatalf("event %s %+v", subj, ev)
+	}
 	jobs := must(f.store.ListSyncJobs(ctx, clientID, 10))(t)
 	if len(jobs) != 1 || jobs[0].Status != domain.JobFailed || *jobs[0].Message != "Gagal: 0 terbit, 1 gagal (mock)" || jobs[0].Error == nil {
 		t.Fatalf("%+v", jobs[0])
@@ -356,6 +398,9 @@ func TestIntegrationFailureAndRetry(t *testing.T) {
 	run := must(f.publishing.PublishDuePosts(ctx, at, 20))(t)
 	if run.Attempted != 1 || run.Failed != 0 || f.post(t, saved.ID).Status != domain.StatusScheduled {
 		t.Fatalf("%+v %s", run, f.post(t, saved.ID).Status)
+	}
+	if f.events.count() != 1 {
+		t.Fatal("a retry-scheduled post must not emit an outcome event")
 	}
 	if acts := f.activities(t, saved.ID); acts[0].Type != domain.ActPublishRetry {
 		t.Fatal(acts[0].Type)
@@ -564,3 +609,35 @@ func TestIntegrationMaintenance(t *testing.T) {
 func errOf[T any](_ T, err error) error { return err }
 
 func stringp(s string) *string { return &s }
+
+func TestIntegrationStoryFormat(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	a, b := f.uploadPNG(t), f.uploadPNG(t)
+
+	// Unset format stays FEED.
+	feed := must(f.posts.Save(ctx, mgrID, clientID, app.SaveInput{Body: "feed", Targets: []app.TargetInput{{SocialAccountID: igAcc}}, MediaIDs: []string{a.ID}}))(t)
+	if got := f.post(t, feed.ID).Format; got != domain.FormatFeed {
+		t.Fatal(got)
+	}
+
+	story := must(f.posts.Save(ctx, mgrID, clientID, app.SaveInput{Format: domain.FormatStory, Targets: []app.TargetInput{{SocialAccountID: igAcc}}, MediaIDs: []string{a.ID, b.ID}}))(t)
+	if got := f.post(t, story.ID).Format; got != domain.FormatStory {
+		t.Fatal(got)
+	}
+	// Two media cannot be approved as a story.
+	e := code(t, errOf(f.posts.Approve(ctx, adminID, clientID, story.ID)), apperr.Validation)
+	if !strings.Contains(e.Message, domain.MsgStoryOneMedia) {
+		t.Fatal(e.Message)
+	}
+	must(f.posts.Save(ctx, mgrID, clientID, app.SaveInput{ID: story.ID, Format: domain.FormatStory, Targets: []app.TargetInput{{SocialAccountID: igAcc}}, MediaIDs: []string{a.ID}}))(t)
+	must(f.posts.Approve(ctx, adminID, clientID, story.ID))(t)
+	out := must(f.posts.PublishNow(ctx, adminID, clientID, story.ID))(t)
+	if out.Status != domain.StatusPublished {
+		t.Fatalf("%+v", out)
+	}
+	dup := must(f.posts.Duplicate(ctx, mgrID, clientID, story.ID))(t)
+	if got := f.post(t, dup.ID).Format; got != domain.FormatStory {
+		t.Fatal(got)
+	}
+}

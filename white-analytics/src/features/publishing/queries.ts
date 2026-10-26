@@ -106,7 +106,7 @@ export type CalendarPost = {
 
 export type BestTimeSlot = { day: number; hour: number; at: string; fromHistory: boolean };
 
-export type PublishingStats = { scheduled7d: number; inReview: number; published30d: number; failed: number; drafts: number };
+export type PublishingStats = { scheduled7d: number; overdue: number; inReview: number; published30d: number; failed: number; drafts: number };
 
 // ── helpers ───────────────────────────────────────────────────
 
@@ -306,12 +306,13 @@ export const getCalendarPosts = cache(async (clientId: string, from: Date, to: D
 export const getPublishingStats = cache(async (clientId: string, now: Date = new Date()): Promise<PublishingStats> => {
   const in7d = new Date(now.getTime() + 7 * 86_400_000);
   const ago30d = new Date(now.getTime() - 30 * 86_400_000);
-  const [scheduled7d, inReview, published30d, failed, drafts] = await Promise.all([
+  const [scheduled7d, overdue, inReview, published30d, failed, drafts] = await Promise.all([
     db.contentPost.count({ where: { clientId, status: "SCHEDULED", scheduledAt: { gte: now, lt: in7d } } }),
+    db.contentPost.count({ where: { clientId, status: "SCHEDULED", scheduledAt: { lt: now } } }),
     db.contentPost.count({ where: { clientId, status: "IN_REVIEW" } }),
     db.contentPost.count({ where: { clientId, status: "PUBLISHED", publishedAt: { gte: ago30d } } }),
     db.contentPost.count({ where: { clientId, status: "FAILED" } }),
     db.contentPost.count({ where: { clientId, status: "DRAFT" } }),
   ]);
-  return { scheduled7d, inReview, published30d, failed, drafts };
+  return { scheduled7d, overdue, inReview, published30d, failed, drafts };
 });

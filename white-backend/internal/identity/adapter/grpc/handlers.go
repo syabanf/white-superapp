@@ -2,6 +2,7 @@ package grpcapi
 
 import (
 	"context"
+	"crypto/subtle"
 
 	identityv1 "github.com/syabanf/white-superapp/white-backend/gen/go/white/identity/v1"
 	"github.com/syabanf/white-superapp/white-backend/internal/identity/app"
@@ -15,12 +16,14 @@ import (
 )
 
 type Services struct {
-	Auth          *app.Auth
-	Users         *app.Users
-	Clients       *app.Clients
-	Notifications *app.Notifications
-	Share         *app.Share
-	Workspace     *app.Workspace
+	// InternalSecret guards IssueServiceToken; empty disables the RPC.
+	InternalSecret string
+	Auth           *app.Auth
+	Users          *app.Users
+	Clients        *app.Clients
+	Notifications  *app.Notifications
+	Share          *app.Share
+	Workspace      *app.Workspace
 }
 
 func Register(s *grpc.Server, svc Services) {
@@ -69,6 +72,27 @@ func (s *authServer) Logout(ctx context.Context, req *identityv1.LogoutRequest) 
 	return &emptypb.Empty{}, s.svc.Auth.Logout(ctx, req.RefreshToken)
 }
 
+// requireInternal checks the shared secret the Next.js server sends.
+func (svc Services) requireInternal(ctx context.Context) error {
+	md, _ := metadata.FromIncomingContext(ctx)
+	got := md.Get("x-internal-secret")
+	if svc.InternalSecret == "" || len(got) == 0 || subtle.ConstantTimeCompare([]byte(got[0]), []byte(svc.InternalSecret)) != 1 {
+		return apperr.New(apperr.Unauthorized, "")
+	}
+	return nil
+}
+
+func (s *authServer) IssueServiceToken(ctx context.Context, req *identityv1.IssueServiceTokenRequest) (*identityv1.TokenPair, error) {
+	if err := s.svc.requireInternal(ctx); err != nil {
+		return nil, err
+	}
+	t, err := s.svc.Auth.ServiceToken(ctx, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	return tokensPB(t), nil
+}
+
 func (s *authServer) Me(ctx context.Context, _ *emptypb.Empty) (*identityv1.User, error) {
 	p, err := authn.Require(ctx)
 	if err != nil {
@@ -88,8 +112,19 @@ type userServer struct {
 	svc Services
 }
 
-func userInput(name, email, pw string, role identityv1.UserRole, active bool, ms []*identityv1.Membership) app.UserInput {
-	return app.UserInput{Name: name, Email: email, Password: pw, Role: userRoleFrom(role), IsActive: active, Memberships: membershipsFrom(ms)}
+func userInput(name, email, pw string, role identityv1.UserRole, active bool, ms []*identityv1.Membership, perms []string) app.UserInput {
+	return app.UserInput{Name: name, Email: email, Password: pw, Role: userRoleFrom(role), IsActive: active, Memberships: membershipsFrom(ms), Permissions: perms}
+}
+
+func (s *userServer) ListPermissions(ctx context.Context, _ *emptypb.Empty) (*identityv1.ListPermissionsResponse, error) {
+	if _, err := authn.Require(ctx); err != nil {
+		return nil, err
+	}
+	out := &identityv1.ListPermissionsResponse{}
+	for _, p := range authn.PermissionCatalog {
+		out.Permissions = append(out.Permissions, &identityv1.ListPermissionsResponse_Permission{Key: p.Key, Label: p.Label})
+	}
+	return out, nil
 }
 
 func (s *userServer) ListUsers(ctx context.Context, _ *emptypb.Empty) (*identityv1.ListUsersResponse, error) {
@@ -119,18 +154,14 @@ func (s *userServer) ListUserOptions(ctx context.Context, _ *emptypb.Empty) (*id
 	if err != nil {
 		return nil, err
 	}
-	out := &identityv1.ListUserOptionsResponse{}
-	for _, u := range users {
-		out.Users = append(out.Users, &identityv1.UserOption{Id: u.ID, Name: u.Name, Email: u.Email})
-	}
-	return out, nil
+	return userOptionsPB(users), nil
 }
 
 func (s *userServer) CreateUser(ctx context.Context, req *identityv1.CreateUserRequest) (*identityv1.User, error) {
 	if _, err := authn.RequireAdmin(ctx); err != nil {
 		return nil, err
 	}
-	u, err := s.svc.Users.Create(ctx, userInput(req.Name, req.Email, req.Password, req.Role, req.IsActive, req.Memberships))
+	u, err := s.svc.Users.Create(ctx, userInput(req.Name, req.Email, req.Password, req.Role, req.IsActive, req.Memberships, req.Permissions))
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +173,7 @@ func (s *userServer) UpdateUser(ctx context.Context, req *identityv1.UpdateUserR
 	if err != nil {
 		return nil, err
 	}
-	u, err := s.svc.Users.Update(ctx, p.UserID, req.UserId, userInput(req.Name, req.Email, req.Password, req.Role, req.IsActive, req.Memberships))
+	u, err := s.svc.Users.Update(ctx, p.UserID, req.UserId, userInput(req.Name, req.Email, req.Password, req.Role, req.IsActive, req.Memberships, req.Permissions))
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +190,35 @@ func (s *userServer) SetUserActive(ctx context.Context, req *identityv1.SetUserA
 		return nil, err
 	}
 	return userPB(u), nil
+}
+
+func (s *userServer) SetUserPermissions(ctx context.Context, req *identityv1.SetUserPermissionsRequest) (*identityv1.User, error) {
+	if _, err := authn.RequireAdmin(ctx); err != nil {
+		return nil, err
+	}
+	u, err := s.svc.Users.SetPermissions(ctx, req.UserId, req.Permissions)
+	if err != nil {
+		return nil, err
+	}
+	return userPB(u), nil
+}
+
+func (s *userServer) SyncLegacyUser(ctx context.Context, req *identityv1.SyncLegacyUserRequest) (*identityv1.User, error) {
+	if err := s.svc.requireInternal(ctx); err != nil {
+		return nil, err
+	}
+	u, err := s.svc.Users.SyncLegacy(ctx, domain.User{ID: req.Id, Email: req.Email, Name: req.Name, PasswordHash: req.PasswordHash, Role: userRoleFrom(req.Role), IsActive: req.IsActive})
+	if err != nil {
+		return nil, err
+	}
+	return userPB(u), nil
+}
+
+func (s *userServer) RemoveLegacyUser(ctx context.Context, req *identityv1.DeleteUserRequest) (*emptypb.Empty, error) {
+	if err := s.svc.requireInternal(ctx); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, s.svc.Users.RemoveLegacy(ctx, req.UserId)
 }
 
 func (s *userServer) DeleteUser(ctx context.Context, req *identityv1.DeleteUserRequest) (*emptypb.Empty, error) {
@@ -331,6 +391,22 @@ func (s *accessServer) ListAllClients(ctx context.Context, _ *emptypb.Empty) (*i
 		out.Clients = append(out.Clients, clientPB(&rows[i]))
 	}
 	return out, nil
+}
+
+func (s *accessServer) ListPermissionHolders(ctx context.Context, req *identityv1.ListPermissionHoldersRequest) (*identityv1.ListUserOptionsResponse, error) {
+	users, err := s.svc.Users.PermissionHolders(ctx, req.Permission)
+	if err != nil {
+		return nil, err
+	}
+	return userOptionsPB(users), nil
+}
+
+func userOptionsPB(users []domain.User) *identityv1.ListUserOptionsResponse {
+	out := &identityv1.ListUserOptionsResponse{}
+	for _, u := range users {
+		out.Users = append(out.Users, &identityv1.UserOption{Id: u.ID, Name: u.Name, Email: u.Email, Admin: u.Role == domain.RoleAdmin})
+	}
+	return out
 }
 
 // ─── NotificationService ─────────────────────────────────────

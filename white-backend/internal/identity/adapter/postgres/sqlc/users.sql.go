@@ -70,7 +70,7 @@ func (q *Queries) GetMembership(ctx context.Context, arg GetMembershipParams) (I
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, name, password_hash, role, is_active, created_at, updated_at FROM identity.users WHERE id = $1
+SELECT id, email, name, password_hash, role, is_active, created_at, updated_at, permissions FROM identity.users WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id string) (IdentityUser, error) {
@@ -85,12 +85,13 @@ func (q *Queries) GetUser(ctx context.Context, id string) (IdentityUser, error) 
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Permissions,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, name, password_hash, role, is_active, created_at, updated_at FROM identity.users WHERE email = $1
+SELECT id, email, name, password_hash, role, is_active, created_at, updated_at, permissions FROM identity.users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (IdentityUser, error) {
@@ -105,6 +106,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (IdentityUse
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Permissions,
 	)
 	return i, err
 }
@@ -127,9 +129,9 @@ func (q *Queries) InsertMembership(ctx context.Context, arg InsertMembershipPara
 }
 
 const insertUser = `-- name: InsertUser :one
-INSERT INTO identity.users (id, email, name, password_hash, role, is_active)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at
+INSERT INTO identity.users (id, email, name, password_hash, role, is_active, permissions)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at, permissions
 `
 
 type InsertUserParams struct {
@@ -139,6 +141,7 @@ type InsertUserParams struct {
 	PasswordHash string
 	Role         IdentityUserRole
 	IsActive     bool
+	Permissions  []string
 }
 
 func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (IdentityUser, error) {
@@ -149,6 +152,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (Identit
 		arg.PasswordHash,
 		arg.Role,
 		arg.IsActive,
+		arg.Permissions,
 	)
 	var i IdentityUser
 	err := row.Scan(
@@ -160,6 +164,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (Identit
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Permissions,
 	)
 	return i, err
 }
@@ -314,8 +319,47 @@ func (q *Queries) ListMembershipsOfUsers(ctx context.Context, userIds []string) 
 	return items, nil
 }
 
+const listPermissionHolders = `-- name: ListPermissionHolders :many
+SELECT id, name, email, role FROM identity.users
+WHERE is_active
+  AND (role = 'ADMIN' OR $1::text = ANY(permissions) OR split_part($1::text, '.', 1) || '.*' = ANY(permissions))
+ORDER BY name ASC
+`
+
+type ListPermissionHoldersRow struct {
+	ID    string
+	Name  string
+	Email string
+	Role  IdentityUserRole
+}
+
+func (q *Queries) ListPermissionHolders(ctx context.Context, permission string) ([]ListPermissionHoldersRow, error) {
+	rows, err := q.db.Query(ctx, listPermissionHolders, permission)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPermissionHoldersRow{}
+	for rows.Next() {
+		var i ListPermissionHoldersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Email,
+			&i.Role,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, name, password_hash, role, is_active, created_at, updated_at FROM identity.users ORDER BY created_at ASC
+SELECT id, email, name, password_hash, role, is_active, created_at, updated_at, permissions FROM identity.users ORDER BY created_at ASC
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]IdentityUser, error) {
@@ -336,6 +380,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]IdentityUser, error) {
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Permissions,
 		); err != nil {
 			return nil, err
 		}
@@ -348,7 +393,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]IdentityUser, error) {
 }
 
 const listUsersByIDs = `-- name: ListUsersByIDs :many
-SELECT id, email, name, password_hash, role, is_active, created_at, updated_at FROM identity.users WHERE id = ANY($1::text[])
+SELECT id, email, name, password_hash, role, is_active, created_at, updated_at, permissions FROM identity.users WHERE id = ANY($1::text[])
 `
 
 func (q *Queries) ListUsersByIDs(ctx context.Context, ids []string) ([]IdentityUser, error) {
@@ -369,6 +414,7 @@ func (q *Queries) ListUsersByIDs(ctx context.Context, ids []string) ([]IdentityU
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Permissions,
 		); err != nil {
 			return nil, err
 		}
@@ -381,7 +427,7 @@ func (q *Queries) ListUsersByIDs(ctx context.Context, ids []string) ([]IdentityU
 }
 
 const setUserActive = `-- name: SetUserActive :one
-UPDATE identity.users SET is_active = $2, updated_at = now() WHERE id = $1 RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at
+UPDATE identity.users SET is_active = $2, updated_at = now() WHERE id = $1 RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at, permissions
 `
 
 type SetUserActiveParams struct {
@@ -401,6 +447,33 @@ func (q *Queries) SetUserActive(ctx context.Context, arg SetUserActiveParams) (I
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Permissions,
+	)
+	return i, err
+}
+
+const setUserPermissions = `-- name: SetUserPermissions :one
+UPDATE identity.users SET permissions = $2, updated_at = now() WHERE id = $1 RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at, permissions
+`
+
+type SetUserPermissionsParams struct {
+	ID          string
+	Permissions []string
+}
+
+func (q *Queries) SetUserPermissions(ctx context.Context, arg SetUserPermissionsParams) (IdentityUser, error) {
+	row := q.db.QueryRow(ctx, setUserPermissions, arg.ID, arg.Permissions)
+	var i IdentityUser
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.PasswordHash,
+		&i.Role,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Permissions,
 	)
 	return i, err
 }
@@ -425,11 +498,11 @@ func (q *Queries) UpdateMembershipRole(ctx context.Context, arg UpdateMembership
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE identity.users
-SET name = $2, email = $3, role = $4, is_active = $5,
-    password_hash = COALESCE($6, password_hash),
+SET name = $2, email = $3, role = $4, is_active = $5, permissions = $6,
+    password_hash = COALESCE($7, password_hash),
     updated_at = now()
 WHERE id = $1
-RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at
+RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at, permissions
 `
 
 type UpdateUserParams struct {
@@ -438,6 +511,7 @@ type UpdateUserParams struct {
 	Email        string
 	Role         IdentityUserRole
 	IsActive     bool
+	Permissions  []string
 	PasswordHash *string
 }
 
@@ -448,6 +522,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (Identit
 		arg.Email,
 		arg.Role,
 		arg.IsActive,
+		arg.Permissions,
 		arg.PasswordHash,
 	)
 	var i IdentityUser
@@ -460,6 +535,48 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (Identit
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Permissions,
+	)
+	return i, err
+}
+
+const upsertLegacyUser = `-- name: UpsertLegacyUser :one
+INSERT INTO identity.users (id, email, name, password_hash, role, is_active)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, password_hash = EXCLUDED.password_hash,
+    role = EXCLUDED.role, is_active = EXCLUDED.is_active, updated_at = now()
+RETURNING id, email, name, password_hash, role, is_active, created_at, updated_at, permissions
+`
+
+type UpsertLegacyUserParams struct {
+	ID           string
+	Email        string
+	Name         string
+	PasswordHash string
+	Role         IdentityUserRole
+	IsActive     bool
+}
+
+func (q *Queries) UpsertLegacyUser(ctx context.Context, arg UpsertLegacyUserParams) (IdentityUser, error) {
+	row := q.db.QueryRow(ctx, upsertLegacyUser,
+		arg.ID,
+		arg.Email,
+		arg.Name,
+		arg.PasswordHash,
+		arg.Role,
+		arg.IsActive,
+	)
+	var i IdentityUser
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.PasswordHash,
+		&i.Role,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Permissions,
 	)
 	return i, err
 }

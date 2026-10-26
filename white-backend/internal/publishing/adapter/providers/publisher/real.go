@@ -34,10 +34,15 @@ func NewReal() *Real {
 }
 
 func (r *Real) Publish(ctx context.Context, in domain.PublishInput) (*domain.PublishResult, error) {
-	switch in.Platform {
-	case domain.PlatformInstagram:
+	story := in.Format == domain.FormatStory
+	switch {
+	case in.Platform == domain.PlatformInstagram && story:
+		return r.instagramStory(ctx, in)
+	case in.Platform == domain.PlatformInstagram:
 		return r.instagram(ctx, in)
-	case domain.PlatformFacebook:
+	case in.Platform == domain.PlatformFacebook && story:
+		return r.facebookStory(ctx, in)
+	case in.Platform == domain.PlatformFacebook:
 		return r.facebook(ctx, in)
 	}
 	return nil, apperr.FromProvider("tiktok", apperr.Permission, "Publikasi TikTok belum tersedia — menunggu persetujuan Content Posting API", nil)
@@ -209,6 +214,67 @@ func (r *Real) facebook(ctx context.Context, in domain.PublishInput) (*domain.Pu
 	_ = r.Client.Get(ctx, token, "/"+postID, url.Values{"fields": {"permalink_url"}}, &link)
 	r.firstComment(ctx, token, postID, in.FirstComment)
 	return &domain.PublishResult{ExternalID: postID, Permalink: nilIfEmpty(link.PermalinkURL)}, nil
+}
+
+// instagramStory publishes one image or video as a story: a STORIES
+// container (stories take no caption), then media_publish.
+func (r *Real) instagramStory(ctx context.Context, in domain.PublishInput) (*domain.PublishResult, error) {
+	token, ig := in.AccessToken, in.AccountExternalID
+	if len(in.Media) != 1 {
+		return nil, apperr.FromProvider(ProviderName, apperr.Unknown, domain.MsgStoryOneMedia, nil)
+	}
+	m := in.Media[0]
+	form := url.Values{"media_type": {"STORIES"}}
+	if m.Kind == domain.MediaVideo {
+		form.Set("video_url", m.URL)
+	} else {
+		form.Set("image_url", m.URL)
+	}
+	container, err := r.post(ctx, token, "/"+ig+"/media", form)
+	if err != nil {
+		return nil, err
+	}
+	if m.Kind == domain.MediaVideo {
+		if err := r.waitForContainer(ctx, token, container.ID); err != nil {
+			return nil, err
+		}
+	}
+	published, err := r.post(ctx, token, "/"+ig+"/media_publish", url.Values{"creation_id": {container.ID}})
+	if err != nil {
+		return nil, err
+	}
+	var link struct {
+		Permalink string `json:"permalink"`
+	}
+	// Stories expire after 24 hours; a missing permalink is not a failure.
+	_ = r.Client.Get(ctx, token, "/"+published.ID, url.Values{"fields": {"permalink"}}, &link)
+	return &domain.PublishResult{ExternalID: published.ID, Permalink: nilIfEmpty(link.Permalink)}, nil
+}
+
+// facebookStory posts a photo story: the photo is uploaded unpublished,
+// then attached with /photo_stories. Video stories need the resumable
+// upload flow and are refused for now.
+func (r *Real) facebookStory(ctx context.Context, in domain.PublishInput) (*domain.PublishResult, error) {
+	token, page := in.AccessToken, in.AccountExternalID
+	if len(in.Media) != 1 {
+		return nil, apperr.FromProvider(ProviderName, apperr.Unknown, domain.MsgStoryOneMedia, nil)
+	}
+	if in.Media[0].Kind == domain.MediaVideo {
+		return nil, apperr.FromProvider(ProviderName, apperr.Permission, "Story video Facebook belum didukung. Gunakan gambar.", nil)
+	}
+	photo, err := r.post(ctx, token, "/"+page+"/photos", url.Values{"url": {in.Media[0].URL}, "published": {"false"}})
+	if err != nil {
+		return nil, err
+	}
+	story, err := r.post(ctx, token, "/"+page+"/photo_stories", url.Values{"photo_id": {photo.ID}})
+	if err != nil {
+		return nil, err
+	}
+	id := story.PostID
+	if id == "" {
+		id = story.ID
+	}
+	return &domain.PublishResult{ExternalID: id}, nil
 }
 
 // firstComment is best effort: errors are ignored.

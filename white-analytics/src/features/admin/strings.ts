@@ -4,11 +4,17 @@
  */
 export const ta = {
   usersCount: "user",
+  erpAccess: "Izin ERP",
+  erpAdminAll: "Admin memegang semua izin ERP.",
+  erpOffline:
+    "Layanan ERP belum terhubung, jadi izin ERP belum bisa diatur. Jalankan backend lalu buka lagi.",
+  erpSaveFailed: "User tersimpan, tetapi izin ERP gagal disimpan.",
   noClients: "Tidak ada akses klien",
   clientsTooltip: "Klien yang diakses",
   managerBadge: "Manajer",
   deleteTitle: "Hapus user",
-  deleteDesc: (name: string) => `Hapus ${name}? Akses ke semua klien akan dicabut. Tindakan ini tidak dapat dibatalkan.`,
+  deleteDesc: (name: string) =>
+    `Hapus ${name}? Akses ke semua klien akan dicabut. Tindakan ini tidak dapat dibatalkan.`,
   nameRequired: "Nama wajib diisi",
   emailInvalid: "Email tidak valid",
   passwordMin: "Kata sandi minimal 8 karakter",

@@ -54,12 +54,13 @@ func register(_ context.Context, d pkgapp.Deps, s *grpc.Server) error {
 	clk := clock.Real{}
 	issuer := authn.NewIssuer(priv, config.EnvDuration("ACCESS_TOKEN_TTL", 15*time.Minute))
 	grpcapi.Register(s, grpcapi.Services{
-		Auth:          app.NewAuth(store, issuer, clk),
-		Users:         app.NewUsers(store, d.Events),
-		Clients:       app.NewClients(store, d.Events),
-		Notifications: app.NewNotifications(store),
-		Share:         app.NewShare(store, config.Env("AUTH_SECRET", ""), clk),
-		Workspace:     app.NewWorkspace(store, clk),
+		InternalSecret: config.Env("INTERNAL_API_SECRET", ""),
+		Auth:           app.NewAuth(store, issuer, clk),
+		Users:          app.NewUsers(store, d.Events),
+		Clients:        app.NewClients(store, d.Events),
+		Notifications:  app.NewNotifications(store),
+		Share:          app.NewShare(store, config.Env("AUTH_SECRET", ""), clk),
+		Workspace:      app.NewWorkspace(store, clk),
 	})
 	return nil
 }

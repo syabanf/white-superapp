@@ -42,7 +42,7 @@ func wrap(err error) error {
 // ─── Users ───────────────────────────────────────────────────
 
 func toUser(u sqlc.IdentityUser) *domain.User {
-	return &domain.User{ID: u.ID, Email: u.Email, Name: u.Name, PasswordHash: u.PasswordHash, Role: domain.UserRole(u.Role), IsActive: u.IsActive, CreatedAt: u.CreatedAt, UpdatedAt: u.UpdatedAt}
+	return &domain.User{ID: u.ID, Email: u.Email, Name: u.Name, PasswordHash: u.PasswordHash, Role: domain.UserRole(u.Role), IsActive: u.IsActive, Permissions: u.Permissions, CreatedAt: u.CreatedAt, UpdatedAt: u.UpdatedAt}
 }
 
 func (s *Store) GetUser(ctx context.Context, id string) (*domain.User, error) {
@@ -103,8 +103,20 @@ func (s *Store) ListActiveUserOptions(ctx context.Context) ([]domain.User, error
 	return out, nil
 }
 
+func (s *Store) ListPermissionHolders(ctx context.Context, permission string) ([]domain.User, error) {
+	rows, err := s.q.ListPermissionHolders(ctx, permission)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.User, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, domain.User{ID: r.ID, Name: r.Name, Email: r.Email, Role: domain.UserRole(r.Role), IsActive: true})
+	}
+	return out, nil
+}
+
 func (s *Store) InsertUser(ctx context.Context, u domain.User) (*domain.User, error) {
-	row, err := s.q.InsertUser(ctx, sqlc.InsertUserParams{ID: u.ID, Email: u.Email, Name: u.Name, PasswordHash: u.PasswordHash, Role: sqlc.IdentityUserRole(u.Role), IsActive: u.IsActive})
+	row, err := s.q.InsertUser(ctx, sqlc.InsertUserParams{ID: u.ID, Email: u.Email, Name: u.Name, PasswordHash: u.PasswordHash, Role: sqlc.IdentityUserRole(u.Role), IsActive: u.IsActive, Permissions: nonNil(u.Permissions)})
 	if err != nil {
 		return nil, wrap(err)
 	}
@@ -112,7 +124,7 @@ func (s *Store) InsertUser(ctx context.Context, u domain.User) (*domain.User, er
 }
 
 func (s *Store) UpdateUser(ctx context.Context, u domain.User, passwordHash *string) (*domain.User, error) {
-	row, err := s.q.UpdateUser(ctx, sqlc.UpdateUserParams{ID: u.ID, Name: u.Name, Email: u.Email, Role: sqlc.IdentityUserRole(u.Role), IsActive: u.IsActive, PasswordHash: passwordHash})
+	row, err := s.q.UpdateUser(ctx, sqlc.UpdateUserParams{ID: u.ID, Name: u.Name, Email: u.Email, Role: sqlc.IdentityUserRole(u.Role), IsActive: u.IsActive, Permissions: nonNil(u.Permissions), PasswordHash: passwordHash})
 	if err != nil {
 		return nil, wrap(err)
 	}
@@ -126,6 +138,25 @@ func (s *Store) SetUserActive(ctx context.Context, id string, active bool) (*dom
 	}
 	if err != nil {
 		return nil, err
+	}
+	return toUser(row), nil
+}
+
+func (s *Store) SetUserPermissions(ctx context.Context, id string, perms []string) (*domain.User, error) {
+	row, err := s.q.SetUserPermissions(ctx, sqlc.SetUserPermissionsParams{ID: id, Permissions: nonNil(perms)})
+	if pg.IsNoRows(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return toUser(row), nil
+}
+
+func (s *Store) UpsertLegacyUser(ctx context.Context, u domain.User) (*domain.User, error) {
+	row, err := s.q.UpsertLegacyUser(ctx, sqlc.UpsertLegacyUserParams{ID: u.ID, Email: u.Email, Name: u.Name, PasswordHash: u.PasswordHash, Role: sqlc.IdentityUserRole(u.Role), IsActive: u.IsActive})
+	if err != nil {
+		return nil, wrap(err)
 	}
 	return toUser(row), nil
 }
@@ -403,4 +434,12 @@ func (s *Store) RevokeUserSessions(ctx context.Context, userID string) error {
 
 func (s *Store) DeleteExpiredSessions(ctx context.Context, before time.Time) (int64, error) {
 	return s.q.DeleteExpiredRefreshSessions(ctx, before)
+}
+
+// nonNil keeps NOT NULL text[] columns happy when no permission was given.
+func nonNil(xs []string) []string {
+	if xs == nil {
+		return []string{}
+	}
+	return xs
 }

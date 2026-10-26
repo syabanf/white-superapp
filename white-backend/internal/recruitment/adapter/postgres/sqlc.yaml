@@ -1,0 +1,52 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "../../migrations"
+    queries: "queries"
+    gen:
+      go:
+        package: "sqlc"
+        out: "sqlc"
+        sql_package: "pgx/v5"
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              type: "time.Time"
+              pointer: true
+          - db_type: "date"
+            go_type: "time.Time"
+          - db_type: "date"
+            nullable: true
+            go_type:
+              type: "time.Time"
+              pointer: true
+          - column: "recruitment.psikotes_session_tests.score"
+            go_type:
+              type: "float64"
+              pointer: true
+          - column: "recruitment.interviews.overall_score"
+            go_type:
+              type: "float64"
+              pointer: true
+          - db_type: "pg_catalog.numeric"
+            go_type:
+              import: "github.com/syabanf/white-superapp/white-backend/internal/recruitment/domain"
+              type: "Money"
+          - db_type: "pg_catalog.numeric"
+            nullable: true
+            go_type:
+              import: "github.com/syabanf/white-superapp/white-backend/internal/recruitment/domain"
+              type: "Money"
+              pointer: true
+          - db_type: "jsonb"
+            go_type:
+              type: "[]byte"
+          - db_type: "jsonb"
+            nullable: true
+            go_type:
+              type: "[]byte"

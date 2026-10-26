@@ -141,6 +141,62 @@ func (MediaKind) EnumDescriptor() ([]byte, []int) {
 	return file_white_publishing_v1_publishing_proto_rawDescGZIP(), []int{1}
 }
 
+// How the post appears on the platform. UNSPECIFIED is treated as FEED so
+// callers that predate formats keep their behaviour.
+type PostFormat int32
+
+const (
+	PostFormat_POST_FORMAT_UNSPECIFIED PostFormat = 0
+	PostFormat_FEED                    PostFormat = 1
+	// Instagram/Facebook story: exactly one image or video, no caption.
+	PostFormat_STORY PostFormat = 2
+	// One short video.
+	PostFormat_REEL PostFormat = 3
+)
+
+// Enum value maps for PostFormat.
+var (
+	PostFormat_name = map[int32]string{
+		0: "POST_FORMAT_UNSPECIFIED",
+		1: "FEED",
+		2: "STORY",
+		3: "REEL",
+	}
+	PostFormat_value = map[string]int32{
+		"POST_FORMAT_UNSPECIFIED": 0,
+		"FEED":                    1,
+		"STORY":                   2,
+		"REEL":                    3,
+	}
+)
+
+func (x PostFormat) Enum() *PostFormat {
+	p := new(PostFormat)
+	*p = x
+	return p
+}
+
+func (x PostFormat) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PostFormat) Descriptor() protoreflect.EnumDescriptor {
+	return file_white_publishing_v1_publishing_proto_enumTypes[2].Descriptor()
+}
+
+func (PostFormat) Type() protoreflect.EnumType {
+	return &file_white_publishing_v1_publishing_proto_enumTypes[2]
+}
+
+func (x PostFormat) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PostFormat.Descriptor instead.
+func (PostFormat) EnumDescriptor() ([]byte, []int) {
+	return file_white_publishing_v1_publishing_proto_rawDescGZIP(), []int{2}
+}
+
 // Tabs of the posts list. REJECTED sits with drafts, PUBLISHING with scheduled.
 type PostsTab int32
 
@@ -190,11 +246,11 @@ func (x PostsTab) String() string {
 }
 
 func (PostsTab) Descriptor() protoreflect.EnumDescriptor {
-	return file_white_publishing_v1_publishing_proto_enumTypes[2].Descriptor()
+	return file_white_publishing_v1_publishing_proto_enumTypes[3].Descriptor()
 }
 
 func (PostsTab) Type() protoreflect.EnumType {
-	return &file_white_publishing_v1_publishing_proto_enumTypes[2]
+	return &file_white_publishing_v1_publishing_proto_enumTypes[3]
 }
 
 func (x PostsTab) Number() protoreflect.EnumNumber {
@@ -203,7 +259,7 @@ func (x PostsTab) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PostsTab.Descriptor instead.
 func (PostsTab) EnumDescriptor() ([]byte, []int) {
-	return file_white_publishing_v1_publishing_proto_rawDescGZIP(), []int{2}
+	return file_white_publishing_v1_publishing_proto_rawDescGZIP(), []int{3}
 }
 
 type MediaAsset struct {
@@ -1040,6 +1096,7 @@ type SavePostRequest struct {
 	FirstComment  string                 `protobuf:"bytes,10,opt,name=first_comment,json=firstComment,proto3" json:"first_comment,omitempty"`
 	Labels        []string               `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty"`
 	ScheduledAt   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=scheduled_at,json=scheduledAt,proto3,oneof" json:"scheduled_at,omitempty"`
+	Format        PostFormat             `protobuf:"varint,13,opt,name=format,proto3,enum=white.publishing.v1.PostFormat" json:"format,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1156,6 +1213,13 @@ func (x *SavePostRequest) GetScheduledAt() *timestamppb.Timestamp {
 		return x.ScheduledAt
 	}
 	return nil
+}
+
+func (x *SavePostRequest) GetFormat() PostFormat {
+	if x != nil {
+		return x.Format
+	}
+	return PostFormat_POST_FORMAT_UNSPECIFIED
 }
 
 type SavePostResponse struct {
@@ -1828,6 +1892,7 @@ type PostDetail struct {
 	Media         []*MediaAsset          `protobuf:"bytes,20,rep,name=media,proto3" json:"media,omitempty"`
 	Comments      []*PostComment         `protobuf:"bytes,21,rep,name=comments,proto3" json:"comments,omitempty"`
 	Activities    []*PostActivity        `protobuf:"bytes,22,rep,name=activities,proto3" json:"activities,omitempty"`
+	Format        PostFormat             `protobuf:"varint,23,opt,name=format,proto3,enum=white.publishing.v1.PostFormat" json:"format,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2014,6 +2079,13 @@ func (x *PostDetail) GetActivities() []*PostActivity {
 		return x.Activities
 	}
 	return nil
+}
+
+func (x *PostDetail) GetFormat() PostFormat {
+	if x != nil {
+		return x.Format
+	}
+	return PostFormat_POST_FORMAT_UNSPECIFIED
 }
 
 type PostRow struct {
@@ -3515,7 +3587,7 @@ const file_white_publishing_v1_publishing_proto_rawDesc = "" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\"?\n" +
 	"\aPostRef\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x17\n" +
-	"\apost_id\x18\x02 \x01(\tR\x06postId\"\x98\x05\n" +
+	"\apost_id\x18\x02 \x01(\tR\x06postId\"\xd1\x05\n" +
 	"\x0fSavePostRequest\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x14\n" +
@@ -3529,7 +3601,8 @@ const file_white_publishing_v1_publishing_proto_rawDesc = "" +
 	"\rfirst_comment\x18\n" +
 	" \x01(\tR\ffirstComment\x12\x16\n" +
 	"\x06labels\x18\v \x03(\tR\x06labels\x12B\n" +
-	"\fscheduled_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampH\x00R\vscheduledAt\x88\x01\x01\x1a;\n" +
+	"\fscheduled_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampH\x00R\vscheduledAt\x88\x01\x01\x127\n" +
+	"\x06format\x18\r \x01(\x0e2\x1f.white.publishing.v1.PostFormatR\x06format\x1a;\n" +
 	"\rMediaAltEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a^\n" +
@@ -3606,7 +3679,7 @@ const file_white_publishing_v1_publishing_proto_rawDesc = "" +
 	"\n" +
 	"_permalinkB\b\n" +
 	"\x06_errorB\x0f\n" +
-	"\r_published_at\"\x8c\t\n" +
+	"\r_published_at\"\xc5\t\n" +
 	"\n" +
 	"PostDetail\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
@@ -3639,7 +3712,8 @@ const file_white_publishing_v1_publishing_proto_rawDesc = "" +
 	"\bcomments\x18\x15 \x03(\v2 .white.publishing.v1.PostCommentR\bcomments\x12A\n" +
 	"\n" +
 	"activities\x18\x16 \x03(\v2!.white.publishing.v1.PostActivityR\n" +
-	"activitiesB\x0f\n" +
+	"activities\x127\n" +
+	"\x06format\x18\x17 \x01(\x0e2\x1f.white.publishing.v1.PostFormatR\x06formatB\x0f\n" +
 	"\r_scheduled_atB\x0f\n" +
 	"\r_published_atB\v\n" +
 	"\t_link_urlB\x10\n" +
@@ -3772,7 +3846,13 @@ const file_white_publishing_v1_publishing_proto_rawDesc = "" +
 	"\tMediaKind\x12\x1a\n" +
 	"\x16MEDIA_KIND_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05IMAGE\x10\x01\x12\t\n" +
-	"\x05VIDEO\x10\x02*\xc6\x01\n" +
+	"\x05VIDEO\x10\x02*H\n" +
+	"\n" +
+	"PostFormat\x12\x1b\n" +
+	"\x17POST_FORMAT_UNSPECIFIED\x10\x00\x12\b\n" +
+	"\x04FEED\x10\x01\x12\t\n" +
+	"\x05STORY\x10\x02\x12\b\n" +
+	"\x04REEL\x10\x03*\xc6\x01\n" +
 	"\bPostsTab\x12\x19\n" +
 	"\x15POSTS_TAB_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rPOSTS_TAB_ALL\x10\x01\x12\x13\n" +
@@ -3827,183 +3907,186 @@ func file_white_publishing_v1_publishing_proto_rawDescGZIP() []byte {
 	return file_white_publishing_v1_publishing_proto_rawDescData
 }
 
-var file_white_publishing_v1_publishing_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_white_publishing_v1_publishing_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_white_publishing_v1_publishing_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
 var file_white_publishing_v1_publishing_proto_goTypes = []any{
 	(PostStatus)(0),                           // 0: white.publishing.v1.PostStatus
 	(MediaKind)(0),                            // 1: white.publishing.v1.MediaKind
-	(PostsTab)(0),                             // 2: white.publishing.v1.PostsTab
-	(*MediaAsset)(nil),                        // 3: white.publishing.v1.MediaAsset
-	(*Utm)(nil),                               // 4: white.publishing.v1.Utm
-	(*ListMediaRequest)(nil),                  // 5: white.publishing.v1.ListMediaRequest
-	(*ListMediaResponse)(nil),                 // 6: white.publishing.v1.ListMediaResponse
-	(*UploadMediaRequest)(nil),                // 7: white.publishing.v1.UploadMediaRequest
-	(*UploadMediaResponse)(nil),               // 8: white.publishing.v1.UploadMediaResponse
-	(*AddExternalMediaRequest)(nil),           // 9: white.publishing.v1.AddExternalMediaRequest
-	(*UpdateMediaRequest)(nil),                // 10: white.publishing.v1.UpdateMediaRequest
-	(*DeleteMediaRequest)(nil),                // 11: white.publishing.v1.DeleteMediaRequest
-	(*GetMediaObjectRequest)(nil),             // 12: white.publishing.v1.GetMediaObjectRequest
-	(*MediaObject)(nil),                       // 13: white.publishing.v1.MediaObject
-	(*ClientRequest)(nil),                     // 14: white.publishing.v1.ClientRequest
-	(*PostRef)(nil),                           // 15: white.publishing.v1.PostRef
-	(*SavePostRequest)(nil),                   // 16: white.publishing.v1.SavePostRequest
-	(*SavePostResponse)(nil),                  // 17: white.publishing.v1.SavePostResponse
-	(*PostStatusResponse)(nil),                // 18: white.publishing.v1.PostStatusResponse
-	(*RejectPostRequest)(nil),                 // 19: white.publishing.v1.RejectPostRequest
-	(*SchedulePostRequest)(nil),               // 20: white.publishing.v1.SchedulePostRequest
-	(*PublishResult)(nil),                     // 21: white.publishing.v1.PublishResult
-	(*AddPostCommentRequest)(nil),             // 22: white.publishing.v1.AddPostCommentRequest
-	(*PostComment)(nil),                       // 23: white.publishing.v1.PostComment
-	(*PostActivity)(nil),                      // 24: white.publishing.v1.PostActivity
-	(*PostTargetView)(nil),                    // 25: white.publishing.v1.PostTargetView
-	(*PostDetail)(nil),                        // 26: white.publishing.v1.PostDetail
-	(*PostRow)(nil),                           // 27: white.publishing.v1.PostRow
-	(*ListPostsRequest)(nil),                  // 28: white.publishing.v1.ListPostsRequest
-	(*ListPostsResponse)(nil),                 // 29: white.publishing.v1.ListPostsResponse
-	(*GetCalendarRequest)(nil),                // 30: white.publishing.v1.GetCalendarRequest
-	(*CalendarPost)(nil),                      // 31: white.publishing.v1.CalendarPost
-	(*GetCalendarResponse)(nil),               // 32: white.publishing.v1.GetCalendarResponse
-	(*PublishingStats)(nil),                   // 33: white.publishing.v1.PublishingStats
-	(*GetBestTimesRequest)(nil),               // 34: white.publishing.v1.GetBestTimesRequest
-	(*BestTimeSlot)(nil),                      // 35: white.publishing.v1.BestTimeSlot
-	(*GetBestTimesResponse)(nil),              // 36: white.publishing.v1.GetBestTimesResponse
-	(*SyncJob)(nil),                           // 37: white.publishing.v1.SyncJob
-	(*ListSyncJobsRequest)(nil),               // 38: white.publishing.v1.ListSyncJobsRequest
-	(*ListSyncJobsResponse)(nil),              // 39: white.publishing.v1.ListSyncJobsResponse
-	(*GetPublishingSummaryRequest)(nil),       // 40: white.publishing.v1.GetPublishingSummaryRequest
-	(*PublishingSummary)(nil),                 // 41: white.publishing.v1.PublishingSummary
-	(*UploadMediaRequest_File)(nil),           // 42: white.publishing.v1.UploadMediaRequest.File
-	(*UpdateMediaRequest_TagList)(nil),        // 43: white.publishing.v1.UpdateMediaRequest.TagList
-	nil,                                       // 44: white.publishing.v1.SavePostRequest.MediaAltEntry
-	(*SavePostRequest_TargetInput)(nil),       // 45: white.publishing.v1.SavePostRequest.TargetInput
-	(*PublishResult_PublishError)(nil),        // 46: white.publishing.v1.PublishResult.PublishError
-	(*ListPostsResponse_StatusCount)(nil),     // 47: white.publishing.v1.ListPostsResponse.StatusCount
-	(*PublishingSummary_PlatformCount)(nil),   // 48: white.publishing.v1.PublishingSummary.PlatformCount
-	(*PublishingSummary_PublishedTarget)(nil), // 49: white.publishing.v1.PublishingSummary.PublishedTarget
-	(*timestamppb.Timestamp)(nil),             // 50: google.protobuf.Timestamp
-	(v1.SocialPlatform)(0),                    // 51: white.common.v1.SocialPlatform
-	(v1.JobStatus)(0),                         // 52: white.common.v1.JobStatus
-	(*v1.DateRange)(nil),                      // 53: white.common.v1.DateRange
-	(*emptypb.Empty)(nil),                     // 54: google.protobuf.Empty
+	(PostFormat)(0),                           // 2: white.publishing.v1.PostFormat
+	(PostsTab)(0),                             // 3: white.publishing.v1.PostsTab
+	(*MediaAsset)(nil),                        // 4: white.publishing.v1.MediaAsset
+	(*Utm)(nil),                               // 5: white.publishing.v1.Utm
+	(*ListMediaRequest)(nil),                  // 6: white.publishing.v1.ListMediaRequest
+	(*ListMediaResponse)(nil),                 // 7: white.publishing.v1.ListMediaResponse
+	(*UploadMediaRequest)(nil),                // 8: white.publishing.v1.UploadMediaRequest
+	(*UploadMediaResponse)(nil),               // 9: white.publishing.v1.UploadMediaResponse
+	(*AddExternalMediaRequest)(nil),           // 10: white.publishing.v1.AddExternalMediaRequest
+	(*UpdateMediaRequest)(nil),                // 11: white.publishing.v1.UpdateMediaRequest
+	(*DeleteMediaRequest)(nil),                // 12: white.publishing.v1.DeleteMediaRequest
+	(*GetMediaObjectRequest)(nil),             // 13: white.publishing.v1.GetMediaObjectRequest
+	(*MediaObject)(nil),                       // 14: white.publishing.v1.MediaObject
+	(*ClientRequest)(nil),                     // 15: white.publishing.v1.ClientRequest
+	(*PostRef)(nil),                           // 16: white.publishing.v1.PostRef
+	(*SavePostRequest)(nil),                   // 17: white.publishing.v1.SavePostRequest
+	(*SavePostResponse)(nil),                  // 18: white.publishing.v1.SavePostResponse
+	(*PostStatusResponse)(nil),                // 19: white.publishing.v1.PostStatusResponse
+	(*RejectPostRequest)(nil),                 // 20: white.publishing.v1.RejectPostRequest
+	(*SchedulePostRequest)(nil),               // 21: white.publishing.v1.SchedulePostRequest
+	(*PublishResult)(nil),                     // 22: white.publishing.v1.PublishResult
+	(*AddPostCommentRequest)(nil),             // 23: white.publishing.v1.AddPostCommentRequest
+	(*PostComment)(nil),                       // 24: white.publishing.v1.PostComment
+	(*PostActivity)(nil),                      // 25: white.publishing.v1.PostActivity
+	(*PostTargetView)(nil),                    // 26: white.publishing.v1.PostTargetView
+	(*PostDetail)(nil),                        // 27: white.publishing.v1.PostDetail
+	(*PostRow)(nil),                           // 28: white.publishing.v1.PostRow
+	(*ListPostsRequest)(nil),                  // 29: white.publishing.v1.ListPostsRequest
+	(*ListPostsResponse)(nil),                 // 30: white.publishing.v1.ListPostsResponse
+	(*GetCalendarRequest)(nil),                // 31: white.publishing.v1.GetCalendarRequest
+	(*CalendarPost)(nil),                      // 32: white.publishing.v1.CalendarPost
+	(*GetCalendarResponse)(nil),               // 33: white.publishing.v1.GetCalendarResponse
+	(*PublishingStats)(nil),                   // 34: white.publishing.v1.PublishingStats
+	(*GetBestTimesRequest)(nil),               // 35: white.publishing.v1.GetBestTimesRequest
+	(*BestTimeSlot)(nil),                      // 36: white.publishing.v1.BestTimeSlot
+	(*GetBestTimesResponse)(nil),              // 37: white.publishing.v1.GetBestTimesResponse
+	(*SyncJob)(nil),                           // 38: white.publishing.v1.SyncJob
+	(*ListSyncJobsRequest)(nil),               // 39: white.publishing.v1.ListSyncJobsRequest
+	(*ListSyncJobsResponse)(nil),              // 40: white.publishing.v1.ListSyncJobsResponse
+	(*GetPublishingSummaryRequest)(nil),       // 41: white.publishing.v1.GetPublishingSummaryRequest
+	(*PublishingSummary)(nil),                 // 42: white.publishing.v1.PublishingSummary
+	(*UploadMediaRequest_File)(nil),           // 43: white.publishing.v1.UploadMediaRequest.File
+	(*UpdateMediaRequest_TagList)(nil),        // 44: white.publishing.v1.UpdateMediaRequest.TagList
+	nil,                                       // 45: white.publishing.v1.SavePostRequest.MediaAltEntry
+	(*SavePostRequest_TargetInput)(nil),       // 46: white.publishing.v1.SavePostRequest.TargetInput
+	(*PublishResult_PublishError)(nil),        // 47: white.publishing.v1.PublishResult.PublishError
+	(*ListPostsResponse_StatusCount)(nil),     // 48: white.publishing.v1.ListPostsResponse.StatusCount
+	(*PublishingSummary_PlatformCount)(nil),   // 49: white.publishing.v1.PublishingSummary.PlatformCount
+	(*PublishingSummary_PublishedTarget)(nil), // 50: white.publishing.v1.PublishingSummary.PublishedTarget
+	(*timestamppb.Timestamp)(nil),             // 51: google.protobuf.Timestamp
+	(v1.SocialPlatform)(0),                    // 52: white.common.v1.SocialPlatform
+	(v1.JobStatus)(0),                         // 53: white.common.v1.JobStatus
+	(*v1.DateRange)(nil),                      // 54: white.common.v1.DateRange
+	(*emptypb.Empty)(nil),                     // 55: google.protobuf.Empty
 }
 var file_white_publishing_v1_publishing_proto_depIdxs = []int32{
 	1,  // 0: white.publishing.v1.MediaAsset.kind:type_name -> white.publishing.v1.MediaKind
-	50, // 1: white.publishing.v1.MediaAsset.created_at:type_name -> google.protobuf.Timestamp
-	3,  // 2: white.publishing.v1.ListMediaResponse.assets:type_name -> white.publishing.v1.MediaAsset
-	42, // 3: white.publishing.v1.UploadMediaRequest.files:type_name -> white.publishing.v1.UploadMediaRequest.File
-	3,  // 4: white.publishing.v1.UploadMediaResponse.assets:type_name -> white.publishing.v1.MediaAsset
+	51, // 1: white.publishing.v1.MediaAsset.created_at:type_name -> google.protobuf.Timestamp
+	4,  // 2: white.publishing.v1.ListMediaResponse.assets:type_name -> white.publishing.v1.MediaAsset
+	43, // 3: white.publishing.v1.UploadMediaRequest.files:type_name -> white.publishing.v1.UploadMediaRequest.File
+	4,  // 4: white.publishing.v1.UploadMediaResponse.assets:type_name -> white.publishing.v1.MediaAsset
 	1,  // 5: white.publishing.v1.AddExternalMediaRequest.kind:type_name -> white.publishing.v1.MediaKind
-	43, // 6: white.publishing.v1.UpdateMediaRequest.tags:type_name -> white.publishing.v1.UpdateMediaRequest.TagList
-	45, // 7: white.publishing.v1.SavePostRequest.targets:type_name -> white.publishing.v1.SavePostRequest.TargetInput
-	44, // 8: white.publishing.v1.SavePostRequest.media_alt:type_name -> white.publishing.v1.SavePostRequest.MediaAltEntry
-	4,  // 9: white.publishing.v1.SavePostRequest.utm:type_name -> white.publishing.v1.Utm
-	50, // 10: white.publishing.v1.SavePostRequest.scheduled_at:type_name -> google.protobuf.Timestamp
-	0,  // 11: white.publishing.v1.SavePostResponse.status:type_name -> white.publishing.v1.PostStatus
-	0,  // 12: white.publishing.v1.PostStatusResponse.status:type_name -> white.publishing.v1.PostStatus
-	50, // 13: white.publishing.v1.SchedulePostRequest.scheduled_at:type_name -> google.protobuf.Timestamp
-	0,  // 14: white.publishing.v1.PublishResult.status:type_name -> white.publishing.v1.PostStatus
-	46, // 15: white.publishing.v1.PublishResult.errors:type_name -> white.publishing.v1.PublishResult.PublishError
-	50, // 16: white.publishing.v1.PostComment.created_at:type_name -> google.protobuf.Timestamp
-	50, // 17: white.publishing.v1.PostActivity.created_at:type_name -> google.protobuf.Timestamp
-	51, // 18: white.publishing.v1.PostTargetView.platform:type_name -> white.common.v1.SocialPlatform
-	0,  // 19: white.publishing.v1.PostTargetView.status:type_name -> white.publishing.v1.PostStatus
-	50, // 20: white.publishing.v1.PostTargetView.published_at:type_name -> google.protobuf.Timestamp
-	0,  // 21: white.publishing.v1.PostDetail.status:type_name -> white.publishing.v1.PostStatus
-	50, // 22: white.publishing.v1.PostDetail.scheduled_at:type_name -> google.protobuf.Timestamp
-	50, // 23: white.publishing.v1.PostDetail.published_at:type_name -> google.protobuf.Timestamp
-	4,  // 24: white.publishing.v1.PostDetail.utm:type_name -> white.publishing.v1.Utm
-	50, // 25: white.publishing.v1.PostDetail.created_at:type_name -> google.protobuf.Timestamp
-	50, // 26: white.publishing.v1.PostDetail.updated_at:type_name -> google.protobuf.Timestamp
-	50, // 27: white.publishing.v1.PostDetail.approved_at:type_name -> google.protobuf.Timestamp
-	25, // 28: white.publishing.v1.PostDetail.targets:type_name -> white.publishing.v1.PostTargetView
-	3,  // 29: white.publishing.v1.PostDetail.media:type_name -> white.publishing.v1.MediaAsset
-	23, // 30: white.publishing.v1.PostDetail.comments:type_name -> white.publishing.v1.PostComment
-	24, // 31: white.publishing.v1.PostDetail.activities:type_name -> white.publishing.v1.PostActivity
-	0,  // 32: white.publishing.v1.PostRow.status:type_name -> white.publishing.v1.PostStatus
-	50, // 33: white.publishing.v1.PostRow.at:type_name -> google.protobuf.Timestamp
-	50, // 34: white.publishing.v1.PostRow.scheduled_at:type_name -> google.protobuf.Timestamp
-	50, // 35: white.publishing.v1.PostRow.published_at:type_name -> google.protobuf.Timestamp
-	50, // 36: white.publishing.v1.PostRow.updated_at:type_name -> google.protobuf.Timestamp
-	51, // 37: white.publishing.v1.PostRow.platforms:type_name -> white.common.v1.SocialPlatform
-	2,  // 38: white.publishing.v1.ListPostsRequest.tab:type_name -> white.publishing.v1.PostsTab
-	27, // 39: white.publishing.v1.ListPostsResponse.rows:type_name -> white.publishing.v1.PostRow
-	47, // 40: white.publishing.v1.ListPostsResponse.counts:type_name -> white.publishing.v1.ListPostsResponse.StatusCount
-	0,  // 41: white.publishing.v1.CalendarPost.status:type_name -> white.publishing.v1.PostStatus
-	50, // 42: white.publishing.v1.CalendarPost.at:type_name -> google.protobuf.Timestamp
-	51, // 43: white.publishing.v1.CalendarPost.platforms:type_name -> white.common.v1.SocialPlatform
-	31, // 44: white.publishing.v1.GetCalendarResponse.posts:type_name -> white.publishing.v1.CalendarPost
-	50, // 45: white.publishing.v1.GetCalendarResponse.from:type_name -> google.protobuf.Timestamp
-	50, // 46: white.publishing.v1.GetCalendarResponse.to:type_name -> google.protobuf.Timestamp
-	50, // 47: white.publishing.v1.BestTimeSlot.at:type_name -> google.protobuf.Timestamp
-	35, // 48: white.publishing.v1.GetBestTimesResponse.slots:type_name -> white.publishing.v1.BestTimeSlot
-	52, // 49: white.publishing.v1.SyncJob.status:type_name -> white.common.v1.JobStatus
-	50, // 50: white.publishing.v1.SyncJob.started_at:type_name -> google.protobuf.Timestamp
-	50, // 51: white.publishing.v1.SyncJob.finished_at:type_name -> google.protobuf.Timestamp
-	37, // 52: white.publishing.v1.ListSyncJobsResponse.jobs:type_name -> white.publishing.v1.SyncJob
-	53, // 53: white.publishing.v1.GetPublishingSummaryRequest.range:type_name -> white.common.v1.DateRange
-	48, // 54: white.publishing.v1.PublishingSummary.per_platform:type_name -> white.publishing.v1.PublishingSummary.PlatformCount
-	49, // 55: white.publishing.v1.PublishingSummary.top:type_name -> white.publishing.v1.PublishingSummary.PublishedTarget
-	0,  // 56: white.publishing.v1.ListPostsResponse.StatusCount.status:type_name -> white.publishing.v1.PostStatus
-	51, // 57: white.publishing.v1.PublishingSummary.PlatformCount.platform:type_name -> white.common.v1.SocialPlatform
-	51, // 58: white.publishing.v1.PublishingSummary.PublishedTarget.platform:type_name -> white.common.v1.SocialPlatform
-	50, // 59: white.publishing.v1.PublishingSummary.PublishedTarget.published_at:type_name -> google.protobuf.Timestamp
-	5,  // 60: white.publishing.v1.MediaService.ListMedia:input_type -> white.publishing.v1.ListMediaRequest
-	7,  // 61: white.publishing.v1.MediaService.UploadMedia:input_type -> white.publishing.v1.UploadMediaRequest
-	9,  // 62: white.publishing.v1.MediaService.AddExternalMedia:input_type -> white.publishing.v1.AddExternalMediaRequest
-	10, // 63: white.publishing.v1.MediaService.UpdateMedia:input_type -> white.publishing.v1.UpdateMediaRequest
-	11, // 64: white.publishing.v1.MediaService.DeleteMedia:input_type -> white.publishing.v1.DeleteMediaRequest
-	12, // 65: white.publishing.v1.MediaService.GetMediaObject:input_type -> white.publishing.v1.GetMediaObjectRequest
-	16, // 66: white.publishing.v1.PostService.SavePost:input_type -> white.publishing.v1.SavePostRequest
-	15, // 67: white.publishing.v1.PostService.SubmitForReview:input_type -> white.publishing.v1.PostRef
-	15, // 68: white.publishing.v1.PostService.ApprovePost:input_type -> white.publishing.v1.PostRef
-	19, // 69: white.publishing.v1.PostService.RejectPost:input_type -> white.publishing.v1.RejectPostRequest
-	20, // 70: white.publishing.v1.PostService.SchedulePost:input_type -> white.publishing.v1.SchedulePostRequest
-	15, // 71: white.publishing.v1.PostService.UnschedulePost:input_type -> white.publishing.v1.PostRef
-	20, // 72: white.publishing.v1.PostService.ReschedulePost:input_type -> white.publishing.v1.SchedulePostRequest
-	15, // 73: white.publishing.v1.PostService.BackToDraft:input_type -> white.publishing.v1.PostRef
-	15, // 74: white.publishing.v1.PostService.PublishNow:input_type -> white.publishing.v1.PostRef
-	15, // 75: white.publishing.v1.PostService.RetryPost:input_type -> white.publishing.v1.PostRef
-	15, // 76: white.publishing.v1.PostService.DuplicatePost:input_type -> white.publishing.v1.PostRef
-	15, // 77: white.publishing.v1.PostService.DeletePost:input_type -> white.publishing.v1.PostRef
-	22, // 78: white.publishing.v1.PostService.AddPostComment:input_type -> white.publishing.v1.AddPostCommentRequest
-	15, // 79: white.publishing.v1.PostService.GetPost:input_type -> white.publishing.v1.PostRef
-	28, // 80: white.publishing.v1.PostService.ListPosts:input_type -> white.publishing.v1.ListPostsRequest
-	30, // 81: white.publishing.v1.PostService.GetCalendar:input_type -> white.publishing.v1.GetCalendarRequest
-	14, // 82: white.publishing.v1.PostService.GetPublishingStats:input_type -> white.publishing.v1.ClientRequest
-	34, // 83: white.publishing.v1.PostService.GetBestTimes:input_type -> white.publishing.v1.GetBestTimesRequest
-	38, // 84: white.publishing.v1.PostService.ListSyncJobs:input_type -> white.publishing.v1.ListSyncJobsRequest
-	40, // 85: white.publishing.v1.ReportDataService.GetPublishingSummary:input_type -> white.publishing.v1.GetPublishingSummaryRequest
-	6,  // 86: white.publishing.v1.MediaService.ListMedia:output_type -> white.publishing.v1.ListMediaResponse
-	8,  // 87: white.publishing.v1.MediaService.UploadMedia:output_type -> white.publishing.v1.UploadMediaResponse
-	3,  // 88: white.publishing.v1.MediaService.AddExternalMedia:output_type -> white.publishing.v1.MediaAsset
-	3,  // 89: white.publishing.v1.MediaService.UpdateMedia:output_type -> white.publishing.v1.MediaAsset
-	54, // 90: white.publishing.v1.MediaService.DeleteMedia:output_type -> google.protobuf.Empty
-	13, // 91: white.publishing.v1.MediaService.GetMediaObject:output_type -> white.publishing.v1.MediaObject
-	17, // 92: white.publishing.v1.PostService.SavePost:output_type -> white.publishing.v1.SavePostResponse
-	18, // 93: white.publishing.v1.PostService.SubmitForReview:output_type -> white.publishing.v1.PostStatusResponse
-	18, // 94: white.publishing.v1.PostService.ApprovePost:output_type -> white.publishing.v1.PostStatusResponse
-	18, // 95: white.publishing.v1.PostService.RejectPost:output_type -> white.publishing.v1.PostStatusResponse
-	18, // 96: white.publishing.v1.PostService.SchedulePost:output_type -> white.publishing.v1.PostStatusResponse
-	18, // 97: white.publishing.v1.PostService.UnschedulePost:output_type -> white.publishing.v1.PostStatusResponse
-	18, // 98: white.publishing.v1.PostService.ReschedulePost:output_type -> white.publishing.v1.PostStatusResponse
-	18, // 99: white.publishing.v1.PostService.BackToDraft:output_type -> white.publishing.v1.PostStatusResponse
-	21, // 100: white.publishing.v1.PostService.PublishNow:output_type -> white.publishing.v1.PublishResult
-	21, // 101: white.publishing.v1.PostService.RetryPost:output_type -> white.publishing.v1.PublishResult
-	17, // 102: white.publishing.v1.PostService.DuplicatePost:output_type -> white.publishing.v1.SavePostResponse
-	54, // 103: white.publishing.v1.PostService.DeletePost:output_type -> google.protobuf.Empty
-	23, // 104: white.publishing.v1.PostService.AddPostComment:output_type -> white.publishing.v1.PostComment
-	26, // 105: white.publishing.v1.PostService.GetPost:output_type -> white.publishing.v1.PostDetail
-	29, // 106: white.publishing.v1.PostService.ListPosts:output_type -> white.publishing.v1.ListPostsResponse
-	32, // 107: white.publishing.v1.PostService.GetCalendar:output_type -> white.publishing.v1.GetCalendarResponse
-	33, // 108: white.publishing.v1.PostService.GetPublishingStats:output_type -> white.publishing.v1.PublishingStats
-	36, // 109: white.publishing.v1.PostService.GetBestTimes:output_type -> white.publishing.v1.GetBestTimesResponse
-	39, // 110: white.publishing.v1.PostService.ListSyncJobs:output_type -> white.publishing.v1.ListSyncJobsResponse
-	41, // 111: white.publishing.v1.ReportDataService.GetPublishingSummary:output_type -> white.publishing.v1.PublishingSummary
-	86, // [86:112] is the sub-list for method output_type
-	60, // [60:86] is the sub-list for method input_type
-	60, // [60:60] is the sub-list for extension type_name
-	60, // [60:60] is the sub-list for extension extendee
-	0,  // [0:60] is the sub-list for field type_name
+	44, // 6: white.publishing.v1.UpdateMediaRequest.tags:type_name -> white.publishing.v1.UpdateMediaRequest.TagList
+	46, // 7: white.publishing.v1.SavePostRequest.targets:type_name -> white.publishing.v1.SavePostRequest.TargetInput
+	45, // 8: white.publishing.v1.SavePostRequest.media_alt:type_name -> white.publishing.v1.SavePostRequest.MediaAltEntry
+	5,  // 9: white.publishing.v1.SavePostRequest.utm:type_name -> white.publishing.v1.Utm
+	51, // 10: white.publishing.v1.SavePostRequest.scheduled_at:type_name -> google.protobuf.Timestamp
+	2,  // 11: white.publishing.v1.SavePostRequest.format:type_name -> white.publishing.v1.PostFormat
+	0,  // 12: white.publishing.v1.SavePostResponse.status:type_name -> white.publishing.v1.PostStatus
+	0,  // 13: white.publishing.v1.PostStatusResponse.status:type_name -> white.publishing.v1.PostStatus
+	51, // 14: white.publishing.v1.SchedulePostRequest.scheduled_at:type_name -> google.protobuf.Timestamp
+	0,  // 15: white.publishing.v1.PublishResult.status:type_name -> white.publishing.v1.PostStatus
+	47, // 16: white.publishing.v1.PublishResult.errors:type_name -> white.publishing.v1.PublishResult.PublishError
+	51, // 17: white.publishing.v1.PostComment.created_at:type_name -> google.protobuf.Timestamp
+	51, // 18: white.publishing.v1.PostActivity.created_at:type_name -> google.protobuf.Timestamp
+	52, // 19: white.publishing.v1.PostTargetView.platform:type_name -> white.common.v1.SocialPlatform
+	0,  // 20: white.publishing.v1.PostTargetView.status:type_name -> white.publishing.v1.PostStatus
+	51, // 21: white.publishing.v1.PostTargetView.published_at:type_name -> google.protobuf.Timestamp
+	0,  // 22: white.publishing.v1.PostDetail.status:type_name -> white.publishing.v1.PostStatus
+	51, // 23: white.publishing.v1.PostDetail.scheduled_at:type_name -> google.protobuf.Timestamp
+	51, // 24: white.publishing.v1.PostDetail.published_at:type_name -> google.protobuf.Timestamp
+	5,  // 25: white.publishing.v1.PostDetail.utm:type_name -> white.publishing.v1.Utm
+	51, // 26: white.publishing.v1.PostDetail.created_at:type_name -> google.protobuf.Timestamp
+	51, // 27: white.publishing.v1.PostDetail.updated_at:type_name -> google.protobuf.Timestamp
+	51, // 28: white.publishing.v1.PostDetail.approved_at:type_name -> google.protobuf.Timestamp
+	26, // 29: white.publishing.v1.PostDetail.targets:type_name -> white.publishing.v1.PostTargetView
+	4,  // 30: white.publishing.v1.PostDetail.media:type_name -> white.publishing.v1.MediaAsset
+	24, // 31: white.publishing.v1.PostDetail.comments:type_name -> white.publishing.v1.PostComment
+	25, // 32: white.publishing.v1.PostDetail.activities:type_name -> white.publishing.v1.PostActivity
+	2,  // 33: white.publishing.v1.PostDetail.format:type_name -> white.publishing.v1.PostFormat
+	0,  // 34: white.publishing.v1.PostRow.status:type_name -> white.publishing.v1.PostStatus
+	51, // 35: white.publishing.v1.PostRow.at:type_name -> google.protobuf.Timestamp
+	51, // 36: white.publishing.v1.PostRow.scheduled_at:type_name -> google.protobuf.Timestamp
+	51, // 37: white.publishing.v1.PostRow.published_at:type_name -> google.protobuf.Timestamp
+	51, // 38: white.publishing.v1.PostRow.updated_at:type_name -> google.protobuf.Timestamp
+	52, // 39: white.publishing.v1.PostRow.platforms:type_name -> white.common.v1.SocialPlatform
+	3,  // 40: white.publishing.v1.ListPostsRequest.tab:type_name -> white.publishing.v1.PostsTab
+	28, // 41: white.publishing.v1.ListPostsResponse.rows:type_name -> white.publishing.v1.PostRow
+	48, // 42: white.publishing.v1.ListPostsResponse.counts:type_name -> white.publishing.v1.ListPostsResponse.StatusCount
+	0,  // 43: white.publishing.v1.CalendarPost.status:type_name -> white.publishing.v1.PostStatus
+	51, // 44: white.publishing.v1.CalendarPost.at:type_name -> google.protobuf.Timestamp
+	52, // 45: white.publishing.v1.CalendarPost.platforms:type_name -> white.common.v1.SocialPlatform
+	32, // 46: white.publishing.v1.GetCalendarResponse.posts:type_name -> white.publishing.v1.CalendarPost
+	51, // 47: white.publishing.v1.GetCalendarResponse.from:type_name -> google.protobuf.Timestamp
+	51, // 48: white.publishing.v1.GetCalendarResponse.to:type_name -> google.protobuf.Timestamp
+	51, // 49: white.publishing.v1.BestTimeSlot.at:type_name -> google.protobuf.Timestamp
+	36, // 50: white.publishing.v1.GetBestTimesResponse.slots:type_name -> white.publishing.v1.BestTimeSlot
+	53, // 51: white.publishing.v1.SyncJob.status:type_name -> white.common.v1.JobStatus
+	51, // 52: white.publishing.v1.SyncJob.started_at:type_name -> google.protobuf.Timestamp
+	51, // 53: white.publishing.v1.SyncJob.finished_at:type_name -> google.protobuf.Timestamp
+	38, // 54: white.publishing.v1.ListSyncJobsResponse.jobs:type_name -> white.publishing.v1.SyncJob
+	54, // 55: white.publishing.v1.GetPublishingSummaryRequest.range:type_name -> white.common.v1.DateRange
+	49, // 56: white.publishing.v1.PublishingSummary.per_platform:type_name -> white.publishing.v1.PublishingSummary.PlatformCount
+	50, // 57: white.publishing.v1.PublishingSummary.top:type_name -> white.publishing.v1.PublishingSummary.PublishedTarget
+	0,  // 58: white.publishing.v1.ListPostsResponse.StatusCount.status:type_name -> white.publishing.v1.PostStatus
+	52, // 59: white.publishing.v1.PublishingSummary.PlatformCount.platform:type_name -> white.common.v1.SocialPlatform
+	52, // 60: white.publishing.v1.PublishingSummary.PublishedTarget.platform:type_name -> white.common.v1.SocialPlatform
+	51, // 61: white.publishing.v1.PublishingSummary.PublishedTarget.published_at:type_name -> google.protobuf.Timestamp
+	6,  // 62: white.publishing.v1.MediaService.ListMedia:input_type -> white.publishing.v1.ListMediaRequest
+	8,  // 63: white.publishing.v1.MediaService.UploadMedia:input_type -> white.publishing.v1.UploadMediaRequest
+	10, // 64: white.publishing.v1.MediaService.AddExternalMedia:input_type -> white.publishing.v1.AddExternalMediaRequest
+	11, // 65: white.publishing.v1.MediaService.UpdateMedia:input_type -> white.publishing.v1.UpdateMediaRequest
+	12, // 66: white.publishing.v1.MediaService.DeleteMedia:input_type -> white.publishing.v1.DeleteMediaRequest
+	13, // 67: white.publishing.v1.MediaService.GetMediaObject:input_type -> white.publishing.v1.GetMediaObjectRequest
+	17, // 68: white.publishing.v1.PostService.SavePost:input_type -> white.publishing.v1.SavePostRequest
+	16, // 69: white.publishing.v1.PostService.SubmitForReview:input_type -> white.publishing.v1.PostRef
+	16, // 70: white.publishing.v1.PostService.ApprovePost:input_type -> white.publishing.v1.PostRef
+	20, // 71: white.publishing.v1.PostService.RejectPost:input_type -> white.publishing.v1.RejectPostRequest
+	21, // 72: white.publishing.v1.PostService.SchedulePost:input_type -> white.publishing.v1.SchedulePostRequest
+	16, // 73: white.publishing.v1.PostService.UnschedulePost:input_type -> white.publishing.v1.PostRef
+	21, // 74: white.publishing.v1.PostService.ReschedulePost:input_type -> white.publishing.v1.SchedulePostRequest
+	16, // 75: white.publishing.v1.PostService.BackToDraft:input_type -> white.publishing.v1.PostRef
+	16, // 76: white.publishing.v1.PostService.PublishNow:input_type -> white.publishing.v1.PostRef
+	16, // 77: white.publishing.v1.PostService.RetryPost:input_type -> white.publishing.v1.PostRef
+	16, // 78: white.publishing.v1.PostService.DuplicatePost:input_type -> white.publishing.v1.PostRef
+	16, // 79: white.publishing.v1.PostService.DeletePost:input_type -> white.publishing.v1.PostRef
+	23, // 80: white.publishing.v1.PostService.AddPostComment:input_type -> white.publishing.v1.AddPostCommentRequest
+	16, // 81: white.publishing.v1.PostService.GetPost:input_type -> white.publishing.v1.PostRef
+	29, // 82: white.publishing.v1.PostService.ListPosts:input_type -> white.publishing.v1.ListPostsRequest
+	31, // 83: white.publishing.v1.PostService.GetCalendar:input_type -> white.publishing.v1.GetCalendarRequest
+	15, // 84: white.publishing.v1.PostService.GetPublishingStats:input_type -> white.publishing.v1.ClientRequest
+	35, // 85: white.publishing.v1.PostService.GetBestTimes:input_type -> white.publishing.v1.GetBestTimesRequest
+	39, // 86: white.publishing.v1.PostService.ListSyncJobs:input_type -> white.publishing.v1.ListSyncJobsRequest
+	41, // 87: white.publishing.v1.ReportDataService.GetPublishingSummary:input_type -> white.publishing.v1.GetPublishingSummaryRequest
+	7,  // 88: white.publishing.v1.MediaService.ListMedia:output_type -> white.publishing.v1.ListMediaResponse
+	9,  // 89: white.publishing.v1.MediaService.UploadMedia:output_type -> white.publishing.v1.UploadMediaResponse
+	4,  // 90: white.publishing.v1.MediaService.AddExternalMedia:output_type -> white.publishing.v1.MediaAsset
+	4,  // 91: white.publishing.v1.MediaService.UpdateMedia:output_type -> white.publishing.v1.MediaAsset
+	55, // 92: white.publishing.v1.MediaService.DeleteMedia:output_type -> google.protobuf.Empty
+	14, // 93: white.publishing.v1.MediaService.GetMediaObject:output_type -> white.publishing.v1.MediaObject
+	18, // 94: white.publishing.v1.PostService.SavePost:output_type -> white.publishing.v1.SavePostResponse
+	19, // 95: white.publishing.v1.PostService.SubmitForReview:output_type -> white.publishing.v1.PostStatusResponse
+	19, // 96: white.publishing.v1.PostService.ApprovePost:output_type -> white.publishing.v1.PostStatusResponse
+	19, // 97: white.publishing.v1.PostService.RejectPost:output_type -> white.publishing.v1.PostStatusResponse
+	19, // 98: white.publishing.v1.PostService.SchedulePost:output_type -> white.publishing.v1.PostStatusResponse
+	19, // 99: white.publishing.v1.PostService.UnschedulePost:output_type -> white.publishing.v1.PostStatusResponse
+	19, // 100: white.publishing.v1.PostService.ReschedulePost:output_type -> white.publishing.v1.PostStatusResponse
+	19, // 101: white.publishing.v1.PostService.BackToDraft:output_type -> white.publishing.v1.PostStatusResponse
+	22, // 102: white.publishing.v1.PostService.PublishNow:output_type -> white.publishing.v1.PublishResult
+	22, // 103: white.publishing.v1.PostService.RetryPost:output_type -> white.publishing.v1.PublishResult
+	18, // 104: white.publishing.v1.PostService.DuplicatePost:output_type -> white.publishing.v1.SavePostResponse
+	55, // 105: white.publishing.v1.PostService.DeletePost:output_type -> google.protobuf.Empty
+	24, // 106: white.publishing.v1.PostService.AddPostComment:output_type -> white.publishing.v1.PostComment
+	27, // 107: white.publishing.v1.PostService.GetPost:output_type -> white.publishing.v1.PostDetail
+	30, // 108: white.publishing.v1.PostService.ListPosts:output_type -> white.publishing.v1.ListPostsResponse
+	33, // 109: white.publishing.v1.PostService.GetCalendar:output_type -> white.publishing.v1.GetCalendarResponse
+	34, // 110: white.publishing.v1.PostService.GetPublishingStats:output_type -> white.publishing.v1.PublishingStats
+	37, // 111: white.publishing.v1.PostService.GetBestTimes:output_type -> white.publishing.v1.GetBestTimesResponse
+	40, // 112: white.publishing.v1.PostService.ListSyncJobs:output_type -> white.publishing.v1.ListSyncJobsResponse
+	42, // 113: white.publishing.v1.ReportDataService.GetPublishingSummary:output_type -> white.publishing.v1.PublishingSummary
+	88, // [88:114] is the sub-list for method output_type
+	62, // [62:88] is the sub-list for method input_type
+	62, // [62:62] is the sub-list for extension type_name
+	62, // [62:62] is the sub-list for extension extendee
+	0,  // [0:62] is the sub-list for field type_name
 }
 
 func init() { file_white_publishing_v1_publishing_proto_init() }
@@ -4027,7 +4110,7 @@ func file_white_publishing_v1_publishing_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_publishing_v1_publishing_proto_rawDesc), len(file_white_publishing_v1_publishing_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   47,
 			NumExtensions: 0,
 			NumServices:   3,

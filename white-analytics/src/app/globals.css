@@ -91,6 +91,9 @@
   /* ── Brand: royal blue marks data and active state; actions are ink pills ── */
   --brand: #1b4de4;
   --brand-ink: #123aae;
+  /* Workspace accents: marketing keeps the royal blue, ERP is a deep emerald */
+  --marketing-accent: #1b4de4;
+  --erp-accent: #0f7a55;
   --primary: #10131f;
   --primary-foreground: #ffffff;
   --secondary: #e6e8ef;
@@ -187,6 +190,8 @@
 
   --brand: #5b84ff;
   --brand-ink: #a9c0ff;
+  --marketing-accent: #5b84ff;
+  --erp-accent: #34b886;
   --primary: #f2f2f0;
   --primary-foreground: #0b0c0e;
   --secondary: #1b1d22;
@@ -392,4 +397,17 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ERP workspace: the shell sets data-workspace="erp", so every brand-tinted
+   control (active nav chip, links, charts' primary series) turns emerald. */
+[data-workspace="erp"] {
+  --brand: var(--erp-accent);
+  --brand-ink: #0a5c40;
+  --accent: #e3f3ec;
+}
+.dark [data-workspace="erp"],
+.dark[data-workspace="erp"] {
+  --brand-ink: #9fe3c7;
+  --accent: #14271f;
 }

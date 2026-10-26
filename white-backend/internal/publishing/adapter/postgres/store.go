@@ -172,7 +172,7 @@ func toPost(p sqlc.PublishingContentPost) domain.ContentPost {
 	if len(p.Utm) > 0 {
 		_ = json.Unmarshal(p.Utm, &raw)
 	}
-	return domain.ContentPost{ID: p.ID, ClientID: p.ClientID, Title: p.Title, Body: p.Body, Status: domain.PostStatus(p.Status), ScheduledAt: p.ScheduledAt, PublishedAt: p.PublishedAt, LinkURL: p.LinkUrl, FirstComment: p.FirstComment, Labels: p.Labels, UTM: domain.ParseUTM(raw), ReviewNote: p.ReviewNote, CreatedByID: p.CreatedByID, ApprovedByID: p.ApprovedByID, ApprovedAt: p.ApprovedAt, CreatedAt: p.CreatedAt, UpdatedAt: p.UpdatedAt}
+	return domain.ContentPost{ID: p.ID, ClientID: p.ClientID, Title: p.Title, Body: p.Body, Status: domain.PostStatus(p.Status), Format: domain.ToFormat(p.Format), ScheduledAt: p.ScheduledAt, PublishedAt: p.PublishedAt, LinkURL: p.LinkUrl, FirstComment: p.FirstComment, Labels: p.Labels, UTM: domain.ParseUTM(raw), ReviewNote: p.ReviewNote, CreatedByID: p.CreatedByID, ApprovedByID: p.ApprovedByID, ApprovedAt: p.ApprovedAt, CreatedAt: p.CreatedAt, UpdatedAt: p.UpdatedAt}
 }
 
 func utmJSON(u domain.UTM) []byte {
@@ -204,11 +204,11 @@ func (s *Store) GetPostInClient(ctx context.Context, clientID, id string) (*doma
 }
 
 func (s *Store) InsertPost(ctx context.Context, p domain.ContentPost) (*domain.ContentPost, error) {
-	return s.onePost(s.q.InsertPost(ctx, sqlc.InsertPostParams{ID: p.ID, ClientID: p.ClientID, Title: p.Title, Body: p.Body, Status: sqlc.PublishingPostStatus(p.Status), ScheduledAt: p.ScheduledAt, LinkUrl: p.LinkURL, FirstComment: p.FirstComment, Labels: p.Labels, Utm: utmJSON(p.UTM), CreatedByID: p.CreatedByID}))
+	return s.onePost(s.q.InsertPost(ctx, sqlc.InsertPostParams{ID: p.ID, ClientID: p.ClientID, Title: p.Title, Body: p.Body, Status: sqlc.PublishingPostStatus(p.Status), ScheduledAt: p.ScheduledAt, LinkUrl: p.LinkURL, FirstComment: p.FirstComment, Labels: p.Labels, Utm: utmJSON(p.UTM), CreatedByID: p.CreatedByID, Format: string(domain.ToFormat(string(p.Format)))}))
 }
 
 func (s *Store) UpdatePostContent(ctx context.Context, p domain.ContentPost, clearApproval bool) (*domain.ContentPost, error) {
-	return s.onePost(s.q.UpdatePostContent(ctx, sqlc.UpdatePostContentParams{ID: p.ID, Title: p.Title, Body: p.Body, Status: sqlc.PublishingPostStatus(p.Status), ScheduledAt: p.ScheduledAt, LinkUrl: p.LinkURL, FirstComment: p.FirstComment, Labels: p.Labels, Utm: utmJSON(p.UTM), ClearApproval: clearApproval}))
+	return s.onePost(s.q.UpdatePostContent(ctx, sqlc.UpdatePostContentParams{ID: p.ID, Title: p.Title, Body: p.Body, Status: sqlc.PublishingPostStatus(p.Status), ScheduledAt: p.ScheduledAt, LinkUrl: p.LinkURL, FirstComment: p.FirstComment, Labels: p.Labels, Utm: utmJSON(p.UTM), Format: string(domain.ToFormat(string(p.Format))), ClearApproval: clearApproval}))
 }
 
 func (s *Store) UpdatePostStatus(ctx context.Context, id string, status domain.PostStatus, patch domain.StatusPatch) (*domain.ContentPost, error) {

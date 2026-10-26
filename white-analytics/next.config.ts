@@ -39,7 +39,14 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "30mb" },
   },
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    // The public chat widget (/chat) is embedded in client websites through an iframe.
+    const embeddable = securityHeaders
+      .filter((h) => h.key !== "X-Frame-Options")
+      .map((h) => (h.key === "Content-Security-Policy" ? { ...h, value: h.value.replace("frame-ancestors 'none'", "frame-ancestors *") } : h));
+    return [
+      { source: "/((?!chat$).*)", headers: securityHeaders },
+      { source: "/chat", headers: embeddable },
+    ];
   },
 };
 

@@ -10,6 +10,16 @@ import { getSessionUser } from "@/lib/rbac";
 import { t } from "@/i18n/id";
 import { ta } from "@/features/admin/strings";
 import { MEMBER_ROLES } from "@/features/clients/constants";
+import { gatewayFetch, GatewayError, syncUserToGateway } from "@/lib/erp/gateway";
+
+/** Pushes the saved row to identity so the user can open the ERP. */
+async function mirrorUser(userId: string) {
+  const u = await db.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, name: true, passwordHash: true, role: true, isActive: true },
+  });
+  if (u) await syncUserToGateway(u);
+}
 
 function zodErrors(err: z.ZodError): Record<string, string[]> {
   const out: Record<string, string[]> = {};
@@ -73,6 +83,7 @@ export async function createUserAction(input: UserFormInput): Promise<ActionResu
         memberships: { create: d.memberships.map((m) => ({ clientId: m.clientId, role: m.role })) },
       },
     });
+    await mirrorUser(user.id);
     revalidatePath("/admin/users");
     return ok({ id: user.id });
   } catch (e) {
@@ -94,7 +105,8 @@ export async function updateUserAction(userId: string, input: UserFormInput): Pr
     return fail(ta.cannotEditSelf, "VALIDATION");
   }
   const emailOwner = await db.user.findUnique({ where: { email: d.email }, select: { id: true } });
-  if (emailOwner && emailOwner.id !== userId) return fail(t.admin.emailTaken, "VALIDATION", { email: [t.admin.emailTaken] });
+  if (emailOwner && emailOwner.id !== userId)
+    return fail(t.admin.emailTaken, "VALIDATION", { email: [t.admin.emailTaken] });
   try {
     await db.$transaction(async (tx) => {
       await tx.user.update({
@@ -115,6 +127,7 @@ export async function updateUserAction(userId: string, input: UserFormInput): Pr
         });
       }
     });
+    await mirrorUser(userId);
     revalidatePath("/admin/users");
     return ok(undefined);
   } catch (e) {
@@ -133,6 +146,7 @@ export async function setUserActiveAction(userId: string, isActive: boolean): Pr
   } catch {
     return fail(t.errors.NOT_FOUND, "NOT_FOUND");
   }
+  await mirrorUser(userId);
   revalidatePath("/admin/users");
   return ok(undefined);
 }
@@ -144,6 +158,33 @@ export async function deleteUserAction(userId: string): Promise<ActionResult<voi
   const target = await db.user.findUnique({ where: { id: userId }, select: { id: true } });
   if (!target) return fail(t.errors.NOT_FOUND, "NOT_FOUND");
   await db.user.delete({ where: { id: userId } }); // memberships cascade; clients/reports keep with SetNull
+  await syncUserToGateway({ id: userId, deleted: true });
+  revalidatePath("/admin/users");
+  return ok(undefined);
+}
+
+const permissionsSchema = z.array(z.string().regex(/^[a-z]+\.(\*|[a-z]+)$/)).max(40);
+
+/** Replaces a user's ERP permissions in identity (ADMIN only). */
+export async function setErpPermissionsAction(
+  userId: string,
+  permissions: string[],
+): Promise<ActionResult<void>> {
+  const actor = await requireAdminActor();
+  if (!actor) return fail(t.errors.UNAUTHORIZED, "UNAUTHORIZED");
+  const parsed = permissionsSchema.safeParse(permissions);
+  if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
+  try {
+    // The mirror may not exist yet for users created before the bridge.
+    await mirrorUser(userId);
+    await gatewayFetch(`/v1/users/${encodeURIComponent(userId)}/permissions`, {
+      method: "PUT",
+      body: JSON.stringify({ permissions: parsed.data }),
+    });
+  } catch (e) {
+    if (e instanceof GatewayError) return fail(e.message, e.code === "VALIDATION" ? "VALIDATION" : undefined);
+    return fail(t.errors.UNKNOWN);
+  }
   revalidatePath("/admin/users");
   return ok(undefined);
 }

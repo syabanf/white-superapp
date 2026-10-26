@@ -71,6 +71,9 @@ export function formatPercent(value: number | null | undefined, digits = 2): str
 export function formatDeltaPercent(value: number | null | undefined, digits = 1): string {
   if (value == null || Number.isNaN(value) || !Number.isFinite(value)) return "–";
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+  // A near-zero base (new metric, data starting mid-period) gives
+  // meaningless five-digit growth; past 999% the exact figure tells nothing.
+  if (Math.abs(value) > 999) return `${sign}>999%`;
   return `${sign}${formatNumber(Math.abs(value), digits)}%`;
 }
 

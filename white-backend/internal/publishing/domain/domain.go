@@ -31,6 +31,25 @@ const (
 	MediaVideo MediaKind = "VIDEO"
 )
 
+// PostFormat is how the post appears on the platform. FEED is the default
+// and what every post before formats existed was.
+type PostFormat string
+
+const (
+	FormatFeed  PostFormat = "FEED"
+	FormatStory PostFormat = "STORY"
+	FormatReel  PostFormat = "REEL"
+)
+
+// ToFormat coerces empty and unknown values to FEED.
+func ToFormat(v string) PostFormat {
+	switch PostFormat(v) {
+	case FormatStory, FormatReel:
+		return PostFormat(v)
+	}
+	return FormatFeed
+}
+
 type Platform string
 
 const (
@@ -123,6 +142,7 @@ type ContentPost struct {
 	Title        string
 	Body         string
 	Status       PostStatus
+	Format       PostFormat
 	ScheduledAt  *time.Time
 	PublishedAt  *time.Time
 	LinkURL      *string
@@ -261,6 +281,14 @@ type PublishedTarget struct {
 	Engagements     *int64
 }
 
+// SyncedPost is a post analytics pulled from the platform, with engagement.
+type SyncedPost struct {
+	SocialAccountID string
+	ExternalID      string
+	PublishedAt     time.Time
+	Engagements     int64
+}
+
 // ─── Ports ────────────────────────────────────────────────────
 
 type MediaRepo interface {
@@ -369,6 +397,7 @@ type PublishMedia struct {
 
 type PublishInput struct {
 	Platform Platform
+	Format   PostFormat
 	// Decrypted page or IG user token. Ignored by the mock.
 	AccessToken string
 	// IG user id, Facebook page id or TikTok open id.

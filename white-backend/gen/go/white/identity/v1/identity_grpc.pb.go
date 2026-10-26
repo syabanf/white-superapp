@@ -20,10 +20,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName   = "/white.identity.v1.AuthService/Login"
-	AuthService_Refresh_FullMethodName = "/white.identity.v1.AuthService/Refresh"
-	AuthService_Logout_FullMethodName  = "/white.identity.v1.AuthService/Logout"
-	AuthService_Me_FullMethodName      = "/white.identity.v1.AuthService/Me"
+	AuthService_Login_FullMethodName             = "/white.identity.v1.AuthService/Login"
+	AuthService_Refresh_FullMethodName           = "/white.identity.v1.AuthService/Refresh"
+	AuthService_Logout_FullMethodName            = "/white.identity.v1.AuthService/Logout"
+	AuthService_Me_FullMethodName                = "/white.identity.v1.AuthService/Me"
+	AuthService_IssueServiceToken_FullMethodName = "/white.identity.v1.AuthService/IssueServiceToken"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -34,6 +35,10 @@ type AuthServiceClient interface {
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*TokenPair, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Me(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*User, error)
+	// Internal. Mints an access token for a user the caller already
+	// authenticated (the Next.js server, which owns the browser session).
+	// Requires the shared INTERNAL_API_SECRET in `x-internal-secret`.
+	IssueServiceToken(ctx context.Context, in *IssueServiceTokenRequest, opts ...grpc.CallOption) (*TokenPair, error)
 }
 
 type authServiceClient struct {
@@ -84,6 +89,16 @@ func (c *authServiceClient) Me(ctx context.Context, in *emptypb.Empty, opts ...g
 	return out, nil
 }
 
+func (c *authServiceClient) IssueServiceToken(ctx context.Context, in *IssueServiceTokenRequest, opts ...grpc.CallOption) (*TokenPair, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TokenPair)
+	err := c.cc.Invoke(ctx, AuthService_IssueServiceToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -92,6 +107,10 @@ type AuthServiceServer interface {
 	Refresh(context.Context, *RefreshRequest) (*TokenPair, error)
 	Logout(context.Context, *LogoutRequest) (*emptypb.Empty, error)
 	Me(context.Context, *emptypb.Empty) (*User, error)
+	// Internal. Mints an access token for a user the caller already
+	// authenticated (the Next.js server, which owns the browser session).
+	// Requires the shared INTERNAL_API_SECRET in `x-internal-secret`.
+	IssueServiceToken(context.Context, *IssueServiceTokenRequest) (*TokenPair, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -113,6 +132,9 @@ func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*
 }
 func (UnimplementedAuthServiceServer) Me(context.Context, *emptypb.Empty) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method Me not implemented")
+}
+func (UnimplementedAuthServiceServer) IssueServiceToken(context.Context, *IssueServiceTokenRequest) (*TokenPair, error) {
+	return nil, status.Error(codes.Unimplemented, "method IssueServiceToken not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -207,6 +229,24 @@ func _AuthService_Me_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_IssueServiceToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IssueServiceTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).IssueServiceToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_IssueServiceToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).IssueServiceToken(ctx, req.(*IssueServiceTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -230,24 +270,34 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Me",
 			Handler:    _AuthService_Me_Handler,
 		},
+		{
+			MethodName: "IssueServiceToken",
+			Handler:    _AuthService_IssueServiceToken_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "white/identity/v1/identity.proto",
 }
 
 const (
-	UserService_ListUsers_FullMethodName       = "/white.identity.v1.UserService/ListUsers"
-	UserService_ListUserOptions_FullMethodName = "/white.identity.v1.UserService/ListUserOptions"
-	UserService_CreateUser_FullMethodName      = "/white.identity.v1.UserService/CreateUser"
-	UserService_UpdateUser_FullMethodName      = "/white.identity.v1.UserService/UpdateUser"
-	UserService_SetUserActive_FullMethodName   = "/white.identity.v1.UserService/SetUserActive"
-	UserService_DeleteUser_FullMethodName      = "/white.identity.v1.UserService/DeleteUser"
+	UserService_ListPermissions_FullMethodName    = "/white.identity.v1.UserService/ListPermissions"
+	UserService_ListUsers_FullMethodName          = "/white.identity.v1.UserService/ListUsers"
+	UserService_ListUserOptions_FullMethodName    = "/white.identity.v1.UserService/ListUserOptions"
+	UserService_CreateUser_FullMethodName         = "/white.identity.v1.UserService/CreateUser"
+	UserService_UpdateUser_FullMethodName         = "/white.identity.v1.UserService/UpdateUser"
+	UserService_SetUserActive_FullMethodName      = "/white.identity.v1.UserService/SetUserActive"
+	UserService_DeleteUser_FullMethodName         = "/white.identity.v1.UserService/DeleteUser"
+	UserService_SetUserPermissions_FullMethodName = "/white.identity.v1.UserService/SetUserPermissions"
+	UserService_SyncLegacyUser_FullMethodName     = "/white.identity.v1.UserService/SyncLegacyUser"
+	UserService_RemoveLegacyUser_FullMethodName   = "/white.identity.v1.UserService/RemoveLegacyUser"
 )
 
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
+	// ERP permission keys an admin can assign.
+	ListPermissions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	ListUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	// Active users for member pickers. Any signed-in user.
 	ListUserOptions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUserOptionsResponse, error)
@@ -255,6 +305,13 @@ type UserServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 	SetUserActive(ctx context.Context, in *SetUserActiveRequest, opts ...grpc.CallOption) (*User, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Replaces the user's ERP permissions only (memberships untouched).
+	SetUserPermissions(ctx context.Context, in *SetUserPermissionsRequest, opts ...grpc.CallOption) (*User, error)
+	// Internal, guarded by INTERNAL_API_SECRET. Mirrors a user written by the
+	// Next.js admin pages (same id and bcrypt hash) until those pages move to
+	// identity. ERP permissions are kept.
+	SyncLegacyUser(ctx context.Context, in *SyncLegacyUserRequest, opts ...grpc.CallOption) (*User, error)
+	RemoveLegacyUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type userServiceClient struct {
@@ -263,6 +320,16 @@ type userServiceClient struct {
 
 func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
+}
+
+func (c *userServiceClient) ListPermissions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPermissionsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPermissions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *userServiceClient) ListUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListUsersResponse, error) {
@@ -325,10 +392,42 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserReques
 	return out, nil
 }
 
+func (c *userServiceClient) SetUserPermissions(ctx context.Context, in *SetUserPermissionsRequest, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, UserService_SetUserPermissions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) SyncLegacyUser(ctx context.Context, in *SyncLegacyUserRequest, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, UserService_SyncLegacyUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) RemoveLegacyUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, UserService_RemoveLegacyUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
+	// ERP permission keys an admin can assign.
+	ListPermissions(context.Context, *emptypb.Empty) (*ListPermissionsResponse, error)
 	ListUsers(context.Context, *emptypb.Empty) (*ListUsersResponse, error)
 	// Active users for member pickers. Any signed-in user.
 	ListUserOptions(context.Context, *emptypb.Empty) (*ListUserOptionsResponse, error)
@@ -336,6 +435,13 @@ type UserServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
 	SetUserActive(context.Context, *SetUserActiveRequest) (*User, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*emptypb.Empty, error)
+	// Replaces the user's ERP permissions only (memberships untouched).
+	SetUserPermissions(context.Context, *SetUserPermissionsRequest) (*User, error)
+	// Internal, guarded by INTERNAL_API_SECRET. Mirrors a user written by the
+	// Next.js admin pages (same id and bcrypt hash) until those pages move to
+	// identity. ERP permissions are kept.
+	SyncLegacyUser(context.Context, *SyncLegacyUserRequest) (*User, error)
+	RemoveLegacyUser(context.Context, *DeleteUserRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -346,6 +452,9 @@ type UserServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedUserServiceServer struct{}
 
+func (UnimplementedUserServiceServer) ListPermissions(context.Context, *emptypb.Empty) (*ListPermissionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPermissions not implemented")
+}
 func (UnimplementedUserServiceServer) ListUsers(context.Context, *emptypb.Empty) (*ListUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
 }
@@ -363,6 +472,15 @@ func (UnimplementedUserServiceServer) SetUserActive(context.Context, *SetUserAct
 }
 func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedUserServiceServer) SetUserPermissions(context.Context, *SetUserPermissionsRequest) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetUserPermissions not implemented")
+}
+func (UnimplementedUserServiceServer) SyncLegacyUser(context.Context, *SyncLegacyUserRequest) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "method SyncLegacyUser not implemented")
+}
+func (UnimplementedUserServiceServer) RemoveLegacyUser(context.Context, *DeleteUserRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveLegacyUser not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -383,6 +501,24 @@ func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&UserService_ServiceDesc, srv)
+}
+
+func _UserService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPermissions(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -493,6 +629,60 @@ func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_SetUserPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetUserPermissionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SetUserPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SetUserPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SetUserPermissions(ctx, req.(*SetUserPermissionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_SyncLegacyUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncLegacyUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SyncLegacyUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SyncLegacyUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SyncLegacyUser(ctx, req.(*SyncLegacyUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_RemoveLegacyUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RemoveLegacyUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RemoveLegacyUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RemoveLegacyUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -500,6 +690,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "white.identity.v1.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListPermissions",
+			Handler:    _UserService_ListPermissions_Handler,
+		},
 		{
 			MethodName: "ListUsers",
 			Handler:    _UserService_ListUsers_Handler,
@@ -523,6 +717,18 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUser",
 			Handler:    _UserService_DeleteUser_Handler,
+		},
+		{
+			MethodName: "SetUserPermissions",
+			Handler:    _UserService_SetUserPermissions_Handler,
+		},
+		{
+			MethodName: "SyncLegacyUser",
+			Handler:    _UserService_SyncLegacyUser_Handler,
+		},
+		{
+			MethodName: "RemoveLegacyUser",
+			Handler:    _UserService_RemoveLegacyUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -942,6 +1148,7 @@ const (
 	AccessService_GetUser_FullMethodName                 = "/white.identity.v1.AccessService/GetUser"
 	AccessService_ListAccessibleClientIds_FullMethodName = "/white.identity.v1.AccessService/ListAccessibleClientIds"
 	AccessService_ListAllClients_FullMethodName          = "/white.identity.v1.AccessService/ListAllClients"
+	AccessService_ListPermissionHolders_FullMethodName   = "/white.identity.v1.AccessService/ListPermissionHolders"
 )
 
 // AccessServiceClient is the client API for AccessService service.
@@ -955,6 +1162,9 @@ type AccessServiceClient interface {
 	ListAccessibleClientIds(ctx context.Context, in *ListAccessibleClientIdsRequest, opts ...grpc.CallOption) (*ListAccessibleClientIdsResponse, error)
 	// Every client (id, slug, timezone, modules), for schedulers.
 	ListAllClients(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListAllClientsResponse, error)
+	// Active users who hold `permission` directly, through `module.*`, or as
+	// ADMIN. ERP services use it to address approver notifications.
+	ListPermissionHolders(ctx context.Context, in *ListPermissionHoldersRequest, opts ...grpc.CallOption) (*ListUserOptionsResponse, error)
 }
 
 type accessServiceClient struct {
@@ -1005,6 +1215,16 @@ func (c *accessServiceClient) ListAllClients(ctx context.Context, in *emptypb.Em
 	return out, nil
 }
 
+func (c *accessServiceClient) ListPermissionHolders(ctx context.Context, in *ListPermissionHoldersRequest, opts ...grpc.CallOption) (*ListUserOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUserOptionsResponse)
+	err := c.cc.Invoke(ctx, AccessService_ListPermissionHolders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccessServiceServer is the server API for AccessService service.
 // All implementations must embed UnimplementedAccessServiceServer
 // for forward compatibility.
@@ -1016,6 +1236,9 @@ type AccessServiceServer interface {
 	ListAccessibleClientIds(context.Context, *ListAccessibleClientIdsRequest) (*ListAccessibleClientIdsResponse, error)
 	// Every client (id, slug, timezone, modules), for schedulers.
 	ListAllClients(context.Context, *emptypb.Empty) (*ListAllClientsResponse, error)
+	// Active users who hold `permission` directly, through `module.*`, or as
+	// ADMIN. ERP services use it to address approver notifications.
+	ListPermissionHolders(context.Context, *ListPermissionHoldersRequest) (*ListUserOptionsResponse, error)
 	mustEmbedUnimplementedAccessServiceServer()
 }
 
@@ -1037,6 +1260,9 @@ func (UnimplementedAccessServiceServer) ListAccessibleClientIds(context.Context,
 }
 func (UnimplementedAccessServiceServer) ListAllClients(context.Context, *emptypb.Empty) (*ListAllClientsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAllClients not implemented")
+}
+func (UnimplementedAccessServiceServer) ListPermissionHolders(context.Context, *ListPermissionHoldersRequest) (*ListUserOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPermissionHolders not implemented")
 }
 func (UnimplementedAccessServiceServer) mustEmbedUnimplementedAccessServiceServer() {}
 func (UnimplementedAccessServiceServer) testEmbeddedByValue()                       {}
@@ -1131,6 +1357,24 @@ func _AccessService_ListAllClients_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccessService_ListPermissionHolders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPermissionHoldersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccessServiceServer).ListPermissionHolders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccessService_ListPermissionHolders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccessServiceServer).ListPermissionHolders(ctx, req.(*ListPermissionHoldersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccessService_ServiceDesc is the grpc.ServiceDesc for AccessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1153,6 +1397,10 @@ var AccessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllClients",
 			Handler:    _AccessService_ListAllClients_Handler,
+		},
+		{
+			MethodName: "ListPermissionHolders",
+			Handler:    _AccessService_ListPermissionHolders_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,0 +1,2215 @@
+syntax = "proto3";
+
+package white.hr.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/hr/v1;hrv1";
+
+// NOTE: this file starts with the employee directory other services depend
+// on (performance, finance, recruitment, sales). The hr service adds its
+// public RPCs below; keep these messages and RPC names stable.
+//
+// Permissions: hr.read views, hr.write manages records, hr.approve decides
+// leave, overtime, loans and attendance validation, hr.payroll runs payroll
+// and salaries, self.service covers the caller's own records under
+// /v1/hr/me. A direct manager (employees.manager_id) may decide the leave
+// and overtime of their reports. Money is a decimal string ("1250000.00"),
+// days are "YYYY-MM-DD". Status and type fields are lowercase codes listed
+// next to each field; user-facing labels live in the UI.
+
+// ─────────────────────────────────────────────────────────────
+// EmployeeService: the people directory
+// ─────────────────────────────────────────────────────────────
+
+service EmployeeService {
+  rpc ListEmployees(ListEmployeesRequest) returns (ListEmployeesResponse) {
+    option (google.api.http) = {get: "/v1/hr/employees"};
+  }
+  rpc GetEmployee(GetEmployeeRequest) returns (Employee) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}"};
+  }
+  rpc ListDepartments(ListDepartmentsRequest) returns (ListDepartmentsResponse) {
+    option (google.api.http) = {get: "/v1/hr/departments"};
+  }
+
+  // Internal. The employee linked to an identity user (NOT_FOUND when none).
+  rpc GetEmployeeByUser(GetEmployeeByUserRequest) returns (Employee);
+  // Internal. Attendance totals per employee for a month (KPI auto-collect).
+  rpc GetAttendanceSummary(GetAttendanceSummaryRequest) returns (GetAttendanceSummaryResponse);
+}
+
+enum EmploymentStatus {
+  EMPLOYMENT_STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  PROBATION = 2;
+  ON_LEAVE = 3;
+  RESIGNED = 4;
+  TERMINATED = 5;
+}
+
+message Employee {
+  string id = 1;
+  // Identity user, when the employee can log in.
+  optional string user_id = 2;
+  string employee_no = 3;
+  string full_name = 4;
+  string email = 5;
+  string phone = 6;
+  optional string department_id = 7;
+  string department_name = 8;
+  optional string position_id = 9;
+  string position_name = 10;
+  // Direct supervisor (an employee id).
+  optional string manager_id = 11;
+  EmploymentStatus status = 12;
+  // YYYY-MM-DD
+  string join_date = 13;
+  optional string end_date = 14;
+  google.protobuf.Timestamp created_at = 15;
+  // Identity user of the direct supervisor, when linked.
+  optional string manager_user_id = 16;
+}
+
+message ListEmployeesRequest {
+  // Optional filters.
+  string department_id = 1;
+  string manager_id = 2;
+  repeated string employee_ids = 3;
+  bool include_inactive = 4;
+  string search = 5;
+  int32 page_size = 6;
+  string page_token = 7;
+}
+
+message ListEmployeesResponse {
+  repeated Employee employees = 1;
+  string next_page_token = 2;
+  int32 total = 3;
+}
+
+message GetEmployeeRequest {
+  string employee_id = 1;
+}
+
+message GetEmployeeByUserRequest {
+  string user_id = 1;
+}
+
+message Department {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  optional string parent_id = 4;
+  // Head of department (an employee id).
+  optional string head_employee_id = 5;
+  bool is_active = 6;
+}
+
+message ListDepartmentsRequest {
+  bool include_inactive = 1;
+}
+
+message ListDepartmentsResponse {
+  repeated Department departments = 1;
+}
+
+message GetAttendanceSummaryRequest {
+  repeated string employee_ids = 1;
+  // YYYY-MM
+  string month = 2;
+}
+
+message AttendanceSummary {
+  string employee_id = 1;
+  int32 working_days = 2;
+  int32 present_days = 3;
+  int32 late_days = 4;
+  int32 absent_days = 5;
+  int32 leave_days = 6;
+  int32 late_minutes = 7;
+  double overtime_hours = 8;
+}
+
+message GetAttendanceSummaryResponse {
+  repeated AttendanceSummary summaries = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Shared
+// ─────────────────────────────────────────────────────────────
+
+// A generated or stored file returned inline (PDF, XLSX, CSV, images).
+message FileBytes {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
+}
+
+message ActionResult {
+  string message = 1;
+}
+
+message EmployeeRef {
+  string id = 1;
+  string full_name = 2;
+  string employee_no = 3;
+  string department_name = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PeopleService: employee records and master data (hr.read / hr.write)
+// ─────────────────────────────────────────────────────────────
+
+service PeopleService {
+  rpc GetEmployeeProfile(GetEmployeeRequest) returns (EmployeeProfile) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/profile"};
+  }
+  rpc CreateEmployee(EmployeeInput) returns (EmployeeProfile) {
+    option (google.api.http) = {post: "/v1/hr/employees" body: "*"};
+  }
+  rpc UpdateEmployee(UpdateEmployeeRequest) returns (EmployeeProfile) {
+    option (google.api.http) = {put: "/v1/hr/employees/{employee_id}" body: "input"};
+  }
+  // Soft delete.
+  rpc DeleteEmployee(GetEmployeeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/employees/{employee_id}"};
+  }
+  // Links (or with an empty user_id unlinks) an identity user.
+  rpc LinkEmployeeUser(LinkEmployeeUserRequest) returns (EmployeeProfile) {
+    option (google.api.http) = {post: "/v1/hr/employees/{employee_id}:linkUser" body: "*"};
+  }
+  rpc ListEmploymentHistory(GetEmployeeRequest) returns (ListEmploymentHistoryResponse) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/history"};
+  }
+  rpc ListEmployeeDocuments(GetEmployeeRequest) returns (ListEmployeeDocumentsResponse) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/documents"};
+  }
+  rpc UploadEmployeeDocument(UploadEmployeeDocumentRequest) returns (EmployeeDocument) {
+    option (google.api.http) = {post: "/v1/hr/employees/{employee_id}/documents" body: "*"};
+  }
+  rpc DownloadEmployeeDocument(DocumentRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/hr/documents/{document_id}"};
+  }
+  rpc DeleteEmployeeDocument(DocumentRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/documents/{document_id}"};
+  }
+  rpc GetOrgChart(GetOrgChartRequest) returns (OrgChart) {
+    option (google.api.http) = {get: "/v1/hr/org-chart"};
+  }
+
+  rpc CreateDepartment(DepartmentInput) returns (Department) {
+    option (google.api.http) = {post: "/v1/hr/departments" body: "*"};
+  }
+  rpc UpdateDepartment(UpdateDepartmentRequest) returns (Department) {
+    option (google.api.http) = {put: "/v1/hr/departments/{department_id}" body: "input"};
+  }
+  rpc DeleteDepartment(DepartmentRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/departments/{department_id}"};
+  }
+  rpc ListPositions(ListPositionsRequest) returns (ListPositionsResponse) {
+    option (google.api.http) = {get: "/v1/hr/positions"};
+  }
+  rpc CreatePosition(PositionInput) returns (Position) {
+    option (google.api.http) = {post: "/v1/hr/positions" body: "*"};
+  }
+  rpc UpdatePosition(UpdatePositionRequest) returns (Position) {
+    option (google.api.http) = {put: "/v1/hr/positions/{position_id}" body: "input"};
+  }
+  rpc DeletePosition(PositionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/positions/{position_id}"};
+  }
+  rpc ListEmploymentStatuses(google.protobuf.Empty) returns (ListEmploymentStatusesResponse) {
+    option (google.api.http) = {get: "/v1/hr/employment-statuses"};
+  }
+  rpc UpsertEmploymentStatus(EmploymentStatusOption) returns (EmploymentStatusOption) {
+    option (google.api.http) = {put: "/v1/hr/employment-statuses/{code}" body: "*"};
+  }
+  rpc DeleteEmploymentStatus(EmploymentStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/employment-statuses/{code}"};
+  }
+}
+
+message EmployeeProfile {
+  Employee employee = 1;
+  // Master employment status code: permanent, contract, probation,
+  // intern, resigned, terminated (or any code added in master data).
+  string employment_status = 2;
+  string employment_status_name = 3;
+  string manager_name = 4;
+  string nik = 5;
+  string npwp = 6;
+  string bpjs_tk_no = 7;
+  string bpjs_kes_no = 8;
+  string birth_place = 9;
+  optional string birth_date = 10;
+  // male | female
+  string gender = 11;
+  // single | married | divorced | widowed
+  string marital_status = 12;
+  string religion = 13;
+  string address = 14;
+  optional string probation_end_date = 15;
+  string bank_name = 16;
+  string bank_account_no = 17;
+  string bank_account_name = 18;
+  string emergency_contact_name = 19;
+  string emergency_contact_phone = 20;
+  string emergency_contact_relation = 21;
+  bool is_active = 22;
+  google.protobuf.Timestamp updated_at = 23;
+  // Email of the linked identity user, when any.
+  string user_email = 24;
+}
+
+message EmployeeInput {
+  // Empty: the next free EMP-<year>-<00001>.
+  string employee_no = 1;
+  string full_name = 2;
+  string email = 3;
+  string phone = 4;
+  string department_id = 5;
+  string position_id = 6;
+  string manager_id = 7;
+  string employment_status = 8;
+  string join_date = 9;
+  string end_date = 10;
+  string probation_end_date = 11;
+  string nik = 12;
+  string npwp = 13;
+  string bpjs_tk_no = 14;
+  string bpjs_kes_no = 15;
+  string birth_place = 16;
+  string birth_date = 17;
+  string gender = 18;
+  string marital_status = 19;
+  string religion = 20;
+  string address = 21;
+  string bank_name = 22;
+  string bank_account_no = 23;
+  string bank_account_name = 24;
+  string emergency_contact_name = 25;
+  string emergency_contact_phone = 26;
+  string emergency_contact_relation = 27;
+  // Only on create: links an identity user right away.
+  string user_id = 28;
+}
+
+message UpdateEmployeeRequest {
+  string employee_id = 1;
+  EmployeeInput input = 2;
+}
+
+message LinkEmployeeUserRequest {
+  string employee_id = 1;
+  string user_id = 2;
+}
+
+message EmploymentHistoryEntry {
+  string id = 1;
+  // update | contract | offboarding
+  string change_type = 2;
+  string notes = 3;
+  string prev_employment_status = 4;
+  string new_employment_status = 5;
+  string prev_department = 6;
+  string new_department = 7;
+  string prev_position = 8;
+  string new_position = 9;
+  google.protobuf.Timestamp created_at = 10;
+}
+
+message ListEmploymentHistoryResponse {
+  repeated EmploymentHistoryEntry entries = 1;
+}
+
+message EmployeeDocument {
+  string id = 1;
+  string employee_id = 2;
+  // ktp | npwp | kk | ijazah | cv | contract | certificate | other
+  string doc_type = 3;
+  string name = 4;
+  string content_type = 5;
+  int64 size_bytes = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ListEmployeeDocumentsResponse {
+  repeated EmployeeDocument documents = 1;
+}
+
+message UploadEmployeeDocumentRequest {
+  string employee_id = 1;
+  string doc_type = 2;
+  string name = 3;
+  // PDF, JPEG, PNG or WebP (magic bytes checked), max 10 MB.
+  bytes data = 4;
+}
+
+message DocumentRequest {
+  string document_id = 1;
+}
+
+message GetOrgChartRequest {
+  // Optional: the subtree under this employee.
+  string root_employee_id = 1;
+}
+
+message OrgNode {
+  string employee_id = 1;
+  string full_name = 2;
+  string position_name = 3;
+  string department_name = 4;
+  repeated OrgNode reports = 5;
+}
+
+message OrgChart {
+  repeated OrgNode roots = 1;
+  int32 total = 2;
+}
+
+message DepartmentInput {
+  string code = 1;
+  string name = 2;
+  string parent_id = 3;
+  string head_employee_id = 4;
+  bool is_active = 5;
+}
+
+message UpdateDepartmentRequest {
+  string department_id = 1;
+  DepartmentInput input = 2;
+}
+
+message DepartmentRequest {
+  string department_id = 1;
+}
+
+message Position {
+  string id = 1;
+  string title = 2;
+  optional string department_id = 3;
+  string department_name = 4;
+  // staff | senior | lead | manager | director
+  string level = 5;
+  string salary_min = 6;
+  string salary_max = 7;
+  bool is_active = 8;
+}
+
+message PositionInput {
+  string title = 1;
+  string department_id = 2;
+  string level = 3;
+  string salary_min = 4;
+  string salary_max = 5;
+  bool is_active = 6;
+}
+
+message UpdatePositionRequest {
+  string position_id = 1;
+  PositionInput input = 2;
+}
+
+message PositionRequest {
+  string position_id = 1;
+}
+
+message ListPositionsRequest {
+  string department_id = 1;
+  bool include_inactive = 2;
+}
+
+message ListPositionsResponse {
+  repeated Position positions = 1;
+}
+
+message EmploymentStatusOption {
+  string code = 1;
+  string name = 2;
+  bool is_active = 3;
+  int32 sort_order = 4;
+}
+
+message EmploymentStatusRequest {
+  string code = 1;
+}
+
+message ListEmploymentStatusesResponse {
+  repeated EmploymentStatusOption statuses = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AttendanceService
+// ─────────────────────────────────────────────────────────────
+
+service AttendanceService {
+  // Clock in. With hr.write the caller may clock someone else in
+  // (employee_id) or back-fill a date; otherwise self.service and own record.
+  rpc ClockIn(ClockInRequest) returns (AttendanceRecord) {
+    option (google.api.http) = {post: "/v1/hr/attendance:clockIn" body: "*"};
+  }
+  rpc ClockOut(ClockOutRequest) returns (AttendanceRecord) {
+    option (google.api.http) = {post: "/v1/hr/attendance/{attendance_id}:clockOut" body: "*"};
+  }
+  // hr.read: anyone; otherwise own rows only.
+  rpc ListAttendance(ListAttendanceRequest) returns (ListAttendanceResponse) {
+    option (google.api.http) = {get: "/v1/hr/attendance"};
+  }
+  // hr.read. Every active employee with the shift of the day, attendance
+  // and approved leave folded into one status.
+  rpc GetDailyRoster(GetDailyRosterRequest) returns (DailyRoster) {
+    option (google.api.http) = {get: "/v1/hr/attendance/roster"};
+  }
+  // hr.approve.
+  rpc ValidateAttendance(ValidateAttendanceRequest) returns (AttendanceRecord) {
+    option (google.api.http) = {post: "/v1/hr/attendance/{attendance_id}:validate" body: "*"};
+  }
+  rpc GetAttendancePhoto(GetAttendancePhotoRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/hr/attendance/{attendance_id}/photo"};
+  }
+  // hr.read. XLSX "Rekap Absensi".
+  rpc ExportAttendance(ExportAttendanceRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/hr/attendance:export"};
+  }
+}
+
+message GeoLocation {
+  double latitude = 1;
+  double longitude = 2;
+  double accuracy = 3;
+  string address = 4;
+}
+
+message ClockInRequest {
+  string employee_id = 1;
+  string date = 2;
+  // Optional selfie: JPEG, PNG or WebP (magic bytes checked), max 2 MB.
+  bytes photo = 3;
+  optional GeoLocation location = 4;
+  string notes = 5;
+}
+
+message ClockOutRequest {
+  string attendance_id = 1;
+  bytes photo = 2;
+  optional GeoLocation location = 3;
+  string notes = 4;
+}
+
+message AttendanceRecord {
+  string id = 1;
+  EmployeeRef employee = 2;
+  string date = 3;
+  google.protobuf.Timestamp clock_in = 4;
+  google.protobuf.Timestamp clock_out = 5;
+  optional GeoLocation clock_in_location = 6;
+  optional GeoLocation clock_out_location = 7;
+  bool has_clock_in_photo = 8;
+  bool has_clock_out_photo = 9;
+  double work_hours = 10;
+  // present | late | absent | half_day | remote
+  string status = 11;
+  bool is_late = 12;
+  int32 late_minutes = 13;
+  double overtime_hours = 14;
+  string shift_id = 15;
+  string shift_name = 16;
+  google.protobuf.Timestamp scheduled_start = 17;
+  google.protobuf.Timestamp scheduled_end = 18;
+  bool is_validated = 19;
+  string validated_by_name = 20;
+  google.protobuf.Timestamp validated_at = 21;
+  string validation_notes = 22;
+  string notes = 23;
+}
+
+message ListAttendanceRequest {
+  string employee_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  string status = 4;
+  bool only_late = 5;
+  bool only_unvalidated = 6;
+  int32 page = 7;
+  int32 page_size = 8;
+}
+
+message ListAttendanceResponse {
+  repeated AttendanceRecord records = 1;
+  int32 total = 2;
+}
+
+message GetDailyRosterRequest {
+  // Default today (WIB).
+  string date = 1;
+  string department_id = 2;
+}
+
+message RosterEntry {
+  EmployeeRef employee = 1;
+  string shift_id = 2;
+  string shift_name = 3;
+  string shift_start = 4;
+  string shift_end = 5;
+  // hadir | terlambat | belum_absen | absen | cuti | libur_nasional | libur | tanpa_jadwal
+  string status = 6;
+  bool is_overdue = 7;
+  string attendance_id = 8;
+  google.protobuf.Timestamp clock_in = 9;
+  google.protobuf.Timestamp clock_out = 10;
+  int32 late_minutes = 11;
+  string leave_type = 12;
+}
+
+message DailyRoster {
+  string date = 1;
+  string holiday_name = 2;
+  repeated RosterEntry entries = 3;
+  map<string, int32> summary = 4;
+}
+
+message ValidateAttendanceRequest {
+  string attendance_id = 1;
+  // Optional status correction: present | late | absent | half_day | remote.
+  string status = 2;
+  string notes = 3;
+}
+
+message GetAttendancePhotoRequest {
+  string attendance_id = 1;
+  // in | out
+  string kind = 2;
+}
+
+message ExportAttendanceRequest {
+  string employee_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  string status = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ScheduleService: shifts, weekly schedules, public holidays
+// ─────────────────────────────────────────────────────────────
+
+service ScheduleService {
+  rpc ListShifts(ListShiftsRequest) returns (ListShiftsResponse) {
+    option (google.api.http) = {get: "/v1/hr/shifts"};
+  }
+  rpc CreateShift(ShiftInput) returns (Shift) {
+    option (google.api.http) = {post: "/v1/hr/shifts" body: "*"};
+  }
+  rpc UpdateShift(UpdateShiftRequest) returns (Shift) {
+    option (google.api.http) = {put: "/v1/hr/shifts/{shift_id}" body: "input"};
+  }
+  // A shift already used by a schedule or attendance is deactivated.
+  rpc DeleteShift(ShiftRequest) returns (ActionResult) {
+    option (google.api.http) = {delete: "/v1/hr/shifts/{shift_id}"};
+  }
+  rpc GetEmployeeSchedule(GetEmployeeRequest) returns (EmployeeSchedule) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/schedule"};
+  }
+  // Starts a new weekly pattern on effective_from; the running one ends
+  // the day before.
+  rpc SetEmployeeSchedule(SetEmployeeScheduleRequest) returns (EmployeeSchedule) {
+    option (google.api.http) = {put: "/v1/hr/employees/{employee_id}/schedule" body: "*"};
+  }
+  // hr.read: any department; self.service: the caller's department.
+  rpc GetTeamSchedule(GetTeamScheduleRequest) returns (TeamSchedule) {
+    option (google.api.http) = {get: "/v1/hr/schedule/team"};
+  }
+  rpc ListHolidays(ListHolidaysRequest) returns (ListHolidaysResponse) {
+    option (google.api.http) = {get: "/v1/hr/holidays"};
+  }
+  rpc CreateHoliday(HolidayInput) returns (Holiday) {
+    option (google.api.http) = {post: "/v1/hr/holidays" body: "*"};
+  }
+  rpc UpdateHoliday(UpdateHolidayRequest) returns (Holiday) {
+    option (google.api.http) = {put: "/v1/hr/holidays/{holiday_id}" body: "input"};
+  }
+  rpc DeleteHoliday(HolidayRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/holidays/{holiday_id}"};
+  }
+}
+
+message Shift {
+  string id = 1;
+  string name = 2;
+  // HH:MM
+  string start_time = 3;
+  string end_time = 4;
+  int32 break_minutes = 5;
+  int32 late_tolerance_minutes = 6;
+  bool is_overnight = 7;
+  bool is_active = 8;
+  int32 sort_order = 9;
+}
+
+message ShiftInput {
+  string name = 1;
+  string start_time = 2;
+  string end_time = 3;
+  int32 break_minutes = 4;
+  int32 late_tolerance_minutes = 5;
+  bool is_overnight = 6;
+  bool is_active = 7;
+  int32 sort_order = 8;
+}
+
+message UpdateShiftRequest {
+  string shift_id = 1;
+  ShiftInput input = 2;
+}
+
+message ShiftRequest {
+  string shift_id = 1;
+}
+
+message ListShiftsRequest {
+  bool include_inactive = 1;
+}
+
+message ListShiftsResponse {
+  repeated Shift shifts = 1;
+}
+
+message ScheduleDay {
+  // 1 = Monday ... 7 = Sunday
+  int32 day_of_week = 1;
+  // Empty: day off.
+  string shift_id = 2;
+  string shift_name = 3;
+  string effective_from = 4;
+  optional string effective_to = 5;
+}
+
+message EmployeeSchedule {
+  string employee_id = 1;
+  repeated ScheduleDay current = 2;
+  repeated ScheduleDay history = 3;
+}
+
+message SetEmployeeScheduleRequest {
+  string employee_id = 1;
+  string effective_from = 2;
+  repeated ScheduleDay days = 3;
+}
+
+message GetTeamScheduleRequest {
+  string department_id = 1;
+  // Any day of the week to show (Monday to Sunday); default this week.
+  string week_of = 2;
+}
+
+message TeamScheduleDay {
+  string date = 1;
+  // shift | libur | libur_nasional | cuti | none
+  string status = 2;
+  string shift_name = 3;
+  string start_time = 4;
+  string end_time = 5;
+}
+
+message TeamScheduleRow {
+  EmployeeRef employee = 1;
+  repeated TeamScheduleDay days = 2;
+}
+
+message TeamSchedule {
+  string week_start = 1;
+  repeated TeamScheduleRow rows = 2;
+}
+
+message Holiday {
+  string id = 1;
+  string holiday_date = 2;
+  string name = 3;
+  // nasional | cuti_bersama | perusahaan
+  string type = 4;
+  bool deducts_leave = 5;
+  // draft | aktif
+  string status = 6;
+  string note = 7;
+}
+
+message HolidayInput {
+  string holiday_date = 1;
+  string name = 2;
+  string type = 3;
+  // Default: true only for cuti_bersama.
+  optional bool deducts_leave = 4;
+  string status = 5;
+  string note = 6;
+}
+
+message UpdateHolidayRequest {
+  string holiday_id = 1;
+  HolidayInput input = 2;
+}
+
+message HolidayRequest {
+  string holiday_id = 1;
+}
+
+message ListHolidaysRequest {
+  // Default this year.
+  int32 year = 1;
+}
+
+message ListHolidaysResponse {
+  repeated Holiday holidays = 1;
+}
+
+// ─────────────────────────────────────────────────────────────
+// LeaveService
+// ─────────────────────────────────────────────────────────────
+
+service LeaveService {
+  rpc ListLeaveTypes(google.protobuf.Empty) returns (ListLeaveTypesResponse) {
+    option (google.api.http) = {get: "/v1/hr/leave-types"};
+  }
+  // hr.read: anyone. Otherwise own requests, or with scope=approvals the
+  // requests of the caller's direct reports.
+  rpc ListLeaves(ListLeavesRequest) returns (ListLeavesResponse) {
+    option (google.api.http) = {get: "/v1/hr/leaves"};
+  }
+  rpc GetLeave(LeaveRequest) returns (Leave) {
+    option (google.api.http) = {get: "/v1/hr/leaves/{leave_id}"};
+  }
+  // hr.write files leave for any employee; self.service for oneself.
+  rpc CreateLeave(CreateLeaveRequest) returns (Leave) {
+    option (google.api.http) = {post: "/v1/hr/leaves" body: "*"};
+  }
+  // Direct manager first (pending -> manager_approved), then hr.approve
+  // (-> approved, annual quota consumed). Reject at either step.
+  rpc DecideLeave(DecideLeaveRequest) returns (Leave) {
+    option (google.api.http) = {post: "/v1/hr/leaves/{leave_id}:decide" body: "*"};
+  }
+  rpc CancelLeave(LeaveRequest) returns (Leave) {
+    option (google.api.http) = {post: "/v1/hr/leaves/{leave_id}:cancel" body: "*"};
+  }
+  // Created on first read with the prorated annual quota.
+  rpc GetLeaveBalance(GetLeaveBalanceRequest) returns (LeaveBalance) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/leave-balance"};
+  }
+  // hr.write.
+  rpc UpdateLeaveBalance(UpdateLeaveBalanceRequest) returns (LeaveBalance) {
+    option (google.api.http) = {put: "/v1/hr/employees/{employee_id}/leave-balance" body: "*"};
+  }
+  // hr.read. CSV.
+  rpc ExportLeaves(ListLeavesRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/hr/leaves:export"};
+  }
+}
+
+message LeaveType {
+  // annual | sick | maternity | paternity | unpaid | emergency | pilgrimage | menstrual | marriage | bereavement
+  string code = 1;
+  string name = 2;
+  // Whether approving it consumes the annual quota.
+  bool uses_annual_quota = 3;
+}
+
+message ListLeaveTypesResponse {
+  repeated LeaveType types = 1;
+}
+
+message Leave {
+  string id = 1;
+  EmployeeRef employee = 2;
+  string leave_type = 3;
+  string start_date = 4;
+  string end_date = 5;
+  int32 total_days = 6;
+  string reason = 7;
+  // pending | manager_approved | approved | rejected | cancelled
+  string status = 8;
+  string manager_approved_by_name = 9;
+  google.protobuf.Timestamp manager_approved_at = 10;
+  string approved_by_name = 11;
+  google.protobuf.Timestamp approved_at = 12;
+  string rejection_reason = 13;
+  google.protobuf.Timestamp created_at = 14;
+  // Holidays inside the range that did not consume leave.
+  repeated string excluded_holidays = 15;
+  // What the caller may do now.
+  bool can_decide = 16;
+  bool can_cancel = 17;
+}
+
+message LeaveRequest {
+  string leave_id = 1;
+}
+
+message ListLeavesRequest {
+  string employee_id = 1;
+  string status = 2;
+  string leave_type = 3;
+  string start_date = 4;
+  string end_date = 5;
+  // approvals: requests of the caller's direct reports.
+  string scope = 6;
+  int32 page = 7;
+  int32 page_size = 8;
+}
+
+message ListLeavesResponse {
+  repeated Leave leaves = 1;
+  int32 total = 2;
+}
+
+message CreateLeaveRequest {
+  string employee_id = 1;
+  string leave_type = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string reason = 5;
+}
+
+message DecideLeaveRequest {
+  string leave_id = 1;
+  bool approve = 2;
+  string rejection_reason = 3;
+}
+
+message LeaveBalance {
+  string employee_id = 1;
+  int32 year = 2;
+  int32 annual_leave_total = 3;
+  int32 annual_leave_used = 4;
+  int32 annual_leave_remaining = 5;
+  int32 sick_leave_used = 6;
+  int32 unpaid_leave_used = 7;
+  int32 other_leave_used = 8;
+  // Days waiting for a decision.
+  int32 pending_days = 9;
+}
+
+message GetLeaveBalanceRequest {
+  string employee_id = 1;
+  int32 year = 2;
+}
+
+message UpdateLeaveBalanceRequest {
+  string employee_id = 1;
+  int32 year = 2;
+  int32 annual_leave_total = 3;
+  optional int32 annual_leave_used = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// OvertimeService (hours per PP 35/2021 as NüHabit computes them)
+// ─────────────────────────────────────────────────────────────
+
+service OvertimeService {
+  // hr.read: anyone. Otherwise own, or scope=approvals for direct reports.
+  rpc ListOvertime(ListOvertimeRequest) returns (ListOvertimeResponse) {
+    option (google.api.http) = {get: "/v1/hr/overtime"};
+  }
+  // For oneself (source employee) or, with hr.write, an assignment for
+  // another employee (source company, confirmed by that employee).
+  rpc CreateOvertime(CreateOvertimeRequest) returns (Overtime) {
+    option (google.api.http) = {post: "/v1/hr/overtime" body: "*"};
+  }
+  rpc DecideOvertime(DecideOvertimeRequest) returns (Overtime) {
+    option (google.api.http) = {post: "/v1/hr/overtime/{overtime_id}:decide" body: "*"};
+  }
+}
+
+message Overtime {
+  string id = 1;
+  EmployeeRef employee = 2;
+  string date = 3;
+  // HH:MM
+  string start_time = 4;
+  string end_time = 5;
+  double hours = 6;
+  // employee | company
+  string source = 7;
+  // pending | approved | rejected | cancelled
+  string status = 8;
+  string reason = 9;
+  string requested_by_name = 10;
+  string decided_by_name = 11;
+  google.protobuf.Timestamp decided_at = 12;
+  string rejection_reason = 13;
+  google.protobuf.Timestamp created_at = 14;
+}
+
+message ListOvertimeRequest {
+  string employee_id = 1;
+  string status = 2;
+  // YYYY-MM
+  string month = 3;
+  string scope = 4;
+}
+
+message ListOvertimeResponse {
+  repeated Overtime overtime = 1;
+}
+
+message CreateOvertimeRequest {
+  string employee_id = 1;
+  string date = 2;
+  string start_time = 3;
+  string end_time = 4;
+  string reason = 5;
+}
+
+message DecideOvertimeRequest {
+  string overtime_id = 1;
+  // approve | reject | cancel
+  string action = 2;
+  string rejection_reason = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ContractService: PKWT / PKWTT (UU 13/2003, PP 35/2021)
+// ─────────────────────────────────────────────────────────────
+
+service ContractService {
+  rpc ListContracts(ListContractsRequest) returns (ListContractsResponse) {
+    option (google.api.http) = {get: "/v1/hr/contracts"};
+  }
+  // Contracts ending within `days` (1..90, default 30) including overdue,
+  // probations ending, and active employees without a contract.
+  rpc ListExpiringContracts(ListExpiringContractsRequest) returns (ExpiringContracts) {
+    option (google.api.http) = {get: "/v1/hr/contracts:expiring"};
+  }
+  rpc GetContract(ContractRequest) returns (Contract) {
+    option (google.api.http) = {get: "/v1/hr/contracts/{contract_id}"};
+  }
+  // hr.write. Creates a numbered draft.
+  rpc CreateContract(ContractInput) returns (Contract) {
+    option (google.api.http) = {post: "/v1/hr/contracts" body: "*"};
+  }
+  // hr.write. Drafts only.
+  rpc UpdateContract(UpdateContractRequest) returns (Contract) {
+    option (google.api.http) = {put: "/v1/hr/contracts/{contract_id}" body: "input"};
+  }
+  // hr.write. activate | end | terminate | convert | renew.
+  rpc ContractAction(ContractActionRequest) returns (ContractActionResult) {
+    option (google.api.http) = {post: "/v1/hr/contracts/{contract_id}:action" body: "*"};
+  }
+  rpc DeleteContract(ContractRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/contracts/{contract_id}"};
+  }
+}
+
+message Contract {
+  string id = 1;
+  string contract_number = 2;
+  EmployeeRef employee = 3;
+  // pkwt | pkwtt
+  string contract_type = 4;
+  // draft | active | ended | terminated | converted
+  string status = 5;
+  string start_date = 6;
+  optional string end_date = 7;
+  optional string probation_end_date = 8;
+  optional string parent_contract_id = 9;
+  int32 sequence = 10;
+  string position_title = 11;
+  string department_name = 12;
+  string work_location = 13;
+  string base_salary = 14;
+  optional string signed_at = 15;
+  string compensation_amount = 16;
+  string terminated_reason = 17;
+  string notes = 18;
+  google.protobuf.Timestamp created_at = 19;
+  // Days until end_date (negative when overdue), when it has one.
+  optional int32 days_left = 20;
+}
+
+message ContractRequest {
+  string contract_id = 1;
+}
+
+message ListContractsRequest {
+  string employee_id = 1;
+  // Default active; "all" lists every status.
+  string status = 2;
+  string contract_type = 3;
+  string search = 4;
+}
+
+message ListContractsResponse {
+  repeated Contract contracts = 1;
+}
+
+message ContractInput {
+  string employee_id = 1;
+  string contract_type = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string probation_end_date = 5;
+  string position_title = 6;
+  string department_name = 7;
+  string work_location = 8;
+  string base_salary = 9;
+  string notes = 10;
+}
+
+message UpdateContractRequest {
+  string contract_id = 1;
+  ContractInput input = 2;
+}
+
+message ContractActionRequest {
+  string contract_id = 1;
+  string action = 2;
+  string end_date = 3;
+  string reason = 4;
+  string signed_at = 5;
+}
+
+message ContractActionResult {
+  string message = 1;
+  Contract contract = 2;
+  // PKWT compensation (PP 35/2021 Pasal 16) on end or terminate.
+  string compensation_amount = 3;
+}
+
+message ListExpiringContractsRequest {
+  int32 days = 1;
+}
+
+message ProbationEnding {
+  EmployeeRef employee = 1;
+  string probation_end_date = 2;
+  int32 days_left = 3;
+}
+
+message ExpiringContracts {
+  int32 days = 1;
+  repeated Contract contracts = 2;
+  repeated ProbationEnding probations = 3;
+  repeated EmployeeRef without_contract = 4;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AnnouncementService (hr.read lists, hr.write manages)
+// ─────────────────────────────────────────────────────────────
+
+service AnnouncementService {
+  rpc ListAnnouncements(ListAnnouncementsRequest) returns (ListAnnouncementsResponse) {
+    option (google.api.http) = {get: "/v1/hr/announcements"};
+  }
+  rpc GetAnnouncement(AnnouncementRequest) returns (Announcement) {
+    option (google.api.http) = {get: "/v1/hr/announcements/{announcement_id}"};
+  }
+  rpc CreateAnnouncement(AnnouncementInput) returns (Announcement) {
+    option (google.api.http) = {post: "/v1/hr/announcements" body: "*"};
+  }
+  rpc UpdateAnnouncement(UpdateAnnouncementRequest) returns (Announcement) {
+    option (google.api.http) = {put: "/v1/hr/announcements/{announcement_id}" body: "input"};
+  }
+  rpc DeleteAnnouncement(AnnouncementRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/announcements/{announcement_id}"};
+  }
+}
+
+message Announcement {
+  string id = 1;
+  string title = 2;
+  string body = 3;
+  repeated string tags = 4;
+  // draft | published | archived
+  string status = 5;
+  bool is_pinned = 6;
+  // global | departments
+  string target_scope = 7;
+  repeated string department_ids = 8;
+  google.protobuf.Timestamp publish_at = 9;
+  google.protobuf.Timestamp expires_at = 10;
+  string created_by_name = 11;
+  google.protobuf.Timestamp created_at = 12;
+  bool is_read = 13;
+  int32 read_count = 14;
+}
+
+message AnnouncementRequest {
+  string announcement_id = 1;
+}
+
+message ListAnnouncementsRequest {
+  string status = 1;
+}
+
+message ListAnnouncementsResponse {
+  repeated Announcement announcements = 1;
+  int32 unread = 2;
+}
+
+message AnnouncementInput {
+  string title = 1;
+  string body = 2;
+  repeated string tags = 3;
+  string status = 4;
+  bool is_pinned = 5;
+  string target_scope = 6;
+  repeated string department_ids = 7;
+  google.protobuf.Timestamp publish_at = 8;
+  google.protobuf.Timestamp expires_at = 9;
+}
+
+message UpdateAnnouncementRequest {
+  string announcement_id = 1;
+  AnnouncementInput input = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// LifecycleService: onboarding and offboarding checklists
+// ─────────────────────────────────────────────────────────────
+
+service LifecycleService {
+  rpc ListOnboardingTasks(GetEmployeeRequest) returns (OnboardingChecklist) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/onboarding"};
+  }
+  // Adds the default WHITE checklist (skips tasks that already exist).
+  rpc ApplyOnboardingTemplate(GetEmployeeRequest) returns (OnboardingChecklist) {
+    option (google.api.http) = {post: "/v1/hr/employees/{employee_id}/onboarding:applyTemplate" body: "*"};
+  }
+  rpc AddOnboardingTask(OnboardingTaskInput) returns (OnboardingTask) {
+    option (google.api.http) = {post: "/v1/hr/employees/{employee_id}/onboarding" body: "*"};
+  }
+  rpc UpdateOnboardingTask(UpdateOnboardingTaskRequest) returns (OnboardingTask) {
+    option (google.api.http) = {put: "/v1/hr/onboarding/{task_id}" body: "*"};
+  }
+  rpc DeleteOnboardingTask(OnboardingTaskRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/onboarding/{task_id}"};
+  }
+  rpc GetOffboarding(GetEmployeeRequest) returns (Offboarding) {
+    option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/offboarding"};
+  }
+  rpc StartOffboarding(StartOffboardingRequest) returns (Offboarding) {
+    option (google.api.http) = {post: "/v1/hr/employees/{employee_id}/offboarding" body: "*"};
+  }
+  // Completing it sets the employee resigned/terminated and inactive.
+  rpc UpdateOffboarding(UpdateOffboardingRequest) returns (Offboarding) {
+    option (google.api.http) = {put: "/v1/hr/employees/{employee_id}/offboarding" body: "*"};
+  }
+}
+
+message OnboardingTask {
+  string id = 1;
+  string employee_id = 2;
+  string task_name = 3;
+  // admin | it | hr | manager | general
+  string category = 4;
+  // 1 high, 2 normal, 3 low
+  int32 priority = 5;
+  optional string due_date = 6;
+  bool is_completed = 7;
+  google.protobuf.Timestamp completed_at = 8;
+  string completed_by_name = 9;
+  string notes = 10;
+}
+
+message OnboardingChecklist {
+  string employee_id = 1;
+  repeated OnboardingTask tasks = 2;
+  int32 completed = 3;
+  int32 total = 4;
+}
+
+message OnboardingTaskInput {
+  string employee_id = 1;
+  string task_name = 2;
+  string category = 3;
+  int32 priority = 4;
+  string due_date = 5;
+}
+
+message UpdateOnboardingTaskRequest {
+  string task_id = 1;
+  optional bool is_completed = 2;
+  string notes = 3;
+  string task_name = 4;
+  string due_date = 5;
+}
+
+message OnboardingTaskRequest {
+  string task_id = 1;
+}
+
+message Offboarding {
+  string id = 1;
+  string employee_id = 2;
+  // voluntary | termination | layoff | end_of_contract
+  string resignation_type = 3;
+  // submitted | notice_period | exit_interview | completed
+  string status = 4;
+  string resignation_date = 5;
+  string last_working_day = 6;
+  string reason = 7;
+  string exit_interview_notes = 8;
+  bool clearance_hr = 9;
+  bool clearance_it = 10;
+  bool clearance_finance = 11;
+  bool clearance_manager = 12;
+  string notes = 13;
+  google.protobuf.Timestamp created_at = 14;
+  google.protobuf.Timestamp completed_at = 15;
+}
+
+message StartOffboardingRequest {
+  string employee_id = 1;
+  string resignation_type = 2;
+  string resignation_date = 3;
+  string last_working_day = 4;
+  string reason = 5;
+}
+
+message UpdateOffboardingRequest {
+  string employee_id = 1;
+  string status = 2;
+  // hr | it | finance | manager
+  string clearance_type = 3;
+  optional bool cleared = 4;
+  string exit_interview_notes = 5;
+  string notes = 6;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PayrollService (hr.payroll; loans: request by self.service, decide by
+// hr.approve)
+// ─────────────────────────────────────────────────────────────
+
+service PayrollService {
+  rpc GetPayrollSettings(google.protobuf.Empty) returns (PayrollSettings) {
+    option (google.api.http) = {get: "/v1/hr/payroll/settings"};
+  }
+  rpc UpdatePayrollSettings(PayrollSettings) returns (PayrollSettings) {
+    option (google.api.http) = {put: "/v1/hr/payroll/settings" body: "*"};
+  }
+  rpc ListSalaries(ListSalariesRequest) returns (ListSalariesResponse) {
+    option (google.api.http) = {get: "/v1/hr/salaries"};
+  }
+  // A new salary version: the previous active one ends.
+  rpc CreateSalary(SalaryInput) returns (Salary) {
+    option (google.api.http) = {post: "/v1/hr/salaries" body: "*"};
+  }
+  rpc UpdateSalary(UpdateSalaryRequest) returns (Salary) {
+    option (google.api.http) = {put: "/v1/hr/salaries/{salary_id}" body: "input"};
+  }
+  rpc DeactivateSalary(SalaryRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/salaries/{salary_id}"};
+  }
+
+  rpc ListPayrollRuns(ListPayrollRunsRequest) returns (ListPayrollRunsResponse) {
+    option (google.api.http) = {get: "/v1/hr/payroll/runs"};
+  }
+  rpc CreatePayrollRun(CreatePayrollRunRequest) returns (PayrollRun) {
+    option (google.api.http) = {post: "/v1/hr/payroll/runs" body: "*"};
+  }
+  rpc GetPayrollRun(PayrollRunRequest) returns (PayrollRunDetail) {
+    option (google.api.http) = {get: "/v1/hr/payroll/runs/{run_id}"};
+  }
+  // draft or calculated runs: recalculates every active employee.
+  rpc CalculatePayrollRun(CalculatePayrollRunRequest) returns (CalculatePayrollRunResponse) {
+    option (google.api.http) = {post: "/v1/hr/payroll/runs/{run_id}:calculate" body: "*"};
+  }
+  rpc ApprovePayrollRun(PayrollRunRequest) returns (PayrollRun) {
+    option (google.api.http) = {post: "/v1/hr/payroll/runs/{run_id}:approve" body: "*"};
+  }
+  // approved -> paid: settles loan installments and publishes
+  // white.hr.payroll.paid.
+  rpc MarkPayrollRunPaid(MarkPayrollRunPaidRequest) returns (MarkPayrollRunPaidResponse) {
+    option (google.api.http) = {post: "/v1/hr/payroll/runs/{run_id}:markPaid" body: "*"};
+  }
+  rpc DeletePayrollRun(PayrollRunRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/payroll/runs/{run_id}"};
+  }
+  rpc ListPayslips(ListPayslipsRequest) returns (ListPayslipsResponse) {
+    option (google.api.http) = {get: "/v1/hr/payslips"};
+  }
+  rpc GetPayslipPdf(PayslipRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/hr/payslips/{payslip_id}/pdf"};
+  }
+  // One-off taxable additions (bonus, incentive) paid with a period's run.
+  rpc ListPayrollAdditions(ListPayrollAdditionsRequest) returns (ListPayrollAdditionsResponse) {
+    option (google.api.http) = {get: "/v1/hr/payroll/additions"};
+  }
+  rpc CreatePayrollAddition(PayrollAdditionInput) returns (PayrollAddition) {
+    option (google.api.http) = {post: "/v1/hr/payroll/additions" body: "*"};
+  }
+  rpc DeletePayrollAddition(PayrollAdditionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/payroll/additions/{addition_id}"};
+  }
+
+  // hr.payroll or hr.approve: everyone's; otherwise own loans.
+  rpc ListLoans(ListLoansRequest) returns (ListLoansResponse) {
+    option (google.api.http) = {get: "/v1/hr/loans"};
+  }
+  rpc GetLoan(LoanRequest) returns (Loan) {
+    option (google.api.http) = {get: "/v1/hr/loans/{loan_id}"};
+  }
+  // self.service for oneself (interest free); hr.payroll for anyone.
+  rpc CreateLoan(CreateLoanRequest) returns (Loan) {
+    option (google.api.http) = {post: "/v1/hr/loans" body: "*"};
+  }
+  rpc DecideLoan(DecideLoanRequest) returns (Loan) {
+    option (google.api.http) = {post: "/v1/hr/loans/{loan_id}:decide" body: "*"};
+  }
+}
+
+message PayrollSettings {
+  // Rates are percentages ("2.00" = 2%).
+  string bpjs_tk_jht_employee = 1;
+  string bpjs_tk_jht_employer = 2;
+  string bpjs_tk_jp_employee = 3;
+  string bpjs_tk_jp_employer = 4;
+  string bpjs_tk_jkk = 5;
+  string bpjs_tk_jkm = 6;
+  string bpjs_kes_employee = 7;
+  string bpjs_kes_employer = 8;
+  string bpjs_kes_max_upah = 9;
+  string tapera_employee = 10;
+  string tapera_employer = 11;
+  // PTKP per status (rupiah per year).
+  map<string, string> ptkp = 12;
+  // Cumulative PPh 21 bracket limits (rupiah per year): 60M, 250M, 500M, 5B.
+  repeated string pph21_bracket_limits = 13;
+  string overtime_multiplier = 14;
+  string overtime_multiplier_holiday = 15;
+  string overtime_hourly_divisor = 16;
+  // off | per_minute | flat
+  string late_deduction_mode = 17;
+  string late_deduction_amount = 18;
+  string loan_max_installment_percent = 19;
+  int32 loan_max_active_per_employee = 20;
+  int32 payroll_day = 21;
+  // progressive_annual (NüHabit's method; PPh 21 TER is not implemented).
+  string pph21_method = 22;
+  google.protobuf.Timestamp updated_at = 23;
+}
+
+message Salary {
+  string id = 1;
+  EmployeeRef employee = 2;
+  string base_salary = 3;
+  string fixed_allowance = 4;
+  string variable_allowance = 5;
+  string transport_allowance = 6;
+  string meal_allowance = 7;
+  string housing_allowance = 8;
+  // TK/0 .. K/3
+  string ptkp_status = 9;
+  bool is_taxable = 10;
+  bool bpjs_tk_enrolled = 11;
+  bool bpjs_kes_enrolled = 12;
+  bool tapera_enrolled = 13;
+  string effective_date = 14;
+  optional string end_date = 15;
+  bool is_active = 16;
+  string notes = 17;
+}
+
+message SalaryInput {
+  string employee_id = 1;
+  string base_salary = 2;
+  string fixed_allowance = 3;
+  string variable_allowance = 4;
+  string transport_allowance = 5;
+  string meal_allowance = 6;
+  string housing_allowance = 7;
+  string ptkp_status = 8;
+  optional bool is_taxable = 9;
+  optional bool bpjs_tk_enrolled = 10;
+  optional bool bpjs_kes_enrolled = 11;
+  optional bool tapera_enrolled = 12;
+  string effective_date = 13;
+  string notes = 14;
+}
+
+message UpdateSalaryRequest {
+  string salary_id = 1;
+  SalaryInput input = 2;
+}
+
+message SalaryRequest {
+  string salary_id = 1;
+}
+
+message ListSalariesRequest {
+  string employee_id = 1;
+  bool active_only = 2;
+}
+
+message ListSalariesResponse {
+  repeated Salary salaries = 1;
+}
+
+message PayrollRun {
+  string id = 1;
+  string run_name = 2;
+  int32 period_month = 3;
+  int32 period_year = 4;
+  // draft | calculated | approved | paid
+  string status = 5;
+  int32 total_employees = 6;
+  string total_gross = 7;
+  string total_deductions = 8;
+  string total_net = 9;
+  string total_bpjs_employee = 10;
+  string total_bpjs_employer = 11;
+  string total_pph21 = 12;
+  bool needs_recalculation = 13;
+  google.protobuf.Timestamp calculated_at = 14;
+  google.protobuf.Timestamp approved_at = 15;
+  string approved_by_name = 16;
+  google.protobuf.Timestamp paid_at = 17;
+  string notes = 18;
+  google.protobuf.Timestamp created_at = 19;
+}
+
+message LoanInstallment {
+  string loan_id = 1;
+  string loan_type = 2;
+  int32 installment_no = 3;
+  int32 tenor_months = 4;
+  string amount = 5;
+  string remaining_before = 6;
+  string remaining_after = 7;
+  // "Cicilan Kasbon (2/3)"
+  string label = 8;
+}
+
+message Payslip {
+  string id = 1;
+  string run_id = 2;
+  int32 period_month = 3;
+  int32 period_year = 4;
+  string run_status = 5;
+  EmployeeRef employee = 6;
+  string base_salary = 7;
+  string fixed_allowance = 8;
+  string variable_allowance = 9;
+  string transport_allowance = 10;
+  string meal_allowance = 11;
+  string housing_allowance = 12;
+  string overtime_pay = 13;
+  string thr = 14;
+  string bonus = 15;
+  string gross_salary = 16;
+  string bpjs_tk_jht_deduction = 17;
+  string bpjs_tk_jp_deduction = 18;
+  string bpjs_kes_deduction = 19;
+  string tapera_deduction = 20;
+  string pph21_deduction = 21;
+  string unpaid_leave_deduction = 22;
+  string late_deduction = 23;
+  string loan_deduction = 24;
+  string total_deductions = 25;
+  string net_salary = 26;
+  string bpjs_tk_jht_employer = 27;
+  string bpjs_tk_jp_employer = 28;
+  string bpjs_tk_jkk_employer = 29;
+  string bpjs_tk_jkm_employer = 30;
+  string bpjs_kes_employer = 31;
+  string tapera_employer = 32;
+  string taxable_income = 33;
+  string ptkp_amount = 34;
+  string pph21_annual = 35;
+  double working_days = 36;
+  double present_days = 37;
+  double late_days = 38;
+  double unpaid_leave_days = 39;
+  double overtime_hours = 40;
+  double prorate_factor = 41;
+  repeated LoanInstallment loan_details = 42;
+}
+
+message PayrollRunDetail {
+  PayrollRun run = 1;
+  repeated Payslip payslips = 2;
+}
+
+message ListPayrollRunsRequest {
+  int32 year = 1;
+  string status = 2;
+}
+
+message ListPayrollRunsResponse {
+  repeated PayrollRun runs = 1;
+}
+
+message CreatePayrollRunRequest {
+  int32 period_month = 1;
+  int32 period_year = 2;
+  string run_name = 3;
+}
+
+message PayrollRunRequest {
+  string run_id = 1;
+}
+
+message CalculatePayrollRunRequest {
+  string run_id = 1;
+  bool include_thr = 2;
+}
+
+message SkippedEmployee {
+  string employee_id = 1;
+  string full_name = 2;
+  string reason = 3;
+}
+
+message CalculatePayrollRunResponse {
+  PayrollRun run = 1;
+  repeated SkippedEmployee skipped = 2;
+  string message = 3;
+}
+
+message MarkPayrollRunPaidRequest {
+  string run_id = 1;
+  string notes = 2;
+}
+
+message MarkPayrollRunPaidResponse {
+  PayrollRun run = 1;
+  int32 settled_loans = 2;
+  string message = 3;
+}
+
+message ListPayslipsRequest {
+  string employee_id = 1;
+  int32 year = 2;
+  string run_id = 3;
+}
+
+message ListPayslipsResponse {
+  repeated Payslip payslips = 1;
+}
+
+message PayslipRequest {
+  string payslip_id = 1;
+}
+
+message PayrollAddition {
+  string id = 1;
+  EmployeeRef employee = 2;
+  int32 period_month = 3;
+  int32 period_year = 4;
+  string amount = 5;
+  string label = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message PayrollAdditionInput {
+  string employee_id = 1;
+  string amount = 2;
+  string label = 3;
+  // Optional: default the first period whose run is missing or not yet approved.
+  int32 period_month = 4;
+  int32 period_year = 5;
+}
+
+message PayrollAdditionRequest {
+  string addition_id = 1;
+}
+
+message ListPayrollAdditionsRequest {
+  int32 period_month = 1;
+  int32 period_year = 2;
+  string employee_id = 3;
+}
+
+message ListPayrollAdditionsResponse {
+  repeated PayrollAddition additions = 1;
+}
+
+message LoanScheduleRow {
+  int32 installment_no = 1;
+  int32 period_month = 2;
+  int32 period_year = 3;
+  string amount = 4;
+  string remaining_after = 5;
+  bool is_paid = 6;
+}
+
+message Loan {
+  string id = 1;
+  EmployeeRef employee = 2;
+  // kasbon | loan | emergency
+  string loan_type = 3;
+  string principal_amount = 4;
+  string interest_rate = 5;
+  int32 tenor_months = 6;
+  string monthly_installment = 7;
+  string remaining_balance = 8;
+  string paid_amount = 9;
+  // pending | approved | rejected | paid_off
+  string status = 10;
+  bool is_active = 11;
+  string purpose = 12;
+  int32 first_installment_month = 13;
+  int32 first_installment_year = 14;
+  string approved_by_name = 15;
+  google.protobuf.Timestamp approved_at = 16;
+  string rejection_reason = 17;
+  google.protobuf.Timestamp created_at = 18;
+  repeated LoanScheduleRow schedule = 19;
+}
+
+message ListLoansRequest {
+  string employee_id = 1;
+  string status = 2;
+}
+
+message ListLoansResponse {
+  repeated Loan loans = 1;
+}
+
+message LoanRequest {
+  string loan_id = 1;
+}
+
+message CreateLoanRequest {
+  string employee_id = 1;
+  string loan_type = 2;
+  string principal_amount = 3;
+  // Percent per month, flat; ignored for self-service requests.
+  string interest_rate = 4;
+  int32 tenor_months = 5;
+  string purpose = 6;
+}
+
+message DecideLoanRequest {
+  string loan_id = 1;
+  bool approve = 2;
+  string rejection_reason = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// SelfServiceService: the caller's own records (self.service)
+// ─────────────────────────────────────────────────────────────
+
+service SelfServiceService {
+  rpc GetMyProfile(google.protobuf.Empty) returns (EmployeeProfile) {
+    option (google.api.http) = {get: "/v1/hr/me"};
+  }
+  rpc GetMyHome(google.protobuf.Empty) returns (MyHome) {
+    option (google.api.http) = {get: "/v1/hr/me/home"};
+  }
+  rpc MyClockIn(ClockInRequest) returns (AttendanceRecord) {
+    option (google.api.http) = {post: "/v1/hr/me/attendance:clockIn" body: "*"};
+  }
+  rpc MyClockOut(ClockOutRequest) returns (AttendanceRecord) {
+    option (google.api.http) = {post: "/v1/hr/me/attendance/{attendance_id}:clockOut" body: "*"};
+  }
+  rpc ListMyAttendance(ListMyRequest) returns (ListAttendanceResponse) {
+    option (google.api.http) = {get: "/v1/hr/me/attendance"};
+  }
+  rpc ListMyLeaves(ListMyRequest) returns (ListLeavesResponse) {
+    option (google.api.http) = {get: "/v1/hr/me/leaves"};
+  }
+  rpc CreateMyLeave(CreateLeaveRequest) returns (Leave) {
+    option (google.api.http) = {post: "/v1/hr/me/leaves" body: "*"};
+  }
+  rpc CancelMyLeave(LeaveRequest) returns (Leave) {
+    option (google.api.http) = {post: "/v1/hr/me/leaves/{leave_id}:cancel" body: "*"};
+  }
+  rpc GetMyLeaveBalance(ListMyRequest) returns (LeaveBalance) {
+    option (google.api.http) = {get: "/v1/hr/me/leave-balance"};
+  }
+  rpc ListMyOvertime(ListMyRequest) returns (ListOvertimeResponse) {
+    option (google.api.http) = {get: "/v1/hr/me/overtime"};
+  }
+  rpc CreateMyOvertime(CreateOvertimeRequest) returns (Overtime) {
+    option (google.api.http) = {post: "/v1/hr/me/overtime" body: "*"};
+  }
+  // cancel own request, or approve/reject a company assignment.
+  rpc DecideMyOvertime(DecideOvertimeRequest) returns (Overtime) {
+    option (google.api.http) = {post: "/v1/hr/me/overtime/{overtime_id}:decide" body: "*"};
+  }
+  rpc ListMyLoans(ListMyRequest) returns (ListLoansResponse) {
+    option (google.api.http) = {get: "/v1/hr/me/loans"};
+  }
+  rpc CreateMyLoan(CreateLoanRequest) returns (Loan) {
+    option (google.api.http) = {post: "/v1/hr/me/loans" body: "*"};
+  }
+  // Paid runs only.
+  rpc ListMyPayslips(ListMyRequest) returns (ListPayslipsResponse) {
+    option (google.api.http) = {get: "/v1/hr/me/payslips"};
+  }
+  rpc GetMyPayslipPdf(PayslipRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/hr/me/payslips/{payslip_id}/pdf"};
+  }
+  rpc GetMyTeamSchedule(GetTeamScheduleRequest) returns (TeamSchedule) {
+    option (google.api.http) = {get: "/v1/hr/me/team-schedule"};
+  }
+  rpc ListMyAnnouncements(google.protobuf.Empty) returns (ListAnnouncementsResponse) {
+    option (google.api.http) = {get: "/v1/hr/me/announcements"};
+  }
+  // Marks it read.
+  rpc GetMyAnnouncement(AnnouncementRequest) returns (Announcement) {
+    option (google.api.http) = {get: "/v1/hr/me/announcements/{announcement_id}"};
+  }
+  // Pending leave and overtime of the caller's direct reports.
+  rpc ListMyApprovals(google.protobuf.Empty) returns (MyApprovals) {
+    option (google.api.http) = {get: "/v1/hr/me/approvals"};
+  }
+  // Personal dashboard for one month (YYYY-MM, default this month).
+  rpc GetMyDashboard(MyDashboardRequest) returns (MyDashboard) {
+    option (google.api.http) = {get: "/v1/hr/me/dashboard"};
+  }
+}
+
+message ListMyRequest {
+  // YYYY-MM (attendance, overtime) or empty for recent.
+  string month = 1;
+  int32 year = 2;
+  string status = 3;
+}
+
+message TodayShift {
+  string name = 1;
+  string start_time = 2;
+  string end_time = 3;
+  int32 late_tolerance_minutes = 4;
+}
+
+message MyHome {
+  EmployeeRef employee = 1;
+  string today = 2;
+  optional TodayShift today_shift = 3;
+  optional AttendanceRecord today_attendance = 4;
+  repeated TeamScheduleDay week = 5;
+  LeaveBalance leave_balance = 6;
+  int32 unread_announcements = 7;
+  int32 pending_approvals = 8;
+  string holiday_name = 9;
+}
+
+message MyApprovals {
+  repeated Leave leaves = 1;
+  repeated Overtime overtime = 2;
+}
+
+message MyDashboardRequest {
+  // YYYY-MM; empty is the current month.
+  string month = 1;
+}
+
+// One calendar day of the month. status: present | late | remote | absent |
+// leave | holiday | off (no shift) | upcoming | missing (scheduled, no record).
+message MyDashboardDay {
+  string date = 1;
+  string status = 2;
+  // HH:MM WIB, empty when not clocked.
+  string clock_in = 3;
+  string clock_out = 4;
+  double work_hours = 5;
+  int32 late_minutes = 6;
+  // Leave type code or holiday name.
+  string note = 7;
+  double overtime_hours = 8;
+}
+
+message MyDashboardStats {
+  int32 scheduled_days = 1;
+  int32 present_days = 2;
+  int32 late_days = 3;
+  int32 absent_days = 4;
+  int32 leave_days = 5;
+  // On time = present days not late / present days * 100.
+  double on_time_rate = 6;
+  // Attended = present days / (scheduled days so far - leave days) * 100.
+  double attendance_rate = 7;
+  double work_hours = 8;
+  double overtime_hours = 9;
+  int32 late_minutes = 10;
+  // HH:MM WIB average clock-in, empty without records.
+  string avg_clock_in = 11;
+}
+
+message MyDashboardMonth {
+  // First day of the month.
+  string month = 1;
+  double on_time_rate = 2;
+  // Average on-time rate of the caller's department.
+  double team_on_time_rate = 3;
+  double work_hours = 4;
+  double overtime_hours = 5;
+  string net_pay = 6;
+  string gross_pay = 7;
+  int32 present_days = 8;
+  int32 late_days = 9;
+  double leave_days = 10;
+}
+
+message MyDashboardWeek {
+  // Monday of the week (may fall in the previous month).
+  string week_start = 1;
+  double work_hours = 2;
+  int32 days = 3;
+  // Scheduled hours that week inside the month.
+  double target_hours = 4;
+}
+
+message MyPayslipSummary {
+  string payslip_id = 1;
+  int32 period_month = 2;
+  int32 period_year = 3;
+  string base_salary = 4;
+  string allowances = 5;
+  string overtime_pay = 6;
+  string gross_salary = 7;
+  string bpjs = 8;
+  string pph21 = 9;
+  string loan_deduction = 10;
+  string other_deductions = 11;
+  string total_deductions = 12;
+  string net_salary = 13;
+  double present_days = 14;
+  double working_days = 15;
+}
+
+// kind: leave | overtime | loan.
+message MyPendingRequest {
+  string kind = 1;
+  string id = 2;
+  // Leave type or loan type code; empty for overtime.
+  string type = 3;
+  string date = 4;
+  string end_date = 5;
+  // Days, hours or amount as text ("2", "1.5", "2000000.00").
+  string amount = 6;
+  string status = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+// status: in | late | remote | leave | absent | not_in | off.
+message MyTeamMember {
+  string employee_id = 1;
+  string full_name = 2;
+  string position_name = 3;
+  string status = 4;
+  string clock_in = 5;
+  // Leave type code or shift start for not_in.
+  string note = 6;
+}
+
+message MyDashboard {
+  EmployeeRef employee = 1;
+  string month = 2;
+  string today = 3;
+  repeated MyDashboardDay days = 4;
+  MyDashboardStats stats = 5;
+  // Same stats for the previous month.
+  MyDashboardStats previous = 6;
+  // 12 months ending with the selected month.
+  repeated MyDashboardMonth trend = 7;
+  repeated MyDashboardWeek weeks = 8;
+  LeaveBalance leave_balance = 9;
+  repeated Leave leave_history = 10;
+  optional MyPayslipSummary latest_payslip = 11;
+  repeated MyPendingRequest pending = 12;
+  bool is_manager = 13;
+  repeated MyTeamMember team_today = 14;
+}
+
+// ─────────────────────────────────────────────────────────────
+// HrReportService (hr.read)
+// ─────────────────────────────────────────────────────────────
+
+service HrReportService {
+  rpc GetHrisReport(HrisReportRequest) returns (HrisReport) {
+    option (google.api.http) = {get: "/v1/hr/reports/monthly"};
+  }
+  rpc ExportHrisReport(HrisReportRequest) returns (FileBytes) {
+    option (google.api.http) = {get: "/v1/hr/reports/monthly:export"};
+  }
+  // HR analytics for a date range with a comparison period and dimension
+  // filters. Payroll figures are filled only for hr.payroll holders.
+  rpc GetHrDashboard(HrDashboardRequest) returns (HrDashboard) {
+    option (google.api.http) = {get: "/v1/hr/dashboard"};
+  }
+}
+
+message HrDashboardRequest {
+  // YYYY-MM-DD, inclusive. Empty: this month up to today.
+  string from = 1;
+  string to = 2;
+  // previous (same length right before) | year (same dates a year earlier).
+  string compare = 3;
+  string department_id = 4;
+  string employment_status = 5;
+  string position_id = 6;
+}
+
+message HrDashKpis {
+  // Active at the end of the period.
+  int32 headcount = 1;
+  int32 joiners = 2;
+  int32 leavers = 3;
+  // Leavers / average headcount * 100.
+  double turnover_rate = 4;
+  int32 attendance_records = 5;
+  // Records not absent / records * 100.
+  double attendance_rate = 6;
+  int32 late_count = 7;
+  // Late / records not absent * 100.
+  double late_rate = 8;
+  double avg_late_minutes = 9;
+  int32 absent_count = 10;
+  double avg_work_hours = 11;
+  // Approved leave, working days inside the period.
+  double leave_days = 12;
+  // Approved overtime requests.
+  double overtime_hours = 13;
+  // Hours * base salary / hourly divisor * multiplier.
+  string overtime_cost = 14;
+  string payroll_gross = 15;
+  string payroll_net = 16;
+  // Gross plus employer BPJS and Tapera.
+  string payroll_employer_cost = 17;
+  int32 payroll_employees = 18;
+}
+
+// One period bucket (day, week or month, see HrDashboard.bucket).
+message HrDashBucket {
+  // First day of the bucket.
+  string date = 1;
+  int32 headcount = 2;
+  int32 joiners = 3;
+  int32 leavers = 4;
+  int32 attendance_records = 5;
+  int32 present = 6;
+  int32 late = 7;
+  int32 absent = 8;
+  double attendance_rate = 9;
+  double late_rate = 10;
+  double avg_work_hours = 11;
+  double leave_days = 12;
+  double overtime_hours = 13;
+  string overtime_cost = 14;
+  double turnover_rate = 15;
+  // Payroll runs whose period starts in the bucket (monthly series).
+  string payroll_gross = 16;
+  string payroll_net = 17;
+  string payroll_pph21 = 18;
+  string payroll_bpjs_employee = 19;
+  string payroll_bpjs_employer = 20;
+  int32 payroll_employees = 21;
+}
+
+// A department in one month of HrDashboard.months.
+message HrDashDeptMonth {
+  string month = 1;
+  string department_id = 2;
+  int32 headcount = 3;
+  int32 attendance_records = 4;
+  double attendance_rate = 5;
+  int32 late = 6;
+  double leave_days = 7;
+  double overtime_hours = 8;
+  string overtime_cost = 9;
+  string payroll_gross = 10;
+}
+
+// A department over the selected period.
+message HrDashDept {
+  string department_id = 1;
+  string name = 2;
+  int32 headcount = 3;
+  int32 joiners = 4;
+  int32 leavers = 5;
+  int32 attendance_records = 6;
+  double attendance_rate = 7;
+  int32 late = 8;
+  double late_rate = 9;
+  int32 late_minutes = 10;
+  int32 absent = 11;
+  double avg_work_hours = 12;
+  double leave_days = 13;
+  double overtime_hours = 14;
+  string overtime_cost = 15;
+  string payroll_gross = 16;
+  string payroll_employer_cost = 17;
+  // Annual leave quota and days used for the year of the period end.
+  int32 leave_quota = 18;
+  int32 leave_used = 19;
+}
+
+// A labelled count or amount. key is a code (status, type, band) or id.
+message HrDashSlice {
+  string key = 1;
+  string label = 2;
+  double value = 3;
+  int32 count = 4;
+}
+
+// A heatmap cell: row is a department id, col an ISO weekday 1..7 or a
+// day of month 1..31.
+message HrDashCell {
+  string row = 1;
+  int32 col = 2;
+  int32 value = 3;
+  int32 total = 4;
+}
+
+// Leave days of one type in one month of HrDashboard.months.
+message HrDashTypeMonth {
+  string month = 1;
+  string type = 2;
+  double days = 3;
+}
+
+message HrDashEmployee {
+  string employee_id = 1;
+  string full_name = 2;
+  string department_name = 3;
+  string position_name = 4;
+  int32 attendance_records = 5;
+  int32 late = 6;
+  int32 late_minutes = 7;
+  int32 absent = 8;
+  double attendance_rate = 9;
+  double overtime_hours = 10;
+  string overtime_cost = 11;
+}
+
+// kind: leave | overtime.
+message HrDashPending {
+  string kind = 1;
+  string id = 2;
+  string employee_id = 3;
+  string full_name = 4;
+  string department_name = 5;
+  string type = 6;
+  string date = 7;
+  double amount = 8;
+  string status = 9;
+  int32 age_days = 10;
+}
+
+// kind: contract | probation.
+message HrDashExpiry {
+  string kind = 1;
+  string employee_id = 2;
+  string full_name = 3;
+  string department_name = 4;
+  string contract_id = 5;
+  string contract_number = 6;
+  string contract_type = 7;
+  string end_date = 8;
+  int32 days_left = 9;
+}
+
+// Pay by position level over the payroll runs in the period.
+message HrDashLevel {
+  string level = 1;
+  int32 employees = 2;
+  string avg_base = 3;
+  string avg_gross = 4;
+  string min_gross = 5;
+  string max_gross = 6;
+}
+
+message HrDashLoan {
+  string loan_id = 1;
+  string employee_id = 2;
+  string full_name = 3;
+  string department_name = 4;
+  string loan_type = 5;
+  string principal_amount = 6;
+  string remaining_balance = 7;
+  string monthly_installment = 8;
+}
+
+message HrDashboard {
+  string from = 1;
+  string to = 2;
+  string compare_from = 3;
+  string compare_to = 4;
+  // day | week | month
+  string bucket = 5;
+  bool payroll_visible = 6;
+  HrDashKpis current = 7;
+  HrDashKpis previous = 8;
+  repeated HrDashBucket buckets = 9;
+  // Comparison period in the same buckets, aligned by index.
+  repeated HrDashBucket previous_buckets = 10;
+  // Monthly context: at least 12 months ending with the month of `to`.
+  repeated HrDashBucket months = 11;
+  repeated HrDashDeptMonth dept_months = 12;
+  repeated HrDashDept departments = 13;
+  repeated HrDashCell late_by_weekday = 14;
+  repeated HrDashCell late_by_day = 15;
+  // absent, sick, annual, ... (working days in the period)
+  repeated HrDashSlice absence_reasons = 16;
+  // Minutes between clock-in and shift start, 5-minute bins (key = bin start).
+  repeated HrDashSlice clock_in_offsets = 17;
+  repeated HrDashEmployee top_late = 18;
+  repeated HrDashEmployee top_overtime = 19;
+  repeated HrDashSlice leave_by_type = 20;
+  repeated HrDashTypeMonth leave_type_months = 21;
+  // 0-2, 3-7, 8-14, 15+ days waiting.
+  repeated HrDashSlice pending_aging = 22;
+  repeated HrDashPending pending = 23;
+  repeated HrDashSlice by_status = 24;
+  repeated HrDashSlice by_position = 25;
+  repeated HrDashSlice by_level = 26;
+  repeated HrDashSlice by_contract_type = 27;
+  repeated HrDashSlice by_gender = 28;
+  repeated HrDashSlice age_bands = 29;
+  repeated HrDashSlice tenure_bands = 30;
+  repeated HrDashExpiry expiring = 31;
+  repeated HrDashLevel salary_by_level = 32;
+  repeated HrDashLoan loans = 33;
+  string loans_outstanding = 34;
+  int32 pending_count = 35;
+}
+
+message HrisReportRequest {
+  int32 month = 1;
+  int32 year = 2;
+}
+
+message LabelCount {
+  string label = 1;
+  int32 count = 2;
+}
+
+message DailyAttendancePoint {
+  string date = 1;
+  int32 present = 2;
+  int32 absent = 3;
+  int32 late = 4;
+}
+
+message LeaveDaysByType {
+  string type = 1;
+  double days = 2;
+}
+
+message HrisReport {
+  int32 month = 1;
+  int32 year = 2;
+  int32 total_active = 3;
+  int32 new_hires = 4;
+  int32 turnover_count = 5;
+  double turnover_rate = 6;
+  repeated LabelCount by_status = 7;
+  repeated LabelCount by_department = 8;
+  repeated LabelCount monthly_trend = 9;
+  int32 attendance_records = 10;
+  int32 present_count = 11;
+  int32 absent_count = 12;
+  int32 late_count = 13;
+  double present_rate = 14;
+  double late_rate = 15;
+  double avg_work_hours = 16;
+  repeated DailyAttendancePoint daily_trend = 17;
+  int32 leave_approved_count = 18;
+  int32 leave_pending_count = 19;
+  double leave_total_days = 20;
+  repeated LeaveDaysByType leave_by_type = 21;
+}

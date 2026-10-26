@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/dashboard/info-hint";
@@ -12,6 +13,7 @@ export type StatStripItem = {
   lowerIsBetter?: boolean;
   hint?: string;
   caption?: ReactNode;
+  href?: string;
 };
 
 /**
@@ -44,15 +46,13 @@ export function StatStrip({
     >
       {/* flex (not grid) so a short last row stretches instead of leaving a dead band */}
       <div className={cn("flex", scrollOnMobile ? "flex-nowrap md:flex-wrap" : "flex-wrap")}>
-        {items.map((it) => (
-          <div
-            key={it.label}
-            className={cn(
+        {items.map((it) => {
+          const className = cn(
               "-mt-px -ml-px min-w-0 flex-1 border-t border-l px-4 py-3 transition-colors duration-150 hover:bg-muted/40",
+              it.href && "outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand",
               scrollOnMobile && "shrink-0 md:shrink",
-            )}
-            style={{ minWidth: `${minWidth}px` }}
-          >
+            );
+          const content = <>
             <div className="flex min-w-0 items-start gap-1.5 text-muted-foreground">
               <span className="label-mono line-clamp-2">{it.label}</span>
               {it.hint ? <InfoHint className="ml-auto">{it.hint}</InfoHint> : null}
@@ -64,8 +64,11 @@ export function StatStrip({
             {it.caption ? (
               <div className="mt-0.5 truncate text-xs text-muted-foreground">{it.caption}</div>
             ) : null}
-          </div>
-        ))}
+          </>;
+          return it.href
+            ? <Link key={it.label} href={it.href} className={className} style={{ minWidth: `${minWidth}px` }}>{content}</Link>
+            : <div key={it.label} className={className} style={{ minWidth: `${minWidth}px` }}>{content}</div>;
+        })}
       </div>
       {scrollOnMobile && mobileScrollHint ? (
         <p className="sticky left-0 border-t px-4 py-1.5 text-xs text-muted-foreground md:hidden">

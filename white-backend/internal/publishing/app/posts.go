@@ -29,6 +29,7 @@ type SaveInput struct {
 	ID           string
 	Title        string
 	Body         string
+	Format       domain.PostFormat
 	Targets      []TargetInput
 	MediaIDs     []string
 	MediaAlt     map[string]string
@@ -158,7 +159,8 @@ func (p *Posts) Save(ctx context.Context, userID, clientID string, in SaveInput)
 			media = append(media, byID[id])
 		}
 	}
-	draft := domain.DraftInput{Body: in.Body, ScheduledAt: in.ScheduledAt, LinkURL: in.LinkURL, FirstComment: in.FirstComment}
+	in.Format = domain.ToFormat(string(in.Format))
+	draft := domain.DraftInput{Format: in.Format, Body: in.Body, ScheduledAt: in.ScheduledAt, LinkURL: in.LinkURL, FirstComment: in.FirstComment}
 	for _, t := range in.Targets {
 		draft.Targets = append(draft.Targets, domain.DraftTarget{Platform: platforms[t.SocialAccountID], BodyOverride: t.BodyOverride})
 	}
@@ -192,7 +194,7 @@ func (p *Posts) Save(ctx context.Context, userID, clientID string, in SaveInput)
 		}
 		status := domain.StatusAfterEdit(existing.Status)
 		err = p.Store.WithTx(ctx, func(tx domain.Store) error {
-			post := domain.ContentPost{ID: existing.ID, Title: in.Title, Body: in.Body, Status: status, ScheduledAt: in.ScheduledAt, LinkURL: in.LinkURL, FirstComment: in.FirstComment, Labels: in.Labels, UTM: in.UTM}
+			post := domain.ContentPost{ID: existing.ID, Title: in.Title, Body: in.Body, Status: status, Format: in.Format, ScheduledAt: in.ScheduledAt, LinkURL: in.LinkURL, FirstComment: in.FirstComment, Labels: in.Labels, UTM: in.UTM}
 			if _, err := tx.UpdatePostContent(ctx, post, existing.Status != domain.StatusDraft && status == domain.StatusDraft); err != nil {
 				return err
 			}
@@ -209,7 +211,7 @@ func (p *Posts) Save(ctx context.Context, userID, clientID string, in SaveInput)
 
 	postID := ids.New()
 	err = p.Store.WithTx(ctx, func(tx domain.Store) error {
-		post := domain.ContentPost{ID: postID, ClientID: clientID, Title: in.Title, Body: in.Body, Status: domain.StatusDraft, ScheduledAt: in.ScheduledAt, LinkURL: in.LinkURL, FirstComment: in.FirstComment, Labels: in.Labels, UTM: in.UTM, CreatedByID: &userID}
+		post := domain.ContentPost{ID: postID, ClientID: clientID, Title: in.Title, Body: in.Body, Status: domain.StatusDraft, Format: in.Format, ScheduledAt: in.ScheduledAt, LinkURL: in.LinkURL, FirstComment: in.FirstComment, Labels: in.Labels, UTM: in.UTM, CreatedByID: &userID}
 		if _, err := tx.InsertPost(ctx, post); err != nil {
 			return err
 		}
@@ -529,7 +531,7 @@ func (p *Posts) Duplicate(ctx context.Context, userID, clientID, postID string) 
 	}
 	newID := ids.New()
 	err = p.Store.WithTx(ctx, func(tx domain.Store) error {
-		post := domain.ContentPost{ID: newID, ClientID: clientID, Title: title, Body: l.post.Body, Status: domain.StatusDraft, LinkURL: l.post.LinkURL, FirstComment: l.post.FirstComment, Labels: l.post.Labels, UTM: l.post.UTM, CreatedByID: &userID}
+		post := domain.ContentPost{ID: newID, ClientID: clientID, Title: title, Body: l.post.Body, Status: domain.StatusDraft, Format: l.post.Format, LinkURL: l.post.LinkURL, FirstComment: l.post.FirstComment, Labels: l.post.Labels, UTM: l.post.UTM, CreatedByID: &userID}
 		if _, err := tx.InsertPost(ctx, post); err != nil {
 			return err
 		}

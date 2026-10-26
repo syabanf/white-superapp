@@ -7,6 +7,7 @@ import (
 
 	"github.com/syabanf/white-superapp/white-backend/internal/identity/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
+	"github.com/syabanf/white-superapp/white-backend/pkg/authn"
 	"github.com/syabanf/white-superapp/white-backend/pkg/events"
 	"github.com/syabanf/white-superapp/white-backend/pkg/ids"
 	"github.com/syabanf/white-superapp/white-backend/pkg/password"
@@ -32,6 +33,7 @@ type UserInput struct {
 	Role        domain.UserRole
 	IsActive    bool
 	Memberships []domain.Membership
+	Permissions []string
 }
 
 type UserWithClients struct {
@@ -61,6 +63,11 @@ func (in UserInput) validate(create bool) error {
 	v.OneOf("role", string(in.Role), []string{string(domain.RoleAdmin), string(domain.RoleMember)}, msgRoleInvalid)
 	if create || in.Password != "" {
 		v.MinLen("password", in.Password, 8, msgPasswordMin).MaxLen("password", in.Password, 100, msgTooLong)
+	}
+	for _, p := range in.Permissions {
+		if !authn.IsKnownPermission(p) {
+			v.Add("permissions", "Izin tidak dikenal: "+p)
+		}
 	}
 	for _, m := range in.Memberships {
 		if m.ClientID == "" {
@@ -99,6 +106,13 @@ func (s *Users) ListOptions(ctx context.Context) ([]domain.User, error) {
 	return s.store.ListActiveUserOptions(ctx)
 }
 
+func (s *Users) PermissionHolders(ctx context.Context, permission string) ([]domain.User, error) {
+	if !authn.IsKnownPermission(permission) {
+		return nil, apperr.New(apperr.Validation, "Izin tidak dikenal.")
+	}
+	return s.store.ListPermissionHolders(ctx, permission)
+}
+
 func (s *Users) Create(ctx context.Context, in UserInput) (*domain.User, error) {
 	in.normalize()
 	if err := in.validate(true); err != nil {
@@ -115,7 +129,7 @@ func (s *Users) Create(ctx context.Context, in UserInput) (*domain.User, error) 
 	}
 	var created *domain.User
 	err = s.store.WithTx(ctx, func(tx domain.Store) error {
-		u, err := tx.InsertUser(ctx, domain.User{ID: ids.New(), Email: in.Email, Name: in.Name, PasswordHash: hash, Role: in.Role, IsActive: in.IsActive})
+		u, err := tx.InsertUser(ctx, domain.User{ID: ids.New(), Email: in.Email, Name: in.Name, PasswordHash: hash, Role: in.Role, IsActive: in.IsActive, Permissions: in.Permissions})
 		if err != nil {
 			return err
 		}
@@ -160,7 +174,7 @@ func (s *Users) Update(ctx context.Context, actorID, userID string, in UserInput
 	}
 	var updated *domain.User
 	err = s.store.WithTx(ctx, func(tx domain.Store) error {
-		u, err := tx.UpdateUser(ctx, domain.User{ID: userID, Name: in.Name, Email: in.Email, Role: in.Role, IsActive: in.IsActive}, hash)
+		u, err := tx.UpdateUser(ctx, domain.User{ID: userID, Name: in.Name, Email: in.Email, Role: in.Role, IsActive: in.IsActive, Permissions: in.Permissions}, hash)
 		if err != nil {
 			return err
 		}
@@ -210,6 +224,54 @@ func (s *Users) Delete(ctx context.Context, actorID, userID string) error {
 		return apperr.New(apperr.NotFound, "")
 	}
 	// Other services null out createdBy/uploadedBy references on this event.
+	return s.bus.Publish(ctx, events.UserDeleted, events.UserDeletedPayload{UserID: userID})
+}
+
+// SetPermissions replaces only the ERP permission keys.
+func (s *Users) SetPermissions(ctx context.Context, userID string, perms []string) (*domain.User, error) {
+	v := validate.New()
+	for _, p := range perms {
+		if !authn.IsKnownPermission(p) {
+			v.Add("permissions", "Izin tidak dikenal: "+p)
+		}
+	}
+	if err := v.Err(); err != nil {
+		return nil, err
+	}
+	u, err := s.store.SetUserPermissions(ctx, userID, perms)
+	if err != nil {
+		return nil, err
+	}
+	if u == nil {
+		return nil, apperr.New(apperr.NotFound, "")
+	}
+	return u, nil
+}
+
+// SyncLegacy mirrors a user the Next.js admin pages wrote (same id, same
+// bcrypt hash). Deactivation also revokes refresh sessions.
+func (s *Users) SyncLegacy(ctx context.Context, u domain.User) (*domain.User, error) {
+	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
+	if u.ID == "" || u.Email == "" || u.PasswordHash == "" || (u.Role != domain.RoleAdmin && u.Role != domain.RoleMember) {
+		return nil, apperr.New(apperr.Validation, "")
+	}
+	out, err := s.store.UpsertLegacyUser(ctx, u)
+	if err != nil {
+		return nil, uniqueToField(err)
+	}
+	if !u.IsActive {
+		if err := s.store.RevokeUserSessions(ctx, u.ID); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
+// RemoveLegacy deletes the mirror; a missing row is fine.
+func (s *Users) RemoveLegacy(ctx context.Context, userID string) error {
+	if _, err := s.store.DeleteUser(ctx, userID); err != nil {
+		return err
+	}
 	return s.bus.Publish(ctx, events.UserDeleted, events.UserDeletedPayload{UserID: userID})
 }
 

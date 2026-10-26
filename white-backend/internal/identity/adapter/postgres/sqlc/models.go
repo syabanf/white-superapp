@@ -175,4 +175,5 @@ type IdentityUser struct {
 	IsActive     bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	Permissions  []string
 }

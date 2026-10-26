@@ -1,7 +1,7 @@
 # WHITE Backend: architecture
 
 Go rewrite of the WHITE Analytics backend (`../white-analytics`, Next.js server
-actions + Prisma). Six deployable services, one Postgres instance with one
+actions + Prisma). Eight deployable services, one Postgres instance with one
 schema per service, NATS JetStream for asynchronous work, gRPC between
 services and a grpc-gateway REST facade for the Next.js frontend.
 
@@ -13,7 +13,7 @@ services and a grpc-gateway REST facade for the Next.js frontend.
      ┌──────────┬───────┴────────┬──────────────┬──────────────┐
 ┌────▼─────┐ ┌──▼──────────┐ ┌───▼────────┐ ┌───▼──────────┐ ┌─▼──────────┐
 │ identity │ │integrations │ │ analytics  │ │  publishing  │ │  seosuite  │
-│  :9001   │ │   :9002     │ │   :9003    │ │    :9004     │ │   :9005    │
+│  :9001   │ │   :9002     │ │   :9003    │ │    :9004     │ │   :9005    │   reports :9006 composes
 └────┬─────┘ └──────┬──────┘ └─────┬──────┘ └──────┬───────┘ └─────┬──────┘
      │ identity     │ integrations │ analytics     │ publishing    │ seosuite      (Postgres schemas)
      └──────────────┴──────────────┴───────────────┴───────────────┴──────────┐
@@ -29,7 +29,14 @@ services and a grpc-gateway REST facade for the Next.js frontend.
 | **analytics** | social accounts/snapshots/posts, SEO properties, GSC/GA4 daily, audits + crawls, ad accounts/campaigns/insights/demographics, reports, AI insights, its sync jobs | identity.Access, identity.Notify, integrations.GetAccessToken / GetProviderCredentials |
 | **publishing** | media assets, content posts, targets, comments, activities, its sync jobs | identity.Access, identity.Notify, integrations (tokens), analytics (own social accounts) |
 | **seosuite** | tracked keywords, rank snapshots, keyword research cache, backlinks, competitor domains, domain snapshots, its sync jobs | identity, integrations, analytics (SEO properties) |
-| **scheduler** | nothing | publishes daily/publish/retention ticks per client |
+| **reports** | saved reports, AI insights | identity, integrations (OpenRouter key), analytics / publishing / seosuite `ReportDataService`; renders PDFs and the public share dashboard |
+| **content** | editorial plans and items, caption revisions, comments and activity, design tasks and files, brand assets with versions, content reports | identity (client access, Notify, service tokens), integrations (OpenRouter), analytics (top posts, engagement), publishing (uploads media, saves and schedules posts incl. stories, then polls their status on `erp.tick.15m`) |
+| **finance** | chart of accounts, fiscal years/periods, journals and mappings, cash-bank, AP/AR invoices and payments, reimbursement claims and batches, AI insights | hr (employee, manager), identity.Notify, integrations (OpenRouter); consumes `hr.payroll.paid`, `sales.invoice.issued`, `sales.payment.recorded`; publishes `finance.reimbursement.paid` |
+| **hr** | employees, departments, positions, attendance, shifts, holidays, leave, overtime, contracts, announcements, onboarding/offboarding, salaries, payroll runs, payslips, loans | identity (users, Notify); publishes `hr.payroll.paid` |
+| **recruitment** | job openings, candidates, stage history, screening, psikotes bank and sessions, AI interviews, interviews and scorecards, offers, rate limits | hr (departments, interviewers), identity.Notify, integrations (OpenRouter); publishes `recruitment.candidate.hired` |
+| **sales** | leads, accounts, contacts, pipelines, deals, activities, quotations, invoices, payments, targets, workflow and scoring rules, forms, contracts, pitch decks, onboarding, chat | identity (Notify, CreateClient), integrations (OpenRouter); publishes `sales.invoice.issued`, `sales.payment.recorded`, `sales.deal.won` |
+| **performance** | KPI indicators, weights, targets, scorecards, review cycles, 360 feedback, department tasks, logbook, daily and monthly recaps, improvements | hr (directory, attendance summary), identity.Notify, integrations (OpenRouter) |
+| **scheduler** | nothing | publishes daily/publish/retention ticks per client and the ERP ticks `white.erp.tick.15m`, `.hourly`, `.daily` |
 | **gateway** | nothing | every service |
 
 Rules that follow from ownership:
@@ -56,6 +63,34 @@ Rules that follow from ownership:
    `BadRequest` field violations). The gateway writes
    `{ok:false, error, code, fieldErrors}`: the same shape the Next.js
    `ActionResult` had.
+
+## Browser routes on the gateway
+
+Outside grpc-gateway, because they need cookies, redirects or raw bytes:
+
+| Route | Purpose |
+|---|---|
+| `GET /api/connections/{google,meta}/start?client=<slug>` and `/callback` | OAuth connect flow (nonce cookie, 10 min) |
+| `POST /api/share/{slug}/unlock` | verify the share PIN, set `share_<clientId>` (12 h) |
+| `GET /api/share/{slug}/context`, `/dashboard?preset=`, `/pdf?preset=` | public share page data and PDF (401 PIN_REQUIRED, 404 DISABLED / NOT_FOUND) |
+| `GET /api/reports/{id}/pdf` | report PDF |
+| `POST /api/clients/{id}/media/upload`, `POST /api/clients/{id}/ads/import` | multipart uploads |
+| `GET /api/media/{key}` | public media bytes with ETag/304 (Meta fetches post media by URL) |
+| `POST /internal/session`, `POST /internal/users/sync` | Next.js server only (`X-Internal-Secret`): trade a session user id for an access token, mirror admin user edits into identity |
+| `POST /api/finance/reimbursements/{id}/receipts`, `/api/performance/tasks/occurrences/{id}/attachments`, `/api/hr/employees/{id}/documents` | ERP multipart uploads (form field `file`, 10 MB) |
+| `POST /api/content/clients/{id}/design-tasks/{task}/files`, `/api/content/clients/{id}/assets`, `/assets/{asset}/versions` | content multipart uploads (25 MB per file) |
+| `POST /api/recruitment/public/jobs/{slug}/apply`, `/api/recruitment/public/psikotes/{token}/tests/{test}/upload`, `/api/recruitment/candidates/{id}/cv` | recruitment multipart uploads (field `file`, 10 MB); the first two need no login |
+| `GET /api/finance/receipts/{id}`, `/api/sales/{quotations,invoices,contracts}/{id}/pdf`, `/api/sales/pitch-decks/{id}/file`, `/api/sales/onboarding/assets/{id}`, `/api/public/sales/contracts/{token}/pdf` | files from internal RPCs, under the caller's token (the public contract PDF by token) |
+
+Any REST response whose message has `bytes data` and `string content_type`
+(payslips, exports, recap PDFs) leaves the gateway as raw bytes with that
+content type and an inline `Content-Disposition`, so a plain link downloads
+it (`internal/gateway/files.go`).
+
+Browser navigations cannot send headers, so these routes also accept the
+access token from a `white_access` cookie. The gateway stamps every call it
+forwards with `x-white-edge`; RPCs that trust internal callers reject
+anonymous calls carrying that marker.
 
 ## Asynchronous work
 

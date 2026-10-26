@@ -60,6 +60,9 @@ const (
 	MsgIGCarouselVideo     = "Carousel Instagram hanya boleh berisi gambar."
 	MsgTikTokOneVideo      = "TikTok membutuhkan tepat satu video."
 	MsgFBOneVideo          = "Facebook hanya menerima satu video per post."
+	MsgStoryOneMedia       = "Story membutuhkan tepat satu gambar atau video."
+	MsgStoryTikTok         = "TikTok belum mendukung story."
+	MsgReelOneVideo        = "Reel membutuhkan tepat satu video."
 	MsgFirstCommentTooLong = "Komentar pertama melebihi 2.200 karakter."
 )
 
@@ -97,6 +100,8 @@ type DraftTarget struct {
 }
 
 type DraftInput struct {
+	// Format empty is FEED.
+	Format       PostFormat
 	Body         string
 	Targets      []DraftTarget
 	Media        []MediaKind
@@ -171,6 +176,25 @@ func validatePlatform(platform Platform, caption string, media []MediaKind, full
 	return out
 }
 
+// validateFormat adds the STORY and REEL shape rules (publish level only).
+func validateFormat(format PostFormat, platform Platform, media []MediaKind) []Issue {
+	scope := string(platform)
+	switch format {
+	case FormatStory:
+		if platform == PlatformTikTok {
+			return []Issue{{scope, "format", MsgStoryTikTok}}
+		}
+		if len(media) != 1 {
+			return []Issue{{scope, "media", MsgStoryOneMedia}}
+		}
+	case FormatReel:
+		if len(media) != 1 || media[0] != MediaVideo {
+			return []Issue{{scope, "media", MsgReelOneVideo}}
+		}
+	}
+	return nil
+}
+
 // ValidatePost mirrors lib.ts validatePost. An empty result means ok.
 func ValidatePost(in DraftInput, opts ValidateOptions) []Issue {
 	now := opts.Now
@@ -211,6 +235,9 @@ func ValidatePost(in DraftInput, opts ValidateOptions) []Issue {
 		}
 		seen[key] = true
 		issues = append(issues, validatePlatform(t.Platform, caption, in.Media, opts.Full)...)
+		if opts.Full {
+			issues = append(issues, validateFormat(in.Format, t.Platform, in.Media)...)
+		}
 	}
 	return issues
 }

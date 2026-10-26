@@ -5,8 +5,8 @@ SELECT * FROM publishing.content_posts WHERE id = $1;
 SELECT * FROM publishing.content_posts WHERE id = $1 AND client_id = $2;
 
 -- name: InsertPost :one
-INSERT INTO publishing.content_posts (id, client_id, title, body, status, scheduled_at, link_url, first_comment, labels, utm, created_by_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+INSERT INTO publishing.content_posts (id, client_id, title, body, status, scheduled_at, link_url, first_comment, labels, utm, created_by_id, format)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 RETURNING *;
 
 -- name: UpdatePostContent :one
@@ -19,6 +19,7 @@ UPDATE publishing.content_posts SET
     first_comment = $7,
     labels = $8,
     utm = $9,
+    format = $10,
     approved_by_id = CASE WHEN sqlc.arg(clear_approval)::bool THEN NULL ELSE approved_by_id END,
     approved_at = CASE WHEN sqlc.arg(clear_approval)::bool THEN NULL ELSE approved_at END,
     updated_at = now()

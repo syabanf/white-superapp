@@ -5,7 +5,6 @@ package gateway
 
 import (
 	"context"
-	"embed"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -23,9 +22,6 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-//go:embed openapi/white.swagger.json
-var openapiFS embed.FS
-
 func Spec() pkgapp.Spec {
 	return pkgapp.Spec{Name: "gateway", NoDatabase: true, Worker: run}
 }
@@ -37,6 +33,12 @@ type Upstreams struct {
 	Publishing   *grpc.ClientConn
 	SeoSuite     *grpc.ClientConn
 	Reports      *grpc.ClientConn
+	Finance      *grpc.ClientConn
+	HR           *grpc.ClientConn
+	Sales        *grpc.ClientConn
+	Content      *grpc.ClientConn
+	Recruitment  *grpc.ClientConn
+	Performance  *grpc.ClientConn
 }
 
 func dialAll() (*Upstreams, error) {
@@ -61,6 +63,9 @@ func dialAll() (*Upstreams, error) {
 		return nil, err
 	}
 	if u.Reports, err = dial("REPORTS_ADDR", "localhost:9006"); err != nil {
+		return nil, err
+	}
+	if err = u.dialErp(); err != nil {
 		return nil, err
 	}
 	return &u, nil
@@ -102,11 +107,13 @@ func run(ctx context.Context, d pkgapp.Deps) error {
 	}
 	mux := runtime.NewServeMux(
 		runtime.WithErrorHandler(grpcx.GatewayErrorHandler),
+		runtime.WithMetadata(grpcx.EdgeMetadata),
 		runtime.WithIncomingHeaderMatcher(grpcx.IncomingHeaderMatcher),
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, fileMarshaler{&runtime.JSONPb{
 			MarshalOptions:   protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true},
 			UnmarshalOptions: protojson.UnmarshalOptions{DiscardUnknown: true},
-		}),
+		}}),
+		runtime.WithForwardResponseOption(fileHeaders),
 	)
 	if err := registerGateway(ctx, mux, up); err != nil {
 		return err
@@ -117,7 +124,7 @@ func run(ctx context.Context, d pkgapp.Deps) error {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
-	root.Handle("GET /openapi.json", http.FileServerFS(openapiFS))
+	mountDocs(root)
 	browser := NewBrowserRoutes(up, d.Logger)
 	browser.Mount(root)
 	root.Handle("/", mux)
