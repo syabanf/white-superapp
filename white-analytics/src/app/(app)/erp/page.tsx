@@ -99,7 +99,7 @@ export default async function ErpHomePage(props: PageProps<"/erp">) {
                 <Link
                   key={m.href}
                   href={m.href}
-                  className="group lift flex items-center gap-3 rounded-2xl bg-card p-3.5 shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="group lift flex min-w-0 items-center gap-3 rounded-2xl bg-card p-3.5 shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
                     <Icon className="size-4" />

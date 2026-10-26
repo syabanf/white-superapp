@@ -1,12 +1,10 @@
 /** Copy for the ERP home dashboard. */
 export const hs = {
   openDashboard: "Buka dasbor",
-  noData: "Belum ada data pada periode ini.",
   modulesTitle: "Semua modul",
   recruitmentModule: "Lowongan, kandidat, pipeline, interview, psikotes, dan offer.",
   attention: {
     title: "Perlu perhatian",
-    hint: "Hal yang menunggu tindakan di modul yang bisa Anda buka. Klik untuk membuka daftarnya.",
     act: "Perlu tindakan",
     clear: "Aman",
     reimburse: "Reimburse menunggu",
@@ -35,7 +33,7 @@ export const hs = {
   },
   hr: {
     title: "SDM",
-    chart: "Jumlah karyawan dan tingkat kehadiran",
+    chart: "Karyawan dan kehadiran",
     chartHint: "Bagaimana jumlah karyawan aktif dan tingkat kehadiran bergerak per bulan? Klik bulan untuk membuka absensinya.",
     headcount: "Karyawan aktif",
     headcountHint: "Karyawan aktif di akhir periode.",
@@ -48,11 +46,9 @@ export const hs = {
     overtime: "Jam lembur",
     overtimeHint: "Total jam lembur yang disetujui.",
     hours: "jam",
-    month: "Bulan",
   },
   performance: {
     title: "Kinerja",
-    titleMe: "Kinerja saya",
     chart: "Skor KPI per departemen",
     chartMe: "Skor KPI saya",
     chartHint: "Bagaimana skor KPI tiap departemen bergerak per bulan? Klik bulan untuk membuka KPI bulan itu.",
@@ -82,7 +78,6 @@ export const hs = {
   },
   me: {
     title: "Ringkasan saya",
-    body: "Absensi, cuti, reimburse, slip gaji, tugas, dan rekap harian Anda.",
     open: "Buka halaman saya",
   },
 };

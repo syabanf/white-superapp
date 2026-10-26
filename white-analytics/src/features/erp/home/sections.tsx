@@ -129,7 +129,7 @@ export function AttentionSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true">
       <Skeleton className="h-6 w-36" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(8rem,1fr))]">
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-28 rounded-xl" />
         ))}
@@ -554,9 +554,10 @@ export async function AttentionStrip({ period, can }: HomeProps & { can: Attenti
   return (
     <section className="flex flex-col gap-3" aria-label={a.title}>
       <h2 className="text-base font-semibold tracking-[-0.02em]">{a.title}</h2>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]">
+      {/* A swipeable row on phones, a grid from sm up. */}
+      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 scrollbar-thin sm:mx-0 sm:grid sm:grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] sm:overflow-visible sm:px-0 sm:pb-0">
         {items.map((it) => (
-          <li key={it.key} className="min-w-0">
+          <li key={it.key} className="w-40 shrink-0 snap-start sm:w-auto sm:min-w-0">
             <Card className="lift h-full gap-0 py-0 hover:ring-brand/25">
               <Link
                 href={it.href}
