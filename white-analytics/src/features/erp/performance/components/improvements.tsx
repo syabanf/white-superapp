@@ -534,7 +534,7 @@ function RetroDialog({
   const [y, m] = month.split("-").map(Number);
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{isNew ? im.newRetro : im.retroFor(retro.departmentName, sp.monthLabel(retro.periodYear, retro.periodMonth))}</DialogTitle>
         </DialogHeader>

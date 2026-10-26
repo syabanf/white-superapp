@@ -99,7 +99,7 @@ export function CoaTree({
               ) : (
                 <span className="w-4.5" />
               )}
-              <span className="font-mono text-xs text-muted-foreground">{n.codeDisplay || n.code}</span>
+              <span className="font-mono text-xs whitespace-nowrap text-muted-foreground">{n.codeDisplay || n.code}</span>
             </span>
           </td>
           <td className={cn("py-2 pr-3", n.level <= 2 && "font-semibold")}>
@@ -147,14 +147,14 @@ export function CoaTree({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={a.searchPh}
             aria-label={a.searchPh}
-            className="h-8 w-64 pl-8 text-[13px]"
+            className="h-8 w-full pl-8 text-[13px] sm:w-64"
           />
         </div>
         <Button variant="ghost" size="sm" onClick={() => setCollapsed(new Set())}>

@@ -164,9 +164,9 @@ function PeriodPicker({
           <span className="font-medium">{label}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[min(94vw,40rem)] p-0 sm:w-auto">
+      <PopoverContent align="start" className="w-[calc(100vw-1rem)] p-0 sm:w-auto">
         <div className="flex flex-col sm:flex-row">
-          <ul className="flex gap-1 overflow-x-auto border-b p-2 scrollbar-thin sm:block sm:w-44 sm:border-r sm:border-b-0" role="listbox" aria-label={f.period}>
+          <ul className="flex flex-wrap gap-1 border-b p-2 sm:block sm:w-44 sm:border-r sm:border-b-0" role="listbox" aria-label={f.period}>
             {HR_PRESETS.map((p) => {
               const selected = range.preset === p;
               return (

@@ -43,7 +43,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+          // The theme script runs from the server HTML. On the client React 19 warns about
+          // any <script> it renders, so mark it inert there (the tag hydrates with
+          // suppressHydrationWarning).
+          scriptProps={typeof window === "undefined" ? undefined : { type: "application/json" }}
+        >
           <NuqsAdapter>
             <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
           </NuqsAdapter>

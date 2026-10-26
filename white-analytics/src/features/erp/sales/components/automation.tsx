@@ -218,8 +218,9 @@ function RuleForm({ rule, owners, close }: { rule: WorkflowRule | null; owners: 
       <fieldset className="flex flex-col gap-2 sm:col-span-2">
         <legend className="mb-1 text-sm font-medium">{a.conditions}</legend>
         {v.conditions.map((c, i) => (
-          <div key={i} className="grid grid-cols-[1fr_160px_1fr_auto] gap-2">
+          <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 sm:grid-cols-[minmax(0,1fr)_160px_minmax(0,1fr)_auto]">
             <Input
+              className="col-span-3 sm:col-span-1"
               aria-label={a.field}
               placeholder={a.field}
               value={c.field}

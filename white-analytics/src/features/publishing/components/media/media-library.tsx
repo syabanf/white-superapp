@@ -58,7 +58,7 @@ export function MediaLibrary({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <Tabs value={kind} onValueChange={(v) => setKind(v as Kind)}>
             <TabsList className="h-8">
@@ -82,7 +82,7 @@ export function MediaLibrary({
           </div>
         </div>
         {canManage ? (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" variant="outline" onClick={() => setUrlOpen(true)}>
               <Link2 className="size-3.5" /> {p.addByUrl}
             </Button>

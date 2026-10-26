@@ -235,12 +235,13 @@ function CatalogItemForm({ item, close }: { item: CatalogItem; close: () => void
         {Object.entries(TIER).map(([tier, label]) => {
           const t = tierFor(tier);
           return (
-            <div key={tier} className="grid grid-cols-[100px_160px_1fr] items-center gap-2">
+            <div key={tier} className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[100px_160px_1fr]">
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox checked={!!t} onCheckedChange={(x) => setTier(tier, x === true ? {} : null)} /> {label}
               </label>
               <MoneyInput value={t?.price ?? ""} onChange={(x) => setTier(tier, { price: x })} disabled={!t} />
               <Input
+                className="col-span-2 sm:col-span-1"
                 aria-label={`${label} ${ss.quotations.description}`}
                 value={t?.description ?? ""}
                 onChange={(e) => setTier(tier, { description: e.target.value })}

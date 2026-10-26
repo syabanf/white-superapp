@@ -55,7 +55,7 @@ export function AssetEditor({ slug, clientId, asset, folders }: { slug: string; 
         <Field id="ae-name" label={c.assetName}>
           <Input id="ae-name" value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field id="ae-kind" label={c.kind}>
             <Select value={kind} onValueChange={(v) => isAssetKind(v) && setKind(v)}>
               <SelectTrigger id="ae-kind" className="w-full">

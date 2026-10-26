@@ -128,13 +128,15 @@ export function DealMembers({
   return (
     <div className="flex flex-col gap-2">
       {rows.map((r, i) => (
-        <div key={i} className="grid grid-cols-[1fr_130px_72px_auto] items-center gap-2">
-          <Picker
-            value={r.userId}
-            onChange={(v) => setRows((l) => l.map((x, j) => (j === i ? { ...x, userId: v } : x)))}
-            options={owners}
-            placeholder={d.member}
-          />
+        <div key={i} className="grid grid-cols-[minmax(0,1fr)_72px_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_130px_72px_auto]">
+          <div className="col-span-3 min-w-0 sm:col-span-1">
+            <Picker
+              value={r.userId}
+              onChange={(v) => setRows((l) => l.map((x, j) => (j === i ? { ...x, userId: v } : x)))}
+              options={owners}
+              placeholder={d.member}
+            />
+          </div>
           <SimpleSelect
             value={r.role}
             onChange={(v) => setRows((l) => l.map((x, j) => (j === i ? { ...x, role: v } : x)))}

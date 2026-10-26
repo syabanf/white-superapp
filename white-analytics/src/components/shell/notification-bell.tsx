@@ -57,7 +57,7 @@ export function NotificationBell({ feed }: { feed: NotificationFeed }) {
         <TooltipContent>{n.title}</TooltipContent>
       </Tooltip>
 
-      <SheetContent className="w-full gap-0 overflow-y-auto scrollbar-thin sm:max-w-md">
+      <SheetContent className="gap-0 overflow-y-auto scrollbar-thin data-[side=right]:w-full sm:max-w-md data-[side=right]:sm:max-w-md">
         <SheetHeader className="border-b">
           <p className="label-mono text-brand">{n.eyebrow}</p>
           <SheetTitle className="text-lg font-bold tracking-[-0.025em]">{n.title}</SheetTitle>

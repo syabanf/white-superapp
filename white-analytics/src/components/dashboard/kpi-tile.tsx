@@ -51,7 +51,7 @@ export function KpiTile({
   const pad = size === "sm" ? "px-3.5 py-3" : size === "lg" ? "p-5 sm:p-6" : "p-4 sm:p-5";
   const valueSize =
     size === "sm"
-      ? "text-lg"
+      ? "text-base sm:text-lg"
       : size === "lg"
         ? "text-[34px] sm:text-[38px] md:text-[44px]"
         : "text-[24px] md:text-[30px]";
@@ -78,19 +78,21 @@ export function KpiTile({
             <Link
               href={href}
               className={cn(
-                "min-w-0 whitespace-nowrap rounded-sm leading-none font-bold tracking-[-0.035em] underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
+                "-mb-[0.2em] min-w-0 truncate rounded-sm pb-[0.2em] leading-none font-bold tracking-[-0.035em] underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring",
                 valueSize,
               )}
               aria-label={`${label}: ${value}. Buka rincian`}
+              title={value}
             >
               {value}
             </Link>
           ) : (
             <span
               className={cn(
-                "min-w-0 whitespace-nowrap leading-none font-bold tracking-[-0.035em]",
+                "-mb-[0.2em] min-w-0 truncate pb-[0.2em] leading-none font-bold tracking-[-0.035em]",
                 valueSize,
               )}
+              title={value}
             >
               {value}
             </span>
@@ -110,8 +112,10 @@ export function KpiTile({
             {delta ? <DeltaBadge delta={delta} lowerIsBetter={lowerIsBetter} /> : null}
             {caption ? <span className="truncate text-xs text-muted-foreground">{caption}</span> : null}
             {previous && !caption ? (
-              <span className="truncate text-xs text-muted-foreground">
-                {t.common.previousPeriod}: <span className="tabular">{previous}</span>
+              <span className="line-clamp-2 min-w-0 text-xs text-muted-foreground">
+                <span className="sm:hidden">{t.common.previousShort}</span>
+                <span className="hidden sm:inline">{t.common.previousPeriod}</span>:{" "}
+                <span className="tabular">{previous}</span>
               </span>
             ) : null}
           </div>

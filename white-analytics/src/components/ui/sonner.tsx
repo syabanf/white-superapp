@@ -11,6 +11,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      // Phones: lift toasts above the floating tab bar (h-16 + 0.75rem gap).
+      mobileOffset={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}
       icons={{
         success: (
           <CircleCheckIcon className="size-4" />

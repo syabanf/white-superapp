@@ -142,7 +142,7 @@ function ScorecardDialog({
 
   return (
     <Dialog open={!!id} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[88dvh] overflow-y-auto sm:max-w-[calc(100%-2rem)] lg:max-w-3xl">
         {error ? (
           <DialogHeader>
             <DialogTitle>{sp.common.loadFailed}</DialogTitle>

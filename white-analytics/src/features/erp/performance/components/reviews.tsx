@@ -225,7 +225,7 @@ function ReviewDialog({ id, onClose }: { id: string | null; onClose: () => void 
   );
   return (
     <Dialog open={!!id} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         {error ? (
           <DialogHeader>
             <DialogTitle>{sp.common.loadFailed}</DialogTitle>

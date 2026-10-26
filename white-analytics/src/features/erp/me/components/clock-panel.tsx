@@ -186,9 +186,9 @@ function ClockSession({ mode, attendanceId, close }: { mode: "in" | "out"; atten
       {error ? <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
       {photo ? (
         // eslint-disable-next-line @next/next/no-img-element -- local data URL preview
-        <img src={`data:image/jpeg;base64,${photo}`} alt="" className="w-full rounded-xl" />
+        <img src={`data:image/jpeg;base64,${photo}`} alt="" className="max-h-[50dvh] w-full rounded-xl object-cover" />
       ) : camera ? (
-        <video ref={videoRef} playsInline muted className="w-full -scale-x-100 rounded-xl bg-black" />
+        <video ref={videoRef} playsInline muted className="max-h-[50dvh] w-full -scale-x-100 rounded-xl bg-black object-cover" />
       ) : (
         <div className="grid grid-cols-2 gap-2">
           <Button type="button" variant="outline" className="h-20 flex-col" onClick={startCamera} disabled={busy}>

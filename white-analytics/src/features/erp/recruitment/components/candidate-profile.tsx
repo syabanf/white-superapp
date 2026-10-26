@@ -35,7 +35,7 @@ export function ProfilePanel({
   canWrite: boolean;
 }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="flex flex-col gap-4 lg:col-span-2">
         <Card>
           <CardHeader>

@@ -62,7 +62,7 @@ export default async function LeadDetailPage(props: PageProps<"/erp/sales/leads/
           {s.score} <ScoreBadge score={lead.score} />
         </span>
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <Panel title={s.deals} flush>
             <DealRows deals={deals} empty={s.noDeals} />

@@ -33,7 +33,7 @@ export function UrlTabs({
       }
       className={cn("min-w-0", className)}
     >
-      <TabsList aria-label={label} className="max-w-full overflow-x-auto">
+      <TabsList aria-label={label} className="max-w-full overflow-x-auto scrollbar-thin">
         {tabs.map((t) => (
           <TabsTrigger key={t.value} value={t.value}>
             {t.label}

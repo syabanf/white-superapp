@@ -168,7 +168,7 @@ export function DateRangePicker({
               />
               <Separator className="my-2" />
               {showCompare ? (
-                <div className="flex items-center justify-between gap-3 px-2 pb-3 md:hidden">
+                <div className="flex items-center justify-between gap-3 px-2 pb-3 lg:hidden">
                   <Label htmlFor="compare-mobile" className="cursor-pointer gap-2 text-sm font-normal">
                     <GitCompareArrows className="size-4 text-muted-foreground" />
                     {t.common.comparePrevious}
@@ -196,7 +196,7 @@ export function DateRangePicker({
         </PopoverContent>
       </Popover>
       {showCompare ? (
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <Switch
             id="compare"
             checked={resolved.compare}

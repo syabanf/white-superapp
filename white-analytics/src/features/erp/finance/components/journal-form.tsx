@@ -117,6 +117,42 @@ export function JournalForm({
     );
   };
 
+  const cells = {
+    account: (l: FormLine) => (
+      <AccountPicker accounts={accounts} value={l.accountId} onChange={(v) => patch(l.key, { accountId: v })} />
+    ),
+    debit: (l: FormLine) => (
+      <MoneyInput value={l.debit} onChange={(v) => setLines((ls) => setLineAmount(ls, l.key, "debit", v))} />
+    ),
+    credit: (l: FormLine) => (
+      <MoneyInput value={l.credit} onChange={(v) => setLines((ls) => setLineAmount(ls, l.key, "credit", v))} />
+    ),
+    memo: (l: FormLine, placeholder = false) => (
+      <Input
+        value={l.memo}
+        onChange={(e) => patch(l.key, { memo: e.target.value })}
+        aria-label={fs.memo}
+        placeholder={placeholder ? fs.memo : undefined}
+      />
+    ),
+    remove: (l: FormLine) => (
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={j.removeLine}
+        disabled={lines.length <= 2}
+        onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}
+      >
+        <Trash2 className="size-4" />
+      </Button>
+    ),
+  };
+  const balanceNote = (
+    <span className={cn("text-xs", balanced ? "text-positive" : "text-negative")}>
+      {balanced ? j.balanced : `${j.unbalanced} · ${j.diff} ${formatRupiah(Math.abs(totals.diff))}`}
+    </span>
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <Card className="gap-4 p-5">
@@ -144,15 +180,49 @@ export function JournalForm({
             <Plus className="size-3.5" /> {j.addLine}
           </Button>
         </div>
-        <div className="overflow-x-auto border-t">
-          <table className="w-full min-w-[760px] text-sm">
+        {/* Below lg, one card per line: the table needs ~680px of content width. */}
+        <ul className="border-t lg:hidden">
+          {lines.map((l, i) => (
+            <li key={l.key} className="grid gap-2 border-b px-4 py-3">
+              <div className="flex items-center gap-2">
+                <span className="w-5 shrink-0 text-xs text-muted-foreground tabular">{i + 1}</span>
+                <div className="min-w-0 flex-1">{cells.account(l)}</div>
+                {cells.remove(l)}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="grid min-w-0 gap-1 text-xs text-muted-foreground">
+                  {fs.debit}
+                  {cells.debit(l)}
+                </div>
+                <div className="grid min-w-0 gap-1 text-xs text-muted-foreground">
+                  {fs.credit}
+                  {cells.credit(l)}
+                </div>
+              </div>
+              {cells.memo(l, true)}
+            </li>
+          ))}
+          <li className="grid gap-1 bg-muted/30 px-4 py-3 text-sm font-medium">
+            <div className="flex justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                {fs.total} {fs.debit} / {fs.credit}
+              </span>
+              <span className="text-right tabular">
+                {formatRupiah(totals.debit)} / {formatRupiah(totals.credit)}
+              </span>
+            </div>
+            {balanceNote}
+          </li>
+        </ul>
+        <div className="hidden overflow-x-auto border-t lg:block">
+          <table className="w-full min-w-[680px] text-sm">
             <thead className="bg-muted/40 text-xs text-muted-foreground">
               <tr>
                 <th className="w-8 px-3 py-2 text-left font-medium">#</th>
                 <th className="px-3 py-2 text-left font-medium">{fs.account}</th>
                 <th className="w-44 px-3 py-2 text-right font-medium">{fs.debit}</th>
                 <th className="w-44 px-3 py-2 text-right font-medium">{fs.credit}</th>
-                <th className="w-56 px-3 py-2 text-left font-medium">{fs.memo}</th>
+                <th className="w-48 px-3 py-2 text-left font-medium">{fs.memo}</th>
                 <th className="w-10" />
               </tr>
             </thead>
@@ -160,29 +230,11 @@ export function JournalForm({
               {lines.map((l, i) => (
                 <tr key={l.key} className="border-t align-top">
                   <td className="px-3 py-2 pt-4 text-xs text-muted-foreground tabular">{i + 1}</td>
-                  <td className="px-3 py-2">
-                    <AccountPicker accounts={accounts} value={l.accountId} onChange={(v) => patch(l.key, { accountId: v })} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <MoneyInput value={l.debit} onChange={(v) => setLines((ls) => setLineAmount(ls, l.key, "debit", v))} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <MoneyInput value={l.credit} onChange={(v) => setLines((ls) => setLineAmount(ls, l.key, "credit", v))} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <Input value={l.memo} onChange={(e) => patch(l.key, { memo: e.target.value })} aria-label={fs.memo} />
-                  </td>
-                  <td className="px-1 py-2">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={j.removeLine}
-                      disabled={lines.length <= 2}
-                      onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </td>
+                  <td className="px-3 py-2">{cells.account(l)}</td>
+                  <td className="px-3 py-2">{cells.debit(l)}</td>
+                  <td className="px-3 py-2">{cells.credit(l)}</td>
+                  <td className="px-3 py-2">{cells.memo(l)}</td>
+                  <td className="px-1 py-2">{cells.remove(l)}</td>
                 </tr>
               ))}
             </tbody>
@@ -194,9 +246,7 @@ export function JournalForm({
                 <td className="px-3 py-2.5 text-right tabular">{formatRupiah(totals.debit)}</td>
                 <td className="px-3 py-2.5 text-right tabular">{formatRupiah(totals.credit)}</td>
                 <td colSpan={2} className="px-3 py-2.5">
-                  <span className={cn("text-xs", balanced ? "text-positive" : "text-negative")}>
-                    {balanced ? j.balanced : `${j.unbalanced} · ${j.diff} ${formatRupiah(Math.abs(totals.diff))}`}
-                  </span>
+                  {balanceNote}
                 </td>
               </tr>
             </tfoot>
@@ -205,7 +255,7 @@ export function JournalForm({
         {errors.lines ? <p className="px-5 py-2 text-xs text-destructive">{errors.lines[0]}</p> : null}
       </Card>
 
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
         <Button variant="ghost" onClick={() => router.back()} disabled={pending}>
           {fs.cancel}
         </Button>

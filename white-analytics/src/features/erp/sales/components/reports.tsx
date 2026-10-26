@@ -117,13 +117,13 @@ function TargetsForm({ month, targets, owners, close }: { month: string; targets
         void run(() => saveTargetsAction(month, payload), { success: r.targetsSaved, onOk: close });
       }}
     >
-      <div className="grid grid-cols-[1fr_180px_96px] gap-2 text-xs text-muted-foreground">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_64px] gap-2 text-xs text-muted-foreground sm:grid-cols-[1fr_180px_96px]">
         <span>{r.salesperson}</span>
         <span>{r.targetValue}</span>
         <span>{r.targetDeals}</span>
       </div>
       {rows.map((t) => (
-        <div key={t.userId || "company"} className="grid grid-cols-[1fr_180px_96px] items-center gap-2">
+        <div key={t.userId || "company"} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_64px] items-center gap-2 sm:grid-cols-[1fr_180px_96px]">
           <span className={cn("truncate text-sm", !t.userId && "font-medium")}>{people.find((p) => p.value === t.userId)?.label}</span>
           <MoneyInput value={t.targetValue} onChange={(v) => patch(t.userId, { targetValue: v })} />
           <Input

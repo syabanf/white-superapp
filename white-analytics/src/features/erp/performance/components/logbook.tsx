@@ -338,7 +338,7 @@ export function HistoryTab({
         onRowClick={(row) => setOpen(row.original)}
       />
       <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{l.reviewTitle}</DialogTitle>
             <DialogDescription>{open ? formatDate(open.entryDate) : null}</DialogDescription>
@@ -443,7 +443,7 @@ function TemplateDialog({ departments, defaultDept, onClose }: { departments: De
     );
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
         <form
           className="flex flex-col gap-4"
           onSubmit={(e) => {

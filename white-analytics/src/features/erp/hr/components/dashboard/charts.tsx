@@ -232,7 +232,7 @@ export function Donut({
             <Tooltip
               content={({ active, payload }) =>
                 active && payload?.[0] ? (
-                  <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-lg">
+                  <div className="max-w-64 rounded-lg border bg-popover px-3 py-2 text-xs shadow-lg">
                     <span className="font-medium">{String(payload[0].name)}</span>
                     <span className="ml-2 font-semibold tabular">{format(Number(payload[0].value))}</span>
                     <span className="ml-1.5 text-muted-foreground">{formatPercent((Number(payload[0].value) / total) * 100, 1)}</span>
@@ -418,7 +418,7 @@ export function Waterfall({
               content={({ active, payload, label }) => {
                 const row = active ? (payload?.[0]?.payload as { raw: number } | undefined) : undefined;
                 return row ? (
-                  <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-lg">
+                  <div className="max-w-64 rounded-lg border bg-popover px-3 py-2 text-xs shadow-lg">
                     <div className="mb-1 font-medium text-muted-foreground">{String(label)}</div>
                     <div className="font-semibold tabular">{(row.raw < 0 ? "-" : "") + format(Math.abs(row.raw))}</div>
                   </div>
@@ -426,7 +426,7 @@ export function Waterfall({
               }}
               isAnimationActive={false}
             />
-            <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
+            <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" isAnimationActive={false} />
             <Bar dataKey="total" stackId="w" fill={series[0]!.color} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />
             <Bar dataKey="minus" stackId="w" fill={series[1]!.color} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />
             <Bar dataKey="plus" stackId="w" fill={series[2]!.color} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />

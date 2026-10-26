@@ -76,6 +76,7 @@ export const t = {
     vsPrevious: "vs periode sebelumnya",
     comparePrevious: "Bandingkan dengan periode sebelumnya",
     previousPeriod: "Periode sebelumnya",
+    previousShort: "Sebelumnya",
     currentPeriod: "Periode ini",
     customRange: "Rentang kustom",
     apply: "Terapkan",

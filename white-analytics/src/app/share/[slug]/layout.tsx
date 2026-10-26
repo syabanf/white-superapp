@@ -20,7 +20,9 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
           {client && ctx.status !== "disabled" ? (
             <>
               <Separator orientation="vertical" className="!h-5" />
-              <span className="truncate text-sm font-medium">{client.name}</span>
+              <span className="min-w-0 truncate text-sm font-medium" title={client.name}>
+                {client.name}
+              </span>
               <Badge
                 variant="outline"
                 className="hidden gap-1 border-dashed text-xs text-muted-foreground sm:inline-flex"
@@ -29,7 +31,7 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
               </Badge>
             </>
           ) : null}
-          <div className="ml-auto">{ctx.status === "ok" ? <ShareControls slug={slug} /> : null}</div>
+          <div className="ml-auto shrink-0">{ctx.status === "ok" ? <ShareControls slug={slug} /> : null}</div>
         </div>
       </header>
       <main className="page-enter mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">

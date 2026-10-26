@@ -53,7 +53,7 @@ export function TooltipBox({
   const rows = payload.filter((p) => p.value != null && p.dataKey != null);
   const heading = labelFormatter ? labelFormatter(label) : typeof label === "string" && /^\d{4}-\d{2}-\d{2}$/.test(label) ? formatDate(label) : String(label ?? "");
   return (
-    <div className="min-w-36 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
+    <div className="max-w-[min(18rem,calc(100vw-2rem))] min-w-36 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
       {!hideLabel && heading ? <div className="mb-1.5 font-medium text-muted-foreground">{heading}</div> : null}
       <div className="grid gap-1">
         {rows.map((r, i) => {
@@ -66,7 +66,7 @@ export function TooltipBox({
             <div key={`${key}-${i}`} className="flex items-center gap-2">
               <span aria-hidden className="h-0.5 w-3 shrink-0 rounded-full" style={{ background: color }} />
               <span className="flex-1 truncate text-muted-foreground">{def?.label ?? String(r.name ?? key)}</span>
-              <span className="font-semibold tabular text-foreground">{val}</span>
+              <span className="shrink-0 font-semibold tabular text-foreground">{val}</span>
             </div>
           );
         })}

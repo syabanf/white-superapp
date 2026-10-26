@@ -85,7 +85,7 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
 
   return (
     <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-      <nav aria-label={c.folders} className="space-y-1">
+      <nav aria-label={c.folders} className="min-w-0 space-y-1">
         <div className="flex items-center justify-between px-2 pb-1">
           <span className="label-mono text-muted-foreground">{c.folders}</span>
           {canWrite ? (
@@ -248,7 +248,7 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
         <Field id="as-name" label={c.assetName}>
           <Input id="as-name" value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field id="as-kind" label={c.kind}>
             <Select value={kind} onValueChange={(v) => isAssetKind(v) && setKind(v)}>
               <SelectTrigger id="as-kind" className="w-full">

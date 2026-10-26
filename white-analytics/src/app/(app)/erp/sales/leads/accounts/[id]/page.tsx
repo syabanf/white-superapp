@@ -44,7 +44,7 @@ export default async function AccountDetailPage(props: PageProps<"/erp/sales/lea
         description={[account.industry, account.city].filter(Boolean).join(" · ")}
         actions={caps.write ? <AccountActions account={account} owners={owners} /> : null}
       />
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <Panel title={a.contacts}>
             <ContactsTable

@@ -26,9 +26,9 @@ export function Panel({
 }) {
   return (
     <Card className={cn("gap-0 py-0", className)}>
-      <div className="flex items-center justify-between gap-2 border-b px-5 py-3">
-        <h2 className="text-[15px] font-semibold tracking-[-0.015em]">{title}</h2>
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3">
+        <h2 className="min-w-0 text-[15px] font-semibold tracking-[-0.015em]">{title}</h2>
+        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
       <div className={flush ? undefined : "px-5 py-4"}>{children}</div>
     </Card>

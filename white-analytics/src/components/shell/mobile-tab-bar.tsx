@@ -71,7 +71,7 @@ export function MobileTabBar({
   return (
     <nav
       aria-label={t.nav.modules}
-      className="fixed inset-x-4 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 flex h-16 items-center justify-around rounded-full bg-primary px-3 text-primary-foreground shadow-[0_18px_40px_-16px_rgba(16,19,31,0.65)] md:hidden"
+      className="fixed inset-x-4 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 flex h-16 items-center justify-around rounded-full bg-primary px-3 text-primary-foreground shadow-[0_18px_40px_-16px_rgba(16,19,31,0.65)] md:hidden dark:bg-card dark:text-foreground dark:ring-1 dark:ring-border"
     >
       {primary.map((item) => (
         <Link
@@ -162,6 +162,6 @@ function tabClass(active: boolean) {
     "flex size-12 items-center justify-center rounded-full outline-none transition-[background-color,color,transform] duration-200 focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
     active
       ? "bg-brand text-white shadow-[0_8px_20px_-6px_var(--brand)]"
-      : "text-primary-foreground/70 hover:text-primary-foreground",
+      : "text-primary-foreground/70 hover:text-primary-foreground dark:text-foreground/70 dark:hover:text-foreground",
   );
 }

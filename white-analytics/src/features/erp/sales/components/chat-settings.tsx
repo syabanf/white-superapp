@@ -36,7 +36,7 @@ export function ChatbotSettingsForm({ settings, owners, admin }: { settings: Cha
   const snippet = `<iframe src="${origin}/chat" title="Chat" style="position:fixed;right:16px;bottom:16px;width:380px;height:560px;max-width:calc(100vw - 32px);border:0;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.18);z-index:2147483000"></iframe>`;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <Card className="px-5 py-5 lg:col-span-2">
         <form
           className="grid gap-4 sm:grid-cols-2"

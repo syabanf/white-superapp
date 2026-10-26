@@ -258,7 +258,7 @@ export function FormDialog({
       <DialogContent
         className={cn(
           "max-h-[90dvh] overflow-y-auto",
-          size === "md" ? "sm:max-w-lg" : size === "lg" ? "sm:max-w-2xl" : "sm:max-w-4xl",
+          size === "md" ? "sm:max-w-lg" : size === "lg" ? "sm:max-w-2xl" : "sm:max-w-[calc(100%-2rem)] lg:max-w-4xl",
         )}
       >
         <DialogHeader>

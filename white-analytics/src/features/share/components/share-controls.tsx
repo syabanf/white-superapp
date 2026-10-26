@@ -37,8 +37,8 @@ export function ShareControls({ slug }: { slug: string }) {
         </SelectContent>
       </Select>
       <Button asChild size="sm" variant="outline">
-        <a href={`/api/share/${slug}/pdf?preset=${active}`}>
-          <Download className="size-4" /> {t.common.exportPdf}
+        <a href={`/api/share/${slug}/pdf?preset=${active}`} aria-label={t.common.exportPdf}>
+          <Download className="size-4" /> <span className="hidden sm:inline">{t.common.exportPdf}</span>
         </a>
       </Button>
     </div>

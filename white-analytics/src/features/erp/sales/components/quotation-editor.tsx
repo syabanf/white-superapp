@@ -230,7 +230,7 @@ export function QuotationEditor({
           </div>
           <ul className="flex flex-col gap-2">
             {terms.map((t) => (
-              <li key={t.key} className="grid grid-cols-[1fr_72px_150px_auto] items-center gap-2">
+              <li key={t.key} className="grid grid-cols-[minmax(0,1fr)_72px_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_72px_150px_auto]">
                 <Input aria-label={s.termLabel} value={t.label} onChange={(e) => patchTerm(t.key, { label: e.target.value })} />
                 <Input
                   aria-label={s.termPercent}
@@ -242,7 +242,9 @@ export function QuotationEditor({
                   onChange={(e) => patchTerm(t.key, { percent: Number(e.target.value) })}
                   className="tabular"
                 />
-                <DatePicker value={t.dueDate} onChange={(v) => patchTerm(t.key, { dueDate: v })} placeholder={s.termDue} clearable />
+                <div className="col-span-2 min-w-0 sm:col-span-1">
+                  <DatePicker value={t.dueDate} onChange={(v) => patchTerm(t.key, { dueDate: v })} placeholder={s.termDue} clearable />
+                </div>
                 <Button
                   size="icon-sm"
                   variant="ghost"

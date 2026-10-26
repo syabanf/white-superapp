@@ -61,7 +61,7 @@ export default async function OnboardingPage(props: PageProps<"/erp/sales/onboar
         <Progress value={o.progress} className="max-w-xs flex-1" />
         <span className="text-sm font-medium tabular">{o.progress}%</span>
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <Panel title={s.checklist} flush>
             <OnboardingChecklist items={o.items} owners={owners} canWrite={caps.write} />

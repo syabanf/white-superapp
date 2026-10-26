@@ -59,7 +59,7 @@ export function PhotoButton({
         <img
           src={`${base}/${attendanceId}/photo?kind=${kind}`}
           alt={`${label} ${name}`}
-          className="w-full rounded-lg bg-muted"
+          className="max-h-[60dvh] w-full rounded-lg bg-muted object-contain"
         />
         <p className="text-center text-sm text-muted-foreground tabular">{time}</p>
       </DialogContent>

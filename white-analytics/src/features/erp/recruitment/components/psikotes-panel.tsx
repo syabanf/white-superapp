@@ -41,7 +41,7 @@ export function PsikotesPanel({
   canWrite: boolean;
 }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="flex flex-col gap-4 lg:col-span-2">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold">{t.title}</h2>

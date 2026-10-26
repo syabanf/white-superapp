@@ -19,6 +19,7 @@ import { NotificationBell } from "@/components/shell/notification-bell";
 import type { NotificationFeed } from "@/features/notifications/queries";
 import { clientNav, generalNav, adminNav, isActivePath } from "@/components/shell/nav-config";
 import type { SwitcherClient } from "@/components/shell/client-switcher";
+import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
 
 /** Pages where the global date-range filter is meaningful. */
@@ -72,18 +73,31 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
             const last = i === crumbs.length - 1;
             return (
               <React.Fragment key={`${c.label}-${i}`}>
-                <BreadcrumbItem className={i === 0 && crumbs.length > 2 ? "hidden md:inline-flex" : undefined}>
+                <BreadcrumbItem
+                  className={cn(
+                    "min-w-0",
+                    // Phones show the current page only; the trail returns from md up.
+                    !last && "hidden md:inline-flex",
+                    i === 0 && crumbs.length > 2 && "md:hidden lg:inline-flex",
+                  )}
+                >
                   {last || !c.href ? (
-                    <BreadcrumbPage className="truncate">{c.label}</BreadcrumbPage>
+                    <BreadcrumbPage className="truncate" title={c.label}>
+                      {c.label}
+                    </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
-                      <Link href={c.href} className="truncate">
+                      <Link href={c.href} className="truncate" title={c.label}>
                         {c.label}
                       </Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
-                {!last ? <BreadcrumbSeparator className={i === 0 && crumbs.length > 2 ? "hidden md:block" : undefined} /> : null}
+                {!last ? (
+                  <BreadcrumbSeparator
+                    className={cn("hidden md:block", i === 0 && crumbs.length > 2 && "md:hidden lg:block")}
+                  />
+                ) : null}
               </React.Fragment>
             );
           })}

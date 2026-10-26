@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/dashboard/info-hint";
 
-/** Page header: quiet eyebrow, large headline, one short supporting line (clamped), actions on the right. */
+/** Page header: quiet eyebrow, large headline, one short supporting line (clamped), actions on the right from lg up. */
 export function PageHeader({
   title,
   description,
@@ -17,10 +17,15 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col gap-4 md:flex-row md:items-end md:justify-between", className)}>
+    <div className={cn("flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between", className)}>
       <div className="min-w-0">
         {eyebrow ? <div className="label-mono mb-1.5 text-muted-foreground">{eyebrow}</div> : null}
-        <h1 className="truncate text-[28px] leading-[1.1] font-semibold md:text-[34px]">{title}</h1>
+        <h1
+          className="truncate text-[28px] leading-[1.1] font-semibold md:text-[34px]"
+          title={typeof title === "string" ? title : undefined}
+        >
+          {title}
+        </h1>
         {description ? (
           <p className="mt-1.5 line-clamp-2 max-w-2xl text-sm text-muted-foreground sm:line-clamp-1">
             {description}
@@ -51,7 +56,7 @@ export function Section({
   return (
     <section className={cn("space-y-4", className)}>
       {title || actions ? (
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
             {title ? (
               <h2 className="flex items-baseline gap-2 text-base font-semibold tracking-[-0.02em]">
@@ -61,7 +66,7 @@ export function Section({
               </h2>
             ) : null}
           </div>
-          {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+          {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
         </div>
       ) : null}
       {children}

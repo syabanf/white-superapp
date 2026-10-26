@@ -104,6 +104,54 @@ function MappingDialog({
     );
   };
 
+  const cells = {
+    side: (l: LineState) => (
+      <Select value={l.entrySide} onValueChange={(v) => patch(l.key, { entrySide: v as "DEBIT" | "CREDIT" })}>
+        <SelectTrigger size="sm" className="w-full" aria-label={fs.type}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="DEBIT">{fs.debit}</SelectItem>
+          <SelectItem value="CREDIT">{fs.credit}</SelectItem>
+        </SelectContent>
+      </Select>
+    ),
+    role: (l: LineState) => (
+      <Input
+        className="h-8"
+        value={l.lineRole}
+        onChange={(e) => patch(l.key, { lineRole: e.target.value })}
+        aria-label={m.lineRole}
+        placeholder={m.lineRole}
+      />
+    ),
+    account: (l: LineState) => (
+      <AccountPicker accounts={accounts} value={l.accountId} onChange={(v) => patch(l.key, { accountId: v })} clearable />
+    ),
+    source: (l: LineState) => (
+      <Select value={l.amountSource} onValueChange={(v) => patch(l.key, { amountSource: v })}>
+        <SelectTrigger size="sm" className="w-full" aria-label={m.amountSource}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {events.amountSources.map((s) => (
+            <SelectItem key={s} value={s}>
+              {m.amountSources[s] ?? s}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    ),
+    required: (l: LineState) => (
+      <Checkbox checked={l.isRequired} onCheckedChange={(v) => patch(l.key, { isRequired: v === true })} aria-label={m.requiredLine} />
+    ),
+    remove: (l: LineState) => (
+      <Button type="button" variant="ghost" size="icon-xs" aria-label={fs.delete} onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}>
+        <Trash2 />
+      </Button>
+    ),
+  };
+
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-4xl">
@@ -148,7 +196,27 @@ function MappingDialog({
               <Plus className="size-3.5" /> {m.addLine}
             </Button>
           </div>
-          <div className="max-h-[45vh] overflow-auto rounded-lg border scrollbar-thin">
+          {/* Phones: one card per line; the table needs ~760px. */}
+          <ul className="divide-y rounded-lg border md:hidden">
+            {lines.map((l) => (
+              <li key={l.key} className="grid gap-2 p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-28 shrink-0">{cells.side(l)}</div>
+                  <div className="min-w-0 flex-1">{cells.role(l)}</div>
+                  {cells.remove(l)}
+                </div>
+                {cells.account(l)}
+                <div className="flex items-center gap-3">
+                  <div className="min-w-0 flex-1">{cells.source(l)}</div>
+                  <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                    {cells.required(l)}
+                    {m.requiredLine}
+                  </label>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden max-h-[45vh] overflow-auto rounded-lg border scrollbar-thin md:block">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="sticky top-0 z-10 bg-card text-xs text-muted-foreground">
                 <tr>
@@ -163,45 +231,12 @@ function MappingDialog({
               <tbody>
                 {lines.map((l) => (
                   <tr key={l.key} className="border-t">
-                    <td className="px-2 py-1.5">
-                      <Select value={l.entrySide} onValueChange={(v) => patch(l.key, { entrySide: v as "DEBIT" | "CREDIT" })}>
-                        <SelectTrigger size="sm" className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="DEBIT">{fs.debit}</SelectItem>
-                          <SelectItem value="CREDIT">{fs.credit}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <Input className="h-8" value={l.lineRole} onChange={(e) => patch(l.key, { lineRole: e.target.value })} aria-label={m.lineRole} />
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <AccountPicker accounts={accounts} value={l.accountId} onChange={(v) => patch(l.key, { accountId: v })} clearable />
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <Select value={l.amountSource} onValueChange={(v) => patch(l.key, { amountSource: v })}>
-                        <SelectTrigger size="sm" className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {events.amountSources.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {m.amountSources[s] ?? s}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-2 py-1.5 text-center">
-                      <Checkbox checked={l.isRequired} onCheckedChange={(v) => patch(l.key, { isRequired: v === true })} aria-label={m.requiredLine} />
-                    </td>
-                    <td className="px-1 py-1.5">
-                      <Button type="button" variant="ghost" size="icon-xs" aria-label={fs.delete} onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}>
-                        <Trash2 />
-                      </Button>
-                    </td>
+                    <td className="px-2 py-1.5">{cells.side(l)}</td>
+                    <td className="px-2 py-1.5">{cells.role(l)}</td>
+                    <td className="px-2 py-1.5">{cells.account(l)}</td>
+                    <td className="px-2 py-1.5">{cells.source(l)}</td>
+                    <td className="px-2 py-1.5 text-center">{cells.required(l)}</td>
+                    <td className="px-1 py-1.5">{cells.remove(l)}</td>
                   </tr>
                 ))}
               </tbody>

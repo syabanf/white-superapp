@@ -221,7 +221,7 @@ export function WaterfallChart({ steps, height = 240, summary }: { steps: Waterf
           <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickMargin={8} interval={0} />
           <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={32} allowDecimals={false} />
           <Tooltip cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
-          <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
+          <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" isAnimationActive={false} />
           <Bar dataKey="value" stackId="w" radius={[4, 4, 4, 4]} maxBarSize={48} isAnimationActive={false}>
             <LabelList dataKey="value" position="top" fill="var(--muted-foreground)" fontSize={11} />
             {data.map((d) => (

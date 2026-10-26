@@ -187,7 +187,7 @@ export function ItemActions({ slug, item, allowedMoves, people, pillars, presets
             <DialogTitle>{c.scheduleTitle}</DialogTitle>
             <DialogDescription>{item.hasFinalDesign ? c.scheduleDesc : c.scheduleNeedsDesign}</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="sch-date">{c.plannedDate}</Label>
               <Input id="sch-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -196,7 +196,7 @@ export function ItemActions({ slug, item, allowedMoves, people, pillars, presets
               <Label htmlFor="sch-time">{c.publishAt}</Label>
               <Input id="sch-time" type="time" step={300} value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
-            <div className="col-span-2 space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="sch-format">{c.formatLabel}</Label>
               <Select value={format} onValueChange={(v) => setFormat(v as ContentFormat)}>
                 <SelectTrigger id="sch-format" className="w-full">

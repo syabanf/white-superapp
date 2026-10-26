@@ -44,6 +44,19 @@ export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKi
   const parties = [...new Set(openInvoices.map((i) => i.partyName))].sort();
   const visible = party ? openInvoices.filter((i) => i.partyName === party) : openInvoices;
   const total = sumMoney(Object.values(alloc));
+  const payFull = (inv: Invoice) => (
+    <button
+      type="button"
+      className="tabular underline decoration-dotted underline-offset-4"
+      title={iv.payFull}
+      onClick={() => setAlloc((a) => ({ ...a, [inv.id]: toMoneyString(parseMoney(inv.outstandingAmount)) }))}
+    >
+      {formatRupiah(inv.outstandingAmount)}
+    </button>
+  );
+  const allocInput = (inv: Invoice) => (
+    <MoneyInput value={alloc[inv.id] ?? ""} onChange={(v) => setAlloc((a) => ({ ...a, [inv.id]: v }))} />
+  );
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,41 +143,55 @@ export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKi
           {visible.length === 0 ? (
             <ErpEmpty compact title={iv.noOpenInvoices} />
           ) : (
-            <div className="max-h-72 overflow-auto rounded-lg border scrollbar-thin">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead className="sticky top-0 z-10 bg-card text-xs text-muted-foreground">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium">{iv.invoiceNo}</th>
-                    <th className="px-3 py-2 text-left font-medium">{k.party}</th>
-                    <th className="px-3 py-2 text-left font-medium">{iv.dueDate}</th>
-                    <th className="px-3 py-2 text-right font-medium">{iv.outstanding}</th>
-                    <th className="w-48 px-3 py-2 text-right font-medium">{iv.allocate}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visible.map((inv) => (
-                    <tr key={inv.id} className="border-t">
-                      <td className="px-3 py-1.5 font-mono text-xs">{inv.invoiceNo}</td>
-                      <td className="px-3 py-1.5">{inv.partyName}</td>
-                      <td className="px-3 py-1.5">{formatDate(inv.dueDate)}</td>
-                      <td className="px-3 py-1.5 text-right">
-                        <button
-                          type="button"
-                          className="tabular underline decoration-dotted underline-offset-4"
-                          title={iv.payFull}
-                          onClick={() => setAlloc((a) => ({ ...a, [inv.id]: toMoneyString(parseMoney(inv.outstandingAmount)) }))}
-                        >
-                          {formatRupiah(inv.outstandingAmount)}
-                        </button>
-                      </td>
-                      <td className="px-3 py-1.5">
-                        <MoneyInput value={alloc[inv.id] ?? ""} onChange={(v) => setAlloc((a) => ({ ...a, [inv.id]: v }))} />
-                      </td>
+            <>
+              {/* Phones: one block per invoice so the allocation input stays in view. */}
+              <ul className="max-h-80 divide-y overflow-y-auto rounded-lg border md:hidden">
+                {visible.map((inv) => (
+                  <li key={inv.id} className="grid gap-2 px-3 py-2.5 text-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate font-mono text-xs">{inv.invoiceNo}</p>
+                        <p className="truncate" title={inv.partyName}>
+                          {inv.partyName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {iv.dueDate} {formatDate(inv.dueDate)}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right text-xs text-muted-foreground">
+                        {iv.outstanding}
+                        <div className="text-sm text-foreground">{payFull(inv)}</div>
+                      </div>
+                    </div>
+                    {allocInput(inv)}
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden max-h-72 overflow-auto rounded-lg border scrollbar-thin md:block">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="sticky top-0 z-10 bg-card text-xs text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium">{iv.invoiceNo}</th>
+                      <th className="px-3 py-2 text-left font-medium">{k.party}</th>
+                      <th className="px-3 py-2 text-left font-medium">{iv.dueDate}</th>
+                      <th className="px-3 py-2 text-right font-medium">{iv.outstanding}</th>
+                      <th className="w-48 px-3 py-2 text-right font-medium">{iv.allocate}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {visible.map((inv) => (
+                      <tr key={inv.id} className="border-t">
+                        <td className="px-3 py-1.5 font-mono text-xs">{inv.invoiceNo}</td>
+                        <td className="px-3 py-1.5">{inv.partyName}</td>
+                        <td className="px-3 py-1.5">{formatDate(inv.dueDate)}</td>
+                        <td className="px-3 py-1.5 text-right">{payFull(inv)}</td>
+                        <td className="px-3 py-1.5">{allocInput(inv)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
           <div className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-2.5 text-sm">
             <span className="text-muted-foreground">{iv.paymentTotal}</span>

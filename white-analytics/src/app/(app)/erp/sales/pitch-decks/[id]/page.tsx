@@ -48,7 +48,7 @@ export default async function PitchDeckPage(props: PageProps<"/erp/sales/pitch-d
           </>
         }
       />
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <div className="lg:col-span-3">
           <SlidePreview deck={deck} />
         </div>

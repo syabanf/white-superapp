@@ -141,7 +141,7 @@ export function TeamDailyRecaps({ recaps }: { recaps: DailyRecap[] }) {
         ))}
       </div>
       <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{open?.employeeName}</DialogTitle>
             <DialogDescription>{open ? formatDateLong(open.recapDate) : null}</DialogDescription>
@@ -195,7 +195,7 @@ function RecapHistoryDialog({ employeeId, name, onClose }: { employeeId: string 
   const recaps = data?.recaps ?? null;
   return (
     <Dialog open={!!employeeId} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{c.historyOf(name)}</DialogTitle>
           {error ? <DialogDescription className="text-destructive">{error}</DialogDescription> : null}
@@ -283,7 +283,7 @@ export function MonthlyRecaps({
         </div>
       )}
       <Dialog open={!!open} onOpenChange={(o) => !o && setOpenId(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-[calc(100%-2rem)] lg:max-w-3xl">
           {open ? <MonthlyRecapView recap={open} canRegenerate={canGenerate} /> : null}
         </DialogContent>
       </Dialog>
