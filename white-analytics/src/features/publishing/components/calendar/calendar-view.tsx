@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
 import { reschedulePost } from "@/features/publishing/actions";
-import { canReschedule, type Platform, type PostRole, type PostStatus } from "@/features/publishing/lib";
+import {
+  canReschedule,
+  PLATFORMS,
+  STATUS_ORDER,
+  type Platform,
+  type PostRole,
+  type PostStatus,
+} from "@/features/publishing/lib";
+import { PlatformIcon } from "@/features/social/components/platform-icon";
 import type { CalendarPost } from "@/features/publishing/queries";
 import {
   dayLabelLong,
@@ -15,7 +23,12 @@ import {
   weekDays,
   weekdayLabel,
 } from "@/features/publishing/time";
-import { StatusDot, StatusLegend } from "@/features/publishing/components/post-status";
+import {
+  StatusDot,
+  StatusLegend,
+  statusColor,
+  statusLabel,
+} from "@/features/publishing/components/post-status";
 import { DND_MIME, PostChip } from "./post-chip";
 import { CalendarToolbar, type CalendarView as ViewKey } from "./calendar-toolbar";
 import { p } from "@/features/publishing/strings";
@@ -157,11 +170,14 @@ export function CalendarView({
 
       {view === "month" ? (
         <>
+          <MonthSummary
+            items={filtered.filter((po) => toZoned(new Date(po.at), timezone).date.startsWith(month))}
+          />
           <div className="overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow)">
             {weekHeader}
             {days.map((row, ri) => (
               <div key={ri} className="grid grid-cols-7 border-b last:border-b-0">
-                {row.map((key) => {
+                {row.map((key, ci) => {
                   const items = byDay.get(key) ?? [];
                   const inMonth = key.startsWith(month);
                   const isToday = key === today;
@@ -173,10 +189,12 @@ export function CalendarView({
                       {...dropProps(key)}
                       onClick={() => setSelected(key)}
                       className={cn(
-                        "min-h-14 border-r p-1 transition-colors duration-150 last:border-r-0 md:min-h-28 md:p-1.5",
-                        !inMonth && "bg-muted/30 text-muted-foreground",
+                        "min-h-14 border-r p-1 transition-colors duration-150 last:border-r-0 md:min-h-32 md:p-1.5",
+                        ci >= 5 && "bg-muted/25",
+                        !inMonth && "bg-muted/40 text-muted-foreground/70",
+                        isToday && "bg-brand/[0.06] ring-1 ring-brand/40 ring-inset",
                         overDay === key && "bg-brand/10 ring-1 ring-brand ring-inset",
-                        isSelected && "md:bg-transparent bg-brand/5",
+                        isSelected && !isToday && "bg-brand/5 md:bg-transparent",
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -189,8 +207,8 @@ export function CalendarView({
                           {dayNum}
                         </span>
                         {items.length > 0 ? (
-                          <span className="label-mono hidden text-muted-foreground md:inline">
-                            {items.length}
+                          <span className="tabular hidden rounded-full bg-muted px-1.5 text-[11px] font-medium text-muted-foreground md:inline">
+                            {p.postsOnDay(items.length)}
                           </span>
                         ) : null}
                       </div>
@@ -254,6 +272,7 @@ export function CalendarView({
                     {...dropProps(key)}
                     className={cn(
                       "min-h-64 border-r p-1.5 transition-colors duration-150 last:border-r-0",
+                      isToday && "bg-brand/[0.06]",
                       overDay === key && "bg-brand/10 ring-1 ring-brand ring-inset",
                     )}
                   >
@@ -268,13 +287,7 @@ export function CalendarView({
                     <ul className="space-y-1">
                       {items.map((po) => (
                         <li key={po.id}>
-                          <PostChip
-                            post={po}
-                            href={href(po)}
-                            timeZone={timezone}
-                            draggable={draggable(po)}
-                            compact
-                          />
+                          <PostChip post={po} href={href(po)} timeZone={timezone} draggable={draggable(po)} />
                         </li>
                       ))}
                     </ul>
@@ -312,6 +325,47 @@ export function CalendarView({
           <p className="hidden text-xs text-muted-foreground md:block">{p.dragHint}</p>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+/** Month totals by status and platform, above the grid. */
+function MonthSummary({ items }: { items: CalendarPost[] }) {
+  const statuses = STATUS_ORDER.map(
+    (st) => [st, items.filter((po) => po.status === st).length] as const,
+  ).filter(([, n]) => n);
+  const platforms = PLATFORMS.map(
+    (pl) => [pl, items.filter((po) => po.platforms.includes(pl)).length] as const,
+  ).filter(([, n]) => n);
+  return (
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl bg-card px-4 py-3 shadow-(--card-shadow)">
+      <div className="flex items-baseline gap-2">
+        <span className="label-mono text-muted-foreground">{p.monthSummary}</span>
+        <span className="tabular text-lg font-semibold">{p.monthTotal(items.length)}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {statuses.map(([st, n]) => (
+          <span
+            key={st}
+            className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
+            style={{ background: `color-mix(in oklab, ${statusColor(st)} 12%, transparent)` }}
+          >
+            <StatusDot status={st} />
+            {statusLabel(st)}
+            <span className="tabular text-muted-foreground">{n}</span>
+          </span>
+        ))}
+      </div>
+      {platforms.length ? (
+        <div className="flex items-center gap-3 md:ml-auto">
+          {platforms.map(([pl, n]) => (
+            <span key={pl} className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <PlatformIcon platform={pl} className="size-3.5" />
+              <span className="tabular font-medium text-foreground">{n}</span>
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

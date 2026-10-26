@@ -118,11 +118,11 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
   );
 
   return (
-    <div role="group" aria-label={f.label} className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
+    <div role="group" aria-label={f.label} className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {period}
         {custom ? <DateRangeFilter /> : null}
-        <div className="hidden flex-wrap items-center gap-2 md:flex">{dims}</div>
+        <div className="hidden flex-wrap items-center gap-3 md:flex">{dims}</div>
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="md:hidden">

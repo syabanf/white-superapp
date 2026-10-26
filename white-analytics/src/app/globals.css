@@ -5,10 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ─────────────────────────────────────────────────────────────
-   WHITE Analytics — design tokens
-   Tone (2026-09-19): soft cool-grey canvas, borderless white cards with
-   large radii, ink pill actions, royal blue as the data accent, glass
-   panels over the 3D hero.
+   Mixist design tokens
+   Tone (2026-10-26): soft cool-grey canvas, borderless white cards with
+   large radii, navy pill actions, the logo magenta as the data accent,
+   glass panels over the 3D hero.
    Chart palettes are validated (see docs/plans design doc).
    ───────────────────────────────────────────────────────────── */
 
@@ -88,24 +88,27 @@
   --surface-high: #f6f7fa;
   --card-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -18px rgba(16, 24, 40, 0.18);
 
-  /* ── Brand: royal blue marks data and active state; actions are ink pills ── */
-  --brand: #1b4de4;
-  --brand-ink: #123aae;
-  /* Workspace accents: marketing keeps the royal blue, ERP is a deep emerald */
-  --marketing-accent: #1b4de4;
-  --erp-accent: #0f7a55;
-  --primary: #10131f;
+  /* ── Brand (Mixist): magenta marks data and active state; actions are navy pills ── */
+  --brand: #a01d63;
+  --brand-ink: #7a1449;
+  /* Logo: navy end of the hexagon gradient and the wordmark */
+  --logo-navy: #2b2263;
+  --logo-text: #a01e63;
+  /* Workspace accents: marketing is the logo magenta, ERP the indigo end of its gradient */
+  --marketing-accent: #a01d63;
+  --erp-accent: #4a2c8f;
+  --primary: #2b2265;
   --primary-foreground: #ffffff;
   --secondary: #e6e8ef;
   --secondary-foreground: #0a0a0a;
   --muted: #f1f2f6;
   --muted-foreground: #5f6470;
-  --accent: #e9eefd;
-  --accent-foreground: #123aae;
+  --accent: #fbeaf2;
+  --accent-foreground: #7a1449;
   --destructive: #d03b3b;
   --border: #e4e6ed;
   --input: #dfe2ea;
-  --ring: #1b4de4;
+  --ring: #a01d63;
   --radius: 1.125rem;
 
   /* ── Motion ── */
@@ -119,42 +122,42 @@
   /* ── Sidebar ── */
   --sidebar: #eef0f5;
   --sidebar-foreground: #0a0a0a;
-  --sidebar-primary: #10131f;
+  --sidebar-primary: #2b2265;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #ffffff;
   --sidebar-accent-foreground: #0a0a0a;
   --sidebar-border: transparent;
-  --sidebar-ring: #1b4de4;
+  --sidebar-ring: #a01d63;
 
   /* ── Chart chrome ── */
   --grid: #ecece8;
   --axis: #cfcfc8;
 
   /* ── Categorical slots (validated light on #ffffff) ── */
-  --chart-1: #1b4de4;
-  --chart-2: #eb6834;
-  --chart-3: #1baf7a;
-  --chart-4: #eda100;
-  --chart-5: #e87ba4;
-  --chart-6: #008300;
-  --chart-7: #4a3aa7;
-  --chart-8: #e34948;
+  --chart-1: #A01D63;
+  --chart-2: #1B9AAA;
+  --chart-3: #E07B24;
+  --chart-4: #4B3CA7;
+  --chart-5: #3FA34D;
+  --chart-6: #2B6CB0;
+  --chart-7: #C98A00;
+  --chart-8: #E8508F;
   --chart-emphasis-muted: #c9c9c2;
 
   /* ── Sequential ramp, brand hue, light→dark ── */
-  --seq-100: #e4eafc;
-  --seq-150: #c7d3f8;
-  --seq-200: #aabdf5;
-  --seq-250: #8ea7f2;
-  --seq-300: #7190ee;
-  --seq-350: #547aeb;
-  --seq-400: #3863e7;
-  --seq-450: #1b4de4;
-  --seq-500: #1946d0;
-  --seq-550: #163fbb;
-  --seq-600: #1438a7;
-  --seq-650: #123193;
-  --seq-700: #0f2a7e;
+  --seq-100: #fbe8f1;
+  --seq-150: #f1ccdb;
+  --seq-200: #e5b1c6;
+  --seq-250: #d996b2;
+  --seq-300: #cc7a9d;
+  --seq-350: #be5f89;
+  --seq-400: #b04176;
+  --seq-450: #a01d63;
+  --seq-500: #8e1a57;
+  --seq-550: #7c164c;
+  --seq-600: #6b1341;
+  --seq-650: #5a0f36;
+  --seq-700: #4a0c2c;
 
   --div-mid: #efefea;
 
@@ -188,22 +191,24 @@
   --popover-foreground: #f2f2f0;
   --surface-high: #1b1d22;
 
-  --brand: #5b84ff;
-  --brand-ink: #a9c0ff;
-  --marketing-accent: #5b84ff;
-  --erp-accent: #34b886;
+  --brand: #e0559a;
+  --brand-ink: #f6b3d2;
+  --logo-navy: #6e5bd0;
+  --logo-text: #e0559a;
+  --marketing-accent: #e0559a;
+  --erp-accent: #9d8bf2;
   --primary: #f2f2f0;
   --primary-foreground: #0b0c0e;
   --secondary: #1b1d22;
   --secondary-foreground: #f2f2f0;
   --muted: #1b1d22;
   --muted-foreground: #9a9da8;
-  --accent: #1a2138;
-  --accent-foreground: #a9c0ff;
+  --accent: #2a1322;
+  --accent-foreground: #f6b3d2;
   --destructive: #e66767;
   --border: #24262c;
   --input: #24262c;
-  --ring: #5b84ff;
+  --ring: #e0559a;
 
   --sidebar: #0b0c0e;
   --sidebar-foreground: #f2f2f0;
@@ -212,36 +217,36 @@
   --sidebar-accent: #1b1d22;
   --sidebar-accent-foreground: #f2f2f0;
   --sidebar-border: transparent;
-  --sidebar-ring: #5b84ff;
+  --sidebar-ring: #e0559a;
 
   --grid: #212329;
   --axis: #34373f;
 
   /* Categorical slots (validated dark on #131417) */
-  --chart-1: #5b84ff;
-  --chart-2: #d95926;
-  --chart-3: #199e70;
-  --chart-4: #c98500;
-  --chart-5: #d55181;
-  --chart-6: #008300;
-  --chart-7: #9085e9;
-  --chart-8: #e66767;
+  --chart-1: #D9488C;
+  --chart-2: #239FBF;
+  --chart-3: #D27326;
+  --chart-4: #8C7CF0;
+  --chart-5: #3FA84F;
+  --chart-6: #4F8FDB;
+  --chart-7: #B98A0E;
+  --chart-8: #DD5E95;
   --chart-emphasis-muted: #43464f;
 
   /* Sequential flips anchor in dark: more = brighter */
-  --seq-100: #16203f;
-  --seq-150: #1b2a54;
-  --seq-200: #20356a;
-  --seq-250: #26417f;
-  --seq-300: #2c4d95;
-  --seq-350: #3459ab;
-  --seq-400: #3d66c1;
-  --seq-450: #4a74d6;
-  --seq-500: #5a84e8;
-  --seq-550: #6e94f0;
-  --seq-600: #86a6f5;
-  --seq-650: #9fb8f9;
-  --seq-700: #b8cafc;
+  --seq-100: #2a0f1f;
+  --seq-150: #40172d;
+  --seq-200: #571f3b;
+  --seq-250: #6f274b;
+  --seq-300: #882f5a;
+  --seq-350: #a3376a;
+  --seq-400: #bd3f7b;
+  --seq-450: #d9488c;
+  --seq-500: #e1639b;
+  --seq-550: #e77aaa;
+  --seq-600: #ed91b9;
+  --seq-650: #f2a7c8;
+  --seq-700: #f6bdd8;
 
   --div-mid: #2a2d34;
 
@@ -400,14 +405,14 @@
 }
 
 /* ERP workspace: the shell sets data-workspace="erp", so every brand-tinted
-   control (active nav chip, links, charts' primary series) turns emerald. */
+   control (active nav chip, links, charts' primary series) turns indigo. */
 [data-workspace="erp"] {
   --brand: var(--erp-accent);
-  --brand-ink: #0a5c40;
-  --accent: #e3f3ec;
+  --brand-ink: #33206a;
+  --accent: #eeeaf8;
 }
 .dark [data-workspace="erp"],
 .dark[data-workspace="erp"] {
-  --brand-ink: #9fe3c7;
-  --accent: #14271f;
+  --brand-ink: #d2c8fa;
+  --accent: #1d1834;
 }

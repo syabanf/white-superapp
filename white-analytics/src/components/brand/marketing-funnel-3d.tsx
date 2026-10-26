@@ -41,7 +41,7 @@ export function MarketingFunnel3D({ className }: { className?: string }) {
     if (!canvas || !ctx) return;
 
     const css = getComputedStyle(canvas);
-    const brand = css.getPropertyValue("--brand").trim() || "#1b4de4";
+    const brand = css.getPropertyValue("--brand").trim() || "#a01d63";
     const ink = css.getPropertyValue("--muted-foreground").trim() || "#6b7280";
 
     let w = 0;

@@ -12,7 +12,7 @@ import { p } from "@/features/publishing/strings";
 const TONE_VAR: Record<StatusTone, string> = {
   neutral: "var(--muted-foreground)",
   warning: "var(--status-warning)",
-  info: "var(--chart-3)",
+  info: "var(--chart-2)",
   brand: "var(--chart-1)",
   good: "var(--status-good)",
   critical: "var(--status-critical)",
@@ -58,7 +58,7 @@ export function PostStatusBadge({ status, className }: { status: PostStatus; cla
 
 export function StatusLegend({ className, statuses = STATUS_ORDER }: { className?: string; statuses?: PostStatus[] }) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-1.5", className)} aria-label={p.legend}>
+    <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-2.5", className)} aria-label={p.legend}>
       {statuses.map((s) => {
         const Icon = ICON[s];
         return (

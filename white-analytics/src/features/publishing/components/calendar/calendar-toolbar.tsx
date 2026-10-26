@@ -53,7 +53,7 @@ export function CalendarToolbar({
   const title = view === "month" ? monthLabel(date) : `${dayLabel(days[0]!)} – ${dayLabel(days[6]!, true)}`;
 
   return (
-    <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+    <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
       <div className="flex items-center gap-2">
         <Button asChild variant="outline" size="icon-sm" aria-label={p.prev}>
           <Link href={hrefWith({ date: step(-1) })} scroll={false}>
@@ -72,7 +72,7 @@ export function CalendarToolbar({
         </Button>
         <h2 className="ml-1 truncate text-base font-semibold tracking-[-0.02em] md:text-lg">{title}</h2>
       </div>
-      <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-3 2xl:justify-end">
         <Tabs value={view}>
           <TabsList className="h-8">
             <TabsTrigger value="month" asChild>
@@ -91,16 +91,16 @@ export function CalendarToolbar({
           value={platform}
           onValueChange={(v) => router.replace(hrefWith({ platform: v }), { scroll: false })}
         >
-          <SelectTrigger size="sm" className="w-[150px]" aria-label={p.allPlatforms}>
+          <SelectTrigger size="sm" className="w-[164px] data-[size=sm]:h-9 px-3" aria-label={p.allPlatforms}>
             {/* Explicit children so the label is server-rendered (Radix fills it only after hydration). */}
             <SelectValue>
               {platform === "ALL" ? p.allPlatforms : platformLabel(platform as Platform)}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">{p.allPlatforms}</SelectItem>
+          <SelectContent position="popper" align="start" sideOffset={6} className="min-w-[180px] p-1.5">
+            <SelectItem value="ALL" className="min-h-9 py-2 pl-3 pr-9">{p.allPlatforms}</SelectItem>
             {PLATFORMS.map((pl) => (
-              <SelectItem key={pl} value={pl}>
+              <SelectItem key={pl} value={pl} className="min-h-9 py-2 pl-3 pr-9">
                 <PlatformIcon platform={pl} className="size-3.5" /> {platformLabel(pl)}
               </SelectItem>
             ))}
@@ -110,19 +110,19 @@ export function CalendarToolbar({
           value={status}
           onValueChange={(v) => router.replace(hrefWith({ status: v }), { scroll: false })}
         >
-          <SelectTrigger size="sm" className="w-[160px]" aria-label={t.common.status}>
+          <SelectTrigger size="sm" className="w-[176px] data-[size=sm]:h-9 px-3" aria-label={t.common.status}>
             <SelectValue>{status === "ALL" ? p.allStatuses : statusLabel(status as PostStatus)}</SelectValue>
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">{p.allStatuses}</SelectItem>
+          <SelectContent position="popper" align="start" sideOffset={6} className="min-w-[196px] p-1.5">
+            <SelectItem value="ALL" className="min-h-10 py-2.5 pl-3 pr-9">{p.allStatuses}</SelectItem>
             {STATUS_ORDER.map((s) => (
-              <SelectItem key={s} value={s}>
+              <SelectItem key={s} value={s} className="min-h-10 py-2.5 pl-3 pr-9">
                 {statusLabel(s)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Button asChild size="sm" className="sm:ml-auto xl:ml-0">
+        <Button asChild size="sm" className="sm:ml-auto 2xl:ml-0">
           <Link href={composeHref}>
             <Plus className="size-3.5" /> {t.nav.compose}
           </Link>

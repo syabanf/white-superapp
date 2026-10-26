@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/features/auth/login-form";
-import { WhiteLogo } from "@/components/brand/logo";
+import { MixistLogo } from "@/components/brand/logo";
 import { MarketingFunnel3D } from "@/components/brand/marketing-funnel-3d";
 import { t } from "@/i18n/id";
 
@@ -21,7 +21,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
       <div className="mx-auto grid min-h-dvh w-full max-w-6xl items-center gap-10 px-6 py-14 lg:grid-cols-[1.05fr_minmax(380px,420px)] lg:gap-16">
         {/* ── Hero ── */}
         <section className="hidden lg:block">
-          <WhiteLogo size={30} />
+          <MixistLogo size={40} />
           <h1 className="mt-10 text-[52px] leading-[1.02] font-medium tracking-[-0.035em]">
             Tiga kanal, <span className="text-muted-foreground">satu corong.</span>
           </h1>
@@ -52,7 +52,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
           </div>
           <div className="rounded-[1.75rem] bg-card p-7 shadow-(--card-shadow) sm:p-9">
             <div className="lg:hidden">
-              <WhiteLogo size={26} />
+              <MixistLogo size={34} />
             </div>
             <p className="label-mono mt-6 text-muted-foreground lg:mt-0">Masuk</p>
             <h2 className="mt-1.5 text-[26px] leading-tight font-semibold tracking-[-0.03em]">

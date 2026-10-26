@@ -5,7 +5,7 @@
  */
 export const t = {
   app: {
-    name: "WHITE Analytics",
+    name: "Mixist",
   },
   common: {
     loading: "Memuat…",
@@ -248,7 +248,7 @@ export const t = {
     markAllRead: "Tandai semua dibaca",
   },
   auth: {
-    title: "Masuk ke WHITE Analytics",
+    title: "Masuk ke Mixist",
     subtitle: "Dashboard analitik agency untuk Social Media, SEO & Meta Ads",
     email: "Alamat email",
     password: "Kata sandi",
@@ -534,7 +534,7 @@ export const t = {
     aiEmpty: "Belum ada analisa untuk periode ini.",
     aiMock: "Mode demo: analisa dibuat dari template. Isi OPENROUTER_API_KEY untuk analisa AI penuh.",
     aiCached: "Analisa ini dibuat pada",
-    pdfFooter: "Dibuat oleh WHITE Analytics",
+    pdfFooter: "Dibuat oleh Mixist",
     preparedFor: "Disiapkan untuk",
     reportingPeriod: "Periode laporan",
     generatedOn: "Dibuat pada",

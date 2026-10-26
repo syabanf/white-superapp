@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { WhiteLogo } from "@/components/brand/logo";
+import { MixistLogo } from "@/components/brand/logo";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShareControls } from "@/features/share/components/share-controls";
@@ -16,7 +16,7 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
     <div className="flex min-h-svh flex-1 flex-col bg-canvas">
       <header className="sticky top-0 z-20 border-b bg-canvas/90 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 md:px-6">
-          <WhiteLogo size={20} />
+          <MixistLogo size={28} />
           {client && ctx.status !== "disabled" ? (
             <>
               <Separator orientation="vertical" className="!h-5" />
@@ -38,7 +38,7 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
       <footer className="border-t">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 text-xs text-muted-foreground md:px-6">
           <span>{t.share.footer}</span>
-          <WhiteLogo variant="mark" size={14} className="text-muted-foreground" />
+          <MixistLogo variant="mark" size={16} className="text-muted-foreground" />
         </div>
       </footer>
     </div>

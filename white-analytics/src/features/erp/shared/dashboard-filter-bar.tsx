@@ -54,7 +54,7 @@ export function DashboardFilterBar({
     <div
       role="toolbar"
       aria-label="Filter dashboard"
-      className={cn("flex flex-wrap items-center gap-2 [&>*]:max-sm:min-w-0 [&>*]:max-sm:flex-1 [&>*]:max-sm:basis-[calc(50%-0.25rem)]", className)}
+      className={cn("flex flex-wrap items-center gap-3 [&>*]:max-sm:min-w-0 [&>*]:max-sm:flex-1 [&>*]:max-sm:basis-[calc(50%-0.375rem)]", className)}
     >
       <PeriodControl period={period} onChange={(patch) => set(patch)} pending={isPending} />
       <Select value={period.compare} onValueChange={(v) => set({ compare: v === "previous" ? null : v })}>

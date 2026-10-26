@@ -1,4 +1,5 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Defs, Document, LinearGradient, Page, Path, Stop, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { LOGO_LOWER, LOGO_SOLID, LOGO_TEXT, LOGO_UPPER } from "@/components/brand/logo-paths";
 import { pdfLabels } from "@/features/reports/strings";
 import type { PdfChart, PdfKpi, PdfModuleBlock, PdfSection, PdfTable, ReportPdfData } from "./types";
 
@@ -27,7 +28,6 @@ export function safe(s: string): string {
 const styles = StyleSheet.create({
   page: { fontFamily: "Helvetica", fontSize: 9, color: INK, paddingTop: 48, paddingBottom: 56, paddingHorizontal: 48 },
   cover: { fontFamily: "Helvetica", color: INK, padding: 48, display: "flex", flexDirection: "column" },
-  wordmark: { fontFamily: "Helvetica-Bold", fontSize: 28, letterSpacing: -0.5 },
   h1: { fontFamily: "Helvetica-Bold", fontSize: 24, marginTop: 8, lineHeight: 1.2 },
   h2: { fontFamily: "Helvetica-Bold", fontSize: 14, marginBottom: 10 },
   h3: { fontFamily: "Helvetica-Bold", fontSize: 10.5, marginTop: 12, marginBottom: 6 },
@@ -241,14 +241,38 @@ function inlineBold(s: string): React.ReactNode {
   );
 }
 
+/** Same outlines and gradients as the web logo (components/brand/logo.tsx). */
+function Logo() {
+  return (
+    <Svg viewBox="0 0 1933 493" style={{ width: 150, height: 38 }}>
+      <Defs>
+        <LinearGradient id="u" x1="0" y1="0" x2="0" y2="414" gradientUnits="userSpaceOnUse">
+          <Stop offset="0" stopColor="#2B2263" />
+          <Stop offset="0.4" stopColor="#7E256C" />
+          <Stop offset="0.63" stopColor="#B62777" />
+          <Stop offset="1" stopColor="#EC247D" />
+        </LinearGradient>
+        <LinearGradient id="l" x1="0" y1="140" x2="0" y2="492" gradientUnits="userSpaceOnUse">
+          <Stop offset="0" stopColor="#E9227C" />
+          <Stop offset="0.35" stopColor="#A92672" />
+          <Stop offset="0.49" stopColor="#8C286E" />
+          <Stop offset="0.69" stopColor="#69256A" />
+          <Stop offset="1" stopColor="#2B2263" />
+        </LinearGradient>
+      </Defs>
+      <Path fill="url(#u)" d={LOGO_UPPER} />
+      <Path fill="url(#l)" d={LOGO_LOWER} />
+      <Path fill="#A01E63" d={LOGO_SOLID} />
+      <Path fill="#A01E63" d={LOGO_TEXT} />
+    </Svg>
+  );
+}
+
 function CoverPage({ data }: { data: ReportPdfData }) {
   const L = pdfLabels[data.lang];
   return (
     <Page size="A4" style={styles.cover}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <View style={{ width: 12, height: 12, backgroundColor: INK, borderRadius: 6 }} />
-        <Text style={styles.wordmark}>white</Text>
-      </View>
+      <Logo />
       <View style={{ marginTop: 140 }}>
         <Text style={styles.label}>{safe(L.report.toUpperCase())}</Text>
         <Text style={styles.h1}>{safe(data.title)}</Text>
@@ -314,7 +338,7 @@ function ModulePage({ block, data }: { block: PdfModuleBlock; data: ReportPdfDat
 export function ReportDocument({ data }: { data: ReportPdfData }) {
   const L = pdfLabels[data.lang];
   return (
-    <Document title={data.title} author="WHITE Analytics" creator="WHITE Analytics" producer="WHITE Analytics">
+    <Document title={data.title} author="Mixist" creator="Mixist" producer="Mixist">
       <CoverPage data={data} />
       {data.modules.map((m) => (
         <ModulePage key={m.key} block={m} data={data} />

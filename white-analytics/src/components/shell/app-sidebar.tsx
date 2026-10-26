@@ -19,7 +19,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { WhiteLogo } from "@/components/brand/logo";
+import { MixistLogo } from "@/components/brand/logo";
 import { ClientSwitcher, type SwitcherClient } from "@/components/shell/client-switcher";
 import { UserMenu, type ShellUser } from "@/components/shell/user-menu";
 import {
@@ -74,7 +74,7 @@ export function AppSidebar({
           href="/"
           className="flex h-8 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <WhiteLogo variant={collapsed ? "mark" : "full"} size={collapsed ? 22 : 26} />
+          <MixistLogo variant={collapsed ? "mark" : "full"} size={collapsed ? 28 : 36} />
         </Link>
         <WorkspaceSwitcher collapsed={collapsed} showErp={erpGroups.length > 1} />
         {!inErp ? <ClientSwitcher clients={clients} current={currentClient} collapsed={collapsed} /> : null}

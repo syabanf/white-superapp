@@ -76,8 +76,8 @@ export function HrFilterBar({
     ));
 
   return (
-    <div className="flex flex-col gap-2 rounded-[1.25rem] bg-card p-2.5 shadow-(--card-shadow) sm:p-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-3 rounded-[1.25rem] bg-card p-3 shadow-(--card-shadow) sm:p-4">
+      <div className="flex flex-wrap items-center gap-3">
         <PeriodPicker range={range} pending={isPending} onChange={set} />
         <ToggleGroup
           type="single"
@@ -95,7 +95,7 @@ export function HrFilterBar({
             {f.compareYear}
           </ToggleGroupItem>
         </ToggleGroup>
-        <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-2 lg:flex">{selects("w-40")}</div>
+        <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-3 lg:flex">{selects("w-40")}</div>
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="bg-background lg:hidden">

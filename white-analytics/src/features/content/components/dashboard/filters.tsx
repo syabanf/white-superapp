@@ -80,7 +80,7 @@ export function DashFilterBar({
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-[1.25rem] bg-card px-3 py-2.5 shadow-(--card-shadow)">
+    <div className="flex flex-wrap items-center gap-3 rounded-[1.25rem] bg-card px-3 py-3 shadow-(--card-shadow)">
       <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
         {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <CalendarDays className="size-3.5" />}
         <span className="truncate">
@@ -88,10 +88,10 @@ export function DashFilterBar({
           {compareLabel ? ` · ${compareLabel}` : ""}
         </span>
       </span>
-      <div className="ml-auto hidden flex-wrap items-center justify-end gap-2 lg:flex">{controls(false)}</div>
+      <div className="ml-auto hidden flex-wrap items-center justify-end gap-3 2xl:flex">{controls(false)}</div>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="sm" className="ml-auto lg:hidden">
+          <Button variant="outline" size="sm" className="ml-auto 2xl:hidden">
             <SlidersHorizontal className="size-3.5" /> {cd.filters}
             {active ? <span className="rounded-full bg-brand px-1.5 text-[10px] text-white">{active}</span> : null}
           </Button>

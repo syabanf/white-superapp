@@ -124,10 +124,84 @@ async function extendPosts(until: Date): Promise<void> {
   console.log(`  · SocialPost: ${count} baris`);
 }
 
+/**
+ * Publishing posts: replay the seed's posts in blocks the length of the seed
+ * span (whole weeks, so weekdays and times stay put) until two weeks ahead.
+ * A copy landing in the past is published (failures stay failed); one in the
+ * future is scheduled, or keeps its draft/review/approved state. Copies carry
+ * deterministic ids, so re-runs only add what lies past the last copy.
+ */
+async function extendPublishing(now: Date): Promise<void> {
+  const isCopy = (id: string) => /-d\d+$/.test(id);
+  const at = (po: { scheduledAt: Date | null; publishedAt: Date | null; createdAt: Date }) =>
+    po.scheduledAt ?? po.publishedAt ?? po.createdAt;
+  const horizon = addDays(now, 14);
+  const posts = await db.contentPost.findMany({ include: { targets: true, media: true } });
+  const byClient = new Map<string, typeof posts>();
+  for (const po of posts) byClient.set(po.clientId, [...(byClient.get(po.clientId) ?? []), po]);
+
+  let created = 0;
+  for (const list of byClient.values()) {
+    // Posts made in the app today (QA, real use) are neither source nor anchor.
+    const source = list.filter((po) => !isCopy(po.id) && at(po) <= addDays(now, -1));
+    if (source.length === 0) continue;
+    const first = Math.min(...source.map((po) => at(po).getTime()));
+    const seedEnd = Math.max(...source.map((po) => at(po).getTime()));
+    const block = Math.ceil((seedEnd - first) / (7 * DAY) + 1) * 7 * DAY;
+    const last = Math.max(seedEnd, ...list.filter((po) => isCopy(po.id)).map((po) => at(po).getTime()));
+
+    for (let k = 1; first + k * block <= horizon.getTime(); k++) {
+      for (const src of source) {
+        const when = new Date(at(src).getTime() + k * block);
+        if (when.getTime() <= last || when > horizon) continue;
+        const past = when <= now;
+        const status = past
+          ? src.status === "FAILED" ? "FAILED" : "PUBLISHED"
+          : ["PUBLISHED", "SCHEDULED", "FAILED"].includes(src.status) ? "SCHEDULED" : src.status;
+        const id = `${src.id}-d${k}`;
+        await db.contentPost.create({
+          data: {
+            id,
+            clientId: src.clientId,
+            title: src.title,
+            body: src.body,
+            status,
+            scheduledAt: when,
+            publishedAt: status === "PUBLISHED" ? when : null,
+            linkUrl: src.linkUrl,
+            firstComment: src.firstComment,
+            labels: src.labels,
+            utm: (src.utm ?? undefined) as Prisma.InputJsonValue | undefined,
+            createdById: src.createdById,
+            approvedById: ["APPROVED", "SCHEDULED", "PUBLISHED", "FAILED"].includes(status) ? src.approvedById : null,
+            approvedAt: ["APPROVED", "SCHEDULED", "PUBLISHED", "FAILED"].includes(status) ? addDays(when, -2) : null,
+            createdAt: addDays(when, -5),
+            targets: {
+              create: src.targets.map((t) => ({
+                id: `${t.id}-d${k}`,
+                socialAccountId: t.socialAccountId,
+                bodyOverride: t.bodyOverride,
+                status,
+                error: status === "FAILED" ? t.error : null,
+                attempts: status === "FAILED" ? t.attempts : 0,
+                publishedAt: status === "PUBLISHED" ? when : null,
+              })),
+            },
+            media: { create: src.media.map((m) => ({ assetId: m.assetId, order: m.order })) },
+          },
+        });
+        created++;
+      }
+    }
+  }
+  if (created) console.log(`  · ContentPost: ${created} baris`);
+}
+
 async function main() {
   const now = new Date();
   const until = addDays(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())), -1);
   await extendPosts(until);
+  await extendPublishing(now);
   const last = (await db.seoDailyMetric.aggregate({ _max: { date: true } }))._max.date;
   if (!last) return console.log("Belum ada data seed. Jalankan pnpm db:seed dulu.");
   if (last >= until) return console.log(`Data sudah sampai ${key(last)}. Tidak ada yang ditambah.`);

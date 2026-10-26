@@ -20,12 +20,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "WHITE Analytics",
-    template: "%s · WHITE Analytics",
+    default: "Mixist",
+    template: "%s · Mixist",
   },
   description:
     "Dashboard analisa & reporting Social Media, SEO, dan Meta Ads untuk klien agency WHITE.",
-  applicationName: "WHITE Analytics",
+  applicationName: "Mixist",
 };
 
 export const viewport: Viewport = {
