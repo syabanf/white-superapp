@@ -17,7 +17,6 @@ import {
 } from "recharts";
 import { Tooltip as UiTooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { KpiTile } from "@/components/dashboard/kpi-tile";
-import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import {
   AXIS_TICK,
   GRID_STROKE,
@@ -308,16 +307,8 @@ export function FinanceKpi({
     <KpiTile
       label={label ?? ds.kpi[kpi.key] ?? kpi.key}
       value={formatUnit(cur, unit)}
-      delta={neutral ? undefined : shown}
-      lowerIsBetter={lowerIsBetter}
-      caption={
-        neutral && shown ? (
-          <span className="inline-flex items-center gap-2">
-            <DeltaBadge delta={shown} className="border-border bg-muted text-muted-foreground" />
-            {previous ? `${ds.previous}: ${previous}` : null}
-          </span>
-        ) : undefined
-      }
+      delta={shown}
+      lowerIsBetter={neutral ? "neutral" : lowerIsBetter}
       previous={previous}
       spark={kpi.trend.length > 1 ? nums(kpi.trend) : undefined}
       hint={hintText || undefined}

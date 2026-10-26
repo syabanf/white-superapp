@@ -3,7 +3,7 @@ import Link from "next/link";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/dashboard/info-hint";
-import { computeDelta, type Delta } from "@/lib/metrics";
+import { computeDelta, type Delta, type Polarity } from "@/lib/metrics";
 import { PreviousLine } from "@/components/dashboard/kpi-tile";
 
 export type StatStripItem = {
@@ -14,7 +14,7 @@ export type StatStripItem = {
   /** Raw values: when `delta` is not given, it is computed from these. */
   currentValue?: number | null;
   previousValue?: number | null;
-  lowerIsBetter?: boolean;
+  lowerIsBetter?: Polarity;
   /** already-formatted previous value, shown under the value and tinted by the delta */
   previous?: string;
   hint?: string;

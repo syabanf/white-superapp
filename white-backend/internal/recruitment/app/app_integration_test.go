@@ -624,7 +624,10 @@ func TestScheduledInterviews(t *testing.T) {
 	}
 
 	// reminder for tomorrow, once per day
-	day := time.Date(when.Year(), when.Month(), when.Day(), 0, 0, 0, 0, domain.Jakarta)
+	// The interview's calendar day in WIB: taking it from `when` in UTC
+	// picks the wrong day between 00:00 and 07:00 WIB.
+	wib := when.In(domain.Jakarta)
+	day := time.Date(wib.Year(), wib.Month(), wib.Day(), 0, 0, 0, 0, domain.Jakarta)
 	runAt := day.Add(-24 * time.Hour).Add(7 * time.Hour)
 	for i := 0; i < 2; i++ {
 		if err := f.auto.TickDaily(context.Background(), runAt); err != nil {

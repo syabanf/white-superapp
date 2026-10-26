@@ -1,7 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDeltaNumber, formatDeltaPercent } from "@/lib/format";
-import { changeTone, computeDelta, type Delta } from "@/lib/metrics";
+import { changeTone, computeDelta, type Delta, type Polarity } from "@/lib/metrics";
 import { t } from "@/i18n/id";
 
 export type DeltaBadgeProps = {
@@ -9,7 +9,7 @@ export type DeltaBadgeProps = {
   /** Alternative to `delta`: raw values, the delta is computed here. */
   current?: number | null;
   previous?: number | null;
-  lowerIsBetter?: boolean;
+  lowerIsBetter?: Polarity;
   /** pct = percentage change · abs = absolute difference */
   mode?: "pct" | "abs";
   digits?: number;

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { changeTone, seriesDelta, type Delta } from "@/lib/metrics";
+import { changeTone, seriesDelta, type Delta, type Polarity } from "@/lib/metrics";
 
 const TONE_STROKE = {
   positive: "var(--positive)",
@@ -32,7 +32,7 @@ export function Sparkline({
   accent?: string;
   /** delta that decides the tint (defaults to last vs first value) */
   trend?: Delta | null;
-  lowerIsBetter?: boolean;
+  lowerIsBetter?: Polarity;
 }) {
   if (!values || values.length < 2)
     return <svg width={width} height={height} className={className} aria-hidden />;

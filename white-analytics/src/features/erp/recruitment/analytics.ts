@@ -25,10 +25,6 @@ export function candidatesHref(ctx: DrillContext, p: { status?: string; job?: st
   return href("/candidates", { status: p.status ?? ctx.stage, job: p.job ?? ctx.job, source: p.source ?? ctx.source, from: ctx.from, to: ctx.to });
 }
 
-export function pipelineHref(ctx: DrillContext, job?: string): string {
-  return href("/pipeline", { job: job ?? ctx.job });
-}
-
 export function interviewsHref(ctx: DrillContext, status?: string): string {
   return href("/interviews", { status, from: ctx.from, to: ctx.to });
 }

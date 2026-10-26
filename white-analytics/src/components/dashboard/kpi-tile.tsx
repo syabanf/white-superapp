@@ -5,7 +5,7 @@ import { Sparkline } from "@/components/dashboard/sparkline";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/dashboard/info-hint";
-import { changeTone, computeDelta, type Delta } from "@/lib/metrics";
+import { changeTone, computeDelta, type Delta, type Polarity } from "@/lib/metrics";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { t } from "@/i18n/id";
 
@@ -18,7 +18,7 @@ export type KpiTileProps = {
   currentValue?: number | null;
   previousValue?: number | null;
   /** Cost, late rate, DSO, CPC, SEO position...: a drop is good news. */
-  lowerIsBetter?: boolean;
+  lowerIsBetter?: Polarity;
   /** signed raw value (net growth, net income...): tints the value itself good/bad, respecting lowerIsBetter */
   signedValue?: number | null;
   /** already-formatted previous value; tinted good/bad with the delta */
@@ -74,7 +74,7 @@ export function KpiTile({
   return (
     <Card
       className={cn(
-        "lift group/kpi relative min-w-0 gap-0 overflow-hidden py-0 hover:ring-brand/25",
+        "lift group/kpi @container relative min-w-0 gap-0 overflow-hidden py-0 hover:ring-brand/25",
         className,
       )}
     >
@@ -121,7 +121,8 @@ export function KpiTile({
               lowerIsBetter={lowerIsBetter}
               width={size === "sm" ? 56 : 84}
               height={size === "sm" ? 20 : 30}
-              className="mb-0.5 hidden shrink-0 opacity-70 transition-opacity duration-200 group-hover/kpi:opacity-100 min-[480px]:block"
+              // The number wins: the sparkline only shows when the tile is wide enough for both.
+              className="mb-0.5 hidden shrink-0 opacity-70 transition-opacity duration-200 group-hover/kpi:opacity-100 @[15rem]:block"
             />
           ) : null}
         </div>
@@ -152,7 +153,7 @@ export function PreviousLine({
 }: {
   value: string;
   delta?: Delta | null;
-  lowerIsBetter?: boolean;
+  lowerIsBetter?: Polarity;
   className?: string;
 }) {
   const tone = changeTone(delta, lowerIsBetter);

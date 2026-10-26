@@ -208,3 +208,13 @@ describe("format (id-ID)", () => {
     expect(slugify("  Kopi   Nusantara ")).toBe("kopi-nusantara");
   });
 });
+
+describe("changeTone polarity", () => {
+  it("keeps neutral metrics muted in both directions", async () => {
+    const { changeTone } = await import("@/lib/metrics");
+    expect(changeTone(5, "neutral")).toBe("neutral");
+    expect(changeTone(-5, "neutral")).toBe("neutral");
+    expect(changeTone(5, true)).toBe("negative");
+    expect(changeTone(5)).toBe("positive");
+  });
+});

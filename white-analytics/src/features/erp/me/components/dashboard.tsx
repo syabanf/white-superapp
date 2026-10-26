@@ -126,7 +126,7 @@ function dayItems(days: MyDashboardDay[], leaveTypes: Record<string, string>): D
   return {
     summary: [
       { label: d.kpi.hours, value: d.hours(Math.round(worked * 10) / 10) },
-      { label: d.kpi.late, value: d.lateBy(late) },
+      { label: d.lateTotal, value: d.minutes(late) },
     ],
     items: days.map((x) => ({
       id: x.date,

@@ -74,8 +74,15 @@ export type ChangeTone = "positive" | "negative" | "neutral";
  * (e.g. a net figure or an absolute difference). Respects lower-is-better
  * metrics; flat, null and NaN are neutral.
  */
-export function changeTone(change: Delta | number | null | undefined, lowerIsBetter = false): ChangeTone {
-  if (change == null) return "neutral";
+/**
+ * How a metric's direction maps to good news: higher is better (false), lower
+ * is better (true), or "neutral" for figures where either move can be fine
+ * (payables, DPO): those keep the arrow but stay muted.
+ */
+export type Polarity = boolean | "neutral";
+
+export function changeTone(change: Delta | number | null | undefined, lowerIsBetter: Polarity = false): ChangeTone {
+  if (change == null || lowerIsBetter === "neutral") return "neutral";
   if (typeof change === "number") {
     if (!Number.isFinite(change) || Math.abs(change) < 1e-9) return "neutral";
     return change > 0 !== lowerIsBetter ? "positive" : "negative";

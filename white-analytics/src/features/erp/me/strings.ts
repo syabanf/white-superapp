@@ -111,6 +111,8 @@ export const tm = {
     } as Record<string, string>,
     weekdays: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
     lateBy: (n: number) => `terlambat ${n} mnt`,
+    lateTotal: "Total terlambat",
+    minutes: (n: number) => `${n} mnt`,
     onTimeTrend: "Ketepatan waktu vs tim",
     onTimeTrendQ: "Persentase hari hadir tanpa terlambat, dibanding rata-rata departemen Anda, 12 bulan.",
     me: "Saya",

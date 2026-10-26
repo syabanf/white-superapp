@@ -225,7 +225,8 @@ export function HrDrill({ data, leaveTypes }: { data: HrDashboard; leaveTypes: R
 
   const chips = ({ key }: DrillTarget) => {
     const p = decode(key);
-    const period = p.month ? monthName(Number(p.month.slice(5, 7)), Number(p.month.slice(0, 4))) : p.from && p.to ? rangeLabel(p.from, p.to) : undefined;
+    const month = p.month ?? p.joined ?? p.left;
+    const period = month ? monthName(Number(month.slice(5, 7)), Number(month.slice(0, 4))) : p.from && p.to ? rangeLabel(p.from, p.to) : undefined;
     return [
       period,
       deptName(p.dept),
