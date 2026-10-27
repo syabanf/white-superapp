@@ -300,7 +300,7 @@ export function ClaimsTable({
   };
   const columns = [...(canPay ? [selectColumn] : []), ...baseColumns((c) => `/erp/finance/reimbursements/${c.id}`)];
   return (
-    <div className="flex flex-col gap-3">
+    <div className="page-stack">
       <ErpDataTable
         columns={columns}
         data={claims}
@@ -336,7 +336,7 @@ export function ClaimsTable({
           </>
         }
       />
-      <Card className="flex-row flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+      <Card className="flex-row flex-wrap items-center justify-between gap-3 px-(--card-pad) text-sm">
         <span className="text-muted-foreground">
           {rb.totalAmount}: <span className="font-semibold text-foreground tabular">{formatRupiah(totalAmount)}</span>
         </span>

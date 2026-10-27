@@ -40,7 +40,7 @@ export function OffersTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dril
   }));
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           { label: s.sent, value: formatNumber(k.offersSent), delta: computeDelta(k.offersSent, p.offersSent), previous: formatNumber(p.offersSent), href: candidatesHref(ctx, { status: "offer" }) },
@@ -88,7 +88,7 @@ export function OffersTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dril
         />
       </ChartCard>
 
-      <div className="grid gap-4 sm:gap-5 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard className="xl:col-span-2" title={s.salary} description={s.salaryHint}>
           <BulletChart
             rows={offers.slice(0, 14).map((o) => ({

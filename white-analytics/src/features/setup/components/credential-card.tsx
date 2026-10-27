@@ -112,7 +112,7 @@ export function CredentialCard({
         <CardDescription className="text-xs">{labels.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor={`${idBase}-public`}>
               {labels.publicLabel}

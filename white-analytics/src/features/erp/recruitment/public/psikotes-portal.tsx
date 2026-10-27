@@ -56,7 +56,7 @@ export function PsikotesPortal({ token, initial }: { token: string; initial: Por
     return (
       <>
         {header}
-        <Card className="flex flex-col gap-4 p-5">
+        <Card className="flex flex-col gap-4 p-(--card-pad)">
           <h2 className="font-semibold">{t.rulesTitle}</h2>
           <ul className="list-disc space-y-1.5 pl-5 text-sm">
             {t.rules.map((r) => (
@@ -104,7 +104,7 @@ export function PsikotesPortal({ token, initial }: { token: string; initial: Por
         {portal.tests.map((test) => {
           const done = TERMINAL.includes(test.status);
           return (
-            <Card key={test.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <Card key={test.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-(--card-pad)">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 font-medium">
                   {test.instrument?.name}
@@ -233,7 +233,7 @@ function QuestionRunner({ base, run, onDone }: { base: string; run: PortalTestRu
   };
 
   return (
-    <Card className="flex flex-col gap-4 p-4 sm:p-5">
+    <Card className="flex flex-col gap-4 p-(--card-pad)">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-base font-semibold">{run.test.instrument?.name}</h1>
         <Timer remaining={remaining} />
@@ -330,7 +330,7 @@ function DrawingRunner({ base, run, onDone }: { base: string; run: PortalTestRun
   const remaining = useCountdown(run.endsAt, () => void finish());
 
   return (
-    <Card className="flex flex-col gap-4 p-4 sm:p-5">
+    <Card className="flex flex-col gap-4 p-(--card-pad)">
       <div className="flex items-center justify-between gap-2">
         <h1 className="flex items-center gap-2 text-base font-semibold">
           <PencilRuler className="size-4" /> {run.test.instrument?.name}

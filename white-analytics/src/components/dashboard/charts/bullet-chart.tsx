@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatCompact } from "@/lib/format";
-import { slotColor } from "./chart-primitives";
+import { cssBarFill, slotColor } from "./chart-primitives";
 
 export type BulletRow = {
   key: string;
@@ -71,18 +71,18 @@ export function BulletChart({
               </span>
             </div>
             <div className="relative h-4">
-              <span aria-hidden className="absolute inset-y-0 left-0 right-0 rounded-[4px] bg-muted/50" />
+              <span aria-hidden className="absolute inset-y-0 left-0 right-0 rounded-full bg-muted" />
               {r.rangeMin != null && r.rangeMax != null ? (
                 <span
                   aria-hidden
-                  className="absolute inset-y-0 rounded-[4px] bg-[var(--chart-emphasis-muted)] opacity-60"
+                  className="absolute inset-y-0 rounded-full bg-[var(--chart-emphasis-muted)] opacity-60"
                   style={{ left: pct(r.rangeMin), width: `calc(${pct(r.rangeMax)} - ${pct(r.rangeMin)})` }}
                 />
               ) : null}
               <span
                 aria-hidden
-                className="absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-r-[4px] group-hover:brightness-110"
-                style={{ width: pct(r.value), background: outside ? "var(--status-warning)" : slotColor(0) }}
+                className="absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full group-hover:brightness-110"
+                style={{ width: pct(r.value), background: cssBarFill(outside ? "var(--status-warning)" : slotColor(0)) }}
               />
               {r.marker != null ? (
                 <span

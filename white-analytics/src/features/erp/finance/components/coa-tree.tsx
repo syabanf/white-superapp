@@ -4,6 +4,7 @@ import * as React from "react";
 import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Toolbar, ToolbarActions } from "@/components/dashboard/layout";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,7 +86,7 @@ export function CoaTree({
       const open = query.trim() !== "" || !collapsed.has(n.id);
       rows.push(
         <tr key={n.id} className={cn("border-t hover:bg-accent/40", !n.isActive && "opacity-60")}>
-          <td className="py-2 pr-3" style={{ paddingLeft: 12 + depth * 18 }}>
+          <td className="py-2 pr-3" style={{ paddingLeft: `calc(var(--card-pad) + ${depth * 18}px)` }}>
             <span className="flex items-center gap-1.5">
               {n.children.length ? (
                 <button
@@ -102,16 +103,16 @@ export function CoaTree({
               <span className="font-mono text-xs whitespace-nowrap text-muted-foreground">{n.codeDisplay || n.code}</span>
             </span>
           </td>
-          <td className={cn("py-2 pr-3", n.level <= 2 && "font-semibold")}>
+          <td className={cn("px-3 py-2", n.level <= 2 && "font-semibold")}>
             {n.name}
             {n.isContra ? <Badge variant="outline" className="ml-2 text-[10px]">{a.contra}</Badge> : null}
             {n.isCashBank ? <Badge variant="secondary" className="ml-2 text-[10px]">{a.cashBank}</Badge> : null}
           </td>
-          <td className="py-2 pr-3 text-xs text-muted-foreground">{n.accountTypeName}</td>
-          <td className="py-2 pr-3 text-xs">{fs.side[n.normalBalance] ?? "–"}</td>
-          <td className="py-2 pr-3 text-xs text-muted-foreground">{fs.cashFlowCategory[n.cashFlowCategory] ?? "–"}</td>
-          <td className="py-2 pr-3 text-xs">{n.isPostable ? fs.yes : fs.no}</td>
-          <td className="py-2 pr-3">
+          <td className="px-3 py-2 text-xs text-muted-foreground">{n.accountTypeName}</td>
+          <td className="px-3 py-2 text-xs">{fs.side[n.normalBalance] ?? "–"}</td>
+          <td className="px-3 py-2 text-xs text-muted-foreground">{fs.cashFlowCategory[n.cashFlowCategory] ?? "–"}</td>
+          <td className="px-3 py-2 text-xs">{n.isPostable ? fs.yes : fs.no}</td>
+          <td className="px-3 py-2 last:pr-(--card-pad)">
             {canWrite ? (
               <span className="flex justify-end gap-0.5">
                 {n.level < 4 ? (
@@ -145,8 +146,8 @@ export function CoaTree({
   walk(tree, 0);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="page-stack">
+      <Toolbar label={a.searchPh}>
         <div className="relative w-full sm:w-auto">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -154,14 +155,14 @@ export function CoaTree({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={a.searchPh}
             aria-label={a.searchPh}
-            className="h-8 w-full pl-8 text-[13px] sm:w-64"
+            className="w-full pl-8 sm:w-64"
           />
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setCollapsed(new Set())}>
-          <ChevronsUpDown className="size-3.5" /> {a.expandAll}
+        <Button variant="ghost" onClick={() => setCollapsed(new Set())}>
+          <ChevronsUpDown className="size-4" /> {a.expandAll}
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setCollapsed(new Set(parentsIds))}>
-          <ChevronsDownUp className="size-3.5" /> {a.collapseAll}
+        <Button variant="ghost" onClick={() => setCollapsed(new Set(parentsIds))}>
+          <ChevronsDownUp className="size-4" /> {a.collapseAll}
         </Button>
         <div className="flex items-center gap-2">
           <Switch id="coa-inactive" checked={showInactive} onCheckedChange={setShowInactive} />
@@ -170,14 +171,14 @@ export function CoaTree({
           </Label>
         </div>
         {canWrite ? (
-          <div className="ml-auto flex gap-2">
+          <ToolbarActions>
             <CoaImportDialog />
-            <Button size="sm" onClick={() => setDialog({})}>
+            <Button onClick={() => setDialog({})}>
               <Plus className="size-4" /> {a.new}
             </Button>
-          </div>
+          </ToolbarActions>
         ) : null}
-      </div>
+      </Toolbar>
 
       {accounts.length === 0 ? (
         <ErpEmpty title={a.empty} />
@@ -187,13 +188,13 @@ export function CoaTree({
             <table className="w-full min-w-[860px] text-sm">
               <thead className="bg-muted/40 text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">{fs.code}</th>
-                  <th className="px-3 py-2 text-left font-medium">{fs.name}</th>
-                  <th className="px-3 py-2 text-left font-medium">{a.accountType}</th>
-                  <th className="px-3 py-2 text-left font-medium">{fs.accounts.types.normalBalance}</th>
-                  <th className="px-3 py-2 text-left font-medium">{a.cashFlowCategory}</th>
-                  <th className="px-3 py-2 text-left font-medium">{a.postable}</th>
-                  <th className="w-28" />
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.code}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.name}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{a.accountType}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.accounts.types.normalBalance}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{a.cashFlowCategory}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{a.postable}</th>
+                  <th className="w-28 last:pr-(--card-pad)" />
                 </tr>
               </thead>
               <tbody>{rows}</tbody>

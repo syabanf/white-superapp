@@ -57,7 +57,7 @@ export function AttendanceTab({ data }: TabProps) {
   });
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           { label: k.records, value: num0(cur.attendanceRecords), delta: delta(cur.attendanceRecords, prev.attendanceRecords), href: hrLinks.attendance(range) },

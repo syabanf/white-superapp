@@ -28,7 +28,7 @@ export function ConversationList({ conversations, selected }: { conversations: C
     next.set("c", id);
     return `?${next.toString()}`;
   };
-  if (!conversations.length) return <p className="px-4 py-10 text-center text-sm text-muted-foreground">{s.empty}</p>;
+  if (!conversations.length) return <p className="px-(--card-pad) py-10 text-center text-sm text-muted-foreground">{s.empty}</p>;
   return (
     <ul className="divide-y">
       {conversations.map((c) => {
@@ -38,7 +38,7 @@ export function ConversationList({ conversations, selected }: { conversations: C
             <Link
               href={href(c.id)}
               scroll={false}
-              className={cn("flex gap-3 px-4 py-3 hover:bg-accent/50", selected === c.id && "bg-accent")}
+              className={cn("flex gap-3 px-(--card-pad) py-3 hover:bg-accent/50", selected === c.id && "bg-accent")}
             >
               <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-label={lbl(CHANNEL, c.channel)} />
               <div className="min-w-0 flex-1">
@@ -118,9 +118,9 @@ export function ConversationPanel({
   const insight = detail.insight;
 
   return (
-    <div className="grid min-h-0 gap-4 xl:grid-cols-[1fr_300px]">
+    <div className="grid min-h-0 gap-(--gap) xl:grid-cols-[1fr_300px]">
       <Card className="flex min-h-[560px] flex-col gap-0 overflow-hidden py-0">
-        <header className="flex flex-wrap items-center gap-2 border-b px-4 py-3">
+        <header className="flex flex-wrap items-center gap-2 border-b px-(--card-pad) py-3">
           <div className="min-w-0 flex-1">
             <h2 className="truncate font-semibold">{c.displayName || c.phone || c.email}</h2>
             <p className="text-xs text-muted-foreground">
@@ -164,9 +164,9 @@ export function ConversationPanel({
           )}
         </header>
         {c.handoffReason ? (
-          <p className="border-b bg-amber-500/10 px-4 py-2 text-xs text-amber-800 dark:text-amber-300">{s.handoff(c.handoffReason)}</p>
+          <p className="border-b bg-amber-500/10 px-(--card-pad) py-2 text-xs text-amber-800 dark:text-amber-300">{s.handoff(c.handoffReason)}</p>
         ) : null}
-        <div className="flex-1 space-y-2 overflow-y-auto bg-muted/20 px-4 py-4" aria-live="polite">
+        <div className="flex-1 space-y-2 overflow-y-auto bg-muted/20 p-(--card-pad)" aria-live="polite">
           {detail.messages.map((m) => {
             const mine = m.direction === "out";
             const system = m.sender === "system";
@@ -238,7 +238,7 @@ export function ConversationPanel({
       </Card>
 
       <div className="flex flex-col gap-4">
-        <Card className="gap-3 px-4 py-4">
+        <Card className="gap-3 p-(--card-pad)">
           <div className="flex items-center justify-between">
             <h3 className="flex items-center gap-1.5 text-sm font-semibold">
               <Sparkles className="size-3.5" /> {s.insight}
@@ -283,7 +283,7 @@ export function ConversationPanel({
           )}
         </Card>
 
-        <Card className="gap-2 px-4 py-4 text-sm">
+        <Card className="gap-2 text-sm p-(--card-pad)">
           {c.leadId ? (
             <Link href={`/erp/sales/leads/${c.leadId}`} className="font-medium hover:underline">
               {s.lead} →
@@ -303,7 +303,7 @@ export function ConversationPanel({
           {c.slaResponseBreached ? <p className="text-xs text-amber-600">{s.sla}</p> : null}
         </Card>
 
-        <Card className="gap-3 px-4 py-4">
+        <Card className="gap-3 p-(--card-pad)">
           <h3 className="text-sm font-semibold">{s.notes}</h3>
           {detail.notes.length ? (
             <ul className="space-y-2">

@@ -70,8 +70,8 @@ export function CommentThread({
       <form onSubmit={submit} className="space-y-2">
         <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={c.commentPlaceholder} rows={2} className="text-sm" disabled={pending} />
         <div className="flex justify-end">
-          <Button type="submit" size="xs" disabled={pending || !body.trim()}>
-            {pending ? <Loader2 className="size-3.5 animate-spin" /> : <SendHorizonal className="size-3.5" />} {c.send}
+          <Button type="submit" disabled={pending || !body.trim()}>
+            {pending ? <Loader2 className="animate-spin" /> : <SendHorizonal />} {c.send}
           </Button>
         </div>
       </form>

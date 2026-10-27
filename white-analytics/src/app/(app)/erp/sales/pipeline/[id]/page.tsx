@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { DetailLayout } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -21,7 +22,13 @@ import { ActionButton, Info, SalesBadge } from "@/features/erp/sales/components/
 import { GenerateQuotationDialog } from "@/features/erp/sales/components/quotations";
 import { startOnboardingAction } from "@/features/erp/sales/actions";
 import { nameOf, salesCaps } from "@/features/erp/sales/lib";
-import { getDeal, listActivities, listContractTemplates, listLostReasons, listPitchDecks } from "@/features/erp/sales/queries";
+import {
+  getDeal,
+  listActivities,
+  listContractTemplates,
+  listLostReasons,
+  listPitchDecks,
+} from "@/features/erp/sales/queries";
 import { dealFormRefs } from "@/features/erp/sales/refs";
 import {
   CONTRACT_STATUS,
@@ -56,21 +63,25 @@ export default async function DealPage(props: PageProps<"/erp/sales/pipeline/[id
   const deal = x.deal;
   const names = Object.fromEntries(refs.owners.map((o) => [o.value, o.label]));
   const pipeline = refs.pipelines.find((p) => p.id === deal.pipelineId);
-  const stages = (pipeline?.stages ?? []).filter((st) => st.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+  const stages = (pipeline?.stages ?? [])
+    .filter((st) => st.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
   const lead = refs.leads.find((l) => l.value === deal.leadId);
   const account = refs.accounts.find((a) => a.value === deal.accountId);
   const accepted = x.quotations.filter((q) => q.status === "diterima");
 
   return (
     <>
-      <Link href="/erp/sales/pipeline" className="-mb-3 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="size-4" /> {ss.pipeline.title}
-      </Link>
       <PageHeader
+        back={{ href: "/erp/sales/pipeline", label: ss.pipeline.title }}
         eyebrow={deal.clientName || ss.pipeline.title}
         title={deal.title}
         description={deal.picName}
-        actions={caps.write ? <DealHeaderActions deal={deal} stages={stages} lostReasons={reasons.data ?? []} refs={refs} /> : null}
+        actions={
+          caps.write ? (
+            <DealHeaderActions deal={deal} stages={stages} lostReasons={reasons.data ?? []} refs={refs} />
+          ) : null
+        }
       />
       <div className="flex flex-wrap items-center gap-2">
         <DealStatus deal={deal} />
@@ -78,180 +89,218 @@ export default async function DealPage(props: PageProps<"/erp/sales/pipeline/[id
           {ss.pipeline.probability} {deal.probability}% · {lbl(FORECAST_CATEGORY, deal.forecastCategory)}
         </span>
       </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="flex flex-col gap-4 lg:col-span-2">
-          <Panel
-            title={d.quotations}
-            flush
-            actions={
-              caps.write ? (
-                <>
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href={`/erp/sales/quotations/new?deal=${deal.id}`}>
-                      <Plus className="size-3.5" /> {ss.quotations.new}
+      <DetailLayout
+        aside={
+          <>
+            <Panel title={d.overview}>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <Info label={ss.pipeline.valueEstimate}>
+                  <Money value={deal.valueEstimate} />
+                </Info>
+                <Info label={ss.pipeline.valueFinal}>
+                  {deal.valueFinal ? <Money value={deal.valueFinal} /> : null}
+                </Info>
+                <Info label={ss.pipeline.expectedClose}>{formatDate(deal.expectedCloseDate || null)}</Info>
+                <Info label={ss.owner}>{nameOf(names, deal.ownerUserId)}</Info>
+                <Info label={ss.pipeline.lead}>
+                  {lead ? (
+                    <Link href={`/erp/sales/leads/${lead.value}`} className="hover:underline">
+                      {lead.label}
                     </Link>
-                  </Button>
-                  <GenerateQuotationDialog dealId={deal.id} />
-                </>
-              ) : null
-            }
-          >
-            {x.quotations.length === 0 ? (
-              <p className="px-5 py-4 text-sm text-muted-foreground">{d.noQuotations}</p>
-            ) : (
-              <ul className="divide-y">
-                {x.quotations.map((q) => (
-                  <li key={q.id}>
-                    <Link href={`/erp/sales/quotations/${q.id}`} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-accent/50">
-                      <span className="min-w-0 flex-1">
-                        <span className="font-medium tabular">{q.quoteNumber}</span>
-                        <span className="text-xs text-muted-foreground"> v{q.version} · {formatDate(q.createdAt)}</span>
-                      </span>
-                      <SalesBadge value={q.status} map={QUOTATION_STATUS} />
-                      <Money value={q.total} className="w-32 text-right font-medium" />
+                  ) : null}
+                </Info>
+                <Info label={ss.pipeline.account}>
+                  {account ? (
+                    <Link href={`/erp/sales/leads/accounts/${account.value}`} className="hover:underline">
+                      {account.label}
                     </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
+                  ) : null}
+                </Info>
+                <Info label={ss.pipeline.serviceLines}>
+                  {deal.serviceLines.map((l) => lbl(SERVICE_LINE, l)).join(", ")}
+                </Info>
+                <Info label={ss.createdAt}>{formatDate(deal.createdAt)}</Info>
+                <CustomFieldValues fields={refs.customFields} value={deal.custom ?? {}} />
+              </dl>
+              {deal.notes ? (
+                <p className="mt-4 text-sm whitespace-pre-line text-muted-foreground">{deal.notes}</p>
+              ) : null}
+            </Panel>
 
-          <Panel title={d.invoices}>
-            <DealBilling
-              dealId={deal.id}
-              caps={caps}
-              quotations={x.quotations}
-              invoices={x.invoices}
-              payments={x.payments}
-              termProgress={x.termProgress}
-              referenceTotal={x.referenceTotal}
-              paidTotal={x.paidTotal}
-              paymentStatus={x.paymentStatus}
-            />
-          </Panel>
+            <Panel title={d.members}>
+              <p className="mb-3 text-xs text-muted-foreground">{d.membersHint}</p>
+              <DealMembers dealId={deal.id} members={x.members} owners={refs.owners} canWrite={caps.write} />
+            </Panel>
 
-          <Panel
-            title={d.contracts}
-            flush
-            actions={
-              caps.write && accepted.length ? (
-                <GenerateContractDialog quotations={accepted} templates={templates.data?.templates ?? []} />
-              ) : null
-            }
-          >
-            {x.contracts.length === 0 ? (
-              <p className="px-5 py-4 text-sm text-muted-foreground">{d.noContracts}</p>
-            ) : (
-              <ul className="divide-y">
-                {x.contracts.map((c) => (
-                  <li key={c.id}>
-                    <Link href={`/erp/sales/contracts/${c.id}`} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-accent/50">
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-medium tabular">{c.contractNumber}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{c.title}</span>
-                      </span>
-                      <SalesBadge value={c.status} map={CONTRACT_STATUS} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
-
-          <Panel title={ss.leads.activities}>
-            <ActivityList activities={activities.data ?? []} owners={refs.owners} canWrite={caps.write} dealId={deal.id} leadId={deal.leadId || undefined} />
-          </Panel>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <Panel title={d.overview}>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-              <Info label={ss.pipeline.valueEstimate}>
-                <Money value={deal.valueEstimate} />
-              </Info>
-              <Info label={ss.pipeline.valueFinal}>{deal.valueFinal ? <Money value={deal.valueFinal} /> : null}</Info>
-              <Info label={ss.pipeline.expectedClose}>{formatDate(deal.expectedCloseDate || null)}</Info>
-              <Info label={ss.owner}>{nameOf(names, deal.ownerUserId)}</Info>
-              <Info label={ss.pipeline.lead}>
-                {lead ? (
-                  <Link href={`/erp/sales/leads/${lead.value}`} className="hover:underline">
-                    {lead.label}
-                  </Link>
-                ) : null}
-              </Info>
-              <Info label={ss.pipeline.account}>
-                {account ? (
-                  <Link href={`/erp/sales/leads/accounts/${account.value}`} className="hover:underline">
-                    {account.label}
-                  </Link>
-                ) : null}
-              </Info>
-              <Info label={ss.pipeline.serviceLines}>{deal.serviceLines.map((l) => lbl(SERVICE_LINE, l)).join(", ")}</Info>
-              <Info label={ss.createdAt}>{formatDate(deal.createdAt)}</Info>
-              <CustomFieldValues fields={refs.customFields} value={deal.custom ?? {}} />
-            </dl>
-            {deal.notes ? <p className="mt-4 text-sm whitespace-pre-line text-muted-foreground">{deal.notes}</p> : null}
-          </Panel>
-
-          <Panel title={d.members}>
-            <p className="mb-3 text-xs text-muted-foreground">{d.membersHint}</p>
-            <DealMembers dealId={deal.id} members={x.members} owners={refs.owners} canWrite={caps.write} />
-          </Panel>
-
-          <Panel title={d.onboarding}>
-            {x.onboarding ? (
-              <Link href={`/erp/sales/onboarding/${x.onboarding.id}`} className="flex flex-col gap-2 hover:opacity-80">
-                <div className="flex items-center justify-between text-sm">
-                  <SalesBadge value={x.onboarding.status} map={ONBOARDING_STATUS} />
-                  <span className="tabular">{x.onboarding.progress}%</span>
+            <Panel title={d.onboarding}>
+              {x.onboarding ? (
+                <Link
+                  href={`/erp/sales/onboarding/${x.onboarding.id}`}
+                  className="flex flex-col gap-2 hover:opacity-80"
+                >
+                  <div className="flex items-center justify-between text-sm">
+                    <SalesBadge value={x.onboarding.status} map={ONBOARDING_STATUS} />
+                    <span className="tabular">{x.onboarding.progress}%</span>
+                  </div>
+                  <Progress value={x.onboarding.progress} />
+                </Link>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-muted-foreground">{d.noOnboarding}</p>
+                  {caps.write && deal.isWon ? (
+                    <ActionButton
+                      size="sm"
+                      variant="outline"
+                      action={startOnboardingAction.bind(null, deal.id)}
+                      success={ss.saved}
+                    >
+                      {d.startOnboarding}
+                    </ActionButton>
+                  ) : null}
                 </div>
-                <Progress value={x.onboarding.progress} />
-              </Link>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <p className="text-sm text-muted-foreground">{d.noOnboarding}</p>
-                {caps.write && deal.isWon ? (
-                  <ActionButton size="sm" variant="outline" action={startOnboardingAction.bind(null, deal.id)} success={ss.saved}>
-                    {d.startOnboarding}
-                  </ActionButton>
-                ) : null}
-              </div>
-            )}
-          </Panel>
+              )}
+            </Panel>
 
-          <Panel title={d.pitchDeck} actions={caps.write ? <GeneratePitchDeckDialog dealId={deal.id} label={ss.create} variant="outline" /> : null}>
-            {decks.data?.length ? (
-              <ul className="space-y-2 text-sm">
-                {decks.data.map((k) => (
-                  <li key={k.id} className="flex items-center justify-between gap-2">
-                    <Link href={`/erp/sales/pitch-decks/${k.id}`} className="min-w-0 truncate hover:underline">
-                      {ss.decks.version(k.version)} · {formatDateTime(k.createdAt)}
-                    </Link>
-                    <DeckDownload deck={k} size="xs" />
+            <Panel
+              title={d.pitchDeck}
+              actions={
+                caps.write ? (
+                  <GeneratePitchDeckDialog dealId={deal.id} label={ss.create} variant="outline" />
+                ) : null
+              }
+            >
+              {decks.data?.length ? (
+                <ul className="space-y-2 text-sm">
+                  {decks.data.map((k) => (
+                    <li key={k.id} className="flex items-center justify-between gap-2">
+                      <Link
+                        href={`/erp/sales/pitch-decks/${k.id}`}
+                        className="min-w-0 truncate hover:underline"
+                      >
+                        {ss.decks.version(k.version)} · {formatDateTime(k.createdAt)}
+                      </Link>
+                      <DeckDownload deck={k} size="xs" />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">{ss.none}</p>
+              )}
+            </Panel>
+
+            <Panel title={d.history}>
+              <ol className="space-y-2 text-sm">
+                {x.stageHistory.map((h, i) => (
+                  <li key={i} className="flex justify-between gap-2">
+                    <span>{h.stageName}</span>
+                    <span className="text-xs text-muted-foreground tabular">
+                      {formatDateTime(h.enteredAt)}
+                      {h.movedBy ? ` · ${nameOf(names, h.movedBy)}` : ""}
+                    </span>
                   </li>
                 ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">{ss.none}</p>
-            )}
-          </Panel>
-
-          <Panel title={d.history}>
-            <ol className="space-y-2 text-sm">
-              {x.stageHistory.map((h, i) => (
-                <li key={i} className="flex justify-between gap-2">
-                  <span>{h.stageName}</span>
-                  <span className="text-xs text-muted-foreground tabular">
-                    {formatDateTime(h.enteredAt)}
-                    {h.movedBy ? ` · ${nameOf(names, h.movedBy)}` : ""}
-                  </span>
+              </ol>
+            </Panel>
+          </>
+        }
+      >
+        <Panel
+          title={d.quotations}
+          flush
+          actions={
+            caps.write ? (
+              <>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/erp/sales/quotations/new?deal=${deal.id}`}>
+                    <Plus className="size-3.5" /> {ss.quotations.new}
+                  </Link>
+                </Button>
+                <GenerateQuotationDialog dealId={deal.id} size="sm" />
+              </>
+            ) : null
+          }
+        >
+          {x.quotations.length === 0 ? (
+            <p className="px-(--card-pad) py-4 text-sm text-muted-foreground">{d.noQuotations}</p>
+          ) : (
+            <ul className="divide-y">
+              {x.quotations.map((q) => (
+                <li key={q.id}>
+                  <Link
+                    href={`/erp/sales/quotations/${q.id}`}
+                    className="flex items-center gap-3 px-(--card-pad) py-3 text-sm hover:bg-accent/50"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="font-medium tabular">{q.quoteNumber}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {" "}
+                        v{q.version} · {formatDate(q.createdAt)}
+                      </span>
+                    </span>
+                    <SalesBadge value={q.status} map={QUOTATION_STATUS} />
+                    <Money value={q.total} className="w-32 text-right font-medium" />
+                  </Link>
                 </li>
               ))}
-            </ol>
-          </Panel>
-        </div>
-      </div>
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title={d.invoices}>
+          <DealBilling
+            dealId={deal.id}
+            caps={caps}
+            quotations={x.quotations}
+            invoices={x.invoices}
+            payments={x.payments}
+            termProgress={x.termProgress}
+            referenceTotal={x.referenceTotal}
+            paidTotal={x.paidTotal}
+            paymentStatus={x.paymentStatus}
+          />
+        </Panel>
+
+        <Panel
+          title={d.contracts}
+          flush
+          actions={
+            caps.write && accepted.length ? (
+              <GenerateContractDialog quotations={accepted} templates={templates.data?.templates ?? []} size="sm" />
+            ) : null
+          }
+        >
+          {x.contracts.length === 0 ? (
+            <p className="px-(--card-pad) py-4 text-sm text-muted-foreground">{d.noContracts}</p>
+          ) : (
+            <ul className="divide-y">
+              {x.contracts.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    href={`/erp/sales/contracts/${c.id}`}
+                    className="flex items-center gap-3 px-(--card-pad) py-3 text-sm hover:bg-accent/50"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium tabular">{c.contractNumber}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{c.title}</span>
+                    </span>
+                    <SalesBadge value={c.status} map={CONTRACT_STATUS} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title={ss.leads.activities}>
+          <ActivityList
+            activities={activities.data ?? []}
+            owners={refs.owners}
+            canWrite={caps.write}
+            dealId={deal.id}
+            leadId={deal.leadId || undefined}
+          />
+        </Panel>
+      </DetailLayout>
     </>
   );
 }

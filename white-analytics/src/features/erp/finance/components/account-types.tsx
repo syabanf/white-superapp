@@ -47,7 +47,7 @@ function TypeDialog({ type, onClose }: { type?: AccountType; onClose: () => void
           <DialogHeader>
             <DialogTitle>{type ? t.editTitle : t.new}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
+          <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
             <FormField label={fs.code} htmlFor="at-code" error={errors.code} required>
               <Input id="at-code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} />
             </FormField>
@@ -145,7 +145,7 @@ export function AccountTypesTable({ types, canWrite }: { types: AccountType[]; c
         emptyMessage={t.empty}
         toolbar={
           canWrite ? (
-            <Button size="sm" className="ml-auto" onClick={() => setDialog({})}>
+            <Button className="ml-auto" onClick={() => setDialog({})}>
               <Plus className="size-4" /> {t.new}
             </Button>
           ) : null

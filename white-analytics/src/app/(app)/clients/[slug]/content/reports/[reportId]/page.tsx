@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft, Download, Sparkles } from "lucide-react";
+import { Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Section } from "@/components/dashboard/page-header";
 import { KpiGrid, KpiTile } from "@/components/dashboard/kpi-tile";
+import { EmptyState } from "@/components/dashboard/empty-state";
 import { MarkdownLite } from "@/features/reports/components/ai-insight-card";
 import { monthLabel, todayIn } from "@/features/publishing/time";
 import type { DashCtx } from "@/features/content/components/dashboard/shared";
@@ -27,23 +27,17 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
   return { title: `${client.name} · ${t.nav.contentReports}` };
 }
 
-const card = "rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)";
+const card = "rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)";
 
 export default async function ContentReportPage(props: PageProps<"/clients/[slug]/content/reports/[reportId]">) {
   const { slug, reportId } = await props.params;
   const { client, canWrite, names } = await contentContext(slug);
-  const back = (
-    <Button asChild variant="outline" size="sm" className="group/nudge">
-      <Link href={`/clients/${slug}/content/reports`}>
-        <ArrowLeft className="nudge nudge-back size-3.5" /> {t.nav.contentReports}
-      </Link>
-    </Button>
-  );
+  const back = { href: `/clients/${slug}/content/reports`, label: t.nav.contentReports };
   const res = await loadContent(() => Promise.all([getReport(client.id, reportId), listReports(client.id)]));
   if (!res.ok) {
     return (
       <>
-        <PageHeader eyebrow={c.reportEyebrow} title={c.reportsTitle} actions={back} />
+        <PageHeader eyebrow={c.reportEyebrow} title={c.reportsTitle} back={back} />
         <ContentOffline message={res.message} />
       </>
     );
@@ -73,18 +67,18 @@ export default async function ContentReportPage(props: PageProps<"/clients/[slug
   return (
     <>
       <PageHeader
+        back={back}
         eyebrow={c.reportEyebrow}
         title={monthLabel(r.month)}
         description={`${c.colUpdated} ${formatDateTime(r.updatedAt, client.timezone)}`}
         actions={
           <>
             {canWrite ? <RegenerateButton slug={slug} month={r.month} /> : null}
-            <Button asChild size="sm">
+            <Button asChild>
               <a href={contentFiles.reportPdf(client.id, r.id)} target="_blank" rel="noreferrer">
-                <Download className="size-3.5" /> {c.pdf}
+                <Download /> {c.pdf}
               </a>
             </Button>
-            {back}
           </>
         }
       />
@@ -125,48 +119,44 @@ export default async function ContentReportPage(props: PageProps<"/clients/[slug
       <ReportCharts report={r} ctx={ctx} />
       <ContentDrillSheet ctx={ctx} posts={r.posts ?? []} granularity="week" />
 
-      <div className="grid gap-6 [&>*]:min-w-0">
-        <div className="min-w-0 space-y-6">
-          <Section index="01" title={c.summary}>
-            <div className={card}>
-              {r.summary ? (
-                <div className="prose prose-sm max-w-none text-sm text-foreground/90 dark:prose-invert [&_h2]:mt-3 [&_h2]:text-sm [&_h2]:font-semibold [&_ol]:pl-4 [&_ul]:pl-4">
-                  <MarkdownLite text={r.summary} />
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">{c.none}</p>
-              )}
-              {r.aiModel ? (
-                <p className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Sparkles className="size-3" /> {r.aiModel === "mock" ? c.summaryMock : c.summaryModel(r.aiModel)}
-                </p>
-              ) : null}
+      <Section index="01" title={c.summary}>
+        <div className={card}>
+          {r.summary ? (
+            <div className="prose prose-sm max-w-none text-sm text-foreground/90 dark:prose-invert [&_h2]:mt-3 [&_h2]:text-sm [&_h2]:font-semibold [&_ol]:pl-4 [&_ul]:pl-4">
+              <MarkdownLite text={r.summary} />
             </div>
-          </Section>
-
-          {r.engagementAvailable ? (
-            <>
-              <Section index="02" title={c.topPosts}>
-                <div className="rounded-[1.5rem] bg-card py-2 shadow-(--card-shadow)">
-                  <ReportPostsTable posts={r.top ?? []} slug={slug} />
-                </div>
-              </Section>
-              <Section index="03" title={c.bottomPosts}>
-                <div className="rounded-[1.5rem] bg-card py-2 shadow-(--card-shadow)">
-                  <ReportPostsTable posts={r.bottom ?? []} slug={slug} />
-                </div>
-              </Section>
-            </>
           ) : (
-            <p className="rounded-xl border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">{c.engagementUnavailable}</p>
+            <p className="text-sm text-muted-foreground">{c.none}</p>
           )}
-          <Section index="04" title={c.allPosts}>
+          {r.aiModel ? (
+            <p className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
+              <Sparkles className="size-3" /> {r.aiModel === "mock" ? c.summaryMock : c.summaryModel(r.aiModel)}
+            </p>
+          ) : null}
+        </div>
+      </Section>
+
+      {r.engagementAvailable ? (
+        <>
+          <Section index="02" title={c.topPosts}>
             <div className="rounded-[1.5rem] bg-card py-2 shadow-(--card-shadow)">
-              <ReportPostsTable posts={r.posts ?? []} slug={slug} />
+              <ReportPostsTable posts={r.top ?? []} slug={slug} />
             </div>
           </Section>
+          <Section index="03" title={c.bottomPosts}>
+            <div className="rounded-[1.5rem] bg-card py-2 shadow-(--card-shadow)">
+              <ReportPostsTable posts={r.bottom ?? []} slug={slug} />
+            </div>
+          </Section>
+        </>
+      ) : (
+        <EmptyState compact title={c.engagementUnavailable} />
+      )}
+      <Section index="04" title={c.allPosts}>
+        <div className="rounded-[1.5rem] bg-card py-2 shadow-(--card-shadow)">
+          <ReportPostsTable posts={r.posts ?? []} slug={slug} />
         </div>
-      </div>
+      </Section>
     </>
   );
 }

@@ -92,7 +92,7 @@ export function RunsTable({ runs, year, canWrite }: { runs: PayrollRun[]; year: 
               <FormDialog
                 title={p.newRun}
                 trigger={
-                  <Button size="sm">
+                  <Button>
                     <Plus className="size-4" /> {p.newRun}
                   </Button>
                 }

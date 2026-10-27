@@ -13,7 +13,16 @@ import {
   YAxis,
 } from "recharts";
 import { formatCompact } from "@/lib/format";
-import { AXIS_TICK, GRID_STROKE, MarkButtons, signedFill } from "./chart-primitives";
+import {
+  AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS_ALL,
+  GRID_DASH,
+  barFill,
+  GRID_STROKE,
+  MarkButtons,
+  signedFill,
+} from "./chart-primitives";
 
 export type WaterfallStep = {
   key: string;
@@ -109,11 +118,11 @@ export function WaterfallChart({
           initialDimension={{ width: 560, height }}
         >
           <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%">
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
             <XAxis
               dataKey="label"
               tickLine={false}
-              axisLine={{ stroke: "var(--axis)" }}
+              axisLine={false}
               interval={0}
               height={40}
               tick={WrappedTick}
@@ -127,7 +136,7 @@ export function WaterfallChart({
             />
             <ReferenceLine y={0} stroke="var(--axis)" />
             <Tooltip
-              cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
+              cursor={BAR_CURSOR}
               isAnimationActive={false}
               content={({ active, payload }) => {
                 const p = active ? (payload?.[0]?.payload as (typeof data)[number] | undefined) : undefined;
@@ -147,7 +156,7 @@ export function WaterfallChart({
             />
             <Bar
               dataKey="range"
-              radius={4}
+              radius={BAR_RADIUS_ALL}
               maxBarSize={48}
               stroke="var(--card)"
               strokeWidth={2}
@@ -159,7 +168,7 @@ export function WaterfallChart({
               }}
             >
               {data.map((d) => (
-                <Cell key={d.key} fill={waterfallFill(d, lowerIsBetter)} />
+                <Cell key={d.key} fill={barFill(waterfallFill(d, lowerIsBetter))} />
               ))}
             </Bar>
           </BarChart>

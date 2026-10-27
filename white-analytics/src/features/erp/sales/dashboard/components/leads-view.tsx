@@ -51,7 +51,7 @@ export function LeadsView({ data, query }: { data: DashboardLeads; query: Dashbo
       <ChartCard title={l.bySourceMonth} description={l.bySourceMonthHint}>
         <MonthlyChart months={period.months} stacked yFormat={(v) => formatNumber(v)} series={stacked.filter((s) => s.values.some(Boolean))} onMonth={(i) => month(i)} />
       </ChartCard>
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={l.conversion} description={l.conversionHint}>
           <StackedBars
             rows={data.sources.map((s) => ({
@@ -112,7 +112,7 @@ export function LeadsView({ data, query }: { data: DashboardLeads; query: Dashbo
           </ul>
         </ChartCard>
       </div>
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard className="xl:col-span-2" title={l.sourceTable}>
           <DetailTable<DashboardSlice>
             rows={data.sources}

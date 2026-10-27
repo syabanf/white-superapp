@@ -33,7 +33,7 @@ export function ProfileData({ p }: { p: EmployeeProfile }) {
   const f = th.employees.fields;
   const e = p.employee;
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid items-start gap-(--gap) lg:grid-cols-2">
       <Block title={th.employees.sections.employment}>
         <Item label={f.employeeNo} value={e.employeeNo} />
         <Item label={f.employmentStatus} value={p.employmentStatusName} />

@@ -29,7 +29,7 @@ export default async function InvoicesPage(props: PageProps<"/erp/sales/invoices
       <PageHeader eyebrow={ss.eyebrow} title={s.title} description={s.subtitle} />
       {invoices.data ? (
         <>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-(--gap) md:grid-cols-4">
             <KpiTile label={s.amount} value={formatRupiah(billed)} size="sm" />
             <KpiTile label={s.paid} value={formatRupiah(paid)} size="sm" />
             <KpiTile label={ss.reports.gap} value={formatRupiah(billed - paid)} size="sm" />

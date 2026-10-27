@@ -23,8 +23,8 @@ export function OnboardingPortal({ token, initial }: { token: string; initial: P
   const base = `/v1/public/sales/onboarding/${encodeURIComponent(token)}`;
 
   return (
-    <div className="flex flex-col gap-5">
-      <Card className="gap-3 px-6 py-5">
+    <div className="page-stack">
+      <Card className="gap-3 p-(--card-pad)">
         <div className="flex items-center justify-between gap-3 text-sm">
           <span className="font-medium">{o.progress}</span>
           <span className="font-semibold tabular">{data.progress}%</span>
@@ -53,7 +53,7 @@ export function OnboardingPortal({ token, initial }: { token: string; initial: P
           ))}
         </ol>
       </Card>
-      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-(--gap) lg:grid-cols-[1fr_340px]">
         <BriefForm data={data} base={base} onSaved={setData} />
         <Assets data={data} base={base} onUploaded={setData} />
       </div>
@@ -82,7 +82,7 @@ function BriefForm({ data, base, onSaved }: { data: PublicOnboarding; base: stri
     }
   };
   return (
-    <Card className="px-6 py-5">
+    <Card className="p-(--card-pad)">
       <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
         <div>
           <h2 className="text-base font-semibold">{o.brief}</h2>
@@ -124,7 +124,7 @@ function Assets({ data, base, onUploaded }: { data: PublicOnboarding; base: stri
     setBusy(null);
   };
   return (
-    <Card className="h-fit gap-3 px-6 py-5">
+    <Card className="h-fit gap-3 p-(--card-pad)">
       <div>
         <h2 className="text-base font-semibold">{o.assets}</h2>
         <p className="text-xs text-muted-foreground">{o.assetsHint}</p>

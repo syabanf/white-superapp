@@ -102,10 +102,13 @@ export function GenerateContractDialog({
   quotations,
   templates,
   initialQuotation,
+  size,
 }: {
   quotations: Quotation[];
   templates: ContractTemplate[];
   initialQuotation?: string;
+  /** "sm" inside a card header */
+  size?: "sm";
 }) {
   const [open, setOpen] = React.useState(!!initialQuotation);
   return (
@@ -114,8 +117,8 @@ export function GenerateContractDialog({
       onOpenChange={setOpen}
       title={s.generateTitle}
       trigger={
-        <Button size="sm">
-          <FilePlus2 className="size-3.5" /> {s.generate}
+        <Button size={size}>
+          <FilePlus2 /> {s.generate}
         </Button>
       }
     >
@@ -190,7 +193,7 @@ function GenerateForm({
 /** Send, activate, end, cancel and PDF for one contract. */
 export function ContractActions({ contract: c, caps }: { contract: Contract; caps: SalesCaps }) {
   const pdf = (
-    <DownloadButton href={`/api/erp/api/sales/contracts/${c.id}/pdf`} fileName={`${c.contractNumber}.pdf`}>
+    <DownloadButton href={`/api/erp/api/sales/contracts/${c.id}/pdf`} fileName={`${c.contractNumber}.pdf`} size="default">
       {s.pdf}
     </DownloadButton>
   );
@@ -206,27 +209,27 @@ export function ContractActions({ contract: c, caps }: { contract: Contract; cap
           success={s.statusChanged}
           onSubmit={(r) => setContractStatusAction(c.id, "cancelled", r)}
           trigger={
-            <Button size="sm" variant="ghost">
-              <Ban className="size-3.5" /> {s.cancel}
+            <Button variant="ghost">
+              <Ban /> {s.cancel}
             </Button>
           }
         />
       ) : null}
       {pdf}
-      {c.status === "sent" ? <CopyLinkButton path={signPagePath(c)} label={s.signLink} /> : null}
+      {c.status === "sent" ? <CopyLinkButton path={signPagePath(c)} label={s.signLink} size="default" /> : null}
       {c.status === "draft" ? (
-        <ActionButton size="sm" action={() => sendContractAction(c.id)} success={s.sentOk}>
-          <Send className="size-3.5" /> {s.send}
+        <ActionButton action={() => sendContractAction(c.id)} success={s.sentOk}>
+          <Send /> {s.send}
         </ActionButton>
       ) : null}
       {c.status === "signed" ? (
-        <ActionButton size="sm" action={() => setContractStatusAction(c.id, "active")} success={s.statusChanged}>
-          <CheckCircle2 className="size-3.5" /> {s.activate}
+        <ActionButton action={() => setContractStatusAction(c.id, "active")} success={s.statusChanged}>
+          <CheckCircle2 /> {s.activate}
         </ActionButton>
       ) : null}
       {c.status === "active" ? (
-        <ActionButton size="sm" variant="outline" action={() => setContractStatusAction(c.id, "ended")} success={s.statusChanged}>
-          <Flag className="size-3.5" /> {s.end_}
+        <ActionButton variant="outline" action={() => setContractStatusAction(c.id, "ended")} success={s.statusChanged}>
+          <Flag /> {s.end_}
         </ActionButton>
       ) : null}
     </>
@@ -242,7 +245,7 @@ export function ContractEditor({ contract }: { contract: Contract }) {
   const [view, setView] = React.useState<"edit" | "preview">("edit");
   const { pending, run } = useErpAction();
   return (
-    <Card className="gap-4 px-5 py-4">
+    <Card className="gap-4 p-(--card-pad)">
       <div className="grid gap-4 sm:grid-cols-[1fr_180px_180px]">
         <Fld label={s.contractTitle} htmlFor="ce-title">
           <Input id="ce-title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -268,7 +271,7 @@ export function ContractEditor({ contract }: { contract: Contract }) {
       {view === "edit" ? (
         <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={24} className="font-mono text-xs leading-relaxed" aria-label={s.body} />
       ) : (
-        <div className="rounded-lg border bg-background px-6 py-5">
+        <div className="rounded-lg border bg-background p-(--card-pad)">
           <Markdown source={body} />
         </div>
       )}
@@ -314,7 +317,7 @@ export function ContractTemplates({
       )}
       <ul className="divide-y rounded-xl border bg-card">
         {templates.map((t) => (
-          <li key={t.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+          <li key={t.id} className="flex items-center gap-3 px-(--card-pad) py-3 text-sm">
             <span className="min-w-0 flex-1">
               <span className="block font-medium">{t.name}</span>
               <span className="text-xs text-muted-foreground">

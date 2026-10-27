@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { load } from "@/features/erp/shared/load";
@@ -21,13 +18,7 @@ export default async function MyReimbursementDetailPage(props: PageProps<"/erp/m
       <PageHeader
         eyebrow={fs.reimburse.myTitle}
         title={res.data?.claimNo || fs.reimburse.myTitle}
-        actions={
-          <Button asChild size="sm" variant="ghost">
-            <Link href="/erp/me/reimbursements">
-              <ArrowLeft className="size-4" /> {fs.back}
-            </Link>
-          </Button>
-        }
+        back={{ href: "/erp/me/reimbursements", label: fs.back }}
       />
       {res.error ? <ErpLoadError error={res.error} /> : <ClaimDetail claim={res.data} mode="mine" />}
     </>

@@ -41,7 +41,7 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
         )
       }
     >
-      <SelectTrigger size="sm" className="min-w-40" aria-label={f.period}>
+      <SelectTrigger className="min-w-40" aria-label={f.period}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -61,7 +61,7 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
         value={values.compare ?? "previous"}
         onValueChange={(v) => set({ compare: v === "previous" ? null : v })}
       >
-        <SelectTrigger size="sm" className="min-w-44" aria-label={f.compare}>
+        <SelectTrigger className="min-w-44" aria-label={f.compare}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -74,7 +74,7 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
       </Select>
       {scopes.length > 1 ? (
         <Select value={w.scope} onValueChange={(v) => set({ scope: v, dept: null, emp: null })}>
-          <SelectTrigger size="sm" className="min-w-32" aria-label={f.scope}>
+          <SelectTrigger className="min-w-32" aria-label={f.scope}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -91,7 +91,7 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
           value={values.dept ?? ALL}
           onValueChange={(v) => set({ dept: v === ALL ? null : v, emp: null })}
         >
-          <SelectTrigger size="sm" className="min-w-44" aria-label={f.department}>
+          <SelectTrigger className="min-w-44" aria-label={f.department}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -110,7 +110,7 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
           value={values.emp ?? ""}
           onChange={(v) => set({ emp: v || null })}
           placeholder={f.allEmployees}
-          className="h-8 w-full text-[13px] md:w-56"
+          className="w-full md:w-56"
           clearable
         />
       ) : null}
@@ -118,14 +118,14 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
   );
 
   return (
-    <div role="group" aria-label={f.label} className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-3">
+    <div role="group" aria-label={f.label} className="flex flex-col gap-(--gap-inner)">
+      <div className="flex flex-wrap items-center gap-(--gap-inner)">
         {period}
         {custom ? <DateRangeFilter /> : null}
-        <div className="hidden flex-wrap items-center gap-3 md:flex">{dims}</div>
+        <div className="hidden flex-wrap items-center gap-(--gap-inner) md:flex">{dims}</div>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="md:hidden">
+            <Button variant="outline" className="md:hidden">
               <SlidersHorizontal className="size-3.5" /> {f.open}
             </Button>
           </SheetTrigger>
@@ -133,13 +133,12 @@ export function DashboardFilterBar({ context, preset }: { context: DashContext; 
             <SheetHeader>
               <SheetTitle>{f.label}</SheetTitle>
             </SheetHeader>
-            <div className="flex flex-col gap-3 px-4 pb-6 [&_button[role=combobox]]:w-full">{dims}</div>
+            <div className="flex flex-col gap-4 px-(--card-pad) pb-6 [&_button[role=combobox]]:w-full">{dims}</div>
           </SheetContent>
         </Sheet>
         {active ? (
           <Button
             variant="ghost"
-            size="sm"
             onClick={() => set(Object.fromEntries(PARAMS.map((p) => [p, null])))}
           >
             <X className="size-3.5" /> {f.reset}

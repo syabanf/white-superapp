@@ -94,10 +94,7 @@ export function tokenFromPath(path: string): string {
 /** Public signing page for a sent contract. */
 export const signPagePath = (c: { signPath: string }) => (c.signPath ? `/kontrak/${tokenFromPath(c.signPath)}` : "");
 
-/** "YYYY-MM" of today in Jakarta. */
-export function currentMonth(now = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit" }).format(now);
-}
+export { currentMonth } from "@/features/erp/shared/month";
 
 /** Human file size. */
 export function fileSize(bytes: string | number): string {

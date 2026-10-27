@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import type { ActionResult } from "@/lib/action-result";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Toolbar } from "@/components/dashboard/layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -78,7 +79,7 @@ export function ShiftsPanel({ shifts, canWrite }: { shifts: Shift[]; canWrite: b
         shift ? (
           editButton
         ) : (
-          <Button size="sm">
+          <Button>
             <Plus className="size-4" /> {s.newShift}
           </Button>
         )
@@ -189,7 +190,7 @@ export function HolidaysPanel({ holidays, year, canWrite }: { holidays: Holiday[
         holiday ? (
           editButton
         ) : (
-          <Button size="sm">
+          <Button>
             <Plus className="size-4" /> {h.newHoliday}
           </Button>
         )
@@ -312,25 +313,25 @@ export function TeamScheduleGrid({ data, departments }: { data: TeamSchedule; de
   const s = th.schedule;
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="icon-sm" variant="outline" aria-label={ss.prev} onClick={() => set({ week: shiftWeek(data.weekStart, -1) })}>
+      <Toolbar label={s.week}>
+        <Button size="icon" variant="outline" aria-label={ss.prev} onClick={() => set({ week: shiftWeek(data.weekStart, -1) })}>
           <ChevronLeft className="size-4" />
         </Button>
         <span className="text-sm font-medium tabular">
           {s.week} {formatDate(data.weekStart)}
         </span>
-        <Button size="icon-sm" variant="outline" aria-label={ss.next} onClick={() => set({ week: shiftWeek(data.weekStart, 1) })}>
+        <Button size="icon" variant="outline" aria-label={ss.next} onClick={() => set({ week: shiftWeek(data.weekStart, 1) })}>
           <ChevronRight className="size-4" />
         </Button>
         {departments ? (
           <SelectFilter param="dept" options={departments} allLabel={th.allDepartments} label={th.department} />
         ) : null}
-      </div>
+      </Toolbar>
       <Card className="overflow-x-auto py-0 scrollbar-thin">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b text-xs text-muted-foreground">
-              <th className="sticky left-0 bg-card px-3 py-2 text-left font-medium">{th.employee}</th>
+              <th className="sticky left-0 bg-card px-3 py-2 pl-(--card-pad) text-left font-medium">{th.employee}</th>
               {days.map((d) => (
                 <th key={d} className="px-2 py-2 text-left font-medium whitespace-nowrap">
                   {weekdayDate(d)}
@@ -341,12 +342,12 @@ export function TeamScheduleGrid({ data, departments }: { data: TeamSchedule; de
           <tbody>
             {data.rows.map((r) => (
               <tr key={r.employee.id} className="border-b last:border-0">
-                <td className="sticky left-0 bg-card px-3 py-2">
+                <td className="sticky left-0 bg-card px-3 py-2 pl-(--card-pad)">
                   <span className="block font-medium whitespace-nowrap">{r.employee.fullName}</span>
                   <span className="text-xs text-muted-foreground">{r.employee.departmentName}</span>
                 </td>
                 {r.days.map((d) => (
-                  <td key={d.date} className="px-1 py-1">
+                  <td key={d.date} className="px-1 py-1 last:pr-(--card-pad)">
                     <div className={cn("rounded-lg px-2 py-1.5 text-xs", DAY_TONE[d.status])}>
                       <span className="block truncate font-medium">{d.status === "shift" ? d.shiftName : s.teamStatus[d.status] ?? d.status}</span>
                       {d.status === "shift" ? (

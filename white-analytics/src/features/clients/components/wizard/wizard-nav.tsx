@@ -29,7 +29,7 @@ export function WizardNav({
 }) {
   const backLink = back && (slug || types?.length) ? { href: wizardHref(back, { slug, types }), label: tc.wizard.back } : backHref;
   return (
-    <div className="sticky bottom-0 z-20 -mx-4 mt-2 flex items-center justify-between gap-3 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:static sm:mx-0 sm:mt-0 sm:border-t sm:bg-transparent sm:px-0 sm:pt-5 sm:pb-0 sm:backdrop-blur-none">
+    <div className="sticky bottom-0 z-20 -mx-(--page-x) mt-2 flex items-center justify-between gap-3 border-t bg-background px-(--page-x) pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:mt-0 sm:border-t sm:bg-transparent sm:px-0 sm:pt-5 sm:pb-0">
       {backLink ? (
         <Button asChild variant="ghost" type="button" className="group/nudge">
           <Link href={backLink.href}>

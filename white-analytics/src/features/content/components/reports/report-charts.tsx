@@ -61,8 +61,8 @@ export function ReportCharts({ report: r, ctx }: { report: ContentReport; ctx: D
   const month = periodRange(ctx);
   const published = { ...month, status: ["PUBLISHED" as ItemStatus] };
   return (
-    <div className="space-y-5">
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-2">
+    <div className="page-stack">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-2">
         <ChartCard title={cd.waterfallTitle} description={cd.waterfallDesc}>
           <WaterfallChart
             steps={[
@@ -89,7 +89,7 @@ export function ReportCharts({ report: r, ctx }: { report: ContentReport; ctx: D
           )}
         </ChartCard>
       </div>
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-2">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-2">
         <ChartCard title={c.perPlatform} description={cd.breakdownPlanDesc}>
           <GroupedBars
             data={breakdown(r.perPlatform ?? [], platformLabel)}

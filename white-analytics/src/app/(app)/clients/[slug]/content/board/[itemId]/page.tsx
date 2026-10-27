@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader, Section } from "@/components/dashboard/page-header";
+import { DetailLayout, KeyValueList } from "@/components/dashboard/layout";
 import { PlatformIcon, platformLabel } from "@/features/social/components/platform-icon";
 import { dayLabel, dayLabelLong } from "@/features/publishing/time";
 import { ActivityLog } from "@/features/content/components/activity-log";
@@ -27,13 +28,7 @@ export default async function ContentItemPage(props: PageProps<"/clients/[slug]/
   const { slug, itemId } = await props.params;
   const { client, canWrite, people, names } = await contentContext(slug);
   const base = `/clients/${slug}/content`;
-  const back = (
-    <Button asChild variant="outline" size="sm" className="group/nudge">
-      <Link href={`${base}/board`}>
-        <ArrowLeft className="nudge nudge-back size-3.5" /> {t.nav.contentBoard}
-      </Link>
-    </Button>
-  );
+  const back = { href: `${base}/board`, label: t.nav.contentBoard };
   const res = await loadContent(async () => {
     const [detail, presets] = await Promise.all([getItem(client.id, itemId), canWrite ? listSizePresets() : []]);
     const plan = canWrite ? await getPlan(client.id, detail.item.planId) : null;
@@ -42,7 +37,7 @@ export default async function ContentItemPage(props: PageProps<"/clients/[slug]/
   if (!res.ok) {
     return (
       <>
-        <PageHeader eyebrow={c.itemEyebrow} title={t.nav.contentBoard} actions={back} />
+        <PageHeader eyebrow={c.itemEyebrow} title={t.nav.contentBoard} back={back} />
         <ContentOffline message={res.message} />
       </>
     );
@@ -74,16 +69,16 @@ export default async function ContentItemPage(props: PageProps<"/clients/[slug]/
   return (
     <>
       <PageHeader
+        back={back}
         eyebrow={c.itemEyebrow}
         title={item.title}
         description={`${platformLabel(item.platform)} · ${c.format[item.format]} · ${dayLabelLong(item.plannedDate)}`}
         actions={
           <>
             <ItemStatusBadge status={item.status} className="h-6 px-2.5 text-xs" />
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline">
               <Link href={`${base}/plans/${item.planId}`}>{t.nav.contentPlans}</Link>
             </Button>
-            {back}
           </>
         }
       />
@@ -92,106 +87,102 @@ export default async function ContentItemPage(props: PageProps<"/clients/[slug]/
         <ItemActions slug={slug} item={item} allowedMoves={allowedMoves} people={people} pillars={pillars} presets={presets} timezone={tz} />
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="min-w-0 space-y-6">
-          <Section index="01" title={c.captionEditor} description={c.captionEditorDesc}>
-            <CaptionEditor key={item.captionVersion} slug={slug} item={item} revisions={revisions} editable={editable} />
-          </Section>
-
-          <Section index="02" title={c.designTasks}>
-            <div className="rounded-[1.5rem] bg-card p-2 shadow-(--card-shadow)">
-              {designTasks.length === 0 ? (
-                <p className="px-4 py-4 text-sm text-muted-foreground">{c.noDesignTasks}</p>
-              ) : (
-                <ul className="divide-y">
-                  {designTasks.map((task) => (
-                    <li key={task.id}>
-                      <Link href={`${base}/design/${task.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-4 py-3 hover:bg-muted/50">
-                        <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{task.title}</span>
-                        <span className="tabular text-xs text-muted-foreground">
-                          {task.width}×{task.height} · {c.version(task.currentVersion)}
-                        </span>
-                        <DesignStatusBadge status={task.status} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </Section>
-
-          <Section index="03" title={c.activityLog}>
-            <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
-              <ActivityLog activities={activities} timezone={tz} />
-            </div>
-          </Section>
-        </div>
-
-        <aside className="min-w-0 space-y-6">
-          <Section index="04" title={c.details}>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-[1.5rem] bg-card p-6 text-sm shadow-(--card-shadow)">
-              {details.map(([label, value]) => (
-                <div key={label}>
-                  <dt className="label-mono text-muted-foreground">{label}</dt>
-                  <dd className="mt-0.5">{value}</dd>
-                </div>
-              ))}
-              <div className="col-span-2">
-                <dt className="label-mono text-muted-foreground">{c.visualBrief}</dt>
-                <dd className="mt-0.5 whitespace-pre-wrap">{item.visualBrief || c.none}</dd>
+      <DetailLayout
+        aside={
+          <>
+            <Section index="04" title={c.details}>
+              <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
+                <KeyValueList
+                  items={[
+                    ...details.map(([label, value]) => ({ key: label, label, value })),
+                    { key: "brief", label: c.visualBrief, value: <span className="whitespace-pre-wrap">{item.visualBrief || c.none}</span> },
+                  ]}
+                />
               </div>
-            </dl>
-          </Section>
+            </Section>
 
-          <Section index="05" title={c.publishResult}>
-            <div className="space-y-2 rounded-[1.5rem] bg-card p-6 text-sm shadow-(--card-shadow)">
-              {item.publishingPostId ? (
-                <>
-                  <p>
-                    <span className="label-mono mr-2 text-muted-foreground">{c.publishingPost}</span>
-                    <span className="font-mono text-xs">{item.publishingPostId}</span>
-                  </p>
-                  {item.publishedAt ? (
+            <Section index="05" title={c.publishResult}>
+              <div className="space-y-2 rounded-[1.5rem] bg-card p-(--card-pad) text-sm shadow-(--card-shadow)">
+                {item.publishingPostId ? (
+                  <>
                     <p>
-                      <span className="label-mono mr-2 text-muted-foreground">{c.publishedAt}</span>
-                      {formatDateTime(item.publishedAt, tz)}
+                      <span className="label-mono mr-2 text-muted-foreground">{c.publishingPost}</span>
+                      <span className="font-mono text-xs">{item.publishingPostId}</span>
                     </p>
-                  ) : null}
-                  {item.permalink ? (
-                    <a href={item.permalink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 break-all text-brand underline-offset-4 hover:underline">
-                      <ExternalLink className="size-3 shrink-0" /> {c.permalink}
-                    </a>
-                  ) : null}
-                  {item.publishError ? (
-                    <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs">
-                      <span className="label-mono mr-2 text-destructive">{c.publishError}</span>
-                      {item.publishError}
-                    </p>
-                  ) : null}
-                </>
-              ) : (
-                <p className="text-muted-foreground">{c.notScheduled}</p>
-              )}
-              <p className="flex flex-wrap gap-1 pt-1">
-                <Badge variant={item.hasFinalDesign ? "secondary" : "outline"}>{item.hasFinalDesign ? c.finalDesign : c.noFinalDesign}</Badge>
-              </p>
-            </div>
-          </Section>
+                    {item.publishedAt ? (
+                      <p>
+                        <span className="label-mono mr-2 text-muted-foreground">{c.publishedAt}</span>
+                        {formatDateTime(item.publishedAt, tz)}
+                      </p>
+                    ) : null}
+                    {item.permalink ? (
+                      <a href={item.permalink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 break-all text-brand underline-offset-4 hover:underline">
+                        <ExternalLink className="size-3 shrink-0" /> {c.permalink}
+                      </a>
+                    ) : null}
+                    {item.publishError ? (
+                      <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs">
+                        <span className="label-mono mr-2 text-destructive">{c.publishError}</span>
+                        {item.publishError}
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="text-muted-foreground">{c.notScheduled}</p>
+                )}
+                <p className="flex flex-wrap gap-1 pt-1">
+                  <Badge variant={item.hasFinalDesign ? "secondary" : "outline"}>{item.hasFinalDesign ? c.finalDesign : c.noFinalDesign}</Badge>
+                </p>
+              </div>
+            </Section>
 
-          <Section index="06" title={c.comments}>
-            <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
-              <CommentThread
-                slug={slug}
-                target={{ kind: "item", itemId: item.id }}
-                comments={comments.map((m) => ({
-                  ...m,
-                  tag: c.commentKind[m.kind] ? `${c.commentKind[m.kind]} · ${c.round(m.round)}` : undefined,
-                }))}
-              />
-            </div>
-          </Section>
-        </aside>
-      </div>
+            <Section index="06" title={c.comments}>
+              <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
+                <CommentThread
+                  slug={slug}
+                  target={{ kind: "item", itemId: item.id }}
+                  comments={comments.map((m) => ({
+                    ...m,
+                    tag: c.commentKind[m.kind] ? `${c.commentKind[m.kind]} · ${c.round(m.round)}` : undefined,
+                  }))}
+                />
+              </div>
+            </Section>
+          </>
+        }
+      >
+        <Section index="01" title={c.captionEditor} description={c.captionEditorDesc}>
+          <CaptionEditor key={item.captionVersion} slug={slug} item={item} revisions={revisions} editable={editable} />
+        </Section>
+
+        <Section index="02" title={c.designTasks}>
+          <div className="rounded-[1.5rem] bg-card p-2 shadow-(--card-shadow)">
+            {designTasks.length === 0 ? (
+              <p className="px-[calc(var(--card-pad)-0.5rem)] py-4 text-sm text-muted-foreground">{c.noDesignTasks}</p>
+            ) : (
+              <ul className="divide-y">
+                {designTasks.map((task) => (
+                  <li key={task.id}>
+                    <Link href={`${base}/design/${task.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-[calc(var(--card-pad)-0.5rem)] py-3 hover:bg-muted/50">
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{task.title}</span>
+                      <span className="tabular text-xs text-muted-foreground">
+                        {task.width}×{task.height} · {c.version(task.currentVersion)}
+                      </span>
+                      <DesignStatusBadge status={task.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Section>
+
+        <Section index="03" title={c.activityLog}>
+          <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
+            <ActivityLog activities={activities} timezone={tz} />
+          </div>
+        </Section>
+      </DetailLayout>
     </>
   );
 }

@@ -26,8 +26,8 @@ export function JournalActions({ entry, perms }: { entry: JournalEntry; perms: F
         <>
           <ConfirmAction
             trigger={
-              <Button size="sm" variant="ghost" className="text-destructive">
-                <Trash2 className="size-3.5" /> {fs.delete}
+              <Button variant="ghost" className="text-destructive">
+                <Trash2 className="size-4" /> {fs.delete}
               </Button>
             }
             title={fs.confirmDeleteTitle}
@@ -40,9 +40,9 @@ export function JournalActions({ entry, perms }: { entry: JournalEntry; perms: F
               return res.ok;
             }}
           />
-          <Button asChild size="sm" variant="outline">
+          <Button asChild variant="outline">
             <Link href={`/erp/finance/journals/${entry.id}/edit`}>
-              <Pencil className="size-3.5" /> {fs.edit}
+              <Pencil className="size-4" /> {fs.edit}
             </Link>
           </Button>
         </>
@@ -50,8 +50,8 @@ export function JournalActions({ entry, perms }: { entry: JournalEntry; perms: F
       {perms.canApprove ? (
         <ConfirmAction
           trigger={
-            <Button size="sm">
-              <CheckCheck className="size-3.5" /> {j.post}
+            <Button>
+              <CheckCheck className="size-4" /> {j.post}
             </Button>
           }
           title={j.postTitle}
@@ -75,8 +75,8 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
 
 export function JournalDetail({ entry }: { entry: JournalEntry }) {
   return (
-    <div className="flex flex-col gap-5">
-      <Card className="p-5">
+    <div className="page-stack">
+      <Card className="px-(--card-pad)">
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Meta label={fs.date}>{formatDate(entry.entryDate)}</Meta>
           <Meta label={j.period}>
@@ -106,34 +106,34 @@ export function JournalDetail({ entry }: { entry: JournalEntry }) {
           <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-muted/40 text-xs text-muted-foreground">
               <tr>
-                <th className="px-4 py-2 text-left font-medium">{fs.account}</th>
-                <th className="px-4 py-2 text-left font-medium">{fs.memo}</th>
-                <th className="px-4 py-2 text-right font-medium">{fs.debit}</th>
-                <th className="px-4 py-2 text-right font-medium">{fs.credit}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.account}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.memo}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.debit}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.credit}</th>
               </tr>
             </thead>
             <tbody>
               {entry.lines.map((l) => (
                 <tr key={l.id} className="border-t">
-                  <td className="px-4 py-2.5">
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5">
                     <span className="mr-2 font-mono text-xs text-muted-foreground">{l.accountCode}</span>
                     {l.accountName}
                   </td>
-                  <td className="px-4 py-2.5 text-muted-foreground">{l.memo || "–"}</td>
-                  <td className="px-4 py-2.5 text-right">{l.entrySide === "DEBIT" ? <Money value={l.amount} /> : null}</td>
-                  <td className="px-4 py-2.5 text-right">{l.entrySide === "CREDIT" ? <Money value={l.amount} /> : null}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-muted-foreground">{l.memo || "–"}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right">{l.entrySide === "DEBIT" ? <Money value={l.amount} /> : null}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right">{l.entrySide === "CREDIT" ? <Money value={l.amount} /> : null}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot className="border-t bg-muted/30 font-semibold">
               <tr>
-                <td colSpan={2} className="px-4 py-2.5 text-right text-xs text-muted-foreground">
+                <td colSpan={2} className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right text-xs text-muted-foreground">
                   {fs.total}
                 </td>
-                <td className="px-4 py-2.5 text-right">
+                <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right">
                   <Money value={entry.totalDebit} />
                 </td>
-                <td className="px-4 py-2.5 text-right">
+                <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right">
                   <Money value={entry.totalCredit} />
                 </td>
               </tr>

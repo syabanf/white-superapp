@@ -61,7 +61,7 @@ export function MediaLibrary({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <Tabs value={kind} onValueChange={(v) => setKind(v as Kind)}>
-            <TabsList className="h-8">
+            <TabsList>
               <TabsTrigger value="ALL">{p.kindAll}</TabsTrigger>
               <TabsTrigger value="IMAGE">
                 <ImageIcon className="size-3.5" /> {p.kindImage}
@@ -72,12 +72,12 @@ export function MediaLibrary({
             </TabsList>
           </Tabs>
           <div className="relative">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={p.librarySearch}
-              className="h-8 w-56 pl-8 text-[13px]"
+              className="w-full pl-9 sm:w-64"
             />
           </div>
         </div>
@@ -183,10 +183,10 @@ function EditMediaDialog({
           <DialogTitle>{p.editMedia}</DialogTitle>
           <DialogDescription className="truncate">{asset.filename}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-5 sm:grid-cols-[160px_1fr]">
+        <div className="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)]">
           <MediaThumb asset={asset} className="aspect-square rounded-lg" />
-          <div className="space-y-3">
-            <div className="space-y-1">
+          <div className="min-w-0 space-y-4">
+            <div className="space-y-1.5">
               <Label htmlFor="media-alt">{p.altText}</Label>
               <Input
                 id="media-alt"
@@ -194,10 +194,9 @@ function EditMediaDialog({
                 onChange={(e) => setAlt(e.target.value)}
                 placeholder={p.altPlaceholder}
                 disabled={!canManage || pending}
-                className="h-8 text-sm"
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="media-tags">{p.tags}</Label>
               <Input
                 id="media-tags"
@@ -205,7 +204,6 @@ function EditMediaDialog({
                 onChange={(e) => setTags(e.target.value)}
                 placeholder={p.tagsPlaceholder}
                 disabled={!canManage || pending}
-                className="h-8 text-sm"
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -222,24 +220,23 @@ function EditMediaDialog({
             </a>
           </div>
         </div>
+        {canManage && asset.usageCount > 0 ? (
+          <p className="text-xs text-muted-foreground">{p.mediaInUse}</p>
+        ) : null}
         {canManage ? (
           <DialogFooter className="flex-row items-center justify-between sm:justify-between">
             <Button
               variant="destructive"
-              size="sm"
               onClick={remove}
               disabled={pending || asset.usageCount > 0}
               title={asset.usageCount > 0 ? p.mediaInUse : undefined}
             >
-              <Trash2 className="size-3.5" /> {t.common.delete}
+              <Trash2 /> {t.common.delete}
             </Button>
-            <Button size="sm" onClick={save} disabled={pending}>
-              {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {t.common.save}
+            <Button onClick={save} disabled={pending}>
+              {pending ? <Loader2 className="animate-spin" /> : null} {t.common.save}
             </Button>
           </DialogFooter>
-        ) : null}
-        {canManage && asset.usageCount > 0 ? (
-          <p className="text-xs text-muted-foreground">{p.mediaInUse}</p>
         ) : null}
       </DialogContent>
     </Dialog>
@@ -283,7 +280,7 @@ function AddUrlDialog({ clientId, open, onClose }: { clientId: string; open: boo
               autoFocus
             />
           </div>
-          <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
+          <div className="grid gap-3 sm:grid-cols-[140px_minmax(0,1fr)]">
             <div className="space-y-1">
               <Label>{p.kindLabel}</Label>
               <Select value={kind} onValueChange={(v) => setKind(v as "IMAGE" | "VIDEO")}>

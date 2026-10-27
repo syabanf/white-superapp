@@ -2,6 +2,7 @@
 
 import { CalendarDays, Loader2, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Toolbar, ToolbarActions } from "@/components/dashboard/layout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -48,7 +49,7 @@ export function DashFilterBar({
   const controls = (stacked: boolean) => (
     <>
       <Select value={values.cmp ?? "previous"} onValueChange={(v) => set({ cmp: v === "previous" ? null : v }, { keepPage: true })}>
-        <SelectTrigger size="sm" className={cn(stacked ? "w-full" : "w-[11.5rem]")} aria-label={cd.fCompare}>
+        <SelectTrigger className={cn(stacked ? "w-full" : "w-[11.5rem]")} aria-label={cd.fCompare}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -58,7 +59,7 @@ export function DashFilterBar({
       </Select>
       {fields.map((f) => (
         <Select key={f.param} value={values[f.param] ?? ALL} onValueChange={(v) => set({ [f.param]: v === ALL ? null : v }, { keepPage: true })}>
-          <SelectTrigger size="sm" className={cn(stacked ? "w-full" : "w-40", values[f.param] && "border-brand/50 bg-brand/5")} aria-label={f.label}>
+          <SelectTrigger className={cn(stacked ? "w-full" : "w-40", values[f.param] && "border-brand/50 bg-brand/5")} aria-label={f.label}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -72,7 +73,7 @@ export function DashFilterBar({
         </Select>
       ))}
       {active > 0 || values.cmp ? (
-        <Button variant="ghost" size="sm" onClick={reset}>
+        <Button variant="ghost" onClick={reset}>
           {cd.reset}
         </Button>
       ) : null}
@@ -80,7 +81,7 @@ export function DashFilterBar({
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-[1.25rem] bg-card px-3 py-3 shadow-(--card-shadow)">
+    <Toolbar label={cd.filters}>
       <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
         {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <CalendarDays className="size-3.5" />}
         <span className="truncate">
@@ -88,10 +89,10 @@ export function DashFilterBar({
           {compareLabel ? ` · ${compareLabel}` : ""}
         </span>
       </span>
-      <div className="ml-auto hidden flex-wrap items-center justify-end gap-3 2xl:flex">{controls(false)}</div>
+      <ToolbarActions className="hidden gap-(--gap-inner) 2xl:flex">{controls(false)}</ToolbarActions>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="sm" className="ml-auto 2xl:hidden">
+          <Button variant="outline" className="ml-auto 2xl:hidden">
             <SlidersHorizontal className="size-3.5" /> {cd.filters}
             {active ? <span className="rounded-full bg-brand px-1.5 text-[10px] text-white">{active}</span> : null}
           </Button>
@@ -101,9 +102,9 @@ export function DashFilterBar({
             <SheetTitle>{cd.filters}</SheetTitle>
             <SheetDescription>{cd.filtersDesc}</SheetDescription>
           </SheetHeader>
-          <div className="grid gap-3 px-4 pb-6">{controls(true)}</div>
+          <div className="grid gap-4 px-(--card-pad) pb-(--card-pad)">{controls(true)}</div>
         </SheetContent>
       </Sheet>
-    </div>
+    </Toolbar>
   );
 }

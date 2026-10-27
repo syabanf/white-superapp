@@ -56,8 +56,8 @@ export function AccountsTable({ accounts, owners, caps }: { accounts: Account[];
               account={null}
               owners={owners}
               trigger={
-                <Button size="sm">
-                  <Plus className="size-3.5" /> {a.add}
+                <Button>
+                  <Plus className="size-4" /> {a.add}
                 </Button>
               }
             />
@@ -151,14 +151,15 @@ export function ContactsTable({
   accounts,
   caps,
   accountId,
-  bare,
+  compact,
 }: {
   contacts: Contact[];
   accounts: Option[];
   caps: SalesCaps;
   /** fixes the account for new contacts (account detail page) */
   accountId?: string;
-  bare?: boolean;
+  /** account detail: no search or export, outline add button */
+  compact?: boolean;
 }) {
   const accountNames = Object.fromEntries(accounts.map((o) => [o.value, o.label]));
   const columns: ColumnDef<Contact, unknown>[] = [
@@ -213,17 +214,17 @@ export function ContactsTable({
       columns={columns}
       data={contacts}
       getRowId={(r) => r.id}
-      exportName={bare ? undefined : "kontak"}
+      exportName={compact ? undefined : "kontak"}
       toolbar={
         <>
-          {bare ? null : <SearchFilter param="cq" placeholder={c.searchPlaceholder} />}
+          {compact ? null : <SearchFilter param="cq" placeholder={c.searchPlaceholder} />}
           {caps.write ? (
             <ContactFormDialog
               contact={null}
               accounts={accounts}
               accountId={accountId}
               trigger={
-                <Button size="sm" variant={bare ? "outline" : "default"}>
+                <Button variant={compact ? "outline" : "default"}>
                   <Plus className="size-3.5" /> {c.add}
                 </Button>
               }

@@ -264,6 +264,23 @@ export const adminNav: NavItem[] = [
 
 export const moduleIcons = { social: Share2, seo: Search, ads: Megaphone, analytics: BarChart3 };
 
+/**
+ * The single nav href the pathname belongs to: the longest matching one among
+ * the items and their children, so /erp/hr/recruitment lights up Rekrutmen
+ * and not SDM as well.
+ */
+export function activeNavHref(pathname: string, items: NavItem[]): string | null {
+  let best: string | null = null;
+  const consider = (href: string, exact?: boolean) => {
+    if (isActivePath(pathname, href, exact) && (!best || href.length > best.length)) best = href;
+  };
+  for (const it of items) {
+    consider(it.href, it.exact);
+    it.children?.forEach((c) => consider(c.href));
+  }
+  return best;
+}
+
 /** Whether a pathname is "under" a nav href */
 export function isActivePath(pathname: string, href: string, exact = false): boolean {
   if (exact) return pathname === href;

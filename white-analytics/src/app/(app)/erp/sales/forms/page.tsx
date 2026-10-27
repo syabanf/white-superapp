@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -28,11 +26,17 @@ export default async function FormsPage(props: PageProps<"/erp/sales/forms">) {
     const subs = await load(() => listFormSubmissions(selected.id));
     return (
       <>
-        <Link href="/erp/sales/forms" className="-mb-3 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="size-4" /> {f.title}
-        </Link>
-        <PageHeader eyebrow={f.submissions} title={selected.name} description={`/f/${selected.slug}`} />
-        {subs.data ? <SubmissionsTable form={selected} submissions={subs.data} /> : <ErpError message={subs.error?.message} />}
+        <PageHeader
+          back={{ href: "/erp/sales/forms", label: f.title }}
+          eyebrow={f.submissions}
+          title={selected.name}
+          description={`/f/${selected.slug}`}
+        />
+        {subs.data ? (
+          <SubmissionsTable form={selected} submissions={subs.data} />
+        ) : (
+          <ErpError message={subs.error?.message} />
+        )}
       </>
     );
   }
@@ -40,7 +44,11 @@ export default async function FormsPage(props: PageProps<"/erp/sales/forms">) {
   return (
     <>
       <PageHeader eyebrow={ss.eyebrow} title={f.title} description={f.subtitle} />
-      {forms.data.length || caps.write ? <FormsList forms={forms.data} owners={owners} canWrite={caps.write} /> : <ErpEmpty />}
+      {forms.data.length || caps.write ? (
+        <FormsList forms={forms.data} owners={owners} canWrite={caps.write} />
+      ) : (
+        <ErpEmpty />
+      )}
     </>
   );
 }

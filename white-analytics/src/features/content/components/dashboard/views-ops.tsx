@@ -57,7 +57,7 @@ export function SummaryTab({ data, ctx }: TabProps) {
   const steps = funnelSteps(cur.funnel ?? []);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <KpiGrid>
         <KpiTile label={cd.kPlanned} value={formatNumber(k.planned)} delta={d(k.planned, p.planned)} previous={formatNumber(p.planned)} spark={spark(buckets, (b) => b.planned)} href={board()} hint={cd.hPlanned} />
         <KpiTile
@@ -86,7 +86,7 @@ export function SummaryTab({ data, ctx }: TabProps) {
         <KpiTile label={cd.reach} value={formatCompact(num(k.reach))} delta={d(k.reach, p.reach)} previous={formatCompact(num(p.reach))} spark={spark(buckets, (b) => b.reach)} href={overviewHref(ctx, {}, "performa")} hint={cd.hReach} />
       </KpiGrid>
 
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-5">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-5">
         <ChartCard
           className="lg:col-span-3"
           title={gran === "week" ? cd.publishedPerWeek : cd.publishedPerMonth}
@@ -112,7 +112,7 @@ export function SummaryTab({ data, ctx }: TabProps) {
       </div>
 
       <Section title={cd.perPeriodTable} description={cd.perPeriodTableDesc}>
-        <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
+        <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
           <BucketTable buckets={buckets} gran={gran} totals={k} onSelect={(start) => drill(bucketDrill(start, gran))} />
         </div>
       </Section>
@@ -192,8 +192,8 @@ export function ProductionTab({ data, ctx }: TabProps) {
   const openPerson = (item: { key?: string }) => item.key && drill({ ...range, assignee: item.key });
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-2">
+    <div className="page-stack">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-2">
         <ChartCard
           title={cd.cycleTitle}
           description={cd.cycleDesc}
@@ -235,7 +235,7 @@ export function ProductionTab({ data, ctx }: TabProps) {
         </ChartCard>
       </div>
 
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-3">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-3">
         <ChartCard title={cd.overdueStageTitle} description={cd.overdueStageDesc}>
           <HBarChart
             items={(cur.overdueByStage ?? []).map((r) => ({ key: r.key, label: cd.stage4[r.key as "COPY"] ?? r.key, value: r.count, color: "var(--status-critical)" }))}
@@ -272,7 +272,7 @@ export function ProductionTab({ data, ctx }: TabProps) {
         </ChartCard>
       </div>
 
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-2">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-2">
         <ChartCard title={cd.workloadCopy} description={cd.workloadDesc}>
           <HBarChart items={workload(copywriters, slotColor(0))} format={(v) => formatNumber(v)} maxItems={8} emptyLabel={cd.noData} onSelect={openPerson} />
         </ChartCard>
@@ -282,7 +282,7 @@ export function ProductionTab({ data, ctx }: TabProps) {
       </div>
 
       <Section title={cd.peopleTable} description={cd.peopleTableDesc}>
-        <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
+        <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
           <DetailTable
             rows={people}
             rowKey={(p) => `${p.userId}-${p.role}`}
@@ -332,7 +332,7 @@ export function CalendarTab({ data, ctx }: TabProps) {
   const totalEng = byWeekday.reduce((s, r) => s + r.eng, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <ChartCard title={cd.calendarTitle} description={cd.calendarDesc}>
         <MonthCalendars
           months={months}
@@ -357,7 +357,7 @@ export function CalendarTab({ data, ctx }: TabProps) {
         />
       </ChartCard>
       <Section title={cd.weekdayTable} description={cd.weekdayTableDesc}>
-        <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
+        <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
           <DetailTable
             rows={byWeekday}
             rowKey={(r) => String(r.weekday)}

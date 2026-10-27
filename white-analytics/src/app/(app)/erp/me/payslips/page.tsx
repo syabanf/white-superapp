@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -22,14 +23,14 @@ export default async function MyPayslipsPage(props: PageProps<"/erp/me/payslips"
   return (
     <>
       {header}
-      <div>
+      <Toolbar label={tm.payslips.year}>
         <SelectFilter
           param="year"
           label={tm.payslips.year}
           allLabel={String(now)}
           options={[now - 1, now - 2].map((y) => ({ value: String(y), label: String(y) }))}
         />
-      </div>
+      </Toolbar>
       {res.data ? <MyPayslips payslips={res.data} /> : <ErpError message={res.error.message} />}
     </>
   );

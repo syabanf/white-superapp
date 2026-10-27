@@ -177,6 +177,10 @@ export const c = {
 
   // board
   boardTitle: "Papan konten",
+  planActions: "Aksi editorial plan",
+  itemActions: "Aksi konten",
+  taskActions: "Aksi tugas desain",
+  preview: "Pratinjau",
   boardDesc: "Alur konten dari ide sampai terbit, dengan perpindahan yang diizinkan per peran.",
   boardDragHint: "Seret kartu ke kolom yang disorot atau pakai menu di kartu. Pindah ke Revisi butuh catatan.",
   allPlans: "Semua EP",

@@ -76,14 +76,14 @@ export function PipelineBoard({
             deal={null}
             refs={refs}
             trigger={
-              <Button size="sm">
-                <Plus className="size-3.5" /> {s.add}
+              <Button>
+                <Plus className="size-4" /> {s.add}
               </Button>
             }
           />
         ) : null}
       </div>
-      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-3 scrollbar-thin" role="list" aria-label={s.board}>
+      <div className="flex snap-x gap-3 overflow-x-auto pb-3 scrollbar-thin" role="list" aria-label={s.board}>
         {stages.map((stage) => {
           const items = board.filter((d) => d.stageId === stage.id);
           const value = items.reduce((acc, d) => acc + parseMoney(d.valueFinal || d.valueEstimate), 0);

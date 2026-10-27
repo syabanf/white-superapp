@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { AttentionSkeleton, ModuleSkeleton } from "@/features/erp/home/sections";
+import { AttentionSkeleton, ModuleSkeleton } from "@/features/erp/home/skeletons";
 
 export default function ErpHomeLoading() {
   return (

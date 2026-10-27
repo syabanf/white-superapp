@@ -33,7 +33,7 @@ function ChecklistRow({ item, owners, canWrite }: { item: OnboardingItem; owners
   const done = item.status === "done";
   const skipped = item.status === "skipped";
   return (
-    <li className={cn("flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-start", pending && "opacity-60")}>
+    <li className={cn("flex flex-col gap-2 px-(--card-pad) py-3 sm:flex-row sm:items-start", pending && "opacity-60")}>
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <span
           className={cn(
@@ -86,8 +86,8 @@ export function CreateClientDialog({ onboarding }: { onboarding: Onboarding }) {
     <FormDialog
       title={s.createClientTitle}
       trigger={
-        <Button size="sm">
-          <Building2 className="size-3.5" /> {s.createClient}
+        <Button>
+          <Building2 /> {s.createClient}
         </Button>
       }
     >

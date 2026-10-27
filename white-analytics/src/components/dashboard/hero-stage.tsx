@@ -39,12 +39,12 @@ export function HeroStage({
   const left = stats.slice(0, 2);
   const right = stats.slice(2, 4);
   return (
-    <section className="stage-tint relative overflow-hidden rounded-[1.75rem] p-5 md:p-5">
+    <section className="stage-tint relative overflow-hidden rounded-[1.75rem] p-5 md:p-7">
       <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 max-w-xl">
-          {eyebrow ? <p className="label-mono mb-1.5 text-muted-foreground">{eyebrow}</p> : null}
-          <h1 className="text-[28px] leading-[1.12] font-medium md:text-[34px]">{title}</h1>
-          {description ? <p className="mt-2 text-sm text-muted-foreground">{description}</p> : null}
+          {eyebrow ? <p className="label-mono mb-1.5 text-foreground/70">{eyebrow}</p> : null}
+          <h1 className="text-[28px] leading-[1.15] font-semibold md:text-[36px]">{title}</h1>
+          {description ? <p className="mt-2 text-sm text-foreground/70">{description}</p> : null}
         </div>
         {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
@@ -70,7 +70,7 @@ export function HeroStage({
 
 function StatGlass({ stat }: { stat: HeroStat }) {
   return (
-    <div className="surface-glass lift min-w-0 rounded-[1.25rem] p-3 md:p-3.5">
+    <div className="lift min-w-0 rounded-[1.25rem] bg-card p-3 shadow-(--card-shadow) md:p-4">
       <div className="flex items-start justify-between gap-2 text-muted-foreground">
         <span className="label-mono line-clamp-2">{stat.label}</span>
         {stat.hint ? <InfoHint className="ml-auto">{stat.hint}</InfoHint> : null}

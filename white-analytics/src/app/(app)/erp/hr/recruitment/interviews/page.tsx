@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -56,7 +57,7 @@ export default async function InterviewsPage(props: PageProps<"/erp/hr/recruitme
         description={iv.subtitle}
         actions={perms.write ? <ScheduleButton lookups={lookups} /> : null}
       />
-      <div className="flex flex-wrap items-center gap-2">
+      <Toolbar label={iv.title}>
         <UrlTabs tabs={VIEWS} param="view" label={iv.title} reset={["status", "from", "to"]} />
         {calendar ? (
           <MonthFilter fallback={ym} />
@@ -72,7 +73,7 @@ export default async function InterviewsPage(props: PageProps<"/erp/hr/recruitme
             <ResetFilters params={["status", "from", "to"]} />
           </>
         )}
-      </div>
+      </Toolbar>
       {!rows ? (
         <ErpLoadError error={list.error!} />
       ) : calendar ? (

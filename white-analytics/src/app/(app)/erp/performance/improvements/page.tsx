@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -30,7 +31,7 @@ export default async function ImprovementsPage(props: PageProps<"/erp/performanc
   return (
     <>
       {header}
-      <div className="flex flex-wrap items-center gap-2">
+      <Toolbar>
         <UrlTabs
           label={im.title}
           reset={["status", "source", "scope"]}
@@ -45,7 +46,7 @@ export default async function ImprovementsPage(props: PageProps<"/erp/performanc
           allLabel={sp.common.allDepartments}
           options={departments.map((d) => ({ value: d.id, label: d.name }))}
         />
-      </div>
+      </Toolbar>
       {tab === "retros" ? (
         <RetrosSection
           dept={dept}

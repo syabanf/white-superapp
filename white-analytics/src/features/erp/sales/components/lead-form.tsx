@@ -151,8 +151,8 @@ export function LeadImportDialog() {
       title={s.importTitle}
       description={s.importHint}
       trigger={
-        <Button variant="outline" size="sm">
-          <FileUp className="size-3.5" /> {s.import}
+        <Button variant="outline">
+          <FileUp className="size-4" /> {s.import}
         </Button>
       }
     >

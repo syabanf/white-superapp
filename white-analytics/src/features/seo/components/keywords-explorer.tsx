@@ -228,7 +228,7 @@ export function KeywordsExplorer({
 
   return (
     <Card className="gap-0 py-0">
-      <CardContent className="space-y-4 p-6">
+      <CardContent className="space-y-4 p-(--card-pad)">
         <div className="flex flex-col gap-3">
           <ViewTabs view={view} counts={counts} basePath={basePath} query={query} />
           <p className="text-sm text-muted-foreground">{VIEW_DESCRIPTIONS[view]}</p>

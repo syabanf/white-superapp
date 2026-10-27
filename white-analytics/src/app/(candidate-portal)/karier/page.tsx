@@ -41,17 +41,17 @@ export default async function CareerPage(props: PageProps<"/karier">) {
         <h1 className="mt-1 text-[28px] leading-tight font-semibold md:text-[34px]">{c.title}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">{c.intro}</p>
       </div>
-      <form method="get" className="flex flex-col gap-2 sm:flex-row" role="search">
+      <form method="get" className="flex flex-col gap-(--gap-inner) sm:flex-row" role="search">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input name="q" defaultValue={search} placeholder={c.search} aria-label={c.search} className="h-10 pl-9" />
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input name="q" defaultValue={search} placeholder={c.search} aria-label={c.search} className="pl-9" />
         </div>
         {departments.length > 1 ? (
           <select
             name="department"
             defaultValue={department}
             aria-label={c.department}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-(--control-h) rounded-full border border-input bg-card px-3.5 text-sm"
           >
             <option value="">{c.department}</option>
             {departments.map((d) => (
@@ -61,7 +61,7 @@ export default async function CareerPage(props: PageProps<"/karier">) {
             ))}
           </select>
         ) : null}
-        <Button type="submit" className="h-10">
+        <Button type="submit">
           {c.filter}
         </Button>
       </form>
@@ -72,7 +72,7 @@ export default async function CareerPage(props: PageProps<"/karier">) {
           <p className="text-xs text-muted-foreground">{c.openings(res.data.jobs.length)}</p>
           {res.data.jobs.map((job) => (
             <Link key={job.slug} href={`/karier/${job.slug}`} className="group block">
-              <Card className="flex flex-row items-center gap-4 p-4 transition-colors group-hover:bg-accent/40 sm:p-5">
+              <Card className="flex flex-row items-center gap-4 p-(--card-pad) transition-colors group-hover:bg-accent/40">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-base font-semibold">{job.title}</h2>
                   <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">

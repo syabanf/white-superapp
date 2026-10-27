@@ -1,5 +1,4 @@
 import "server-only";
-import { Skeleton } from "@/components/ui/skeleton";
 import { load } from "@/features/erp/shared/load";
 import { ErpError } from "@/features/erp/shared/states";
 import { BillingView } from "./components/billing-view";
@@ -50,19 +49,3 @@ export async function DashboardSection({ tab, query }: { tab: DashTab; query: Da
 }
 
 /** Mirrors a tab: KPI row, a chart grid and a table. */
-export function DashboardSkeleton() {
-  return (
-    <div className="flex flex-col gap-4" aria-busy>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-[118px] rounded-xl" />
-        ))}
-      </div>
-      <div className="grid gap-4 xl:grid-cols-3">
-        <Skeleton className="h-80 rounded-xl xl:col-span-2" />
-        <Skeleton className="h-80 rounded-xl" />
-      </div>
-      <Skeleton className="h-64 rounded-xl" />
-    </div>
-  );
-}

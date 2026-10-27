@@ -154,7 +154,7 @@ export function BacklinkTable({
 
   return (
     <Card className="gap-0 py-0">
-      <CardContent className="space-y-4 p-6">
+      <CardContent className="space-y-4 p-(--card-pad)">
         <div className="flex flex-col gap-2">
           <div className="max-w-full overflow-x-auto scrollbar-thin">
             <Tabs value={view} onValueChange={(v) => setView(v as BacklinkView)}>

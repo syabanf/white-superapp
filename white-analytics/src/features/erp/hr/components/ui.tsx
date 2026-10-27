@@ -395,16 +395,14 @@ function ReasonForm({
 export function UrlTabs({ tabs, value }: { tabs: Option[]; value: string }) {
   const { set, isPending } = useUrlFilters(["tab"]);
   return (
-    <Tabs value={value} onValueChange={(v) => set({ tab: v === tabs[0]?.value ? null : v })}>
-      <div className="-mx-1 overflow-x-auto px-1 scrollbar-thin">
-        <TabsList className={cn(isPending && "opacity-70")}>
-          {tabs.map((t) => (
-            <TabsTrigger key={t.value} value={t.value}>
-              {t.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </div>
+    <Tabs value={value} onValueChange={(v) => set({ tab: v === tabs[0]?.value ? null : v })} className="min-w-0">
+      <TabsList className={cn("max-w-full overflow-x-auto", isPending && "opacity-70")}>
+        {tabs.map((t) => (
+          <TabsTrigger key={t.value} value={t.value}>
+            {t.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
     </Tabs>
   );
 }
@@ -421,7 +419,7 @@ export function UrlSwitch({ param, label }: { param: string; label: string }) {
   const { values, set } = useUrlFilters([param]);
   const id = `sw-${param}`;
   return (
-    <div className="flex items-center gap-2 px-1">
+    <div className="flex items-center gap-2">
       <Switch id={id} checked={values[param] === "1"} onCheckedChange={(v) => set({ [param]: v ? "1" : null })} />
       <Label htmlFor={id} className="text-xs whitespace-nowrap text-muted-foreground">
         {label}
@@ -437,7 +435,7 @@ export function UrlDate({ param = "date", fallback, className }: { param?: strin
     <DatePicker
       value={values[param] ?? fallback}
       onChange={(v) => set({ [param]: v && v !== fallback ? v : null })}
-      className={cn("h-8 w-auto", className)}
+      className={cn("w-auto", className)}
     />
   );
 }

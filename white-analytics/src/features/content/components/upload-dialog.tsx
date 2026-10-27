@@ -106,10 +106,10 @@ export function UploadDialog({
           ) : null}
         </form>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             {c.cancel}
           </Button>
-          <Button type="submit" form="upload-form" size="sm" disabled={busy || files.length === 0}>
+          <Button type="submit" form="upload-form" disabled={busy || files.length === 0}>
             {busy ? <Loader2 className="size-3.5 animate-spin" /> : null} {title}
           </Button>
         </DialogFooter>

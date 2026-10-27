@@ -31,7 +31,7 @@ export function OrgChartTree({ chart }: { chart: OrgChart }) {
       return next;
     });
   return (
-    <Card className="gap-3 p-4">
+    <Card className="gap-3 px-(--card-pad)">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted-foreground">{th.org.total(chart.total)}</span>
         <div className="flex gap-2">

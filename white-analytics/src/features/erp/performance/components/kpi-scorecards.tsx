@@ -29,7 +29,7 @@ export function RunSnapshotButton({ year, month }: { year: number; month: number
   return (
     <ConfirmAction
       trigger={
-        <Button size="sm" disabled={pending}>
+        <Button disabled={pending}>
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
           {pending ? k.running : k.runSnapshot}
         </Button>
@@ -313,7 +313,7 @@ function ScorecardBody({
         <section className="flex flex-col gap-2 border-t pt-4">
           <h3 className="text-sm font-semibold">{k.manualActuals}</h3>
           <p className="text-xs text-muted-foreground">{k.manualHint}</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {manual.map((m) => (
               <FormRow key={m.indicatorId} label={m.indicatorName} htmlFor={`act-${m.indicatorId}`}>
                 <div className="flex gap-2">

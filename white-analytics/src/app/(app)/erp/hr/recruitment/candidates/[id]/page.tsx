@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { PageHeader } from "@/components/dashboard/page-header";
+import { PageHeader, Section } from "@/components/dashboard/page-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -60,12 +57,8 @@ export default async function CandidateDetailPage(props: PageProps<"/erp/hr/recr
 
   return (
     <>
-      <Button variant="ghost" size="sm" asChild className="-ml-2 self-start">
-        <Link href="/erp/hr/recruitment/candidates">
-          <ArrowLeft className="size-4" /> {rs.candidates.back}
-        </Link>
-      </Button>
       <PageHeader
+        back={{ href: "/erp/hr/recruitment/candidates", label: rs.candidates.back }}
         eyebrow={c.jobOpeningTitle || rs.candidates.noJob}
         title={
           <span className="flex items-center gap-3">
@@ -80,7 +73,11 @@ export default async function CandidateDetailPage(props: PageProps<"/erp/hr/recr
           <>
             <CandidateBadge status={c.status} />
             {REPORT_STAGES.includes(c.status) ? (
-              <DownloadButton href={`/api/erp/v1/recruitment/candidates/${c.id}/report`} fileName={`laporan-${c.id}.pdf`}>
+              <DownloadButton
+                href={`/api/erp/v1/recruitment/candidates/${c.id}/report`}
+                fileName={`laporan-${c.id}.pdf`}
+                size="default"
+              >
                 {rs.candidates.report}
               </DownloadButton>
             ) : null}
@@ -123,7 +120,14 @@ async function CandidateTab({
         canWrite ? load(listInstruments) : Promise.resolve(none),
       ]);
       if (!panel.data) return <ErpLoadError error={panel.error} />;
-      return <PsikotesPanel candidateId={id} panel={panel.data} instruments={instruments.data ?? []} canWrite={canWrite} />;
+      return (
+        <PsikotesPanel
+          candidateId={id}
+          panel={panel.data}
+          instruments={instruments.data ?? []}
+          canWrite={canWrite}
+        />
+      );
     }
     case "ai": {
       const res = await load(() => getCandidateAiInterviews(id));
@@ -141,13 +145,12 @@ async function CandidateTab({
         employees: (employees.data ?? []).map((e) => ({ value: e.id, label: e.label })),
       };
       return (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold">{rs.interviews.title}</h2>
-            {canWrite ? <ScheduleButton lookups={lookups} candidateId={id} /> : null}
-          </div>
+        <Section
+          title={rs.interviews.title}
+          actions={canWrite ? <ScheduleButton lookups={lookups} candidateId={id} /> : null}
+        >
           <InterviewList interviews={list.data} canWrite={canWrite} lookups={lookups} showCandidate={false} />
-        </div>
+        </Section>
       );
     }
     case "offers": {

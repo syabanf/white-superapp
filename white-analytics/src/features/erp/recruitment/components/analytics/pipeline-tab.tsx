@@ -46,7 +46,7 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
   });
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           {
@@ -66,7 +66,7 @@ export function PipelineTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
         ]}
       />
 
-      <div className="grid gap-4 sm:gap-5 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={s.funnel} description={s.funnelHint}>
           <FunnelChart
             steps={funnel.map((f) => ({

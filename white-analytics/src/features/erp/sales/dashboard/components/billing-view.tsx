@@ -40,7 +40,7 @@ export function BillingView({ data, query }: { data: DashboardBilling; query: Da
         compare={period.compare}
         hrefs={{ invoiced: issued, collected: issued, outstanding: unpaid, overdue: "#invoice-telat", collection_rate: issued, days_to_pay: issued }}
       />
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard className="xl:col-span-2" title={b.monthly} description={b.monthlyHint}>
           <MonthlyChart
             months={period.months}
@@ -62,7 +62,7 @@ export function BillingView({ data, query }: { data: DashboardBilling; query: Da
           />
         </ChartCard>
       </div>
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <div id="invoice-telat" className="min-w-0 scroll-mt-20">
           <ChartCard title={b.overdue} description={b.overdueHint} className="h-full">
             <DetailTable<DashboardInvoice>

@@ -36,7 +36,7 @@ type Props = {
 
 function Block({ index, title, hint, children }: { index: string; title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
+    <section className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
       <header className="mb-3">
         <h2 className="flex items-baseline gap-2 text-sm font-semibold tracking-[-0.01em]">
           <span className="label-mono text-brand">{index}</span> {title}
@@ -94,7 +94,7 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
     return messages.length ? <ul role="alert" className="mt-2 space-y-1 text-xs text-destructive">{messages.map((message) => <li key={message}>{message}</li>)}</ul> : null;
   };
   const previewCard = (
-    <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
+    <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="flex items-baseline gap-2 text-sm font-semibold"><span className="label-mono text-brand">07</span> {p.sectionPreview}</h2>
         {platforms.length > 1 ? <Tabs value={activePreview} onValueChange={(v) => setPreviewPlatform(v as Platform)}><TabsList className="h-8">{platforms.map((pl) => <TabsTrigger key={pl} value={pl} aria-label={platformLabel(pl)}><PlatformIcon platform={pl} className="size-3.5" mono={activePreview !== pl} /></TabsTrigger>)}</TabsList></Tabs> : null}
@@ -230,7 +230,7 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
           />
         </Block>
 
-        <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:-mx-6 md:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+        <div className="sticky bottom-0 z-10 -mx-(--page-x) flex items-center justify-end gap-2 border-t bg-background px-(--page-x) py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
           <Button type="button" variant="outline" size="sm" onClick={() => submit("draft")} disabled={disabled}>
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
             {pending ? p.saving : initial ? p.saveChanges : p.saveDraft}

@@ -72,7 +72,7 @@ export default async function JobDetailPage(props: PageProps<"/karier/[slug]">) 
             <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">{body}</p>
           </section>
         ))}
-      <Card id="lamar" className="scroll-mt-6 p-5 sm:p-6">
+      <Card id="lamar" className="scroll-mt-6 p-(--card-pad)">
         <h2 className="mb-4 text-lg font-semibold">{c.applyTitle}</h2>
         <ApplyForm slug={job.slug} />
       </Card>

@@ -34,12 +34,12 @@ export default async function OnboardingListPage(props: PageProps<"/erp/sales/on
       ) : list.data.length === 0 ? (
         <ErpEmpty description={s.empty} filtered={!!status} />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-(--gap) sm:grid-cols-2 xl:grid-cols-3">
           {list.data.map((o) => {
             const open = o.items.filter((i) => i.status === "todo").length;
             return (
               <Link key={o.id} href={`/erp/sales/onboarding/${o.id}`} className="group">
-                <Card className="h-full gap-3 px-5 py-4 transition-shadow group-hover:shadow-[var(--lift-shadow)]">
+                <Card className="h-full gap-3 transition-shadow group-hover:shadow-[var(--lift-shadow)] p-(--card-pad)">
                   <div className="flex items-start justify-between gap-2">
                     <h2 className="font-medium">{o.clientName}</h2>
                     <SalesBadge value={o.status} map={ONBOARDING_STATUS} />

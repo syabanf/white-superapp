@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -30,7 +31,7 @@ export default async function ContractsPage(props: PageProps<"/erp/hr/contracts"
       <>
         {header}
         <UrlTabs tabs={TABS} value={tab} />
-        <div className="flex items-center gap-2">
+        <Toolbar label={c.window}>
           <span className="text-sm text-muted-foreground">{c.window}</span>
           <SelectFilter
             param="days"
@@ -38,7 +39,7 @@ export default async function ContractsPage(props: PageProps<"/erp/hr/contracts"
             allLabel={c.windowDays(30)}
             options={[7, 14, 60, 90].map((d) => ({ value: String(d), label: c.windowDays(d) }))}
           />
-        </div>
+        </Toolbar>
         {res.data ? <ExpiringPanel data={res.data} /> : <ErpError message={res.error.message} />}
       </>
     );

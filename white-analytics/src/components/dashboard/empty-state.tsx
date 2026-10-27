@@ -24,10 +24,10 @@ export function EmptyState({
       role={state === "error" ? "alert" : "status"}
       data-state={state}
       className={cn(
-        "rounded-xl border border-dashed bg-card/50",
+        "justify-center rounded-2xl border border-dashed bg-card",
         state === "error" && "border-destructive/40 bg-destructive/5",
         state === "disconnected" && "border-amber-500/40",
-        compact ? "py-8" : "py-14",
+        compact ? "min-h-40 py-6" : "min-h-64 py-10",
         className,
       )}
     >

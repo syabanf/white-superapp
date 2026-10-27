@@ -21,10 +21,10 @@ export default async function PublicFormPage(props: PageProps<"/f/[slug]">) {
   const form = res.data;
   return (
     <>
-      <div className="mx-auto w-full max-w-xl">
+      <div className="w-full max-w-xl">
         <h1 className="text-[28px] leading-tight font-semibold">{form.name}</h1>
         {form.description ? <p className="mt-2 text-sm text-muted-foreground">{form.description}</p> : null}
-        <Card className="mt-6 px-6 py-6">
+        <Card className="mt-6 p-(--card-pad)">
           <PublicLeadForm form={form} />
         </Card>
       </div>

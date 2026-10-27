@@ -55,9 +55,9 @@ export default async function ChatbotPage(props: PageProps<"/erp/sales/chatbot">
       getSessionUser(),
     ]);
     body = (
-      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-(--gap) lg:grid-cols-[320px_minmax(0,1fr)]">
         <Card className="flex max-h-[calc(100dvh-14rem)] min-h-[560px] flex-col gap-0 overflow-hidden py-0">
-          <div className="flex flex-col gap-2 border-b p-3">
+          <div className="flex flex-col gap-2 border-b p-(--card-pad)">
             <SearchFilter placeholder={s.searchPlaceholder} className="[&_input]:w-full" />
             <div className="flex flex-wrap gap-2">
               <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={opts(CONVERSATION_STATUS)} className="min-w-0 flex-1" />

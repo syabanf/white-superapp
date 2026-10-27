@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader, Section } from "@/components/dashboard/page-header";
+import { DetailLayout } from "@/components/dashboard/layout";
 import { BriefForm } from "@/features/content/components/plans/brief-form";
 import { PlanActions } from "@/features/content/components/plans/plan-actions";
 import { PlanItems } from "@/features/content/components/plans/plan-items";
@@ -24,18 +22,12 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
 export default async function PlanDetailPage(props: PageProps<"/clients/[slug]/content/plans/[planId]">) {
   const { slug, planId } = await props.params;
   const { client, role, canWrite, userId, people, names } = await contentContext(slug);
-  const back = (
-    <Button asChild variant="outline" size="sm" className="group/nudge">
-      <Link href={`/clients/${slug}/content/plans`}>
-        <ArrowLeft className="nudge nudge-back size-3.5" /> {t.nav.contentPlans}
-      </Link>
-    </Button>
-  );
+  const back = { href: `/clients/${slug}/content/plans`, label: t.nav.contentPlans };
   const res = await loadContent(() => getPlan(client.id, planId));
   if (!res.ok) {
     return (
       <>
-        <PageHeader eyebrow={t.nav.contentPlans} title={c.plansTitle} actions={back} />
+        <PageHeader eyebrow={t.nav.contentPlans} title={c.plansTitle} back={back} />
         <ContentOffline message={res.message} />
       </>
     );
@@ -52,15 +44,11 @@ export default async function PlanDetailPage(props: PageProps<"/clients/[slug]/c
   return (
     <>
       <PageHeader
+        back={back}
         eyebrow={`${t.nav.contentPlans} · ${monthLabel(plan.month)}`}
         title={plan.title}
         description={meta.length ? meta.join(" · ") : c.briefDesc}
-        actions={
-          <>
-            <PlanStatusBadge status={plan.status} className="h-6 px-2.5 text-xs" />
-            {back}
-          </>
-        }
+        actions={<PlanStatusBadge status={plan.status} className="h-6 px-2.5 text-xs" />}
       />
 
       {plan.reviewNote && plan.status === "PLAN_DRAFT" ? (
@@ -79,36 +67,37 @@ export default async function PlanDetailPage(props: PageProps<"/clients/[slug]/c
         />
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="min-w-0 space-y-6">
-          <Section index="01" title={c.itemsSection}>
-            <PlanItems
-              slug={slug}
-              planId={plan.id}
-              month={plan.month}
-              items={items}
-              people={people}
-              pillars={plan.brief?.pillars ?? []}
-              timezone={tz}
-              today={todayIn(tz)}
-              canWrite={canWrite}
-            />
-          </Section>
-        </div>
-        <aside className="min-w-0 space-y-6">
-          <Section index="02" title={c.brief} description={c.briefDesc}>
-            <BriefForm key={plan.updatedAt} slug={slug} plan={plan} editable={canWrite && plan.status === "PLAN_DRAFT"} />
-            {plan.generatedAt && plan.aiModel ? (
-              <p className="text-xs text-muted-foreground">{c.generatedBy(plan.aiModel, formatDateTime(plan.generatedAt, tz))}</p>
-            ) : null}
-          </Section>
-          <Section index="03" title={c.comments}>
-            <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
-              <CommentThread slug={slug} target={{ kind: "plan", planId: plan.id }} comments={comments} />
-            </div>
-          </Section>
-        </aside>
-      </div>
+      <DetailLayout
+        aside={
+          <>
+            <Section index="02" title={c.brief} description={c.briefDesc}>
+              <BriefForm key={plan.updatedAt} slug={slug} plan={plan} editable={canWrite && plan.status === "PLAN_DRAFT"} />
+              {plan.generatedAt && plan.aiModel ? (
+                <p className="text-xs text-muted-foreground">{c.generatedBy(plan.aiModel, formatDateTime(plan.generatedAt, tz))}</p>
+              ) : null}
+            </Section>
+            <Section index="03" title={c.comments}>
+              <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
+                <CommentThread slug={slug} target={{ kind: "plan", planId: plan.id }} comments={comments} />
+              </div>
+            </Section>
+          </>
+        }
+      >
+        <Section index="01" title={c.itemsSection}>
+          <PlanItems
+            slug={slug}
+            planId={plan.id}
+            month={plan.month}
+            items={items}
+            people={people}
+            pillars={plan.brief?.pillars ?? []}
+            timezone={tz}
+            today={todayIn(tz)}
+            canWrite={canWrite}
+          />
+        </Section>
+      </DetailLayout>
     </>
   );
 }

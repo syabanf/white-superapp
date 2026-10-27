@@ -15,16 +15,16 @@ export function QuotationView({ q }: { q: Quotation }) {
           <table className="w-full text-sm">
             <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
               <tr>
-                <th className="px-5 py-2 text-left font-medium">{s.description}</th>
+                <th className="px-(--card-pad) py-2 text-left font-medium">{s.description}</th>
                 <th className="px-3 py-2 text-right font-medium">{s.qty}</th>
                 <th className="px-3 py-2 text-right font-medium">{s.price}</th>
-                <th className="px-5 py-2 text-right font-medium">{s.lineTotal}</th>
+                <th className="px-(--card-pad) py-2 text-right font-medium">{s.lineTotal}</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {q.items.map((it) => (
                 <tr key={it.id}>
-                  <td className="px-5 py-3 align-top">
+                  <td className="px-(--card-pad) py-3 align-top">
                     <div className="font-medium">{it.description}</div>
                     {it.scope ? <div className="mt-0.5 text-xs whitespace-pre-line text-muted-foreground">{it.scope}</div> : null}
                   </td>
@@ -34,7 +34,7 @@ export function QuotationView({ q }: { q: Quotation }) {
                   <td className="px-3 py-3 text-right align-top">
                     <Money value={it.unitPrice} />
                   </td>
-                  <td className="px-5 py-3 text-right align-top">
+                  <td className="px-(--card-pad) py-3 text-right align-top">
                     <Money value={it.lineTotal} className="font-medium" />
                   </td>
                 </tr>
@@ -43,8 +43,8 @@ export function QuotationView({ q }: { q: Quotation }) {
           </table>
         </div>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="gap-3 px-5 py-4">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
+        <Card className="gap-3 p-(--card-pad)">
           <h2 className="text-[15px] font-semibold">{s.termsTitle}</h2>
           <ul className="divide-y text-sm">
             {q.terms.map((t) => (
@@ -61,7 +61,7 @@ export function QuotationView({ q }: { q: Quotation }) {
           </ul>
           {q.notes ? <p className="border-t pt-3 text-xs whitespace-pre-line text-muted-foreground">{q.notes}</p> : null}
         </Card>
-        <Card className="gap-2 px-5 py-4 text-sm">
+        <Card className="gap-2 text-sm p-(--card-pad)">
           <Line label={s.subtotal} value={q.subtotal} />
           <Line label={`${s.discountNominal} ${q.discountPercent}%`} value={`-${q.discountNominal}`} muted />
           {q.usePpn ? <Line label={`${s.ppnNominal} ${q.ppnPercent}%`} value={q.ppnNominal} muted /> : null}

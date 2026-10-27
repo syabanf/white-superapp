@@ -55,8 +55,8 @@ export function CaptionEditor({
   };
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={save} className="space-y-4 rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
+    <div className="page-stack">
+      <form onSubmit={save} className="space-y-4 rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
         <Field id="cap-hook" label={c.hook}>
           <Input id="cap-hook" value={hook} onChange={(e) => setHook(e.target.value)} disabled={!editable} />
         </Field>
@@ -71,14 +71,14 @@ export function CaptionEditor({
             <Field id="cap-note" label={c.revisionNote} className="flex-1">
               <Input id="cap-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder={c.revisionNotePlaceholder} />
             </Field>
-            <Button type="submit" size="sm" disabled={pending || !dirty}>
-              {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {c.saveRevision}
+            <Button type="submit" disabled={pending || !dirty}>
+              {pending ? <Loader2 className="animate-spin" /> : null} {c.saveRevision}
             </Button>
           </div>
         ) : null}
       </form>
 
-      <div className="rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
+      <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
         <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
           <History className="size-3.5 text-muted-foreground" /> {c.revisions}
         </h3>

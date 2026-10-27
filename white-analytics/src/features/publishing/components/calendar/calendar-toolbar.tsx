@@ -72,9 +72,9 @@ export function CalendarToolbar({
         </Button>
         <h2 className="ml-1 truncate text-base font-semibold tracking-[-0.02em] md:text-lg">{title}</h2>
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-3 2xl:justify-end">
+      <div className="flex flex-wrap items-center gap-(--gap-inner) 2xl:justify-end">
         <Tabs value={view}>
-          <TabsList className="h-8">
+          <TabsList>
             <TabsTrigger value="month" asChild>
               <Link href={hrefWith({ view: null })} scroll={false}>
                 {p.month}
@@ -91,7 +91,7 @@ export function CalendarToolbar({
           value={platform}
           onValueChange={(v) => router.replace(hrefWith({ platform: v }), { scroll: false })}
         >
-          <SelectTrigger size="sm" className="w-[164px] data-[size=sm]:h-9 px-3" aria-label={p.allPlatforms}>
+          <SelectTrigger className="w-[164px]" aria-label={p.allPlatforms}>
             {/* Explicit children so the label is server-rendered (Radix fills it only after hydration). */}
             <SelectValue>
               {platform === "ALL" ? p.allPlatforms : platformLabel(platform as Platform)}
@@ -110,7 +110,7 @@ export function CalendarToolbar({
           value={status}
           onValueChange={(v) => router.replace(hrefWith({ status: v }), { scroll: false })}
         >
-          <SelectTrigger size="sm" className="w-[176px] data-[size=sm]:h-9 px-3" aria-label={t.common.status}>
+          <SelectTrigger className="w-[176px]" aria-label={t.common.status}>
             <SelectValue>{status === "ALL" ? p.allStatuses : statusLabel(status as PostStatus)}</SelectValue>
           </SelectTrigger>
           <SelectContent position="popper" align="start" sideOffset={6} className="min-w-[196px] p-1.5">

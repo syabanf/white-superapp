@@ -51,7 +51,7 @@ export function PipelineView({ data, query }: { data: DashboardPipeline; query: 
           velocity: listHref("deal", { ...base, ...periodFilter(query), status: "won" }),
         }}
       />
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={p.funnel} description={p.funnelHint}>
           <FunnelChart
             steps={data.funnel.map((f) => ({ key: f.key, label: f.label, count: f.count, value: f.value }))}

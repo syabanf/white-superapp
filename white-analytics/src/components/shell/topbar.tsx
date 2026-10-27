@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Breadcrumb,
@@ -17,7 +16,7 @@ import { DateRangePicker } from "@/components/shell/date-range-picker";
 import { HelpButton } from "@/components/shell/help-button";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import type { NotificationFeed } from "@/features/notifications/queries";
-import { clientNav, generalNav, adminNav, isActivePath } from "@/components/shell/nav-config";
+import { activeNavHref, adminNav, clientNav, erpNav, generalNav, isActivePath, workspaceOf } from "@/components/shell/nav-config";
 import type { SwitcherClient } from "@/components/shell/client-switcher";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
@@ -56,6 +55,16 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
         out.push({ label: top.label, href: child ? top.href : undefined });
         if (child) out.push({ label: child.label });
       }
+    } else if (workspaceOf(pathname) === "erp") {
+      // ERP: the module, then the page inside it ("SDM › Rekrutmen").
+      const items = erpNav.flatMap((g) => g.items);
+      const current = activeNavHref(pathname, items);
+      const top = items.find((it) => it.href === current || it.children?.some((c) => c.href === current));
+      const child = top?.children?.find((c) => c.href === current);
+      const group = erpNav.find((g) => top && g.items.includes(top));
+      if (group && group.label !== top?.label) out.push({ label: group.label });
+      out.push({ label: top?.label ?? t.erp.title, href: child ? top?.href : undefined });
+      if (child) out.push({ label: child.label });
     } else {
       const item = [...generalNav, ...adminNav].find((n) => isActivePath(pathname, n.href, n.exact));
       out.push({ label: item?.label ?? t.app.name });
@@ -64,10 +73,12 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
   }, [pathname, client]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 bg-canvas/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-canvas/70">
-      <SidebarTrigger className="-ml-1 hidden shrink-0 md:inline-flex" />
-      <Separator orientation="vertical" className="mr-2 hidden shrink-0 data-[orientation=vertical]:h-4 md:block" />
-      <Breadcrumb className="min-w-0 flex-1 overflow-hidden">
+    <header className="sticky top-0 z-30 h-16 shrink-0 bg-background md:h-[4.5rem] md:rounded-t-[2rem]">
+      {/* Same container as the page, so the trigger lines up with the page title below */}
+      <div className="page-container flex h-full items-center gap-2.5">
+      <SidebarTrigger className="hidden size-10 shrink-0 rounded-2xl bg-card shadow-(--card-shadow) hover:bg-muted md:inline-flex" />
+      {/* The trail sits in a soft pill, like a search field */}
+      <Breadcrumb className="min-w-0 flex-1 overflow-hidden md:flex md:h-10 md:max-w-xl md:items-center md:rounded-full md:bg-card md:px-4 md:shadow-(--card-shadow)">
         <BreadcrumbList className="flex-nowrap overflow-hidden">
           {crumbs.map((c, i) => {
             const last = i === crumbs.length - 1;
@@ -76,9 +87,9 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
                 <BreadcrumbItem
                   className={cn(
                     "min-w-0",
-                    // Phones show the current page only; the trail returns from md up.
-                    !last && "hidden md:inline-flex",
-                    i === 0 && crumbs.length > 2 && "md:hidden lg:inline-flex",
+                    // Phones and tablets show the current page only; the trail returns from lg up.
+                    !last && "hidden lg:inline-flex",
+                    i === 0 && crumbs.length > 2 && "lg:hidden 2xl:inline-flex",
                   )}
                 >
                   {last || !c.href ? (
@@ -95,7 +106,7 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
                 </BreadcrumbItem>
                 {!last ? (
                   <BreadcrumbSeparator
-                    className={cn("hidden md:block", i === 0 && crumbs.length > 2 && "md:hidden lg:block")}
+                    className={cn("hidden lg:block", i === 0 && crumbs.length > 2 && "lg:hidden 2xl:block")}
                   />
                 ) : null}
               </React.Fragment>
@@ -107,6 +118,7 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
         {usesDateRange(pathname) ? <DateRangePicker /> : null}
         <NotificationBell feed={notifications} />
         <HelpButton />
+      </div>
       </div>
     </header>
   );

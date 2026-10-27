@@ -41,7 +41,7 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
   const totalHires = data.openings.reduce((a, b) => a + b.hires, 0);
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <KpiGrid>
         <KpiTile
           label={ra.kpi.openPositions}
@@ -131,7 +131,7 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
         />
       </KpiGrid>
 
-      <div className="grid gap-4 sm:gap-5 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard
           className="xl:col-span-2"
           title={o.applications}
@@ -161,7 +161,7 @@ export function OverviewTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
         </ChartCard>
       </div>
 
-      <div className="grid gap-4 sm:gap-5 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard
           className="xl:col-span-2"
           title={o.flow}

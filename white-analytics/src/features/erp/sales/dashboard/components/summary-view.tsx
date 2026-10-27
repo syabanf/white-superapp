@@ -35,7 +35,7 @@ export function SummaryView({ data, query }: { data: DashboardSummary; query: Da
         compare={period.compare}
         hrefs={{ pipeline_value: pipelineHref, weighted_value: pipelineHref, won_value: wonHref, win_rate: closedHref, avg_deal: wonHref, cycle_days: wonHref }}
       />
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard
           className="xl:col-span-2"
           title={s.wonVsTarget}

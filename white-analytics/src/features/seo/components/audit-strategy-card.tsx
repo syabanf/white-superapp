@@ -22,7 +22,7 @@ export function AuditStrategyCard({ audit, strategy }: { audit: AuditRow | null;
   const label = strategy === "MOBILE" ? t.seo.mobile : t.seo.desktop;
   return (
     <Card className="gap-3 py-0">
-      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 px-5 pt-4 pb-0">
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 px-(--card-pad) pt-(--card-pad) pb-0">
         <div>
           <CardTitle className="flex items-center gap-2 text-sm font-semibold">
             <Icon className="size-4 text-muted-foreground" /> {label}
@@ -32,7 +32,7 @@ export function AuditStrategyCard({ audit, strategy }: { audit: AuditRow | null;
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 px-5 pb-5">
+      <CardContent className="space-y-4 px-(--card-pad) pb-(--card-pad)">
         <div className="grid grid-cols-4 gap-2">
           <ScoreRing score={audit?.performance} label={t.seo.performance} size={72} />
           <ScoreRing score={audit?.seo} label={t.seo.seoScore} size={72} />

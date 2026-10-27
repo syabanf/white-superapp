@@ -195,7 +195,7 @@ export function ImprovementsTable({
   ];
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-(--gap-inner)">
       {suggested > 0 ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-[color-mix(in_oklab,var(--chart-1)_10%,transparent)] px-4 py-3 text-sm">
           <Sparkles className="size-4 text-[var(--chart-1)]" />
@@ -214,7 +214,7 @@ export function ImprovementsTable({
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
             {toolbar}
-            <Button size="sm" onClick={() => setEditing("new")}>
+            <Button onClick={() => setEditing("new")}>
               <Plus className="size-4" /> {im.newItem}
             </Button>
           </div>
@@ -289,7 +289,7 @@ function ImprovementDialog({
             <DialogTitle>{item ? im.editItem : im.newItem}</DialogTitle>
             {item ? <DialogDescription>{im.sources[item.source]}</DialogDescription> : null}
           </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {!item ? (
               <>
                 <FormRow label={im.scope}>
@@ -415,14 +415,14 @@ export function RetrosPanel({
   const now = new Date();
   const sorted = [...retros].sort((a, b) => b.periodYear * 12 + b.periodMonth - (a.periodYear * 12 + a.periodMonth));
   return (
-    <div className="flex flex-col gap-3">
-      <Button size="sm" className="self-start" onClick={() => setEditing("new")} disabled={departments.length === 0}>
+    <div className="flex flex-col gap-(--gap-inner)">
+      <Button className="self-start" onClick={() => setEditing("new")} disabled={departments.length === 0}>
         <Plus className="size-4" /> {im.newRetro}
       </Button>
       {sorted.length === 0 ? (
         <ErpEmpty title={im.noRetros} />
       ) : (
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-2">
           {sorted.map((r) => (
             <RetroCard key={r.id} retro={r} onEdit={() => setEditing(r)} />
           ))}
@@ -468,7 +468,7 @@ function RetroCard({ retro, onEdit }: { retro: Retro; onEdit: () => void }) {
       </div>
     ) : null;
   return (
-    <Card className="gap-3 p-4">
+    <Card className="gap-3 p-(--card-pad)">
       <div className="flex items-start justify-between gap-2">
         <p className="font-semibold">{im.retroFor(retro.departmentName, sp.monthLabel(retro.periodYear, retro.periodMonth))}</p>
         <ErpStatusBadge status={retro.status} labels={im.retroStatus} kinds={{ draft: "neutral", closed: "good" }} />
@@ -538,7 +538,7 @@ function RetroDialog({
         <DialogHeader>
           <DialogTitle>{isNew ? im.newRetro : im.retroFor(retro.departmentName, sp.monthLabel(retro.periodYear, retro.periodMonth))}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormRow label={sp.common.department}>
             <Select value={dept} onValueChange={setDept} disabled={!isNew}>
               <SelectTrigger className="w-full" aria-label={sp.common.department}>

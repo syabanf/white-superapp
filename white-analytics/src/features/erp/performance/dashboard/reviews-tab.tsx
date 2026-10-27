@@ -21,7 +21,7 @@ export function ReviewsTab({ data }: { data: DashReviews }) {
   const one = (v: number) => v.toLocaleString("id-ID", { maximumFractionDigits: 1 });
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <KpiGrid cols={4}>
         <MetricTile
           label={r.score}
@@ -51,7 +51,7 @@ export function ReviewsTab({ data }: { data: DashReviews }) {
         />
       </KpiGrid>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={c.cycleId ? `${r.cycle} · ${c.name}` : r.cycle} description={r.cycleHint}>
           {c.cycleId ? (
             <Funnel
@@ -108,7 +108,7 @@ export function ReviewsTab({ data }: { data: DashReviews }) {
         />
       </ChartCard>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard
           title={
             data.feedbackCycleName

@@ -10,12 +10,13 @@ const dev = process.env.NODE_ENV !== "production";
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
+  // Cloudflare Web Analytics injects its beacon on the proxied domain.
+  `script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${dev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "media-src 'self' blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self'${dev ? " ws: wss:" : ""}`,
+  `connect-src 'self' https://cloudflareinsights.com${dev ? " ws: wss:" : ""}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -56,13 +56,13 @@ export function DashboardFilterBar({
       aria-label="Filter dashboard"
       className={cn(
         // Phones: the period picker gets its own row so its label stays readable; the rest pair up.
-        "flex flex-wrap items-center gap-3 [&>*]:max-sm:min-w-0 [&>*]:max-sm:flex-1 [&>*]:max-sm:basis-[calc(50%-0.375rem)] [&>*:first-child]:max-sm:basis-full",
+        "flex flex-wrap items-center gap-(--gap-inner) [&>*]:max-sm:min-w-0 [&>*]:max-sm:flex-1 [&>*]:max-sm:basis-[calc(50%-0.375rem)] [&>*:first-child]:max-sm:basis-full",
         className,
       )}
     >
       <PeriodControl period={period} onChange={(patch) => set(patch)} pending={isPending} />
       <Select value={period.compare} onValueChange={(v) => set({ compare: v === "previous" ? null : v })}>
-        <SelectTrigger size="sm" aria-label="Pembanding" className="min-w-44">
+        <SelectTrigger aria-label="Pembanding" className="min-w-44">
           <GitCompareArrows className="size-3.5 text-muted-foreground" />
           <SelectValue>{COMPARE_MODES.find((m) => m.value === period.compare)?.label}</SelectValue>
         </SelectTrigger>
@@ -76,8 +76,8 @@ export function DashboardFilterBar({
       </Select>
       {children}
       {dirty ? (
-        <Button variant="ghost" size="sm" onClick={() => set(Object.fromEntries(keys.map((k) => [k, null])))}>
-          <X className="size-3.5" /> Atur ulang
+        <Button variant="ghost" onClick={() => set(Object.fromEntries(keys.map((k) => [k, null])))}>
+          <X /> Atur ulang
         </Button>
       ) : null}
     </div>
@@ -113,7 +113,7 @@ function PeriodControl({
   return (
     <Popover open={open} onOpenChange={openPicker}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="justify-start font-normal shadow-none" aria-label={`Periode: ${period.label}`}>
+        <Button variant="outline" className="justify-start font-normal shadow-none" aria-label={`Periode: ${period.label}`}>
           {pending ? (
             <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
           ) : (

@@ -26,7 +26,7 @@ import {
   adminNav,
   clientNav,
   generalNav,
-  isActivePath,
+  activeNavHref,
   visibleErpNav,
   workspaceOf,
   type ErpAccess,
@@ -68,11 +68,11 @@ export function AppSidebar({
   );
 
   return (
-    <Sidebar collapsible="icon" variant="sidebar" className="border-r-0">
-      <SidebarHeader className="gap-4 px-4 pt-5">
+    <Sidebar collapsible="icon" variant="floating" className="border-r-0">
+      <SidebarHeader className="gap-3 px-4 pt-6 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
         <Link
           href="/"
-          className="flex h-8 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mb-1 flex h-9 items-center gap-2 rounded-xl px-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <MixistLogo variant={collapsed ? "mark" : "full"} size={collapsed ? 28 : 36} />
         </Link>
@@ -80,7 +80,7 @@ export function AppSidebar({
         {!inErp ? <ClientSwitcher clients={clients} current={currentClient} collapsed={collapsed} /> : null}
       </SidebarHeader>
 
-      <SidebarContent className="scrollbar-thin px-1">
+      <SidebarContent className="scrollbar-thin px-1 pt-2">
         {inErp ? (
           erpGroups.map((g) => (
             <NavGroup
@@ -101,9 +101,9 @@ export function AppSidebar({
         )}
       </SidebarContent>
 
-      <SidebarFooter className="gap-3 p-3">
+      <SidebarFooter className="gap-3 p-3 pb-4">
         {!collapsed && !inErp ? (
-          <Button asChild className="h-10 w-full justify-center">
+          <Button asChild className="h-11 w-full justify-center">
             {currentClient ? (
               <Link href={withContext(`/clients/${currentClient.slug}/reports`)}>
                 <FilePlus2 className="size-4" /> {t.reports.builder}
@@ -151,25 +151,35 @@ function MarketingNav({
   );
 }
 
-/** Round icon chip: white on the grey rail, brand blue when the row is active. */
+/** Soft icon chip: quiet on idle rows, brand-tinted when the row is active. */
 function NavIcon({ icon: Icon, active }: { icon: NavItem["icon"]; active: boolean }) {
   return (
     <span
       aria-hidden
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center rounded-full transition-colors duration-200",
+        "flex size-8 shrink-0 items-center justify-center rounded-xl transition-colors duration-200",
         active
-          ? "bg-brand text-white"
-          : "bg-card text-muted-foreground shadow-(--card-shadow) group-hover/row:text-foreground",
+          ? "bg-[color-mix(in_oklab,var(--brand)_14%,transparent)] text-brand"
+          : "text-muted-foreground group-hover/row:bg-muted group-hover/row:text-foreground",
       )}
     >
-      <Icon className="size-4" />
+      <Icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.75} />
     </span>
   );
 }
 
+/** Accent bar on the panel edge beside the active row. */
+function ActiveBar() {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute top-2.5 -left-3 h-6 w-1 rounded-r-full bg-brand group-data-[collapsible=icon]:-left-2"
+    />
+  );
+}
+
 const ROW =
-  "group/row h-11 gap-3 rounded-full px-1.5 font-normal text-muted-foreground transition-colors duration-150 hover:bg-transparent hover:text-foreground data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-foreground group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:p-1.5!";
+  "group/row h-11 gap-3 rounded-2xl px-1.5 font-normal text-muted-foreground transition-colors duration-150 hover:bg-transparent hover:text-foreground data-[active=true]:bg-transparent data-[active=true]:font-semibold data-[active=true]:text-foreground group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:p-1.5!";
 
 function NavGroup({
   label,
@@ -184,12 +194,10 @@ function NavGroup({
 }) {
   // Accordion: the section you are in is open, and opening another closes it.
   // A manual choice only lasts until the next navigation, then the route decides again.
+  const current = activeNavHref(pathname, items);
   const routeOpen =
-    items.find(
-      (it) =>
-        it.children?.some((c) => isActivePath(pathname, c.href)) ||
-        (it.children && isActivePath(pathname, it.href, it.exact)),
-    )?.href ?? null;
+    items.find((it) => it.children && (it.href === current || it.children.some((c) => c.href === current)))?.href ??
+    null;
   const [manual, setManual] = React.useState<{ at: string; href: string | null } | null>(null);
   const openHref = manual?.at === pathname ? manual.href : routeOpen;
 
@@ -201,11 +209,12 @@ function NavGroup({
       <SidebarGroupContent>
         <SidebarMenu className="gap-0.5">
           {items.map((item) => {
-            const active = isActivePath(pathname, item.href, item.exact);
-            const childActive = item.children?.some((c) => isActivePath(pathname, c.href)) ?? false;
+            const active = item.href === current;
+            const childActive = item.children?.some((c) => c.href === current) ?? false;
             const open = openHref === item.href;
             return (
               <SidebarMenuItem key={item.href}>
+                {active || childActive ? <ActiveBar /> : null}
                 <SidebarMenuButton
                   asChild
                   tooltip={item.label}
@@ -225,16 +234,16 @@ function NavGroup({
                       aria-expanded={open}
                       aria-label={`${open ? t.nav.collapse : t.nav.expand} ${item.label}`}
                       onClick={() => setManual({ at: pathname, href: open ? null : item.href })}
-                      className="absolute top-2 right-1 flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-card hover:text-foreground group-data-[collapsible=icon]:hidden"
+                      className="absolute top-2 right-1 flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-data-[collapsible=icon]:hidden"
                     >
                       <ChevronRight
                         className={cn("size-3.5 transition-transform duration-200", open && "rotate-90")}
                       />
                     </button>
                     {open ? (
-                      <ul className="mt-1 mb-2 ml-4 space-y-0.5 rounded-2xl bg-card p-1.5 shadow-(--card-shadow) group-data-[collapsible=icon]:hidden">
+                      <ul className="mt-0.5 mb-2 ml-[1.15rem] space-y-0.5 border-l border-border/70 py-0.5 pl-3 group-data-[collapsible=icon]:hidden">
                         {item.children.map((child) => {
-                          const on = isActivePath(pathname, child.href);
+                          const on = child.href === current;
                           return (
                             <li key={child.href}>
                               <Link
@@ -243,8 +252,8 @@ function NavGroup({
                                 className={cn(
                                   "flex h-8 items-center gap-2.5 rounded-full px-3 text-[13px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
                                   on
-                                    ? "bg-muted font-medium text-foreground"
-                                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                                    ? "bg-[color-mix(in_oklab,var(--brand)_9%,transparent)] font-medium text-foreground"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                                 )}
                               >
                                 <span

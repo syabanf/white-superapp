@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
 import { DeltaText } from "@/components/dashboard/delta-badge";
+import { Toolbar, ToolbarActions } from "@/components/dashboard/layout";
 import { computeDelta, type Delta } from "@/lib/metrics";
 
 export type DataTableProps<TData, TValue> = {
@@ -130,37 +131,51 @@ export function DataTable<TData, TValue>({
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {showToolbar ? (
-        <div className="flex flex-wrap items-center gap-3">
+        <Toolbar>
           {searchKey ? (
-            <div className="relative">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative max-sm:w-full">
+              <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder={searchPlaceholder ?? t.common.search}
                 value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
                 onChange={(e) => table.getColumn(searchKey)?.setFilterValue(e.target.value)}
-                className="h-8 w-56 pl-8 text-[13px]"
+                className="w-full pl-9 sm:w-64"
               />
             </div>
           ) : null}
           {toolbar}
-          <div className="ml-auto flex items-center gap-2">
-            {exportName ? (
-              <Button variant="outline" size="sm" onClick={exportCsv}>
-                <Download className="size-3.5" /> {t.common.exportCsv}
+          {exportName ? (
+            <ToolbarActions>
+              <Button variant="outline" onClick={exportCsv}>
+                <Download /> {t.common.exportCsv}
               </Button>
-            ) : null}
-          </div>
-        </div>
+            </ToolbarActions>
+          ) : null}
+        </Toolbar>
       ) : null}
-      <div className="overflow-hidden rounded-lg border">
+      {/* Standalone: the table is its own card and the first column sits at the card padding.
+          bare: it bleeds to the edges of the card it lives in, so its first column lines up
+          with that card's header text. Phones with mobile cards drop the frame. */}
+      <div
+        data-slot="data-table-frame"
+        className={cn(
+          bare
+            ? "card-bleed"
+            : useMobileCards
+              ? mobileCardBreakpoint === "md"
+                ? "md:overflow-hidden md:rounded-[1.5rem] md:bg-card md:shadow-(--card-shadow)"
+                : "sm:overflow-hidden sm:rounded-[1.5rem] sm:bg-card sm:shadow-(--card-shadow)"
+              : "overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow)",
+        )}
+      >
         <div className={cn("scrollbar-thin", useMobileCards ? (mobileCardBreakpoint === "md" ? "md:overflow-x-auto" : "sm:overflow-x-auto") : "overflow-x-auto")}>
           <Table
             className={cn(
               dense && "[&_td]:py-1.5 [&_th]:h-8",
               useMobileCards &&
                 (mobileCardBreakpoint === "md"
-                  ? "max-md:block max-md:[&_thead]:hidden max-md:[&_tbody]:block max-md:[&_tr]:mb-2 max-md:[&_tr]:block max-md:[&_tr]:rounded-lg max-md:[&_tr]:border max-md:[&_tr]:bg-card max-md:[&_td]:flex max-md:[&_td]:items-start max-md:[&_td]:justify-between max-md:[&_td]:gap-4 max-md:[&_td]:border-b max-md:[&_td]:text-right max-md:[&_td]:before:text-left max-md:[&_td]:before:text-xs max-md:[&_td]:before:font-medium max-md:[&_td]:before:text-muted-foreground max-md:[&_td]:before:content-[attr(data-label)] max-md:[&_td:last-child]:border-b-0 max-md:[&_td:empty]:hidden"
-                  : "max-sm:block max-sm:[&_thead]:hidden max-sm:[&_tbody]:block max-sm:[&_tr]:mb-2 max-sm:[&_tr]:block max-sm:[&_tr]:rounded-lg max-sm:[&_tr]:border max-sm:[&_tr]:bg-card max-sm:[&_td]:flex max-sm:[&_td]:items-start max-sm:[&_td]:justify-between max-sm:[&_td]:gap-4 max-sm:[&_td]:border-b max-sm:[&_td]:text-right max-sm:[&_td]:before:text-left max-sm:[&_td]:before:text-xs max-sm:[&_td]:before:font-medium max-sm:[&_td]:before:text-muted-foreground max-sm:[&_td]:before:content-[attr(data-label)] max-sm:[&_td:last-child]:border-b-0 max-sm:[&_td:empty]:hidden"),
+                  ? "max-md:block max-md:[&_thead]:hidden max-md:[&_tbody]:block max-md:[&_tr]:mb-2 max-md:[&_tr]:block max-md:[&_tr]:rounded-2xl max-md:[&_tr]:border max-md:[&_tr]:border-border/70 max-md:[&_tr]:bg-card max-md:[&_td]:flex max-md:[&_td]:px-[var(--card-spacing,var(--card-pad))] max-md:[&_td]:items-start max-md:[&_td]:justify-between max-md:[&_td]:gap-4 max-md:[&_td]:border-b max-md:[&_td]:text-right max-md:[&_td]:before:text-left max-md:[&_td]:before:text-xs max-md:[&_td]:before:font-medium max-md:[&_td]:before:text-muted-foreground max-md:[&_td]:before:content-[attr(data-label)] max-md:[&_td:last-child]:border-b-0 max-md:[&_td:empty]:hidden"
+                  : "max-sm:block max-sm:[&_thead]:hidden max-sm:[&_tbody]:block max-sm:[&_tr]:mb-2 max-sm:[&_tr]:block max-sm:[&_tr]:rounded-2xl max-sm:[&_tr]:border max-sm:[&_tr]:border-border/70 max-sm:[&_tr]:bg-card max-sm:[&_td]:flex max-sm:[&_td]:px-[var(--card-spacing,var(--card-pad))] max-sm:[&_td]:items-start max-sm:[&_td]:justify-between max-sm:[&_td]:gap-4 max-sm:[&_td]:border-b max-sm:[&_td]:text-right max-sm:[&_td]:before:text-left max-sm:[&_td]:before:text-xs max-sm:[&_td]:before:font-medium max-sm:[&_td]:before:text-muted-foreground max-sm:[&_td]:before:content-[attr(data-label)] max-sm:[&_td:last-child]:border-b-0 max-sm:[&_td:empty]:hidden"),
             )}
           >
             <TableHeader className={cn(stickyHeader && "sticky top-0 z-10 bg-card")}>
@@ -240,7 +255,7 @@ export function DataTable<TData, TValue>({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center text-sm text-muted-foreground"
+                    className="h-40 text-center text-sm text-muted-foreground"
                   >
                     {emptyMessage ?? t.common.noResults}
                   </TableCell>

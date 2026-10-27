@@ -86,7 +86,7 @@ export function InterviewPortal({ token, initial }: { token: string; initial: Po
     return (
       <>
         {header}
-        <Card className="flex flex-col gap-4 p-5">
+        <Card className="flex flex-col gap-4 p-(--card-pad)">
           <ul className="list-disc space-y-1.5 pl-5 text-sm">
             {t.rules.map((r) => (
               <li key={r}>{r}</li>
@@ -135,7 +135,7 @@ export function InterviewPortal({ token, initial }: { token: string; initial: Po
       </div>
       {current ? (
         <form
-          className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t bg-canvas/95 px-4 py-3 backdrop-blur md:mx-0 md:rounded-xl md:border md:px-4"
+          className="sticky bottom-0 -mx-(--page-x) flex flex-col gap-2 border-t bg-background px-(--page-x) py-3 md:mx-0 md:rounded-[1.5rem] md:border-0 md:bg-card md:px-(--card-pad) md:shadow-(--card-shadow)"
           onSubmit={(e) => {
             e.preventDefault();
             void send();

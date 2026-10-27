@@ -41,7 +41,7 @@ export default async function EmployeesPage(props: PageProps<"/erp/hr/employees"
         description={e.subtitle}
         actions={
           perms.write ? (
-            <Button size="sm" asChild>
+            <Button asChild>
               <Link href="/erp/hr/employees/new">
                 <UserPlus className="size-4" /> {e.newEmployee}
               </Link>

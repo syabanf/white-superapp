@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Hourglass } from "lucide-react";
+import { Hourglass } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { requireErp } from "@/features/erp/access";
@@ -13,7 +13,12 @@ import { QuotationView } from "@/features/erp/sales/components/quotation-view";
 import { QuotationActions } from "@/features/erp/sales/components/quotations";
 import { SalesBadge } from "@/features/erp/sales/components/ui";
 import { salesCaps } from "@/features/erp/sales/lib";
-import { getQuotation, listCatalog, listQuotations, listRetainerDiscounts } from "@/features/erp/sales/queries";
+import {
+  getQuotation,
+  listCatalog,
+  listQuotations,
+  listRetainerDiscounts,
+} from "@/features/erp/sales/queries";
 import { APPROVAL_STATUS, QUOTATION_STATUS, ss } from "@/features/erp/sales/strings";
 import { cn } from "@/lib/utils";
 
@@ -35,14 +40,14 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
     editable ? load(listRetainerDiscounts) : null,
     load(() => listQuotations({ dealId: q.dealId, limit: 100 })),
   ]);
-  const versions = (siblings.data ?? []).filter((x) => x.quoteNumber === q.quoteNumber).sort((a, b) => a.version - b.version);
+  const versions = (siblings.data ?? [])
+    .filter((x) => x.quoteNumber === q.quoteNumber)
+    .sort((a, b) => a.version - b.version);
 
   return (
     <>
-      <Link href={`/erp/sales/pipeline/${q.dealId}`} className="-mb-3 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="size-4" /> {q.dealTitle}
-      </Link>
       <PageHeader
+        back={{ href: `/erp/sales/pipeline/${q.dealId}`, label: q.dealTitle }}
         eyebrow={`${s.title} · ${s.version} ${q.version}`}
         title={q.quoteNumber}
         description={q.clientName}
@@ -51,7 +56,9 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
       <div className="flex flex-wrap items-center gap-2">
         <SalesBadge value={q.status} map={QUOTATION_STATUS} />
         {q.approvalStatus !== "none" ? <SalesBadge value={q.approvalStatus} map={APPROVAL_STATUS} /> : null}
-        {s.generatedBy[q.generatedBy] ? <span className="text-xs text-muted-foreground">{s.generatedBy[q.generatedBy]}</span> : null}
+        {s.generatedBy[q.generatedBy] ? (
+          <span className="text-xs text-muted-foreground">{s.generatedBy[q.generatedBy]}</span>
+        ) : null}
         {versions.length > 1 ? (
           <nav className="ml-auto flex items-center gap-1 text-xs" aria-label={s.versions}>
             <span className="text-muted-foreground">{s.versions}</span>
@@ -59,7 +66,10 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
               <Link
                 key={v.id}
                 href={`/erp/sales/quotations/${v.id}`}
-                className={cn("rounded-full border px-2 py-0.5", v.id === q.id ? "border-brand bg-brand/10" : "hover:bg-accent")}
+                className={cn(
+                  "rounded-full border px-2 py-0.5",
+                  v.id === q.id ? "border-brand bg-brand/10" : "hover:bg-accent",
+                )}
               >
                 v{v.version}
               </Link>
@@ -74,10 +84,17 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
         </Alert>
       ) : null}
       {editable ? (
-        <QuotationEditor quotation={q} dealId={q.dealId} catalog={catalog?.data ?? []} retainerRules={retainer?.data ?? []} />
+        <QuotationEditor
+          quotation={q}
+          dealId={q.dealId}
+          catalog={catalog?.data ?? []}
+          retainerRules={retainer?.data ?? []}
+        />
       ) : (
         <>
-          {caps.write && q.status !== "draft" ? <p className="text-xs text-muted-foreground">{s.readOnly}</p> : null}
+          {caps.write && q.status !== "draft" ? (
+            <p className="text-xs text-muted-foreground">{s.readOnly}</p>
+          ) : null}
           <QuotationView q={q} />
         </>
       )}

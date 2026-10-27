@@ -102,7 +102,7 @@ export function MyTasks({ items, meta }: { items: TaskItem[]; meta: TaskMeta }) 
               <h2
                 id={`sec-${k}`}
                 className={cn(
-                  "label-mono border-b bg-muted/40 px-4 py-2",
+                  "label-mono border-b bg-muted/40 px-(--card-pad) py-2",
                   k === "overdue" ? "text-destructive" : "text-muted-foreground",
                 )}
               >

@@ -52,7 +52,7 @@ function toDelta(d: ApiDelta | null | undefined): Delta | null {
 function MetricCard({ m }: { m: Metric }) {
   const delta = toDelta(m.delta);
   return (
-    <Card className={cn("gap-2 px-4 py-3.5", m.unavailable && "bg-muted/30")}>
+    <Card className={cn("gap-2 px-(--card-pad)", m.unavailable && "bg-muted/30")}>
       <span className="label-mono line-clamp-2 text-muted-foreground">{m.label}</span>
       {m.unavailable ? (
         <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -64,8 +64,15 @@ function MetricCard({ m }: { m: Metric }) {
       )}
       {!m.unavailable && delta && m.delta ? (
         <span className="flex flex-wrap items-center gap-1.5">
-          <DeltaBadge delta={delta} lowerIsBetter={m.lowerIsBetter} mode={delta.pct == null ? "abs" : "pct"} digits={delta.pct == null ? 2 : 1} />
-          <span className="text-xs text-muted-foreground">{an.previous(formatMetric(m.delta.previous, m.unit))}</span>
+          <DeltaBadge
+            delta={delta}
+            lowerIsBetter={m.lowerIsBetter}
+            mode={delta.pct == null ? "abs" : "pct"}
+            digits={delta.pct == null ? 2 : 1}
+          />
+          <span className="text-xs text-muted-foreground">
+            {an.previous(formatMetric(m.delta.previous, m.unit))}
+          </span>
         </span>
       ) : null}
     </Card>
@@ -78,29 +85,33 @@ export function AnalysisView({ data }: { data: FinancialAnalysis }) {
   const hasAny = GROUPS.some((g) => data[g].length > 0);
   if (!hasAny) return <ErpEmpty title={an.empty} />;
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card className="gap-1 px-5 py-4">
-          <span className="label-mono text-muted-foreground">{an.revenue}</span>
-          <Money value={data.revenue} className="text-2xl font-bold" />
-        </Card>
-        <Card className="gap-1 px-5 py-4">
-          <span className="label-mono text-muted-foreground">{an.netIncome}</span>
-          <Money value={data.netIncome} signed className="text-2xl font-bold" />
-        </Card>
-        <Card className="gap-1 px-5 py-4">
-          <span className="label-mono text-muted-foreground">{an.cash}</span>
-          <Money value={data.cashBalance} signed className="text-2xl font-bold" />
-        </Card>
+    <div className="page-stack">
+      <div className="flex flex-col gap-2">
+        <div className="grid gap-(--gap) sm:grid-cols-3">
+          <Card className="gap-1 px-(--card-pad)">
+            <span className="label-mono text-muted-foreground">{an.revenue}</span>
+            <Money value={data.revenue} className="text-2xl font-bold" />
+          </Card>
+          <Card className="gap-1 px-(--card-pad)">
+            <span className="label-mono text-muted-foreground">{an.netIncome}</span>
+            <Money value={data.netIncome} signed className="text-2xl font-bold" />
+          </Card>
+          <Card className="gap-1 px-(--card-pad)">
+            <span className="label-mono text-muted-foreground">{an.cash}</span>
+            <Money value={data.cashBalance} signed className="text-2xl font-bold" />
+          </Card>
+        </div>
+        {data.previous ? (
+          <p className="text-xs text-muted-foreground">
+            {an.vsRange(formatDate(data.previous.from), formatDate(data.previous.to))}
+          </p>
+        ) : null}
       </div>
-      {data.previous ? (
-        <p className="-mt-3 text-xs text-muted-foreground">{an.vsRange(formatDate(data.previous.from), formatDate(data.previous.to))}</p>
-      ) : null}
       {GROUPS.map((g) =>
         data[g].length ? (
-          <section key={g} className="space-y-3">
-            <h2 className="text-base font-semibold">{an.groups[g]}</h2>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          <section key={g} className="flex flex-col gap-(--gap-inner)">
+            <h2 className="flex min-h-8 items-center text-base font-semibold">{an.groups[g]}</h2>
+            <div className="grid grid-cols-2 gap-(--gap) md:grid-cols-3 xl:grid-cols-5">
               {data[g].map((m) => (
                 <MetricCard key={m.key} m={m} />
               ))}
@@ -108,7 +119,7 @@ export function AnalysisView({ data }: { data: FinancialAnalysis }) {
           </section>
         ) : null,
       )}
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={an.expenseBreakdown}>
           <HBarChart
             items={data.expenseBreakdown.map((e) => ({
@@ -150,7 +161,10 @@ function MoversTable({ items, range }: { items: ExpenseItem[]; range: { from: st
               <td className="py-1.5 pr-2">
                 <span className="mr-1.5 font-mono text-xs text-muted-foreground">{e.accountCode}</span>
                 {range ? (
-                  <Link href={ledgerHref(e.accountId, range.from, range.to)} className="underline-offset-4 hover:underline">
+                  <Link
+                    href={ledgerHref(e.accountId, range.from, range.to)}
+                    className="underline-offset-4 hover:underline"
+                  >
                     {e.accountName}
                   </Link>
                 ) : (
@@ -173,14 +187,22 @@ function MoversTable({ items, range }: { items: ExpenseItem[]; range: { from: st
 }
 
 /** AI CFO memo for the selected range, with a generate button and earlier memos. */
-export function InsightPanel({ from, to, insights }: { from: string; to: string; insights: FinancialInsight[] }) {
+export function InsightPanel({
+  from,
+  to,
+  insights,
+}: {
+  from: string;
+  to: string;
+  insights: FinancialInsight[];
+}) {
   const [language, setLanguage] = React.useState<"id" | "en">("id");
   const { pending, run } = useErpAction();
   const current = insights.find((i) => i.dateFrom === from && i.dateTo === to);
   const others = insights.filter((i) => i !== current);
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
-      <Card className="gap-3 p-5">
+    <div className="grid items-start gap-(--gap) lg:grid-cols-[minmax(0,1fr)_340px]">
+      <Card className="gap-3 px-(--card-pad)">
         <div className="flex flex-wrap items-center gap-2">
           <Sparkles className="size-4 text-brand" />
           <h2 className="font-semibold">{an.insight}</h2>
@@ -195,7 +217,11 @@ export function InsightPanel({ from, to, insights }: { from: string; to: string;
                 <SelectItem value="en">{an.langEn}</SelectItem>
               </SelectContent>
             </Select>
-            <Button size="sm" disabled={pending} onClick={() => run(() => generateInsightAction(from, to, language), { success: an.generated })}>
+            <Button
+              size="sm"
+              disabled={pending}
+              onClick={() => run(() => generateInsightAction(from, to, language), { success: an.generated })}
+            >
               {pending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
               {pending ? an.generating : current ? an.regenerate : an.generate}
             </Button>
@@ -204,7 +230,8 @@ export function InsightPanel({ from, to, insights }: { from: string; to: string;
         {current ? (
           <>
             <p className="text-xs text-muted-foreground">
-              {formatDate(current.dateFrom)} – {formatDate(current.dateTo)} · {formatDateTime(current.createdAt)}
+              {formatDate(current.dateFrom)} – {formatDate(current.dateTo)} ·{" "}
+              {formatDateTime(current.createdAt)}
               {current.model ? ` · ${an.model} ${current.model}` : ""}
             </p>
             <div className="text-sm leading-relaxed">
@@ -215,7 +242,7 @@ export function InsightPanel({ from, to, insights }: { from: string; to: string;
           <p className="py-6 text-center text-sm text-muted-foreground">{an.noInsight}</p>
         )}
       </Card>
-      <Card className="h-fit gap-2 p-5">
+      <Card className="h-fit gap-2 px-(--card-pad)">
         <h3 className="text-sm font-semibold">{an.history}</h3>
         {others.length === 0 ? <p className="text-xs text-muted-foreground">{an.noHistory}</p> : null}
         {others.map((i) => (

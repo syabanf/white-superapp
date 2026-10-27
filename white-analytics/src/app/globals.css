@@ -6,9 +6,14 @@
 
 /* ─────────────────────────────────────────────────────────────
    Mixist design tokens
-   Tone (2026-10-26): soft cool-grey canvas, borderless white cards with
-   large radii, navy pill actions, the logo magenta as the data accent,
-   glass panels over the 3D hero.
+   Tone (2026-10-27): a faint blush frame around a plain white main panel.
+   Cards are solid white with a warm hairline and a soft plum shadow (no
+   glass inside the panel). Banners keep the logo gradient (navy #2b2263,
+   plum #6b2a6e, magenta #a01d63, pink #ee2a7b), actions are navy-to-magenta
+   pills and the logo magenta is the data accent.
+   Dark: deep navy panel, cards one step lighter, same hairline logic.
+   Layout tokens (--page-x, --gap, --card-pad, --control-h) drive every page;
+   see src/components/dashboard/LAYOUT.md.
    Chart palettes are validated (see docs/plans design doc).
    ───────────────────────────────────────────────────────────── */
 
@@ -18,7 +23,7 @@
   --color-canvas: var(--canvas);
   --color-brand: var(--brand);
   --color-brand-ink: var(--brand-ink);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -54,6 +59,8 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-surface-high: var(--surface-high);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
   --color-positive: var(--positive);
   --color-negative: var(--negative);
   --color-status-good: var(--status-good);
@@ -77,16 +84,42 @@
 :root {
   color-scheme: light;
 
-  /* ── Surfaces: soft grey canvas, white cards float on it (no borders) ── */
-  --canvas: #eef0f5;
-  --background: #eef0f5;
-  --foreground: #0a0a0a;
+  /* ── Surfaces: blush frame outside, white panel and white cards inside ── */
+  --canvas: #f8eef3;
+  --background: #ffffff;
+  --foreground: #1c1430;
   --card: #ffffff;
-  --card-foreground: #0a0a0a;
+  --card-foreground: #1c1430;
   --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --surface-high: #f6f7fa;
-  --card-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -18px rgba(16, 24, 40, 0.18);
+  --popover-foreground: #1c1430;
+  --surface-high: #fcf7fa;
+  /* Former glass tokens: solid now, so nothing inside the white panel blurs */
+  --glass: var(--card);
+  --glass-strong: var(--card);
+  --glass-border: var(--border);
+  /* Card edge: 1px hairline drawn as a shadow ring (no layout shift) plus a soft lift */
+  --card-shadow:
+    0 0 0 1px var(--border), 0 1px 2px rgba(43, 34, 99, 0.04),
+    0 8px 24px -16px rgba(107, 42, 110, 0.18);
+  /* Popovers, menus, dialogs, sheets: same hairline, deeper shadow */
+  --popover-shadow:
+    0 0 0 1px var(--border), 0 4px 10px -4px rgba(43, 34, 99, 0.08),
+    0 24px 48px -20px rgba(107, 42, 110, 0.28);
+  /* Main panel on md+: white with a hairline against the blush frame */
+  --panel-shadow: 0 0 0 1px var(--border), 0 24px 60px -40px rgba(107, 42, 110, 0.3);
+  --canvas-gradient: linear-gradient(140deg, #f7eef4 0%, #fbf3f6 46%, #f5ecf3 100%);
+  /* Pastel banner (hero areas): indigo to lilac with a magenta glow */
+  /* Text sits on the left half, which stays dark enough for white text (>= 4.5:1) */
+  --banner-gradient:
+    radial-gradient(circle at 88% 125%, rgba(255, 255, 255, 0.16) 0 26%, transparent 26.5%),
+    radial-gradient(circle at 72% -30%, rgba(255, 255, 255, 0.12) 0 22%, transparent 22.5%),
+    radial-gradient(60% 120% at 100% 0%, rgba(238, 42, 123, 0.35), transparent 60%),
+    linear-gradient(115deg, #2b2263 0%, #6b2a6e 45%, #a01d63 80%, #ee2a7b 100%);
+  --banner-foreground: #ffffff;
+  /* Primary action: navy to magenta pill (the logo gradient) with a soft glow */
+  --action-from: #2b2263;
+  --action-to: #a01d63;
+  --action-glow: 0 10px 22px -10px rgba(160, 29, 99, 0.6);
 
   /* ── Brand (Mixist): magenta marks data and active state; actions are navy pills ── */
   --brand: #a01d63;
@@ -99,17 +132,25 @@
   --erp-accent: #4a2c8f;
   --primary: #2b2265;
   --primary-foreground: #ffffff;
-  --secondary: #e6e8ef;
-  --secondary-foreground: #0a0a0a;
-  --muted: #f1f2f6;
-  --muted-foreground: #5f6470;
+  --secondary: #ffffff;
+  --secondary-foreground: #1c1430;
+  --muted: #f7eef3;
+  --muted-foreground: #6a5d6e;
   --accent: #fbeaf2;
   --accent-foreground: #7a1449;
   --destructive: #d03b3b;
-  --border: #e4e6ed;
-  --input: #dfe2ea;
+  --border: #eedfe7;
+  --input: #e8d8e1;
   --ring: #a01d63;
-  --radius: 1.125rem;
+  --radius: 1rem;
+
+  /* ── Layout (one scale for every page) ── */
+  --page-max: 1440px;
+  --page-x: 1rem; /* 16 phone · 24 tablet · 32 desktop */
+  --gap: 1rem; /* sections and grids: 16 phone · 24 from md */
+  --gap-inner: 0.75rem; /* section title to content, toolbar items: 12 */
+  --card-pad: 1rem; /* card, dialog, sheet padding: 16 phone · 20 from md */
+  --control-h: 2.5rem; /* pills, inputs, selects, tabs in toolbars: 40 (44 on touch) */
 
   /* ── Motion ── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -117,21 +158,23 @@
   --dur-fast: 120ms;
   --dur: 180ms;
   --dur-slow: 260ms;
-  --lift-shadow: 0 1px 2px rgba(10, 10, 10, 0.04), 0 10px 28px -12px rgba(10, 10, 10, 0.18);
+  --lift-shadow:
+    0 0 0 1px color-mix(in oklab, var(--brand) 22%, var(--border)), 0 4px 10px -4px rgba(107, 42, 110, 0.1),
+    0 20px 40px -22px rgba(107, 42, 110, 0.3);
 
   /* ── Sidebar ── */
-  --sidebar: #eef0f5;
-  --sidebar-foreground: #0a0a0a;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1c1430;
   --sidebar-primary: #2b2265;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ffffff;
-  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-accent: #fbf4f7;
+  --sidebar-accent-foreground: #1c1430;
   --sidebar-border: transparent;
   --sidebar-ring: #a01d63;
 
   /* ── Chart chrome ── */
-  --grid: #ecece8;
-  --axis: #cfcfc8;
+  --grid: #f0e3ea;
+  --axis: #e2cfd9;
 
   /* ── Categorical slots (validated light on #ffffff) ── */
   --chart-1: #A01D63;
@@ -179,17 +222,31 @@
 
 .dark {
   color-scheme: dark;
-  --lift-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.7);
-  --card-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 0 0 1px var(--border), 0 10px 28px -18px rgba(0, 0, 0, 0.7);
+  --popover-shadow: 0 0 0 1px var(--border), 0 24px 50px -20px rgba(0, 0, 0, 0.8);
+  --panel-shadow: 0 0 0 1px var(--border), 0 30px 70px -40px rgba(0, 0, 0, 0.8);
+  --lift-shadow:
+    0 0 0 1px color-mix(in oklab, var(--brand) 30%, var(--border)), 0 22px 44px -22px rgba(0, 0, 0, 0.8);
+  --canvas-gradient: linear-gradient(140deg, #0e0920 0%, #120c27 50%, #170c25 100%);
+  --banner-gradient:
+    radial-gradient(circle at 88% 125%, rgba(255, 255, 255, 0.08) 0 26%, transparent 26.5%),
+    radial-gradient(circle at 72% -30%, rgba(255, 255, 255, 0.06) 0 22%, transparent 22.5%),
+    radial-gradient(60% 120% at 100% 0%, rgba(238, 42, 123, 0.28), transparent 60%),
+    linear-gradient(115deg, #221a55 0%, #4a2160 50%, #861a57 100%);
+  --banner-foreground: #ffffff;
+  /* Dark: plum to a magenta that keeps white text >= 4.5:1 */
+  --action-from: #5a2a78;
+  --action-to: #b81e6a;
+  --action-glow: 0 10px 24px -10px rgba(184, 30, 106, 0.65);
 
-  --canvas: #0b0c0e;
-  --background: #0b0c0e;
-  --foreground: #f2f2f0;
-  --card: #131417;
-  --card-foreground: #f2f2f0;
-  --popover: #17181c;
-  --popover-foreground: #f2f2f0;
-  --surface-high: #1b1d22;
+  --canvas: #0e0920;
+  --background: #151026;
+  --foreground: #f4eff6;
+  --card: #1c1534;
+  --card-foreground: #f4eff6;
+  --popover: #221a3e;
+  --popover-foreground: #f4eff6;
+  --surface-high: #261d45;
 
   --brand: #e0559a;
   --brand-ink: #f6b3d2;
@@ -197,30 +254,30 @@
   --logo-text: #e0559a;
   --marketing-accent: #e0559a;
   --erp-accent: #9d8bf2;
-  --primary: #f2f2f0;
-  --primary-foreground: #0b0c0e;
-  --secondary: #1b1d22;
-  --secondary-foreground: #f2f2f0;
-  --muted: #1b1d22;
-  --muted-foreground: #9a9da8;
-  --accent: #2a1322;
+  --primary: #f4eff6;
+  --primary-foreground: #150f2a;
+  --secondary: #271e47;
+  --secondary-foreground: #f4eff6;
+  --muted: #241b41;
+  --muted-foreground: #ada1bf;
+  --accent: #33173a;
   --accent-foreground: #f6b3d2;
   --destructive: #e66767;
-  --border: #24262c;
-  --input: #24262c;
+  --border: #30264f;
+  --input: #352a59;
   --ring: #e0559a;
 
-  --sidebar: #0b0c0e;
-  --sidebar-foreground: #f2f2f0;
-  --sidebar-primary: #f2f2f0;
-  --sidebar-primary-foreground: #0b0c0e;
-  --sidebar-accent: #1b1d22;
-  --sidebar-accent-foreground: #f2f2f0;
+  --sidebar: #151026;
+  --sidebar-foreground: #f4eff6;
+  --sidebar-primary: #f4eff6;
+  --sidebar-primary-foreground: #150f2a;
+  --sidebar-accent: #271e47;
+  --sidebar-accent-foreground: #f4eff6;
   --sidebar-border: transparent;
   --sidebar-ring: #e0559a;
 
-  --grid: #212329;
-  --axis: #34373f;
+  --grid: #2b2149;
+  --axis: #3c305f;
 
   /* Categorical slots (validated dark on #131417) */
   --chart-1: #D9488C;
@@ -231,7 +288,7 @@
   --chart-6: #4F8FDB;
   --chart-7: #B98A0E;
   --chart-8: #DD5E95;
-  --chart-emphasis-muted: #43464f;
+  --chart-emphasis-muted: #4f4470;
 
   /* Sequential flips anchor in dark: more = brighter */
   --seq-100: #2a0f1f;
@@ -248,10 +305,28 @@
   --seq-650: #f2a7c8;
   --seq-700: #f6bdd8;
 
-  --div-mid: #2a2d34;
+  --div-mid: #2e2550;
 
   --positive: #3fbf5a;
   --negative: #e66767;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-x: 1.5rem;
+    --gap: 1.5rem;
+    --card-pad: 1.25rem;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --page-x: 2rem;
+  }
+}
+@media (pointer: coarse) {
+  :root {
+    --control-h: 2.75rem;
+  }
 }
 
 @layer base {
@@ -261,16 +336,17 @@
   html {
     @apply font-sans;
   }
+  /* Content reads on plain white (navy in dark). The app shell paints the
+     faint blush frame around its floating panel from md up (.app-frame). */
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv11", "ss01";
   }
   h1 {
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
   }
   h2,
   h3 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
@@ -281,6 +357,46 @@
   }
 }
 
+
+/* The main panel that holds the page on md+: solid, hairline edge */
+@utility surface-panel {
+  background-color: var(--background);
+  box-shadow: var(--panel-shadow);
+}
+/* Faint blush frame behind the floating sidebar and panel (md+ only) */
+@utility app-frame {
+  background: var(--background);
+  @variant md {
+    background: var(--canvas-gradient) var(--canvas);
+    background-attachment: fixed;
+  }
+}
+
+/* ── Alignment system (see src/components/dashboard/LAYOUT.md) ──
+   One page container, one gap, one card padding, one control height. */
+@utility page-container {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--page-x);
+}
+/* Vertical stack of page blocks: header, filters, tabs, sections */
+@utility page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+/* Pull a full-bleed child (table, divider, media) out to the card edge */
+@utility card-bleed {
+  margin-inline: calc(var(--card-spacing, var(--card-pad)) * -1);
+}
+/* Pastel gradient banner (hero areas), white text on top */
+@utility surface-banner {
+  background: var(--banner-gradient);
+  color: var(--banner-foreground);
+  box-shadow: 0 24px 48px -26px rgba(107, 42, 110, 0.55);
+}
+
 @layer utilities {
   .tabular {
     font-variant-numeric: tabular-nums;
@@ -289,28 +405,14 @@
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
-  /* Glass panel: floats over the 3D hero and tinted stages */
-  .surface-glass {
-    background: color-mix(in oklab, var(--card) 62%, transparent);
-    backdrop-filter: blur(18px) saturate(1.4);
-    box-shadow:
-      inset 0 0 0 1px color-mix(in oklab, var(--card) 70%, transparent),
-      0 12px 32px -20px rgba(16, 24, 40, 0.35);
-  }
-  /* Tinted stage behind the 3D object: soft brand wash, no hard edge */
+  /* Pastel banner behind the 3D object: plum to blush with a soft brand glow (dark text) */
   .stage-tint {
     background:
-      radial-gradient(
-        60% 80% at 50% 45%,
-        color-mix(in oklab, var(--brand) 26%, transparent),
-        transparent 70%
-      ),
-      radial-gradient(
-        45% 60% at 85% 10%,
-        color-mix(in oklab, var(--chart-2) 14%, transparent),
-        transparent 70%
-      ),
-      color-mix(in oklab, var(--brand) 7%, var(--card));
+      radial-gradient(circle at 92% 120%, color-mix(in oklab, var(--card) 45%, transparent) 0 24%, transparent 24.5%),
+      radial-gradient(circle at 6% -40%, color-mix(in oklab, var(--card) 35%, transparent) 0 26%, transparent 26.5%),
+      radial-gradient(55% 80% at 50% 50%, color-mix(in oklab, var(--brand) 20%, transparent), transparent 70%),
+      linear-gradient(115deg, color-mix(in oklab, #6b2a6e 16%, var(--card)), color-mix(in oklab, #ee2a7b 18%, var(--card)));
+    box-shadow: var(--card-shadow);
   }
 
   /* Small label above a value. (Name kept from the mono era; now a quiet sans label.) */
@@ -402,6 +504,16 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* A standalone DataTable dropped inside a Card loses its own frame and bleeds to
+   the card edges, so its first column lines up with the card title. Unlayered on
+   purpose: it must beat the frame's responsive utilities. */
+[data-slot="card"] [data-slot="data-table-frame"] {
+  margin-inline: calc(var(--card-spacing, var(--card-pad)) * -1);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* ERP workspace: the shell sets data-workspace="erp", so every brand-tinted

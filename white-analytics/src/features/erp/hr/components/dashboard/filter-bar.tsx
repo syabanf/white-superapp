@@ -62,7 +62,7 @@ export function HrFilterBar({
   const selects = (className?: string) =>
     dims.map((d) => (
       <Select key={d.param} value={values[d.param] ?? ALL} onValueChange={(v) => set({ [d.param]: v === ALL ? null : v })}>
-        <SelectTrigger size="sm" aria-label={d.label} className={cn("min-w-0 bg-background", className)}>
+        <SelectTrigger aria-label={d.label} className={cn("min-w-0", className)}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -77,30 +77,34 @@ export function HrFilterBar({
     ));
 
   return (
-    <div className="flex flex-col gap-3 rounded-[1.25rem] bg-card p-3 shadow-(--card-shadow) sm:p-4">
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-col gap-2">
+      <div
+        role="toolbar"
+        aria-label={f.title}
+        // Phones: the period picker gets its own row.
+        className="flex flex-wrap items-center gap-(--gap-inner) [&>*:first-child]:max-sm:basis-full"
+      >
         <PeriodPicker range={range} pending={isPending} onChange={(patch) => set({ ...patch, back: null })} />
         <ToggleGroup
           type="single"
           value={range.compare}
           onValueChange={(v) => v && set({ compare: v === "year" ? "year" : null })}
           variant="outline"
-          size="sm"
           aria-label={f.compare}
           className="rounded-full"
         >
-          <ToggleGroupItem value="previous" className="rounded-l-full px-3 text-xs">
+          <ToggleGroupItem value="previous" className="h-(--control-h) rounded-l-full px-3 text-[13px]">
             {f.comparePrevious}
           </ToggleGroupItem>
-          <ToggleGroupItem value="year" className="rounded-r-full px-3 text-xs">
+          <ToggleGroupItem value="year" className="h-(--control-h) rounded-r-full px-3 text-[13px]">
             {f.compareYear}
           </ToggleGroupItem>
         </ToggleGroup>
-        <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-3 lg:flex">{selects("w-40")}</div>
+        <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-(--gap-inner) lg:flex">{selects("w-40")}</div>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="bg-background lg:hidden">
-              <SlidersHorizontal className="size-3.5" />
+            <Button variant="outline" className="max-sm:flex-1 lg:hidden">
+              <SlidersHorizontal className="size-4" />
               {f.open}
               {activeDims ? <span className="rounded-full bg-brand px-1.5 text-[10px] text-white tabular">{activeDims}</span> : null}
             </Button>
@@ -125,7 +129,7 @@ export function HrFilterBar({
           </SheetContent>
         </Sheet>
       </div>
-      <div className="flex min-h-7 flex-wrap items-center justify-between gap-2 px-1">
+      <div className="flex min-h-7 flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
           <span className="font-medium text-foreground tabular">{rangeLabel(range.from, range.to)}</span>{" "}
           <span className="tabular">{f.comparing(rangeLabel(compareFrom, compareTo))}</span>
@@ -160,8 +164,8 @@ function PeriodPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="bg-background font-normal shadow-none">
-          {pending ? <Loader2 className="size-3.5 animate-spin" /> : <CalendarDays className="size-3.5 text-muted-foreground" />}
+        <Button variant="outline" className="font-normal shadow-none">
+          {pending ? <Loader2 className="size-4 animate-spin" /> : <CalendarDays className="size-4 text-muted-foreground" />}
           <span className="font-medium">{label}</span>
         </Button>
       </PopoverTrigger>

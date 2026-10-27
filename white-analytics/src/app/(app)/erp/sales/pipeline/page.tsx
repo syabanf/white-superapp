@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -73,7 +74,7 @@ export default async function PipelinePage(props: PageProps<"/erp/sales/pipeline
           tabs={[fallback, ...pipelines.filter((p) => p.id !== fallback.id)].map((p) => ({ value: p.id, label: p.name }))}
         />
       ) : null}
-      <div className="flex flex-wrap items-center gap-2">
+      <Toolbar label={s.title}>
         <SearchFilter placeholder={s.searchPlaceholder} />
         <SelectFilter param="owner" label={ss.owner} allLabel={s.allOwner} options={refs.owners} />
         <SelectFilter param="status" label={s.filters.status} allLabel={s.filters.allStatus} options={opts(s.status)} />
@@ -84,7 +85,7 @@ export default async function PipelinePage(props: PageProps<"/erp/sales/pipeline
           <SelectFilter param="date" label={s.filters.dateBasis} allLabel={s.filters.created} options={[{ value: "closed", label: s.filters.closed }]} />
         ) : null}
         <ResetFilters params={FILTERS} />
-      </div>
+      </Toolbar>
       <UrlFilterChips chips={chips} />
       {!active || !deals ? (
         <ErpError message={ss.none} />

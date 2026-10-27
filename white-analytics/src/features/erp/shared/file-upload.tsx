@@ -111,7 +111,7 @@ export function FileUpload<T = unknown>({
           start(e.dataTransfer.files);
         }}
         className={cn(
-          "flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed bg-card/50 px-4 py-6 text-center text-sm transition-colors outline-none hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          "flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed bg-card px-4 py-6 text-center text-sm transition-colors outline-none hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
           dragging && "border-brand bg-brand/5",
         )}
       >

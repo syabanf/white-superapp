@@ -59,7 +59,7 @@ export function AssessmentsTab({ data, ctx }: { data: RecruitmentDashboard; ctx:
   });
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           { label: s.psikotesInvited, value: formatNumber(total(psi)), href: PSIKOTES },
@@ -81,7 +81,7 @@ export function AssessmentsTab({ data, ctx }: { data: RecruitmentDashboard; ctx:
         ]}
       />
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={s.psikotes} description={s.psikotesHint}>
           <HBarChart items={statusBars(psi)} format={formatNumber} showShare emptyLabel={ra.empty} />
         </ChartCard>
@@ -90,7 +90,7 @@ export function AssessmentsTab({ data, ctx }: { data: RecruitmentDashboard; ctx:
         </ChartCard>
       </div>
 
-      <div className="grid gap-4 sm:gap-5 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={s.scores} description={s.scoresHint}>
           {scored ? (
             <StackedBarChart

@@ -61,7 +61,7 @@ export function BoardFilterBar({
           value={filters.dateFrom}
           max={filters.dateTo || undefined}
           onChange={(e) => setParams({ dateFrom: e.target.value })}
-          className="h-8 w-[9.5rem] rounded-full text-xs"
+          className="w-[9.5rem] rounded-full"
         />
         <span className="text-xs text-muted-foreground">–</span>
         <Input
@@ -70,15 +70,14 @@ export function BoardFilterBar({
           value={filters.dateTo}
           min={filters.dateFrom || undefined}
           onChange={(e) => setParams({ dateTo: e.target.value })}
-          className="h-8 w-[9.5rem] rounded-full text-xs"
+          className="w-[9.5rem] rounded-full"
         />
       </div>
       <Toggle
-        size="sm"
         variant="outline"
         pressed={filters.overdue}
         onPressedChange={(on) => setParams({ overdue: on ? "1" : null })}
-        className="rounded-full data-[state=on]:border-negative/40 data-[state=on]:text-negative"
+        className="h-(--control-h) rounded-full px-4 data-[state=on]:border-negative/40 data-[state=on]:text-negative"
       >
         {cbf.overdue}
       </Toggle>

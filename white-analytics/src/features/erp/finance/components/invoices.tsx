@@ -286,7 +286,7 @@ export function InvoicesTable({
             ) : null}
             <ResetFilters params={["q", "status", "pay", "from", "to", "party"]} />
             {perms.canWrite ? (
-              <Button size="sm" className="ml-auto" onClick={() => setDialog({})}>
+              <Button className="ml-auto" onClick={() => setDialog({})}>
                 <Plus className="size-4" /> {k.newInvoice}
               </Button>
             ) : null}

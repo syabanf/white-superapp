@@ -24,12 +24,12 @@ export type ReportKey = (typeof REPORTS)[number]["key"];
 
 export function ReportHub() {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-(--gap) sm:grid-cols-2 xl:grid-cols-3">
       {REPORTS.map((rep) => (
         <Link
           key={rep.key}
           href={`/erp/finance/reports?r=${rep.key}`}
-          className="group lift flex items-start gap-3 rounded-2xl bg-card p-5 shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group lift flex items-start gap-3 rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
             <rep.icon className="size-5" />
@@ -48,12 +48,12 @@ export function ReportHub() {
 /** Paper-like container used by every statement so they print cleanly. */
 export function ReportPaper({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <Card className="gap-0 p-0 print:border-0 print:shadow-none">
-      <div className="border-b px-6 py-4 text-center">
+    <Card className="gap-0 pb-0 print:border-0 print:shadow-none">
+      <div className="border-b px-(--card-pad) pb-4 text-center">
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
-      <div className="overflow-x-auto px-2 py-3 sm:px-6">{children}</div>
+      <div className="overflow-x-auto px-(--card-pad) py-3">{children}</div>
     </Card>
   );
 }
@@ -161,7 +161,7 @@ export function BalanceSheetView({ data }: { data: BalanceSheet }) {
   const balanced = Math.abs(parseMoney(data.totalAssets) - parseMoney(data.totalLiabilitiesAndEquity)) < 0.01;
   return (
     <ReportPaper title={r.balanceSheet} subtitle={`${fs.asOf} ${formatDate(data.asOf)}`}>
-      <div className="grid gap-6 lg:grid-cols-2 print:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2 print:grid-cols-2">
         <table className="w-full text-sm">
           <tbody>
             <Section title={r.assets} rows={data.assets} total={data.totalAssets} totalLabel={r.totalAssets} />

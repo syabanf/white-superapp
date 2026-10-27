@@ -6,6 +6,7 @@ import { Info, Loader2, Search, Wand2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Toolbar, ToolbarActions } from "@/components/dashboard/layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -78,7 +79,7 @@ export function BeginningBalanceEditor({ data, canApprove, canWrite }: { data: B
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="page-stack">
       <Alert className="rounded-xl">
         <Info className="size-4" />
         <AlertDescription className="grid gap-0.5">
@@ -103,10 +104,10 @@ export function BeginningBalanceEditor({ data, canApprove, canWrite }: { data: B
       </Alert>
       {!data.canEdit ? <p className="text-sm text-muted-foreground">{b.readonly}</p> : null}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <Toolbar label={fs.searchAccount}>
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={fs.searchAccount} className="h-8 w-64 pl-8 text-[13px]" aria-label={fs.searchAccount} />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={fs.searchAccount} className="w-64 pl-8" aria-label={fs.searchAccount} />
         </div>
         <div className="flex items-center gap-2">
           <Switch id="bb-filled" checked={onlyFilled} onCheckedChange={setOnlyFilled} />
@@ -115,62 +116,64 @@ export function BeginningBalanceEditor({ data, canApprove, canWrite }: { data: B
           </Label>
         </div>
         {editable && !data.isFirstYear ? (
-          <Button size="sm" variant="outline" className="ml-auto" onClick={useSuggested}>
-            <Wand2 className="size-3.5" /> {b.useSuggested}
-          </Button>
+          <ToolbarActions>
+            <Button variant="outline" onClick={useSuggested}>
+              <Wand2 className="size-4" /> {b.useSuggested}
+            </Button>
+          </ToolbarActions>
         ) : null}
-      </div>
+      </Toolbar>
 
       <Card className="gap-0 overflow-hidden p-0">
         <div className="max-h-[60vh] overflow-auto scrollbar-thin">
           <table className="w-full min-w-[820px] text-sm">
             <thead className="sticky top-0 z-10 bg-card text-xs text-muted-foreground shadow-[0_1px_0_var(--border)]">
               <tr>
-                <th className="px-3 py-2 text-left font-medium">{fs.account}</th>
-                <th className="px-3 py-2 text-left font-medium">{fs.type}</th>
-                <th className="px-3 py-2 text-right font-medium">{b.suggested}</th>
-                <th className="w-44 px-3 py-2 text-right font-medium">{fs.debit}</th>
-                <th className="w-44 px-3 py-2 text-right font-medium">{fs.credit}</th>
-                <th className="px-3 py-2 text-left font-medium">{b.source}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.account}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.type}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{b.suggested}</th>
+                <th className="w-44 px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.debit}</th>
+                <th className="w-44 px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.credit}</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{b.source}</th>
               </tr>
             </thead>
             <tbody>
               {visible.map((r) => (
                 <tr key={r.line.accountId} className="border-t">
-                  <td className="px-3 py-1.5">
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-1.5">
                     <span className="mr-2 font-mono text-xs text-muted-foreground">{r.line.accountCode}</span>
                     {r.line.accountName}
                   </td>
-                  <td className="px-3 py-1.5 text-xs text-muted-foreground">{r.line.accountTypeCode}</td>
-                  <td className="px-3 py-1.5 text-right text-xs text-muted-foreground">
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-1.5 text-xs text-muted-foreground">{r.line.accountTypeCode}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-1.5 text-right text-xs text-muted-foreground">
                     <Money value={r.line.suggestedAmount} muteZero />
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-1.5">
                     {editable ? (
                       <MoneyInput value={r.debit} onChange={(v) => setAmount(r.line.accountId, "debit", v)} />
                     ) : (
                       <span className="block text-right"><Money value={r.debit} muteZero /></span>
                     )}
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-1.5">
                     {editable ? (
                       <MoneyInput value={r.credit} onChange={(v) => setAmount(r.line.accountId, "credit", v)} />
                     ) : (
                       <span className="block text-right"><Money value={r.credit} muteZero /></span>
                     )}
                   </td>
-                  <td className="px-3 py-1.5 text-xs text-muted-foreground">{b.sources[r.line.source] ?? r.line.source}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-1.5 text-xs text-muted-foreground">{b.sources[r.line.source] ?? r.line.source}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot className="sticky bottom-0 bg-card font-semibold shadow-[0_-1px_0_var(--border)]">
               <tr>
-                <td colSpan={3} className="px-3 py-2.5 text-right text-xs text-muted-foreground">
+                <td colSpan={3} className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right text-xs text-muted-foreground">
                   {fs.total}
                 </td>
-                <td className="px-3 py-2.5 text-right tabular">{formatRupiah(debit)}</td>
-                <td className="px-3 py-2.5 text-right tabular">{formatRupiah(credit)}</td>
-                <td className={cn("px-3 py-2.5 text-xs", diff === 0 ? "text-positive" : "text-negative")}>
+                <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right tabular">{formatRupiah(debit)}</td>
+                <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right tabular">{formatRupiah(credit)}</td>
+                <td className={cn("px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-xs", diff === 0 ? "text-positive" : "text-negative")}>
                   {diff === 0 ? fs.journals.balanced : b.notBalanced(formatRupiah(Math.abs(diff)))}
                 </td>
               </tr>

@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { load } from "@/features/erp/shared/load";
@@ -18,14 +15,14 @@ export default async function JournalDetailPage(props: PageProps<"/erp/finance/j
   const { id } = await props.params;
   const { access } = await requireErp("finance.read");
   const res = await load(() => getJournalEntry(id));
-  const back = (
-    <Button asChild size="sm" variant="ghost">
-      <Link href="/erp/finance/journals">
-        <ArrowLeft className="size-4" /> {fs.back}
-      </Link>
-    </Button>
-  );
-  if (res.error) return <>{back}<ErpLoadError error={res.error} /></>;
+  const back = { href: "/erp/finance/journals", label: fs.back };
+  if (res.error)
+    return (
+      <>
+        <PageHeader back={back} eyebrow={fs.journals.title} title={fs.journals.title} />
+        <ErpLoadError error={res.error} />
+      </>
+    );
   const entry = res.data;
   return (
     <>
@@ -37,12 +34,8 @@ export default async function JournalDetailPage(props: PageProps<"/erp/finance/j
             <ErpStatusBadge status={entry.status} />
           </span>
         }
-        actions={
-          <>
-            {back}
-            <JournalActions entry={entry} perms={financePerms(access)} />
-          </>
-        }
+        back={back}
+        actions={<JournalActions entry={entry} perms={financePerms(access)} />}
       />
       <JournalDetail entry={entry} />
     </>

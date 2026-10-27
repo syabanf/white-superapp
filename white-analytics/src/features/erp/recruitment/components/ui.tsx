@@ -14,7 +14,7 @@ import { CANDIDATE_STATUS, RECRUITMENT_NAV, kinds, rs } from "../strings";
 export function RecruitmentNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label={rs.dashboard.title} className="-mx-1 overflow-x-auto px-1 scrollbar-thin">
+    <nav aria-label={rs.dashboard.title} className="overflow-x-auto scrollbar-thin">
       <ul className="flex w-max gap-1 rounded-full bg-muted p-1">
         {RECRUITMENT_NAV.map((item) => {
           const active = "exact" in item ? pathname === item.href : pathname.startsWith(item.href);

@@ -49,7 +49,7 @@ export function PipelineBoard({ columns: initial, jobs, canWrite }: { columns: P
         <SearchSelectFilter param="job" options={jobs} placeholder={rs.candidates.allJobs} className="w-56" />
         <ResetFilters params={["q", "job"]} />
       </div>
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-0 md:px-0">
+      <div className="overflow-x-auto pb-2 scrollbar-thin">
         <div className="flex w-max gap-3">
           {columns.map((col) => (
             <section

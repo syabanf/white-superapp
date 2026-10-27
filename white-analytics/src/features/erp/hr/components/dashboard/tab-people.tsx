@@ -34,7 +34,7 @@ export function PeopleTab({ data }: TabProps) {
   const levels = th.masters.levels;
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           {

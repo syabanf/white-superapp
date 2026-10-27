@@ -128,7 +128,7 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
         <FinanceKpi kpi={k.payable} neutral href={`/erp/finance/payables?tab=aging&asOf=${filters.to}`} />
         <FinanceKpi kpi={k.pending_reimbursement} lowerIsBetter href="/erp/finance/reimbursements" />
       </KpiGrid>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-(--gap) lg:grid-cols-3">
         <ChartCard title={ds.summary.trend} description={ds.summary.trendQ} className="lg:col-span-2">
           <MonthlyChart
             months={w.months}
@@ -151,7 +151,7 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
           />
         </ChartCard>
       </div>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-(--gap) lg:grid-cols-3">
         <ChartCard title={ds.summary.cashTrend} description={ds.summary.cashTrendQ} className="lg:col-span-2">
           <MonthlyChart
             months={w.months}
@@ -161,8 +161,8 @@ export function SummaryTab({ data, filters }: Props<FinanceSummary>) {
             series={[{ key: "cash", label: ds.kpi.cash, color: slotColor(0), type: "line", values: nums(cash?.values ?? []), compare: nums(cash?.compareValues ?? []) }]}
           />
         </ChartCard>
-        <div className="flex flex-col gap-3">
-          <h3 className="text-[15px] font-semibold">{ds.summary.health}</h3>
+        <div className="flex flex-col gap-(--gap-inner)">
+          <h3 className="flex min-h-8 items-center text-[15px] font-semibold">{ds.summary.health}</h3>
           <StatStrip
             minWidth={150}
             items={[
@@ -259,7 +259,7 @@ export function ProfitTab({ data, filters }: Props<FinanceProfitability>) {
         <FinanceKpi kpi={k.net_margin} unit="pct" href={isHref} />
         <FinanceKpi kpi={k.opex_ratio} unit="pct" lowerIsBetter href={isHref} />
       </KpiGrid>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={ds.profit.waterfall} description={ds.profit.waterfallQ}>
           <WaterfallChart
             steps={data.waterfall.map((s) => ({ key: s.key, label: s.label, value: money(s.value), total: s.total }))}
@@ -282,7 +282,7 @@ export function ProfitTab({ data, filters }: Props<FinanceProfitability>) {
           />
         </ChartCard>
       </div>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-(--gap) lg:grid-cols-3">
         <ChartCard title={ds.profit.revenueClients} description={ds.profit.revenueClientsQ}>
           <HBarChart
             items={ranked(data.revenueClients, 8, (a) => invoicesHref("AR", { party: a.label, from: filters.from, to: filters.to }))}
@@ -368,7 +368,7 @@ export function CashTab({ data, filters }: Props<FinanceCash>) {
         <FinanceKpi kpi={k.burn_rate} lowerIsBetter href={cfHref} />
         <FinanceKpi kpi={k.runway} unit="months" href="/erp/finance/cash-bank" />
       </KpiGrid>
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={ds.cash.flows} description={ds.cash.flowsQ}>
           <MonthlyChart
             months={w.months}
@@ -485,7 +485,7 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
         <FinanceKpi kpi={k.overdue_payable} lowerIsBetter href={invoicesHref("AP", { pay: "overdue" })} />
         <FinanceKpi kpi={k.dpo} unit="days" neutral href={`/erp/finance/payables?tab=aging&asOf=${w.to}`} />
       </KpiGrid>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={ds.arap.aging} description={ds.arap.agingQ}>
           <StackRows rows={[agingRow("AR"), agingRow("AP")]} legend={BUCKETS.map((b) => ({ key: b, label: ds.arap.buckets[b]!, color: bucketColor(b) }))} />
         </ChartCard>
@@ -504,7 +504,7 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
           />
         </ChartCard>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={ds.arap.agingTrend} description={ds.arap.agingTrendQ}>
           <MonthlyChart months={w.months} stacked height={240} onMonthClick={onArMonth} series={agingSeries(data.arAgingTrend)} />
         </ChartCard>
@@ -512,7 +512,7 @@ export function ArApTab({ data }: Props<FinanceArAp>) {
           <MonthlyChart months={w.months} stacked height={240} onMonthClick={onApMonth} series={agingSeries(data.apAgingTrend)} />
         </ChartCard>
       </div>
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={ds.arap.customers}>
           <SortTable
             rows={data.customers}
@@ -602,7 +602,7 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
         <FinanceKpi kpi={k.approval_days} unit="days" lowerIsBetter href={claims({ status: "PAID" })} />
         <FinanceKpi kpi={k.rejection_rate} unit="pct" lowerIsBetter href={claims({ status: "REJECTED" })} />
       </KpiGrid>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={ds.spend.groups} description={ds.spend.groupsQ}>
           <MonthlyChart months={w.months} stacked onMonthClick={onMonth} series={topSeries(data.expenseGroups, 6)} />
         </ChartCard>
@@ -615,7 +615,7 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
           />
         </ChartCard>
       </div>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-(--gap) lg:grid-cols-3">
         <ChartCard title={ds.spend.byCategory}>
           <HBarChart
             items={named(data.byCategory, ds.spend.categoryNames).map((a) => ({ label: `${a.label} · ${a.count}`, value: money(a.value), href: claims({ category: a.key }) }))}
@@ -641,7 +641,7 @@ export function SpendTab({ data, filters }: Props<FinanceSpend>) {
           />
         </ChartCard>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={ds.spend.leadTime} description={ds.spend.leadTimeQ}>
           <HBarChart
             items={data.leadTime.map((l) => ({

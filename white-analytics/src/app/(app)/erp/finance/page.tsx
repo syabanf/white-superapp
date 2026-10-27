@@ -74,11 +74,9 @@ export default async function FinanceDashboardPage(props: PageProps<"/erp/financ
   return (
     <>
       {header}
-      <div className="flex flex-col gap-3">
-        <FinanceFilters period={period} tab={tab} groups={groups} cashAccounts={cashAccounts} />
-        <DrillBreadcrumb items={drillTrail(sp, period, groups.find((g) => g.value === filters.accountGroup)?.label, filters.department)} />
-        <UrlTabs tabs={TABS} label={ds.tabsLabel} />
-      </div>
+      <FinanceFilters period={period} tab={tab} groups={groups} cashAccounts={cashAccounts} />
+      <DrillBreadcrumb items={drillTrail(sp, period, groups.find((g) => g.value === filters.accountGroup)?.label, filters.department)} />
+      <UrlTabs tabs={TABS} label={ds.tabsLabel} />
       <Suspense key={`${tab}|${JSON.stringify(filters)}`} fallback={<TabSkeleton />}>
         <TabBody tab={tab} filters={filters} />
       </Suspense>

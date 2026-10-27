@@ -55,7 +55,7 @@ export function OfferPortal({ token, initial }: { token: string; initial: Portal
         <h1 className="mt-1 text-[26px] leading-tight font-semibold">{t.hello(offer.candidateName)}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t.intro(offer.companyName, offer.positionTitle)}</p>
       </div>
-      <Card className="flex flex-col gap-5 p-5 sm:p-6">
+      <Card className="flex flex-col gap-5 p-(--card-pad)">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <ErpStatusBadge status={offer.status} labels={OFFER_STATUS} kinds={kinds.offer} />
           <DownloadButton href={`/api/public-erp${base}/letter`} fileName="surat-penawaran.pdf">
@@ -103,7 +103,7 @@ export function OfferPortal({ token, initial }: { token: string; initial: Portal
         ) : null}
       </Card>
       {open ? (
-        <Card className="flex flex-col gap-4 p-5 sm:p-6">
+        <Card className="flex flex-col gap-4 p-(--card-pad)">
           <h2 className="font-semibold">{t.respondTitle}</h2>
           <div className="grid gap-1.5">
             <Label htmlFor="offer-note">{t.note}</Label>

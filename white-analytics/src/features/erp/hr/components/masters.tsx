@@ -124,7 +124,7 @@ export function DepartmentsPanel({
 
 function NewButton({ label, ...props }: { label: string } & React.ComponentProps<typeof Button>) {
   return (
-    <Button size="sm" {...props}>
+    <Button {...props}>
       <Plus className="size-4" /> {label}
     </Button>
   );
@@ -158,7 +158,7 @@ function DepartmentForm({
         void run(() => saveDepartmentAction(dept?.id ?? null, v), { success: th.saved, onOk: close, onFail });
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
+      <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
         <Fld label={m.code} htmlFor="code" error={errors?.code}>
           <Input id="code" value={v.code} onChange={(e) => setV({ ...v, code: e.target.value.toUpperCase() })} />
         </Fld>

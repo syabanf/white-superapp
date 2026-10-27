@@ -37,7 +37,7 @@ export function ChatbotSettingsForm({ settings, owners, admin }: { settings: Cha
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card className="px-5 py-5 lg:col-span-2">
+      <Card className="lg:col-span-2 p-(--card-pad)">
         <form
           className="grid gap-4 sm:grid-cols-2"
           onSubmit={(e) => {
@@ -94,13 +94,13 @@ export function ChatbotSettingsForm({ settings, owners, admin }: { settings: Cha
         </form>
       </Card>
       <div className="flex flex-col gap-4">
-        <Card className="gap-2 px-5 py-4">
+        <Card className="gap-2 p-(--card-pad)">
           <h3 className="text-sm font-semibold">{st.whatsapp}</h3>
           <p className={v.whatsappEnabled ? "text-sm text-positive" : "text-sm text-muted-foreground"}>
             {v.whatsappEnabled ? st.whatsappOn : st.whatsappOff}
           </p>
         </Card>
-        <Card className="gap-2 px-5 py-4">
+        <Card className="gap-2 p-(--card-pad)">
           <h3 className="text-sm font-semibold">{st.embed}</h3>
           <p className="text-xs text-muted-foreground">{st.embedHint}</p>
           <Textarea readOnly rows={6} value={snippet} className="font-mono text-[11px]" onFocus={(e) => e.currentTarget.select()} aria-label={st.embed} />
@@ -128,7 +128,7 @@ export function ReplyTemplates({ templates, canWrite }: { templates: ReplyTempla
       ) : null}
       <ul className="divide-y rounded-xl border bg-card">
         {templates.map((t) => (
-          <li key={t.id} className="flex items-start gap-3 px-5 py-3">
+          <li key={t.id} className="flex items-start gap-3 px-(--card-pad) py-3">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">
                 {t.title}

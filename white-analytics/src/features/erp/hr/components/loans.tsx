@@ -122,7 +122,7 @@ export function LoansTable({
               <FormDialog
                 title={n.newLoan}
                 trigger={
-                  <Button size="sm">
+                  <Button>
                     <Plus className="size-4" /> {n.newLoan}
                   </Button>
                 }

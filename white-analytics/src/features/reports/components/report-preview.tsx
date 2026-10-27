@@ -76,12 +76,12 @@ function SectionPreview({ section }: { section: ReportSection }) {
 export function ModulePreviewCard({ title, icon, kpis, sections = [] }: { title: string; icon?: ReactNode; kpis: PreviewKpi[]; sections?: ReportSection[] }) {
   return (
     <Card className="gap-3 py-0">
-      <CardHeader className="px-5 pt-4 pb-0">
+      <CardHeader className="px-(--card-pad) pt-(--card-pad) pb-0">
         <CardTitle className="flex items-center gap-2 text-sm font-semibold">
           {icon} {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 px-5 pb-4">
+      <CardContent className="space-y-4 px-(--card-pad) pb-(--card-pad)">
         {kpis.length > 0 ? <PreviewKpis kpis={kpis} /> : null}
         {sections.map((s) => (
           <SectionPreview key={s.key} section={s} />

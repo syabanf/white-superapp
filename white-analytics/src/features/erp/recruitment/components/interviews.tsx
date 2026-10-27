@@ -62,7 +62,7 @@ function InterviewCard({
 }) {
   const scheduled = item.status === "scheduled";
   return (
-    <Card className="flex flex-col gap-3 p-4 text-sm">
+    <Card className="flex flex-col gap-3 text-sm p-(--card-pad)">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 font-medium">
@@ -161,7 +161,7 @@ export function ScheduleButton({ lookups, candidateId }: { lookups: InterviewLoo
       title={iv.schedule}
       wide
       trigger={
-        <Button size="sm">
+        <Button>
           <CalendarPlus className="size-4" /> {iv.schedule}
         </Button>
       }

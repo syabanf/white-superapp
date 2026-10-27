@@ -7,7 +7,7 @@ import type { Delta } from "@/lib/metrics";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatCompact, formatPercent } from "@/lib/format";
-import { slotColor } from "./chart-primitives";
+import { cssBarFill, slotColor } from "./chart-primitives";
 
 export type HBarItem = {
   label: string;
@@ -80,10 +80,10 @@ export function HBarChart({
                 ) : null}
               </span>
             </div>
-            <div className="h-2 w-full rounded-r-[4px] bg-muted/70">
+            <div className="h-2 w-full rounded-full bg-muted">
               <div
-                className="h-2 rounded-r-[4px] transition-[width] duration-300 group-hover:brightness-110"
-                style={{ width: `${Math.max(pct, r.value > 0 ? 1.5 : 0)}%`, background: barColor }}
+                className="h-2 rounded-full transition-[width] duration-300 group-hover:brightness-110"
+                style={{ width: `${Math.max(pct, r.value > 0 ? 1.5 : 0)}%`, background: cssBarFill(barColor) }}
               />
             </div>
           </div>

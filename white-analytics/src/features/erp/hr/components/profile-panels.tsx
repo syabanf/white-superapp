@@ -146,16 +146,16 @@ export function DocumentsPanel({
   const d = th.documents;
   const [docType, setDocType] = React.useState("other");
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+    <div className="grid items-start gap-(--gap) lg:grid-cols-[minmax(0,1fr)_340px]">
       <Card className="gap-0 py-0">
         {documents.length === 0 ? (
-          <div className="p-4">
+          <div className="p-(--card-pad)">
             <ErpEmpty compact icon={<FileText className="size-5" />} title={d.empty} />
           </div>
         ) : (
           <ul className="divide-y">
             {documents.map((doc) => (
-              <li key={doc.id} className="flex items-center gap-3 px-4 py-3">
+              <li key={doc.id} className="flex items-center gap-3 px-(--card-pad) py-3">
                 <FileText className="size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{doc.name}</p>
@@ -427,7 +427,7 @@ export function LifecyclePanel({
   canWrite: boolean;
 }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid items-start gap-(--gap) lg:grid-cols-2">
       <OnboardingCard employeeId={employeeId} list={onboarding} canWrite={canWrite} />
       <OffboardingCard employeeId={employeeId} off={offboarding} canWrite={canWrite} />
     </div>

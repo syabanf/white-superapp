@@ -55,7 +55,7 @@ export function LeaveTab({ data, leaveTypes }: TabProps) {
   }));
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           {

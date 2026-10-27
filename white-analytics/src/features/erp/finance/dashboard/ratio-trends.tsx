@@ -28,16 +28,16 @@ export function RatioTrends({ data }: { data: RatioTrend }) {
     if (m) router.push(hrefWith({ ...monthBounds(m), preset: null }), { scroll: true });
   };
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       {GROUPS.map((g, gi) => {
         const series = data.series.filter((s) => s.group === g);
         if (!series.length) return null;
         return (
-          <section key={g} className="space-y-3">
-            <h2 className="text-base font-semibold">
+          <section key={g} className="flex flex-col gap-(--gap-inner)">
+            <h2 className="flex min-h-8 items-center text-base font-semibold">
               {ds.ratios.title}: {fs.analysis.groups[g]}
             </h2>
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-(--gap) md:grid-cols-2 xl:grid-cols-3">
               {series.map((s) => {
                 const values = s.points.map((p) => (p.unavailable ? 0 : p.value));
                 const last = s.points.at(-1);

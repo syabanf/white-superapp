@@ -37,7 +37,7 @@ export function SummaryTab({ data, dept }: { data: DashSummary; dept?: string })
   );
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <KpiGrid cols={6} className="xl:grid-cols-3">
         <MetricTile
           label={s.kpi}

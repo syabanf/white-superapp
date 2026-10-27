@@ -46,7 +46,7 @@ export function PostChip({
         boxShadow: `inset 2px 0 0 ${color}`,
       }}
       className={cn(
-        "lift group/chip rounded-[5px] text-left transition-[filter] hover:brightness-95 dark:hover:brightness-125",
+        "lift group/chip rounded-lg text-left transition-[filter] hover:brightness-95 dark:hover:brightness-125",
         compact
           ? "flex h-6 items-center gap-1.5 px-2 text-xs"
           : "flex flex-col gap-0.5 px-2.5 py-1.5 text-[13px]",
@@ -55,7 +55,7 @@ export function PostChip({
       )}
     >
       {/* Month cells are narrow: one line, the title wins and platforms stay in the tooltip. */}
-      <span className="flex items-center gap-1.5">
+      <span className="flex min-w-0 items-center gap-1.5">
         <StatusDot status={post.status} />
         <span className="tabular shrink-0 text-xs text-muted-foreground">{clock(post.at, timeZone)}</span>
         {compact ? null : (

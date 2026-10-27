@@ -79,7 +79,7 @@ export function TaskRow({
   const closed = item.status === "approved" || item.status === "done";
   const canTick = item.canWork && item.subtaskCount === 0 && !(item.status === "approved" && item.reviewRequired);
   return (
-    <li className={cn("flex items-start gap-3 px-4 py-3", item.status === "approved" && "opacity-60")}>
+    <li className={cn("flex items-start gap-3 px-(--card-pad) py-3", item.status === "approved" && "opacity-60")}>
       <Checkbox
         aria-label={closed ? sp.myTasks.untick(item.title) : sp.myTasks.tick(item.title)}
         checked={closed}

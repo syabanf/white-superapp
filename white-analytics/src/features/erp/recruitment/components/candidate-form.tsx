@@ -28,7 +28,7 @@ export function NewCandidateButton({ jobs }: { jobs: SearchOption[] }) {
       title={c.new}
       wide
       trigger={
-        <Button size="sm">
+        <Button>
           <UserPlus className="size-4" /> {c.new}
         </Button>
       }
@@ -44,7 +44,7 @@ export function EditCandidateButton({ candidate, jobs }: { candidate: Candidate;
       title={c.editTitle}
       wide
       trigger={
-        <Button size="sm" variant="outline">
+        <Button variant="outline">
           <Pencil className="size-4" /> {rs.edit}
         </Button>
       }

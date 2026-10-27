@@ -54,9 +54,9 @@ export function FormsList({ forms, owners, canWrite }: { forms: LeadForm[]; owne
           />
         </div>
       ) : null}
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-(--gap) md:grid-cols-2 xl:grid-cols-3">
         {forms.map((form) => (
-          <Card key={form.id} className="gap-3 px-5 py-4">
+          <Card key={form.id} className="gap-3 p-(--card-pad)">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <h3 className="font-medium">{form.name}</h3>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Section } from "@/components/dashboard/page-header";
 import * as React from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,8 +19,8 @@ export function MyRecap({ recap, history }: { recap: DailyRecap; history: DailyR
   const { pending, run } = useErpAction();
   const [notes, setNotes] = React.useState(recap.notes);
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <Card className="gap-4 p-4 sm:p-5">
+    <div className="grid gap-(--gap) lg:grid-cols-[minmax(0,1fr)_360px]">
+      <Card className="gap-4 p-(--card-pad)">
         <div className="flex justify-end">
           <Button
             size="sm"
@@ -53,10 +54,9 @@ export function MyRecap({ recap, history }: { recap: DailyRecap; history: DailyR
           </Button>
         </section>
       </Card>
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold">{sp.recaps.history}</h2>
+      <Section title={sp.recaps.history}>
         <RecapHistoryList recaps={history.filter((h) => h.recapDate !== recap.recapDate)} />
-      </section>
+      </Section>
     </div>
   );
 }

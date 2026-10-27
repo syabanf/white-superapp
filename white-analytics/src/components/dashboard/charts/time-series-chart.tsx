@@ -15,9 +15,14 @@ import {
 } from "recharts";
 import {
   AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS,
   CURSOR_STROKE,
+  GRID_DASH,
   GRID_STROKE,
   MUTED_SERIES,
+  barFill,
+  ringDot,
   SeriesLegend,
   TooltipBox,
   activeIndexOf,
@@ -32,8 +37,9 @@ import { t } from "@/i18n/id";
 export type TimeSeriesPoint = { date: string; [k: string]: number | string | null | undefined };
 
 /**
- * Single-axis daily time series. Lines 2px, areas 10% wash, bars ≤24px with 4px data-end radius,
- * hairline solid grid, crosshair tooltip listing every series, legend for ≥2 series.
+ * Single-axis daily time series. Smooth 2.5px lines with a soft wash underneath (up to two
+ * lines), gradient bars ≤24px with a fully rounded data end, recessive dashed grid, pill
+ * tooltip listing every series, legend for ≥2 series.
  * Optional previous-period overlay in the de-emphasis gray (emphasis form, not a second axis).
  * `onSelect` makes every point/bar clickable (drill sheet or time drill); `onSeriesSelect`
  * turns the legend into filter toggles. Bar series with `signed` color by sign.
@@ -105,6 +111,8 @@ export function TimeSeriesChart({
     : resolved;
   const interval = Math.max(0, tickEvery(data.length) - 1);
   const hasBars = resolved.some((s) => s.type === "bar");
+  // A wash under each line reads well for one or two lines; more would muddy.
+  const washLines = !reverseY && resolved.filter((s) => s.type === "line").length <= 2;
   const barSize = Math.min(24, Math.max(4, Math.floor(600 / Math.max(1, data.length)) - 2));
   const accessibleSummary =
     summary ??
@@ -152,19 +160,19 @@ export function TimeSeriesChart({
           >
             <defs>
               {resolved.map((s, i) =>
-                s.type === "area" ? (
+                s.type !== "bar" ? (
                   <linearGradient key={s.key} id={`${gradientId}-${i}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={s.color} stopOpacity={0.24} />
-                    <stop offset="100%" stopColor={s.color} stopOpacity={0.02} />
+                    <stop offset="0%" style={{ stopColor: s.color, stopOpacity: s.type === "area" ? 0.26 : 0.18 }} />
+                    <stop offset="100%" style={{ stopColor: s.color, stopOpacity: 0 }} />
                   </linearGradient>
                 ) : null,
               )}
             </defs>
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeWidth={1} strokeDasharray="3 4" />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeWidth={1} strokeDasharray={GRID_DASH} />
             <XAxis
               dataKey="date"
               tickLine={false}
-              axisLine={{ stroke: "var(--axis)" }}
+              axisLine={false}
               tick={AXIS_TICK}
               tickFormatter={(v: string) => formatDateShort(v)}
               interval="preserveStartEnd"
@@ -182,12 +190,8 @@ export function TimeSeriesChart({
               allowDecimals={false}
             />
             <Tooltip
-              cursor={
-                hasBars
-                  ? { fill: "var(--muted)", fillOpacity: 0.5 }
-                  : { stroke: CURSOR_STROKE, strokeWidth: 1 }
-              }
-              content={<TooltipBox seriesMap={seriesMap} />}
+              cursor={hasBars ? BAR_CURSOR : { stroke: CURSOR_STROKE, strokeWidth: 1, strokeDasharray: "4 4" }}
+              content={<TooltipBox seriesMap={seriesMap} tone={hasBars ? "light" : "dark"} />}
               isAnimationActive={false}
               wrapperStyle={{ outline: "none" }}
             />
@@ -197,14 +201,15 @@ export function TimeSeriesChart({
                 dataKey={previousKey}
                 stroke={MUTED_SERIES}
                 strokeWidth={2}
+                strokeDasharray="5 5"
                 dot={false}
-                activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
+                activeDot={ringDot(MUTED_SERIES)}
                 isAnimationActive={false}
                 connectNulls
               />
             ) : null}
             {resolved.map((s, i) => {
-              if (s.type === "area") {
+              if (s.type === "area" || (s.type === "line" && washLines)) {
                 return (
                   <Area
                     key={s.key}
@@ -213,11 +218,12 @@ export function TimeSeriesChart({
                     stroke={s.color}
                     fill={`url(#${gradientId}-${i})`}
                     fillOpacity={1}
-                    strokeWidth={2}
+                    strokeWidth={s.type === "line" ? 2.5 : 2}
                     dot={false}
-                    activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
-                    stackId={stacked ? "a" : undefined}
+                    activeDot={ringDot(s.color)}
+                    stackId={stacked && s.type === "area" ? "a" : undefined}
                     isAnimationActive={false}
+                    connectNulls={s.type === "line"}
                   />
                 );
               }
@@ -227,9 +233,9 @@ export function TimeSeriesChart({
                   <Bar
                     key={s.key}
                     dataKey={s.key}
-                    fill={s.color}
+                    fill={barFill(s.color)}
                     stackId={stacked ? "a" : undefined}
-                    radius={isTop ? [4, 4, 0, 0] : 0}
+                    radius={isTop ? BAR_RADIUS : 0}
                     maxBarSize={24}
                     barSize={barSize}
                     isAnimationActive={false}
@@ -238,7 +244,7 @@ export function TimeSeriesChart({
                   >
                     {s.signed
                       ? data.map((d, j) => (
-                          <Cell key={j} fill={signedFill(Number(d[s.key] ?? 0), s.lowerIsBetter)} />
+                          <Cell key={j} fill={barFill(signedFill(Number(d[s.key] ?? 0), s.lowerIsBetter), false, Number(d[s.key] ?? 0) < 0)} />
                         ))
                       : null}
                   </Bar>
@@ -250,9 +256,9 @@ export function TimeSeriesChart({
                   type="monotone"
                   dataKey={s.key}
                   stroke={s.color}
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
+                  activeDot={ringDot(s.color)}
                   isAnimationActive={false}
                   connectNulls
                 />

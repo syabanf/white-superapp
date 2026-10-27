@@ -60,7 +60,7 @@ function YearDialog({ year, onClose }: { year?: FiscalYear; onClose: () => void 
             <DialogTitle>{year ? f.editYear : f.newYear}</DialogTitle>
             {!year ? <DialogDescription>{f.autoPeriods}</DialogDescription> : null}
           </DialogHeader>
-          <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
+          <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
             <FormField label={f.code} htmlFor="fy-code" error={errors.code} required>
               <Input id="fy-code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
             </FormField>
@@ -208,10 +208,10 @@ export function FiscalYears({ years, perms }: { years: FiscalYear[]; perms: Fina
   const { run } = useErpAction();
   const sorted = [...years].sort((x, y) => y.startDate.localeCompare(x.startDate));
   return (
-    <div className="flex flex-col gap-5">
+    <div className="page-stack">
       {perms.canWrite ? (
         <div className="flex justify-end">
-          <Button size="sm" onClick={() => setDialog({})}>
+          <Button onClick={() => setDialog({})}>
             <Plus className="size-4" /> {f.newYear}
           </Button>
         </div>
@@ -219,7 +219,7 @@ export function FiscalYears({ years, perms }: { years: FiscalYear[]; perms: Fina
       {sorted.length === 0 ? <ErpEmpty title={f.empty} /> : null}
       {sorted.map((y) => (
         <Card key={y.id} className="gap-0 overflow-hidden p-0">
-          <div className="flex flex-wrap items-center gap-3 px-5 py-4">
+          <div className="flex flex-wrap items-center gap-3 p-(--card-pad)">
             <div className="min-w-0 flex-1">
               <h2 className="flex items-center gap-2 font-semibold">
                 {y.name}
@@ -259,12 +259,12 @@ export function FiscalYears({ years, perms }: { years: FiscalYear[]; perms: Fina
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-muted/40 text-xs text-muted-foreground">
                 <tr>
-                  <th className="w-12 px-4 py-2 text-left font-medium">#</th>
-                  <th className="px-4 py-2 text-left font-medium">{f.periods}</th>
-                  <th className="px-4 py-2 text-left font-medium">{fs.date}</th>
-                  <th className="px-4 py-2 text-right font-medium">{fs.dashboard.posted}</th>
-                  <th className="px-4 py-2 text-right font-medium">{fs.dashboard.drafts}</th>
-                  <th className="px-4 py-2 text-left font-medium">{fs.status}</th>
+                  <th className="w-12 px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">#</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{f.periods}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.date}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.dashboard.posted}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.dashboard.drafts}</th>
+                  <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.status}</th>
                   <th className="w-28" />
                 </tr>
               </thead>
@@ -273,17 +273,17 @@ export function FiscalYears({ years, perms }: { years: FiscalYear[]; perms: Fina
                   .sort((p, q) => p.periodNo - q.periodNo)
                   .map((p) => (
                     <tr key={p.id} className="border-t">
-                      <td className="px-4 py-2 text-muted-foreground tabular">{p.periodNo}</td>
-                      <td className="px-4 py-2 font-medium">{p.name}</td>
-                      <td className="px-4 py-2 text-muted-foreground">
+                      <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-muted-foreground tabular">{p.periodNo}</td>
+                      <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 font-medium">{p.name}</td>
+                      <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-muted-foreground">
                         {formatDate(p.startDate)} – {formatDate(p.endDate)}
                       </td>
-                      <td className="px-4 py-2 text-right tabular">{p.postedCount}</td>
-                      <td className="px-4 py-2 text-right tabular">{p.draftCount}</td>
-                      <td className="px-4 py-2">
+                      <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right tabular">{p.postedCount}</td>
+                      <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right tabular">{p.draftCount}</td>
+                      <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2">
                         <ErpStatusBadge status={p.status} />
                       </td>
-                      <td className="px-4 py-2 text-right">
+                      <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right">
                         {perms.canApprove ? (
                           p.status === "OPEN" ? (
                             <Button size="xs" variant="outline" onClick={() => setClosing(p)}>

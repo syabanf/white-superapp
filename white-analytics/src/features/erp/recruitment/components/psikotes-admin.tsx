@@ -23,9 +23,9 @@ const MCQ_KEYS = ["a", "b", "c", "d", "e", "f"];
 export function InstrumentsView({ instruments, canWrite }: { instruments: Instrument[]; canWrite: boolean }) {
   if (!instruments.length) return <ErpEmpty />;
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-(--gap) md:grid-cols-2 xl:grid-cols-3">
       {instruments.map((i) => (
-        <Card key={i.id} className="flex flex-col gap-3 p-4">
+        <Card key={i.id} className="flex flex-col gap-3 p-(--card-pad)">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="font-semibold">{i.name}</h3>
@@ -161,9 +161,13 @@ function QuestionManager({ instrument, canWrite }: { instrument: Instrument; can
   if (editing)
     return (
       <div className="flex flex-col gap-4">
-        <Button variant="ghost" size="sm" className="-ml-2 self-start" onClick={() => setEditing(null)}>
+        <button
+          type="button"
+          onClick={() => setEditing(null)}
+          className="inline-flex w-fit items-center gap-1.5 rounded-sm text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <ArrowLeft className="size-4" /> {b.back}
-        </Button>
+        </button>
         <QuestionForm
           instrument={instrument}
           question={editing === "new" ? undefined : editing}

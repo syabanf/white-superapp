@@ -89,8 +89,8 @@ export function TargetsDialog({ month, targets, owners }: { month: string; targe
       title={r.targetsTitle(month)}
       size="lg"
       trigger={
-        <Button size="sm" variant="outline">
-          <Target className="size-3.5" /> {r.editTargets}
+        <Button variant="outline">
+          <Target className="size-4" /> {r.editTargets}
         </Button>
       }
     >

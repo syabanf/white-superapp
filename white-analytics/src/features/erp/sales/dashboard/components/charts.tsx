@@ -4,7 +4,21 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bar, CartesianGrid, Cell, ComposedChart, Line, Pie, PieChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from "recharts";
-import { AXIS_TICK, GRID_STROKE, MarkButtons, MUTED_SERIES, SeriesLegend, TooltipBox, slotColor, type SeriesDef } from "@/components/dashboard/charts/chart-primitives";
+import {
+  AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS,
+  GRID_DASH,
+  GRID_STROKE,
+  MUTED_SERIES,
+  MarkButtons,
+  SeriesLegend,
+  TooltipBox,
+  barFill,
+  ringDot,
+  slotColor,
+  type SeriesDef,
+} from "@/components/dashboard/charts/chart-primitives";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCompact, formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -74,11 +88,11 @@ export function MonthlyChart({
             }}
             className={onMonth ? "cursor-pointer" : undefined}
           >
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
             <XAxis
               dataKey="month"
               tickLine={false}
-              axisLine={{ stroke: "var(--axis)" }}
+              axisLine={false}
               tick={AXIS_TICK}
               tickFormatter={monthLabel}
               interval="preserveStartEnd"
@@ -87,7 +101,7 @@ export function MonthlyChart({
             />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => yFormat(v)} width={66} domain={[0, yMax ?? "auto"]} allowDecimals={false} />
             <ChartTooltip
-              cursor={bars.length ? { fill: "var(--muted)", fillOpacity: 0.5 } : { stroke: "var(--axis)" }}
+              cursor={bars.length ? BAR_CURSOR : { stroke: "var(--axis)" }}
               content={<TooltipBox seriesMap={seriesMap} labelFormatter={(l) => monthLabel(String(l))} />}
               isAnimationActive={false}
             />
@@ -97,9 +111,9 @@ export function MonthlyChart({
                 <Bar
                   key={s.key}
                   dataKey={s.key}
-                  fill={s.color}
+                  fill={barFill(s.color)}
                   stackId={stacked ? "a" : undefined}
-                  radius={!stacked || s.key === bars.at(-1)?.key ? [4, 4, 0, 0] : 0}
+                  radius={!stacked || s.key === bars.at(-1)?.key ? BAR_RADIUS : 0}
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
@@ -113,7 +127,7 @@ export function MonthlyChart({
                   stroke={s.color}
                   strokeWidth={2}
                   dot={{ r: 3, strokeWidth: 0, fill: s.color }}
-                  activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2 }}
+                  activeDot={ringDot(s.color)}
                   isAnimationActive={false}
                 />
               ),
@@ -237,7 +251,7 @@ export function FunnelChart({ steps, valueFormat, onSelect }: { steps: FunnelSte
         const width = Math.max(2, (s.count / first) * 100);
         const inside = width > 45;
         const bar = (
-          <div className="group grid grid-cols-[minmax(0,7.5rem)_1fr] items-center gap-3 sm:grid-cols-[9rem_1fr]">
+          <div className="group grid grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[9rem_minmax(0,1fr)]">
             <span className="truncate text-xs text-foreground/90">{s.label}</span>
             <div className="relative h-8">
               <div
@@ -257,7 +271,7 @@ export function FunnelChart({ steps, valueFormat, onSelect }: { steps: FunnelSte
         return (
           <li key={s.key}>
             {conv != null ? (
-              <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-3 py-0.5 text-[11px] text-muted-foreground sm:grid-cols-[9rem_1fr]">
+              <div className="grid grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)] gap-3 py-0.5 text-[11px] text-muted-foreground sm:grid-cols-[9rem_minmax(0,1fr)]">
                 <span />
                 <span className="tabular">
                   ↓ {formatPercent(conv, 0)} {dd.pipeline.conversion} · {formatNumber(prev!.count - s.count)} {dd.pipeline.dropoff}
@@ -438,17 +452,17 @@ export function ColumnChart({
       <div style={{ height }} className="w-full" role="img" aria-label={`${seriesLabel}: ${items.map((i) => `${i.label} ${format(i.value)}`).join(", ")}`}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 400, height }}>
           <ComposedChart data={items} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%">
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-            <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} interval={0} tickMargin={8} />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS_TICK} interval={0} tickMargin={8} />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => format(v)} width={66} allowDecimals={false} />
             <ChartTooltip
-              cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
+              cursor={BAR_CURSOR}
               content={<TooltipBox seriesMap={{ value: { key: "value", label: seriesLabel, color: slotColor(0), format } }} />}
               isAnimationActive={false}
             />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={48} isAnimationActive={false} onClick={(d: { payload?: ColumnItem }) => pick(d.payload)}>
+            <Bar dataKey="value" radius={BAR_RADIUS} maxBarSize={48} isAnimationActive={false} onClick={(d: { payload?: ColumnItem }) => pick(d.payload)}>
               {items.map((it) => (
-                <Cell key={it.key} fill={it.color ?? slotColor(0)} className={it.href || onSelect ? "cursor-pointer" : undefined} />
+                <Cell key={it.key} fill={barFill(it.color ?? slotColor(0))} className={it.href || onSelect ? "cursor-pointer" : undefined} />
               ))}
             </Bar>
           </ComposedChart>

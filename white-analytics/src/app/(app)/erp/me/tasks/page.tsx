@@ -43,7 +43,7 @@ export default async function MyTasksPage(props: PageProps<"/erp/me/tasks">) {
         description={summary ? m.summary(summary.open, summary.overdue, summary.review, summary.approved) : m.subtitle}
         actions={
           canAccess(access, "hr.read") ? (
-            <Button asChild size="sm" variant="secondary">
+            <Button asChild variant="secondary">
               <Link href="/erp/performance/tasks">{m.teamBoard}</Link>
             </Button>
           ) : null

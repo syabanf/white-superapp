@@ -13,9 +13,9 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
   const client = ctx.status === "not-found" ? null : ctx.client;
 
   return (
-    <div className="flex min-h-svh flex-1 flex-col bg-canvas">
-      <header className="sticky top-0 z-20 border-b bg-canvas/90 backdrop-blur">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 md:px-6">
+    <div className="flex min-h-svh flex-1 flex-col bg-background [--page-max:72rem]">
+      <header className="sticky top-0 z-20 border-b bg-background">
+        <div className="page-container flex h-14 items-center gap-3">
           <MixistLogo size={28} />
           {client && ctx.status !== "disabled" ? (
             <>
@@ -34,11 +34,11 @@ export default async function ShareLayout(props: LayoutProps<"/share/[slug]">) {
           <div className="ml-auto shrink-0">{ctx.status === "ok" ? <ShareControls slug={slug} /> : null}</div>
         </div>
       </header>
-      <main className="page-enter mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
+      <main className="page-enter page-container page-stack flex-1 py-6 md:py-8">
         {props.children}
       </main>
       <footer className="border-t">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-4 text-xs text-muted-foreground md:px-6">
+        <div className="page-container flex items-center justify-between gap-3 py-4 text-xs text-muted-foreground">
           <span>{t.share.footer}</span>
           <MixistLogo variant="mark" size={16} className="text-muted-foreground" />
         </div>

@@ -44,10 +44,10 @@ export function NotificationBell({ feed }: { feed: NotificationFeed }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label={n.aria(feed.unread)} className="relative">
+            <Button variant="ghost" size="icon" aria-label={n.aria(feed.unread)} className="size-10 rounded-2xl bg-card shadow-(--card-shadow) hover:bg-card relative">
               <Bell className="size-4" />
               {feed.unread > 0 ? (
-                <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand px-0.5 font-mono text-[9px] leading-none font-semibold text-primary-foreground">
+                <span className="absolute top-1.5 right-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand px-0.5 font-mono text-[9px] leading-none font-semibold text-primary-foreground">
                   {feed.unread > 99 ? "99+" : feed.unread}
                 </span>
               ) : null}

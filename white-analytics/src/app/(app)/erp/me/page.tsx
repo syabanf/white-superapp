@@ -69,8 +69,8 @@ export default async function MyHomePage(props: PageProps<"/erp/me">) {
         description={h.employee.departmentName}
         actions={<MonthFilter fallback={ym} />}
       />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <Card className="min-w-0 gap-4 p-4 sm:p-5">
+      <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-[1.2fr_minmax(0,1fr)]">
+        <Card className="min-w-0 gap-4 px-(--card-pad)">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="label-mono text-muted-foreground">{tm.home.todayShift}</p>
@@ -96,7 +96,7 @@ export default async function MyHomePage(props: PageProps<"/erp/me">) {
         </Card>
         <Section title={tm.home.week} className="min-w-0">
           <WeekStrip week={h.week} today={h.today} />
-          <nav aria-label={tm.home.shortcuts} className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-3">
+          <nav aria-label={tm.home.shortcuts} className="grid grid-cols-3 gap-(--gap-inner) sm:grid-cols-5 lg:grid-cols-3">
             {SHORTCUTS.map((s) => (
               <Link
                 key={s.href}
@@ -135,22 +135,22 @@ async function MyDashboardSections({ month, leaveTypes }: { month: string; leave
   if (!res.data) return <ErpError message={res.error.message} />;
   const data = res.data;
   return (
-    <div className="space-y-4 lg:space-y-5">
+    <div className="page-stack">
       <MyKpis data={data} />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+      <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-2">
         <AttendanceCalendar data={data} leaveTypes={leaveTypes} />
-        <div className="grid gap-4 lg:gap-5">
+        <div className="grid gap-(--gap)">
           <OnTimeTrend data={data} />
           <WeeklyHours data={data} />
         </div>
       </div>
       {data.isManager ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+        <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-2">
           <TeamToday data={data} leaveTypes={leaveTypes} />
           <PendingRequests data={data} leaveTypes={leaveTypes} />
         </div>
       ) : null}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+      <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-2">
         <PayslipCard data={data} />
         <LeaveCard data={data} leaveTypes={leaveTypes} />
       </div>
@@ -161,13 +161,13 @@ async function MyDashboardSections({ month, leaveTypes }: { month: string; leave
 
 function MyDashboardSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true">
+    <div className="page-stack" aria-busy="true">
       <Skeleton className="h-20 rounded-[1.5rem]" />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-2">
         <Skeleton className="h-96 rounded-2xl" />
         <Skeleton className="h-96 rounded-2xl" />
       </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-2">
         <Skeleton className="h-80 rounded-2xl" />
         <Skeleton className="h-80 rounded-2xl" />
       </div>

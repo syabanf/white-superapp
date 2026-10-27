@@ -39,8 +39,8 @@ export function SourcesTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dri
   const paid = sources.filter((x) => x.paid);
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+    <div className="page-stack">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={s.volume} description={s.volumeHint}>
           <HBarChart
             items={sources.map((x) => ({ label: label(x.source), value: x.applications, key: x.source }))}
@@ -69,7 +69,7 @@ export function SourcesTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dri
         </ChartCard>
       </div>
 
-      <div className="grid gap-4 sm:gap-5 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard title={s.split} description={s.splitHint}>
           <div className="flex flex-col gap-5">
             <SplitRow title={s.cols.applications} free={sum((x) => x.applications, free)} paid={sum((x) => x.applications, paid)} />

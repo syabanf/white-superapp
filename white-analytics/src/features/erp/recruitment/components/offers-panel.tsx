@@ -1,5 +1,7 @@
 "use client";
 
+import { DetailLayout } from "@/components/dashboard/layout";
+import { Section } from "@/components/dashboard/page-header";
 import * as React from "react";
 import { FilePlus2, MessageSquareReply } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,44 +25,62 @@ import { Info, PortalLink } from "./ui";
 
 const o = rs.offers;
 
-export function OffersPanel({ candidateId, panel, canWrite }: { candidateId: string; panel: Panel; canWrite: boolean }) {
+export function OffersPanel({
+  candidateId,
+  panel,
+  canWrite,
+}: {
+  candidateId: string;
+  panel: Panel;
+  canWrite: boolean;
+}) {
   const ref = panel.salaryReference;
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <div className="flex flex-col gap-4 lg:col-span-2">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-base font-semibold">{o.title}</h2>
-          {canWrite ? <CreateOfferButton candidateId={candidateId} reference={ref} last={panel.offers[0]} /> : null}
-        </div>
+    <DetailLayout
+      aside={
+        ref ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>{o.reference}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <dl className="flex flex-col gap-3">
+                <Info label={o.position}>{ref.positionTitle}</Info>
+                <Info label={o.range}>
+                  {ref.salaryMin || ref.salaryMax ? (
+                    <>
+                      <Money value={ref.salaryMin} /> – <Money value={ref.salaryMax} />
+                    </>
+                  ) : null}
+                </Info>
+                <Info label={o.expected}>
+                  {ref.expectedSalary ? <Money value={ref.expectedSalary} /> : null}
+                </Info>
+                <Info label={o.confirmed}>
+                  {ref.confirmedSalary ? <Money value={ref.confirmedSalary} /> : null}
+                </Info>
+                <Info label={o.interviewExpectation}>{ref.interviewExpectation}</Info>
+              </dl>
+            </CardContent>
+          </Card>
+        ) : undefined
+      }
+    >
+      <Section
+        title={o.title}
+        actions={
+          canWrite ? (
+            <CreateOfferButton candidateId={candidateId} reference={ref} last={panel.offers[0]} />
+          ) : null
+        }
+      >
         {panel.offers.length === 0 ? (
           <ErpEmpty compact title={o.empty} />
         ) : (
           panel.offers.map((offer) => <OfferCard key={offer.id} offer={offer} canWrite={canWrite} />)
         )}
-      </div>
-      {ref ? (
-        <Card className="self-start">
-          <CardHeader>
-            <CardTitle>{o.reference}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="flex flex-col gap-3">
-              <Info label={o.position}>{ref.positionTitle}</Info>
-              <Info label={o.range}>
-                {ref.salaryMin || ref.salaryMax ? (
-                  <>
-                    <Money value={ref.salaryMin} /> – <Money value={ref.salaryMax} />
-                  </>
-                ) : null}
-              </Info>
-              <Info label={o.expected}>{ref.expectedSalary ? <Money value={ref.expectedSalary} /> : null}</Info>
-              <Info label={o.confirmed}>{ref.confirmedSalary ? <Money value={ref.confirmedSalary} /> : null}</Info>
-              <Info label={o.interviewExpectation}>{ref.interviewExpectation}</Info>
-            </dl>
-          </CardContent>
-        </Card>
-      ) : null}
-    </div>
+      </Section>
+    </DetailLayout>
   );
 }
 
@@ -74,7 +94,11 @@ function OfferCard({ offer, canWrite }: { offer: Offer; canWrite: boolean }) {
           <ErpStatusBadge status={offer.status} labels={OFFER_STATUS} kinds={kinds.offer} />
         </CardTitle>
         <div className="flex flex-wrap gap-1.5">
-          <DownloadButton href={`/api/erp/v1/recruitment/offers/${offer.id}/letter`} size="xs" fileName={`penawaran-v${offer.version}.pdf`}>
+          <DownloadButton
+            href={`/api/erp/v1/recruitment/offers/${offer.id}/letter`}
+            size="xs"
+            fileName={`penawaran-v${offer.version}.pdf`}
+          >
             {o.letter}
           </DownloadButton>
           {canWrite && open ? <RecordResponseButton offer={offer} /> : null}
@@ -103,7 +127,9 @@ function OfferCard({ offer, canWrite }: { offer: Offer; canWrite: boolean }) {
         ) : null}
         {offer.respondedAt ? (
           <div className="rounded-lg bg-muted/40 p-3 text-sm">
-            <p className="text-xs text-muted-foreground">{o.respondedVia(offer.responseSource, formatDateTime(offer.respondedAt))}</p>
+            <p className="text-xs text-muted-foreground">
+              {o.respondedVia(offer.responseSource, formatDateTime(offer.respondedAt))}
+            </p>
             {offer.responseNote ? <p className="mt-1 whitespace-pre-wrap">{offer.responseNote}</p> : null}
           </div>
         ) : null}
@@ -138,7 +164,10 @@ function RecordForm({ offer, close }: { offer: Offer; close: () => void }) {
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        void run(() => recordOfferResponseAction(offer.id, status, note), { success: o.recorded, onOk: close });
+        void run(() => recordOfferResponseAction(offer.id, status, note), {
+          success: o.recorded,
+          onOk: close,
+        });
       }}
     >
       <Fld label={o.responseStatus} htmlFor="or-status">
@@ -157,14 +186,22 @@ function RecordForm({ offer, close }: { offer: Offer; close: () => void }) {
   );
 }
 
-function CreateOfferButton({ candidateId, reference, last }: { candidateId: string; reference: SalaryReference | null; last?: Offer }) {
+function CreateOfferButton({
+  candidateId,
+  reference,
+  last,
+}: {
+  candidateId: string;
+  reference: SalaryReference | null;
+  last?: Offer;
+}) {
   return (
     <FormDialog
       title={o.createTitle}
       description={last ? o.createHint : undefined}
       wide
       trigger={
-        <Button size="sm">
+        <Button>
           <FilePlus2 className="size-4" /> {o.create}
         </Button>
       }
@@ -218,7 +255,14 @@ function OfferForm({
         <DatePicker id="of-start" value={v.startDate} onChange={(x) => set("startDate", x)} clearable />
       </Fld>
       <Fld label={o.expiresDays} htmlFor="of-days" error={errors?.expiresDays}>
-        <Input id="of-days" type="number" min={1} max={30} value={v.expiresDays} onChange={(e) => set("expiresDays", Number(e.target.value))} />
+        <Input
+          id="of-days"
+          type="number"
+          min={1}
+          max={30}
+          value={v.expiresDays}
+          onChange={(e) => set("expiresDays", Number(e.target.value))}
+        />
       </Fld>
       <Fld label={o.benefits} htmlFor="of-ben" error={errors?.benefits} className="sm:col-span-2">
         <Textarea id="of-ben" rows={4} value={v.benefits} onChange={(e) => set("benefits", e.target.value)} />

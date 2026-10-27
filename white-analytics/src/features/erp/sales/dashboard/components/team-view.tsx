@@ -36,7 +36,7 @@ export function TeamView({ data, query }: { data: DashboardTeam; query: Dashboar
         className="xl:grid-cols-4"
         hrefs={{ won_value: wonHref, target_value: "/erp/sales/reports", attainment: "/erp/sales/reports", activities: "/erp/sales/reports" }}
       />
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={t.attainment} description={t.attainmentHint}>
           <BulletList
             rows={data.members.map((m) => ({ key: m.userId, label: m.name, value: m.wonValue, target: m.targetValue }))}

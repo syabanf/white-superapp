@@ -43,7 +43,7 @@ export function TaskBoard({ items, meta }: { items: TaskItem[]; meta: TaskMeta }
   if (items.length === 0) return <ErpEmpty title={s.empty} />;
   return (
     <>
-      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 md:mx-0 md:px-0">
+      <div className="flex snap-x gap-3 overflow-x-auto pb-3 scrollbar-thin">
         {STATUS_ORDER.map((status) => (
           <section key={status} className="flex w-72 shrink-0 snap-start flex-col rounded-2xl bg-muted/50">
             <h2 className={cn("px-4 pt-3 pb-1 text-sm font-semibold", COLUMN_TONE[status])}>
@@ -142,7 +142,7 @@ export function MonitorPanel({ data, meta }: { data: Monitor; meta: TaskMeta | n
       {data.departments.length === 0 ? <ErpEmpty title={s.monitorEmpty} compact /> : null}
 
       {data.departments.map((d) => (
-        <Card key={d.departmentId} className="gap-3 p-4">
+        <Card key={d.departmentId} className="gap-3 p-(--card-pad)">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="font-semibold">{d.departmentName}</p>
@@ -157,7 +157,7 @@ export function MonitorPanel({ data, meta }: { data: Monitor; meta: TaskMeta | n
               <span className="text-xs font-medium text-[var(--status-good)]">{s.onTime}</span>
             )}
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                 <span>{sp.overview.completion}</span>
@@ -200,7 +200,7 @@ export function MonitorPanel({ data, meta }: { data: Monitor; meta: TaskMeta | n
         </Card>
       ))}
 
-      <Card className="gap-2 p-4">
+      <Card className="gap-2 p-(--card-pad)">
         <p className="flex items-center gap-1.5 text-sm font-semibold">
           <AlertTriangle className="size-4 text-destructive" /> {sp.overview.overdueTasks}
         </p>
@@ -212,7 +212,7 @@ export function MonitorPanel({ data, meta }: { data: Monitor; meta: TaskMeta | n
       </Card>
 
       {data.waitingReview.length > 0 ? (
-        <Card className="gap-2 p-4">
+        <Card className="gap-2 p-(--card-pad)">
           <p className="flex items-center gap-1.5 text-sm font-semibold">
             <Clock className="size-4 text-[var(--status-warning)]" /> {sp.overview.waitingReview}
           </p>
@@ -264,7 +264,7 @@ export function KpiTasksTable({ rows, meta }: { rows: IndicatorTasks[]; meta: Ta
                   {isOpen ? (
                     <ul className="mt-2 divide-y rounded-xl bg-muted/50">
                       {row.tasks.length === 0 ? (
-                        <li className="px-4 py-3 text-xs text-muted-foreground">{s.noLinkedTasks}</li>
+                        <li className="px-(--card-pad) py-3 text-xs text-muted-foreground">{s.noLinkedTasks}</li>
                       ) : (
                         row.tasks.map((t) => <TaskRow key={t.occurrenceId} item={t} onOpen={open} showAssignee />)
                       )}

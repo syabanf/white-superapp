@@ -40,12 +40,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <WorkspaceScope>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider defaultOpen={defaultOpen} className="app-frame">
         <AppSidebar clients={switcherClients} user={shellUser} erpAccess={erpAccess} />
-        <SidebarInset className="min-w-0">
+        <SidebarInset className="min-w-0 bg-background md:my-3 md:mr-3 md:min-h-[calc(100svh-1.5rem)] md:rounded-[2rem] md:surface-panel">
           <Topbar clients={switcherClients} notifications={notifications} />
-          {/* pb-28 on phones clears the floating tab bar */}
-          <div className="page-enter mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-6 px-4 pt-2 pb-28 md:gap-7 md:px-6 md:pb-8 lg:px-8 lg:pb-10">
+          {/* The page container: every page shares its edges, gap and top spacing (LAYOUT.md).
+              pb-28 on phones clears the floating tab bar. */}
+          <div className="page-enter page-container page-stack flex-1 pt-2 pb-28 md:pb-8 lg:pb-10">
             {children}
           </div>
           <MobileTabBar clients={switcherClients} user={shellUser} erpAccess={erpAccess} />

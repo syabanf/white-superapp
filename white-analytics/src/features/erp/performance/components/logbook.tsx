@@ -1,5 +1,6 @@
 "use client";
 
+import { Section } from "@/components/dashboard/page-header";
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CalendarPlus, MessageSquare, Plus, Send, Trash2, X } from "lucide-react";
@@ -81,7 +82,7 @@ export function ChecklistTab({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="gap-3 p-4">
+      <Card className="gap-3 p-(--card-pad)">
         <p className="flex items-center gap-2 text-sm font-semibold">
           <CalendarPlus className="size-4" /> {l.createEntry}
         </p>
@@ -111,9 +112,8 @@ export function ChecklistTab({
         </div>
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">{l.entriesFor(formatDate(date))}</h2>
+      <div className="grid gap-(--gap) xl:grid-cols-[340px_minmax(0,1fr)]">
+        <Section title={l.entriesFor(formatDate(date))}>
           {entries.length === 0 ? (
             <ErpEmpty title={l.noEntries} compact />
           ) : (
@@ -141,8 +141,8 @@ export function ChecklistTab({
               </button>
             ))
           )}
-        </section>
-        <Card className="gap-3 p-4">
+        </Section>
+        <Card className="gap-3 p-(--card-pad)">
           {entry ? (
             <EntryView key={entry.id} entry={entry} canReview={canReview} editable />
           ) : (
@@ -174,7 +174,7 @@ function EntryView({
   const items = [...entry.items].sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-(--gap-inner)">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-semibold">{entry.title}</p>
         <EntryStatus status={entry.status} />
@@ -368,18 +368,18 @@ export function TemplatesTab({
   const { run } = useErpAction();
   const [creating, setCreating] = React.useState(false);
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-(--gap-inner)">
       {canManage ? (
-        <Button size="sm" className="self-start" onClick={() => setCreating(true)}>
+        <Button className="self-start" onClick={() => setCreating(true)}>
           <Plus className="size-4" /> {l.newTemplate}
         </Button>
       ) : null}
       {templates.length === 0 ? (
         <ErpEmpty title={l.noTemplates} />
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-(--gap) md:grid-cols-2 xl:grid-cols-3">
           {templates.map((t) => (
-            <Card key={t.id} className={cn("gap-2 p-4", !t.isActive && "opacity-60")}>
+            <Card key={t.id} className={cn("gap-2 p-(--card-pad)", !t.isActive && "opacity-60")}>
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-semibold">{t.name}</p>
@@ -466,7 +466,7 @@ function TemplateDialog({ departments, defaultDept, onClose }: { departments: De
           <DialogHeader>
             <DialogTitle>{l.newTemplate}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormRow label={sp.common.department} error={errors.departmentId?.[0]}>
               <Select value={form.departmentId} onValueChange={(v) => set("departmentId", v)}>
                 <SelectTrigger className="w-full" aria-label={sp.common.department}>

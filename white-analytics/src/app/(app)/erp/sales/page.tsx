@@ -13,7 +13,8 @@ import { ActivityList } from "@/features/erp/sales/components/activities";
 import { DealRows, Panel } from "@/features/erp/sales/components/blocks";
 import { SalesDashboardFilters } from "@/features/erp/sales/dashboard/components/filters";
 import { DASH_TABS, readDashboardParams } from "@/features/erp/sales/dashboard/params";
-import { DashboardSection, DashboardSkeleton } from "@/features/erp/sales/dashboard/sections";
+import { DashboardSection } from "@/features/erp/sales/dashboard/sections";
+import { DashboardSkeleton } from "@/features/erp/sales/dashboard/skeleton";
 import { dd } from "@/features/erp/sales/dashboard/strings";
 import { DashboardTrail, type TrailLevel } from "@/features/erp/sales/dashboard/trail";
 import { salesCaps } from "@/features/erp/sales/lib";
@@ -95,7 +96,7 @@ async function MyWork({ canWrite, owners }: { canWrite: boolean; owners: { value
     load(() => listDeals({ status: "won", pageSize: 5 })),
   ]);
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-(--gap) lg:grid-cols-2">
       <Panel title={d.myTasks}>
         <ActivityList activities={tasks.data ?? []} owners={owners} canWrite={canWrite} showSubject emptyLabel={d.noTasks} />
       </Panel>

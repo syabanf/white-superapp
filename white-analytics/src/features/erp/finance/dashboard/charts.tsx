@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import {
+  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
@@ -19,10 +20,16 @@ import { Tooltip as UiTooltip, TooltipContent, TooltipTrigger } from "@/componen
 import { KpiTile } from "@/components/dashboard/kpi-tile";
 import {
   AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS,
+  GRID_DASH,
   GRID_STROKE,
   MUTED_SERIES,
   SeriesLegend,
   TooltipBox,
+  areaFill,
+  barFill,
+  ringDot,
   slotColor,
   type SeriesDef,
 } from "@/components/dashboard/charts/chart-primitives";
@@ -104,12 +111,12 @@ export function MonthlyChart({
             }}
             style={onMonthClick ? { cursor: "pointer" } : undefined}
           >
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
             <XAxis
               dataKey="month"
               tick={AXIS_TICK}
               tickLine={false}
-              axisLine={{ stroke: "var(--axis)" }}
+              axisLine={false}
               tickFormatter={monthShort}
               interval="preserveStartEnd"
               minTickGap={12}
@@ -127,7 +134,7 @@ export function MonthlyChart({
               />
             ) : null}
             <Tooltip
-              cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
+              cursor={BAR_CURSOR}
               isAnimationActive={false}
               wrapperStyle={{ outline: "none" }}
               content={(p) => (
@@ -149,22 +156,23 @@ export function MonthlyChart({
                 <Bar
                   key={s.key}
                   dataKey={s.key}
-                  fill={s.color}
+                  fill={barFill(s.color)}
                   stackId={stacked ? "a" : undefined}
-                  radius={stacked ? 0 : [4, 4, 0, 0]}
+                  radius={stacked ? 0 : BAR_RADIUS}
                   maxBarSize={stacked ? 28 : 18}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
                   isAnimationActive={false}
                 />
               ) : (
-                <Line
+                <Area
                   key={s.key}
                   dataKey={s.key}
                   stroke={s.color}
-                  strokeWidth={2}
+                  fill={series.length <= 2 && series.every((x) => x.type !== "bar") ? areaFill(s.color) : "none"}
+                  strokeWidth={2.5}
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
+                  activeDot={ringDot(s.color)}
                   type="monotone"
                   connectNulls
                   isAnimationActive={false}
@@ -365,7 +373,7 @@ export function SortTable<T>({
   const hasTotal = columns.some((c) => c.total != null);
   if (rows.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">{empty}</p>;
   return (
-    <div className="-mx-6 overflow-x-auto px-6 scrollbar-thin">
+    <div className="card-bleed overflow-x-auto px-(--card-pad) scrollbar-thin">
       <table className="w-full min-w-[560px] text-sm">
         <thead className="text-xs text-muted-foreground">
           <tr className="border-b">

@@ -90,7 +90,7 @@ export function KpiTab({ data }: { data: DashKpi }) {
     href(P, { month, scope: scope === "me" ? "me" : "all", dept: p.departmentId });
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <KpiGrid cols={4}>
         <MetricTile
           label={k.avg}
@@ -104,7 +104,7 @@ export function KpiTab({ data }: { data: DashKpi }) {
         <MetricTile label={k.below} hint={k.belowHint} metric={data.belowTarget} format={int} lowerIsBetter href={href(P, { month, scope })} />
       </KpiGrid>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid gap-(--gap) lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <ChartCard
           title={k.histogram}
           description={k.histogramHint}
@@ -210,7 +210,7 @@ export function KpiTab({ data }: { data: DashKpi }) {
         />
       </ChartCard>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={k.top}>
           <SortTable
             rows={top}

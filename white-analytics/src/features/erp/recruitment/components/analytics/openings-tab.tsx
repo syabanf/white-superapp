@@ -27,7 +27,7 @@ export function OpeningsTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
   const byDays = [...list].sort((a, b) => b.daysOpen - a.daysOpen);
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           { label: s.active, value: formatNumber(list.length), caption: `${formatNumber(sum((o) => o.headcount))} kuota` },
@@ -57,7 +57,7 @@ export function OpeningsTab({ data, ctx }: { data: RecruitmentDashboard; ctx: Dr
         />
       </ChartCard>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={s.applicants} description={s.applicantsHint}>
           <HBarChart
             items={[...list]

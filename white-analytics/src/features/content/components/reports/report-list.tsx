@@ -32,9 +32,9 @@ export function GenerateReportForm({ slug, defaultMonth }: { slug: string; defau
   };
   return (
     <form onSubmit={submit} className="flex items-center gap-2">
-      <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-8 w-40" aria-label={c.month} required />
-      <Button type="submit" size="sm" disabled={pending || !month}>
-        {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />} {c.generateReport}
+      <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="w-44" aria-label={c.month} required />
+      <Button type="submit" disabled={pending || !month}>
+        {pending ? <Loader2 className="animate-spin" /> : <Sparkles />} {c.generateReport}
       </Button>
     </form>
   );
@@ -99,7 +99,6 @@ export function RegenerateButton({ slug, month }: { slug: string; month: string 
   const [pending, start] = React.useTransition();
   return (
     <Button
-      size="sm"
       variant="outline"
       disabled={pending}
       onClick={() =>
@@ -115,7 +114,7 @@ export function RegenerateButton({ slug, month }: { slug: string; month: string 
         })
       }
     >
-      {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />} {c.regenerate}
+      {pending ? <Loader2 className="animate-spin" /> : <Sparkles />} {c.regenerate}
     </Button>
   );
 }

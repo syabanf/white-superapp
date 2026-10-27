@@ -221,7 +221,7 @@ export function JobFormButton(lookups: Lookups) {
       title={j.new}
       wide
       trigger={
-        <Button size="sm">
+        <Button>
           <Plus className="size-4" /> {j.new}
         </Button>
       }

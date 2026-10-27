@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Check, Download, Loader2, MessageSquare, Pencil, Play, Undo2, Upload } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/dashboard/empty-state";
+import { Toolbar } from "@/components/dashboard/layout";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { reviewDesign, updateDesignTask } from "@/features/content/actions";
@@ -56,25 +58,25 @@ export function DesignTaskActions({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
-        <Button size="sm" disabled={pending} onClick={() => setDialog("upload")}>
-          <Upload className="size-3.5" /> {c.uploadVersion}
+      <Toolbar label={c.taskActions}>
+        <Button disabled={pending} onClick={() => setDialog("upload")}>
+          <Upload /> {c.uploadVersion}
         </Button>
         {task.status === "DESIGN_TODO" ? (
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => setStatus("DESIGN_IN_PROGRESS")}>
-            <Play className="size-3.5" /> {c.startWork}
+          <Button variant="outline" disabled={pending} onClick={() => setStatus("DESIGN_IN_PROGRESS")}>
+            <Play /> {c.startWork}
           </Button>
         ) : null}
         {task.status === "DESIGN_IN_PROGRESS" ? (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => setStatus("DESIGN_TODO")}>
-            <Undo2 className="size-3.5" /> {c.backToTodo}
+          <Button variant="ghost" disabled={pending} onClick={() => setStatus("DESIGN_TODO")}>
+            <Undo2 /> {c.backToTodo}
           </Button>
         ) : null}
-        <Button size="sm" variant="ghost" disabled={pending} onClick={() => setDialog("edit")}>
-          <Pencil className="size-3.5" /> {c.edit}
+        <Button variant="ghost" disabled={pending} onClick={() => setDialog("edit")}>
+          <Pencil /> {c.edit}
         </Button>
         {pending ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
-      </div>
+      </Toolbar>
 
       {dialog === "edit" ? (
         <DesignTaskFormDialog
@@ -139,11 +141,11 @@ export function DesignVersions({
     });
 
   if (files.length === 0) {
-    return <p className="rounded-xl border border-dashed px-3 py-8 text-center text-sm text-muted-foreground">{c.noFiles}</p>;
+    return <EmptyState compact icon={<Upload />} title={c.noFiles} />;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-w-0 flex-col gap-(--gap-inner)">
       {versions.length > 1 ? (
         <Tabs value={String(version)} onValueChange={(v) => setVersion(Number(v))}>
           <TabsList>
@@ -157,12 +159,12 @@ export function DesignVersions({
         </Tabs>
       ) : null}
 
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-(--gap) sm:grid-cols-3">
         {shown.map((f, i) => {
           const src = contentFiles.designFile(clientId, f.id);
           const selected = fileId === f.id;
           return (
-            <li key={f.id} className={cn("overflow-hidden rounded-xl border bg-card", selected && "ring-2 ring-brand")}>
+            <li key={f.id} className={cn("overflow-hidden rounded-[1.25rem] bg-card shadow-(--card-shadow)", selected && "ring-2 ring-brand")}>
               <button
                 type="button"
                 onClick={() => setFileId(selected ? null : f.id)}
@@ -172,7 +174,7 @@ export function DesignVersions({
               >
                 <FilePreview src={src} mime={f.mimeType} name={f.fileName} />
               </button>
-              <div className="flex items-center gap-1.5 border-t px-2 py-1.5 text-xs">
+              <div className="flex items-center gap-1.5 border-t px-3 py-2 text-xs">
                 <span className="tabular text-muted-foreground">{i + 1}</span>
                 <span className="min-w-0 flex-1 truncate" title={f.fileName}>
                   {f.fileName}
@@ -188,20 +190,20 @@ export function DesignVersions({
       </ul>
 
       {isLatest ? (
-        <div className="space-y-2 rounded-xl border bg-card p-3">
+        <div className="space-y-3 rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
           <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={c.reviewPlaceholder} rows={2} className="text-sm" disabled={pending} />
           <div className="flex flex-wrap items-center justify-end gap-2">
             {fileId ? <span className="mr-auto text-xs text-muted-foreground">{shown.find((f) => f.id === fileId)?.fileName}</span> : null}
-            <Button size="xs" variant="outline" disabled={pending || !body.trim()} onClick={() => review("COMMENT")}>
-              <MessageSquare className="size-3.5" /> {c.decision.COMMENT}
+            <Button variant="outline" disabled={pending || !body.trim()} onClick={() => review("COMMENT")}>
+              <MessageSquare /> {c.decision.COMMENT}
             </Button>
             {canWrite && task.status === "DESIGN_IN_REVIEW" ? (
               <>
-                <Button size="xs" variant="outline" disabled={pending || !body.trim()} onClick={() => review("REQUEST_CHANGES")}>
-                  <Undo2 className="size-3.5" /> {c.decision.REQUEST_CHANGES}
+                <Button variant="outline" disabled={pending || !body.trim()} onClick={() => review("REQUEST_CHANGES")}>
+                  <Undo2 /> {c.decision.REQUEST_CHANGES}
                 </Button>
-                <Button size="xs" disabled={pending} onClick={() => review("APPROVE")}>
-                  <Check className="size-3.5" /> {c.approve}
+                <Button disabled={pending} onClick={() => review("APPROVE")}>
+                  <Check /> {c.approve}
                 </Button>
               </>
             ) : null}

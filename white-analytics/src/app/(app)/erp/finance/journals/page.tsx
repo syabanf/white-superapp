@@ -28,7 +28,7 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
       description={fs.journals.subtitle}
       actions={
         perms.canWrite ? (
-          <Button asChild size="sm">
+          <Button asChild>
             <Link href="/erp/finance/journals/new">
               <Plus className="size-4" /> {fs.journals.new}
             </Link>

@@ -69,7 +69,7 @@ export function CatalogSettings({
       >
         <ul className="divide-y">
           {[...catalog].sort((x, y) => x.sortOrder - y.sortOrder).map((it) => (
-            <li key={it.id} className="flex flex-wrap items-start gap-3 px-5 py-3">
+            <li key={it.id} className="flex flex-wrap items-start gap-3 px-(--card-pad) py-3">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{it.name}</span>
@@ -106,7 +106,7 @@ export function CatalogSettings({
           ))}
         </ul>
       </Panel>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <Panel title={c.retainerDiscounts}>
           <RetainerEditor rules={retainer} admin={admin} />
         </Panel>
@@ -129,7 +129,7 @@ export function CatalogSettings({
         >
           <ul className="divide-y">
             {[...rules].sort((x, y) => x.level - y.level).map((r) => (
-              <li key={r.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+              <li key={r.id} className="flex items-center gap-3 px-(--card-pad) py-3 text-sm">
                 <span className="min-w-0 flex-1">
                   <span className="block font-medium">{r.name}</span>
                   <span className="text-xs text-muted-foreground">
@@ -235,7 +235,7 @@ function CatalogItemForm({ item, close }: { item: CatalogItem; close: () => void
         {Object.entries(TIER).map(([tier, label]) => {
           const t = tierFor(tier);
           return (
-            <div key={tier} className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[100px_160px_1fr]">
+            <div key={tier} className="grid grid-cols-2 items-center gap-2 sm:grid-cols-[100px_160px_minmax(0,1fr)]">
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox checked={!!t} onCheckedChange={(x) => setTier(tier, x === true ? {} : null)} /> {label}
               </label>

@@ -163,15 +163,15 @@ export function CompetitorManager({
   };
 
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-(--gap) lg:grid-cols-2">
       <Card className="gap-3 py-0">
-        <CardHeader className="px-5 pt-4 pb-0">
+        <CardHeader className="px-(--card-pad) pt-(--card-pad) pb-0">
           <CardTitle className="text-sm font-semibold">{s.competitorsCount}</CardTitle>
           <CardDescription className="text-xs">
             {formatNumber(competitors.length)} / {MAX_COMPETITOR_DOMAINS}
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-5 pb-5">
+        <CardContent className="px-(--card-pad) pb-(--card-pad)">
           <ul className="divide-y">
             <li className="flex items-center justify-between gap-2 py-2 text-sm">
               <span className="font-medium">{ownDomain}</span>
@@ -206,11 +206,11 @@ export function CompetitorManager({
       </Card>
 
       <Card className="gap-3 py-0">
-        <CardHeader className="px-5 pt-4 pb-0">
+        <CardHeader className="px-(--card-pad) pt-(--card-pad) pb-0">
           <CardTitle className="text-sm font-semibold">{s.suggestedTitle}</CardTitle>
           <CardDescription className="text-xs">{s.suggestedDesc}</CardDescription>
         </CardHeader>
-        <CardContent className="px-5 pb-5">
+        <CardContent className="px-(--card-pad) pb-(--card-pad)">
           {suggestions.length === 0 ? (
             <p className="py-4 text-sm text-muted-foreground">{t.common.noData}</p>
           ) : (

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { DetailLayout } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -27,7 +27,11 @@ export default async function LeadDetailPage(props: PageProps<"/erp/sales/leads/
   const { access, offline } = await requireErp("sales.read");
   if (offline) return <OfflineNotice message={offline.message} />;
   const caps = salesCaps(access);
-  const [detail, refs, fields] = await Promise.all([load(() => getLead(id)), dealFormRefs(), load(() => listCustomFields("lead"))]);
+  const [detail, refs, fields] = await Promise.all([
+    load(() => getLead(id)),
+    dealFormRefs(),
+    load(() => listCustomFields("lead")),
+  ]);
   if (detail.error?.code === "NOT_FOUND") notFound();
   if (!detail.data) return <ErpError message={detail.error?.message} />;
   const { lead, deals, activities, conversations } = detail.data;
@@ -35,21 +39,21 @@ export default async function LeadDetailPage(props: PageProps<"/erp/sales/leads/
   const account = refs.accounts.find((a) => a.value === lead.accountId);
   const attr = lead.attribution;
   const attrRows = attr
-    ? ([
-        ["utm_source", attr.utmSource],
-        ["utm_medium", attr.utmMedium],
-        ["utm_campaign", attr.utmCampaign],
-        ["landing", attr.landingPage],
-        ["referrer", attr.referrer],
-      ] as const).filter(([, v]) => v)
+    ? (
+        [
+          ["utm_source", attr.utmSource],
+          ["utm_medium", attr.utmMedium],
+          ["utm_campaign", attr.utmCampaign],
+          ["landing", attr.landingPage],
+          ["referrer", attr.referrer],
+        ] as const
+      ).filter(([, v]) => v)
     : [];
 
   return (
     <>
-      <Link href="/erp/sales/leads" className="-mb-3 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="size-4" /> {s.title}
-      </Link>
       <PageHeader
+        back={{ href: "/erp/sales/leads", label: s.title }}
         eyebrow={lbl(ORG_TYPE, lead.orgType)}
         title={lead.orgName}
         description={`${lead.picName}${lead.picTitle ? ` · ${lead.picTitle}` : ""}${lead.city ? ` · ${lead.city}` : ""}`}
@@ -62,70 +66,78 @@ export default async function LeadDetailPage(props: PageProps<"/erp/sales/leads/
           {s.score} <ScoreBadge score={lead.score} />
         </span>
       </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="flex flex-col gap-4 lg:col-span-2">
-          <Panel title={s.deals} flush>
-            <DealRows deals={deals} empty={s.noDeals} />
-          </Panel>
-          <Panel title={s.activities}>
-            <ActivityList activities={activities} owners={refs.owners} canWrite={caps.write} leadId={lead.id} />
-          </Panel>
-          <Panel title={s.chats} flush>
-            <ConversationRows conversations={conversations} empty={s.noChats} />
-          </Panel>
-        </div>
-        <div className="flex flex-col gap-4">
-          <Panel title={ss.detail}>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-              <Info label={s.picPhone}>
-                {lead.picPhone ? (
-                  <a href={`https://wa.me/${lead.picPhone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="tabular hover:underline">
-                    {lead.picPhone}
-                  </a>
-                ) : null}
-              </Info>
-              <Info label={s.picEmail}>{lead.picEmail}</Info>
-              <Info label={s.source}>{lbl(LEAD_SOURCE, lead.source)}</Info>
-              <Info label={ss.owner}>{nameOf(names, lead.ownerUserId)}</Info>
-              <Info label={ss.accounts.name}>
-                {account ? (
-                  <Link href={`/erp/sales/leads/accounts/${account.value}`} className="hover:underline">
-                    {account.label}
-                  </Link>
-                ) : null}
-              </Info>
-              <Info label={ss.createdAt}>{formatDateTime(lead.createdAt)}</Info>
-              <CustomFieldValues fields={fields.data ?? []} value={lead.custom ?? {}} />
-            </dl>
-            {lead.notes ? <p className="mt-4 text-sm whitespace-pre-line text-muted-foreground">{lead.notes}</p> : null}
-          </Panel>
-          <Panel title={s.scoreBreakdown}>
-            {lead.scoreBreakdown.length ? (
-              <ul className="space-y-1.5 text-sm">
-                {lead.scoreBreakdown.map((b) => (
-                  <li key={b.ruleId} className="flex justify-between gap-2">
-                    <span className="min-w-0 truncate">{b.name}</span>
-                    <span className="font-medium tabular">+{b.points}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">{ss.none}</p>
-            )}
-          </Panel>
-          {attrRows.length ? (
-            <Panel title={s.attribution}>
-              <dl className="grid gap-2">
-                {attrRows.map(([k, v]) => (
-                  <Info key={k} label={k}>
-                    {v}
-                  </Info>
-                ))}
+      <DetailLayout
+        aside={
+          <>
+            <Panel title={ss.detail}>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+                <Info label={s.picPhone}>
+                  {lead.picPhone ? (
+                    <a
+                      href={`https://wa.me/${lead.picPhone.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="tabular hover:underline"
+                    >
+                      {lead.picPhone}
+                    </a>
+                  ) : null}
+                </Info>
+                <Info label={s.picEmail}>{lead.picEmail}</Info>
+                <Info label={s.source}>{lbl(LEAD_SOURCE, lead.source)}</Info>
+                <Info label={ss.owner}>{nameOf(names, lead.ownerUserId)}</Info>
+                <Info label={ss.accounts.name}>
+                  {account ? (
+                    <Link href={`/erp/sales/leads/accounts/${account.value}`} className="hover:underline">
+                      {account.label}
+                    </Link>
+                  ) : null}
+                </Info>
+                <Info label={ss.createdAt}>{formatDateTime(lead.createdAt)}</Info>
+                <CustomFieldValues fields={fields.data ?? []} value={lead.custom ?? {}} />
               </dl>
+              {lead.notes ? (
+                <p className="mt-4 text-sm whitespace-pre-line text-muted-foreground">{lead.notes}</p>
+              ) : null}
             </Panel>
-          ) : null}
-        </div>
-      </div>
+            <Panel title={s.scoreBreakdown}>
+              {lead.scoreBreakdown.length ? (
+                <ul className="space-y-1.5 text-sm">
+                  {lead.scoreBreakdown.map((b) => (
+                    <li key={b.ruleId} className="flex justify-between gap-2">
+                      <span className="min-w-0 truncate">{b.name}</span>
+                      <span className="font-medium tabular">+{b.points}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">{ss.none}</p>
+              )}
+            </Panel>
+            {attrRows.length ? (
+              <Panel title={s.attribution}>
+                <dl className="grid gap-2">
+                  {attrRows.map(([k, v]) => (
+                    <Info key={k} label={k}>
+                      {v}
+                    </Info>
+                  ))}
+                </dl>
+              </Panel>
+            ) : null}
+          </>
+        }
+      >
+        <Panel title={s.deals} flush>
+          <DealRows deals={deals} empty={s.noDeals} />
+        </Panel>
+        <Panel title={s.activities}>
+          <ActivityList activities={activities} owners={refs.owners} canWrite={caps.write} leadId={lead.id} />
+        </Panel>
+        <Panel title={s.chats} flush>
+          <ConversationRows conversations={conversations} empty={s.noChats} />
+        </Panel>
+      </DetailLayout>
     </>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Section } from "@/components/dashboard/page-header";
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Calculator, Loader2, Pencil, Plus, Trash2, Users, Wand2 } from "lucide-react";
@@ -70,16 +71,16 @@ export function FeedbackCycles({
   const { set } = useUrlFilters(["cycle"]);
   const [editing, setEditing] = React.useState<FeedbackCycle | "new" | null>(null);
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-(--gap-inner)">
       {canWrite ? (
-        <Button size="sm" className="self-start" onClick={() => setEditing("new")}>
+        <Button className="self-start" onClick={() => setEditing("new")}>
           <Plus className="size-4" /> {f.newCycle}
         </Button>
       ) : null}
       {cycles.length === 0 ? (
         <ErpEmpty title={f.noCycles} />
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-(--gap) sm:grid-cols-2 lg:grid-cols-3">
           {cycles.map((c) => (
             <button
               key={c.id}
@@ -156,7 +157,7 @@ function CycleDialog({ cycle, onClose }: { cycle: FeedbackCycle | null; onClose:
           <DialogHeader>
             <DialogTitle>{cycle ? f.editCycle : f.newCycle}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormRow label={f.name} htmlFor="fc-name" className="sm:col-span-2" error={errors.name?.[0]}>
               <Input id="fc-name" value={form.name} onChange={(e) => set("name", e.target.value)} required />
             </FormRow>
@@ -282,7 +283,7 @@ export function FeedbackCycleDetail({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="gap-3 p-4">
+      <Card className="gap-3 p-(--card-pad)">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-lg font-semibold">{cycle.name}</p>
@@ -343,23 +344,21 @@ export function FeedbackCycleDetail({
         ) : null}
       </Card>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-base font-semibold">{f.assignments}</h2>
+      <Section title={f.assignments}>
         <ErpDataTable columns={columns} data={assignments} emptyMessage={f.noAssignments} getRowId={(a) => a.id} />
-      </section>
+      </Section>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-base font-semibold">{f.summaries}</h2>
+      <Section title={f.summaries}>
         {summaries.length === 0 ? (
           <ErpEmpty title={f.noSummaries} compact />
         ) : (
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-(--gap) lg:grid-cols-2">
             {summaries.map((s) => (
               <SummaryCard key={s.id} summary={s} canWrite={canWrite} />
             ))}
           </div>
         )}
-      </section>
+      </Section>
 
       {editing ? <CycleDialog cycle={cycle} onClose={() => setEditing(false)} /> : null}
       {adding ? <AssignmentDialog cycleId={cycle.id} people={people} onClose={() => setAdding(false)} /> : null}
@@ -437,7 +436,7 @@ function AssignmentDialog({ cycleId, people, onClose }: { cycleId: string; peopl
 function SummaryCard({ summary, canWrite }: { summary: FeedbackSummary; canWrite: boolean }) {
   const [editing, setEditing] = React.useState(false);
   return (
-    <Card className="gap-3 p-4">
+    <Card className="gap-3 p-(--card-pad)">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate font-semibold">{summary.employeeName}</p>
@@ -554,7 +553,7 @@ export function MyAssignments({ assignments }: { assignments: Assignment[] }) {
     <>
       <Card className="gap-0 divide-y py-0">
         {assignments.map((a) => (
-          <div key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+          <div key={a.id} className="flex flex-wrap items-center gap-3 px-(--card-pad) py-3">
             <div className="min-w-0 flex-1">
               <p className="font-medium">{a.employeeName}</p>
               <p className="text-xs text-muted-foreground">

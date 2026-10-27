@@ -77,7 +77,7 @@ export default async function RecruitmentDashboardPage(props: PageProps<"/erp/hr
       <RecruitmentFilters period={period} jobs={jobOptions} departments={departments} />
       <DashboardTrail levels={trail} />
       {/* the outer box scrolls so the first tab stays reachable on phones */}
-      <div className="-mx-1 overflow-x-auto px-1 scrollbar-thin">
+      <div className="overflow-x-auto scrollbar-thin">
         <UrlTabs tabs={ra.tabs} label={ra.tabsLabel} className="w-max" />
       </div>
       <Suspense key={JSON.stringify(ctx)} fallback={<AnalyticsSkeleton />}>

@@ -29,17 +29,17 @@ export function SearchFilter({
     if (timer.current) clearTimeout(timer.current);
   }, []);
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative max-sm:w-full", className)}>
       {isPending ? (
-        <Loader2 className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+        <Loader2 className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
       ) : (
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
       )}
       <Input
         value={text}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-8 w-56 pl-8 text-[13px]"
+        className="w-full pl-9 sm:w-64"
         onChange={(e) => {
           const v = e.target.value;
           setText(v);
@@ -71,7 +71,7 @@ export function SelectFilter({
   const { values, set } = useUrlFilters([param]);
   return (
     <Select value={values[param] ?? ALL} onValueChange={(v) => set({ [param]: v === ALL ? null : v })}>
-      <SelectTrigger size="sm" className={cn("min-w-36", className)} aria-label={label}>
+      <SelectTrigger className={cn("min-w-36", className)} aria-label={label}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -91,8 +91,8 @@ export function ResetFilters({ params }: { params: string[] }) {
   const { values, set } = useUrlFilters(params);
   if (!params.some((p) => values[p])) return null;
   return (
-    <Button variant="ghost" size="sm" onClick={() => set(Object.fromEntries(params.map((p) => [p, null])))}>
-      <X className="size-3.5" /> {ss.reset}
+    <Button variant="ghost" onClick={() => set(Object.fromEntries(params.map((p) => [p, null])))}>
+      <X /> {ss.reset}
     </Button>
   );
 }
@@ -116,7 +116,7 @@ export function SearchSelectFilter({
       value={values[param] ?? ""}
       onChange={(v) => set({ [param]: v || null })}
       placeholder={placeholder}
-      className={cn("h-8 w-72 text-[13px]", className)}
+      className={cn("w-full sm:w-72", className)}
       clearable
     />
   );

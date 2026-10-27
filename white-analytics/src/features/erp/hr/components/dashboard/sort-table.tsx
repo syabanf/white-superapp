@@ -50,7 +50,7 @@ export function SortTable<T>({
   });
   if (rows.length === 0) return <p className="py-6 text-center text-sm text-muted-foreground">{empty}</p>;
   return (
-    <div className="-mx-2 overflow-x-auto scrollbar-thin">
+    <div className="card-bleed overflow-x-auto scrollbar-thin">
       <Table className="text-[13px]">
         <TableHeader>
           <TableRow className="hover:bg-transparent">

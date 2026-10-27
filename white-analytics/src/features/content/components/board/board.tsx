@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ImageIcon, Loader2, MoreHorizontal } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { Toolbar } from "@/components/dashboard/layout";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -120,8 +121,8 @@ export function ContentBoard({ slug, clientId, items, plans, people, planId, ass
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="page-stack">
+      <Toolbar label={c.boardTitle}>
         <OptionSelect
           label={c.allPlans}
           value={planId}
@@ -140,9 +141,9 @@ export function ContentBoard({ slug, clientId, items, plans, people, planId, ass
         <BoardFilterBar filters={filters} shown={items.length} total={totalItems} />
         {canWrite ? <span className="text-xs text-muted-foreground">{c.boardDragHint}</span> : null}
         {pending ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
-      </div>
+      </Toolbar>
 
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 scrollbar-thin md:-mx-6 md:px-6">
+      <div className="overflow-x-auto pb-2 scrollbar-thin">
         <div className="flex min-w-max gap-3">
           {visibleStatuses.map((status) => {
             const list = columns.get(status) ?? [];
@@ -252,10 +253,10 @@ export function ContentBoard({ slug, clientId, items, plans, people, planId, ass
           </DialogHeader>
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={c.notePlaceholder} rows={3} autoFocus />
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setRevision(null)}>
+            <Button variant="outline" onClick={() => setRevision(null)}>
               {c.cancel}
             </Button>
-            <Button size="sm" disabled={pending || !note.trim()} onClick={() => revision && move(revision.itemId, "REVISION", note)}>
+            <Button disabled={pending || !note.trim()} onClick={() => revision && move(revision.itemId, "REVISION", note)}>
               {c.revisionTitle}
             </Button>
           </DialogFooter>

@@ -72,7 +72,7 @@ export function UrlSelect({
   const { values, set } = useUrlFilters([param]);
   return (
     <Select value={values[param] ?? fallback} onValueChange={(v) => set({ [param]: v === fallback ? null : v })}>
-      <SelectTrigger size="sm" className={cn("min-w-28", className)} aria-label={label}>
+      <SelectTrigger className={cn("min-w-28", className)} aria-label={label}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -93,7 +93,7 @@ export function UrlDate({ param = "date", fallback, className }: { param?: strin
     <DatePicker
       value={values[param] ?? fallback}
       onChange={(v) => set({ [param]: v && v !== fallback ? v : null })}
-      className={cn("h-8 w-44", className)}
+      className={cn("w-44", className)}
     />
   );
 }

@@ -57,7 +57,7 @@ export function BoxPlot({
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * max);
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <div className="grid grid-cols-[minmax(5rem,7rem)_1fr] gap-3">
+      <div className="grid grid-cols-[minmax(5rem,7rem)_minmax(0,1fr)] gap-3">
         <span />
         <div className="relative h-4 text-[11px] text-muted-foreground tabular">
           {ticks.map((t, i) => (
@@ -163,7 +163,7 @@ export function BoxPlot({
 }
 
 const ROW_CLASS =
-  "grid w-full grid-cols-[minmax(5rem,7rem)_1fr] items-center gap-3 rounded-md py-1.5 text-left outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring";
+  "grid w-full grid-cols-[minmax(5rem,7rem)_minmax(0,1fr)] items-center gap-3 rounded-md py-1.5 text-left outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring";
 
 function BoxRowTarget({
   row,

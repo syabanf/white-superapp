@@ -81,7 +81,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger size="sm" className="w-auto min-w-28 bg-background" aria-label={label}>
+      <SelectTrigger className="w-auto min-w-28" aria-label={label}>
         <span className="text-muted-foreground">{label}:</span>
         <SelectValue />
       </SelectTrigger>

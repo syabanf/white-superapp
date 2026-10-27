@@ -142,7 +142,7 @@ export function QuotationEditor({
   return (
     <div className="flex flex-col gap-4">
       <Card className="gap-0 py-0">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-(--card-pad) py-3">
           <h2 className="text-[15px] font-semibold">{s.items}</h2>
           <div className="flex flex-wrap gap-2">
             <CatalogAdder catalog={catalog} onAdd={addCatalog} />
@@ -157,10 +157,10 @@ export function QuotationEditor({
             </Button>
           </div>
         </div>
-        {items.length === 0 ? <p className="px-5 py-6 text-sm text-muted-foreground">{s.noItems}</p> : null}
+        {items.length === 0 ? <p className="px-(--card-pad) py-6 text-sm text-muted-foreground">{s.noItems}</p> : null}
         <ul className="divide-y">
           {items.map((it) => (
-            <li key={it.key} className="grid gap-3 px-5 py-4 md:grid-cols-12">
+            <li key={it.key} className="grid gap-3 px-(--card-pad) py-4 md:grid-cols-12">
               <div className="flex flex-col gap-2 md:col-span-6">
                 <Input
                   aria-label={s.description}
@@ -177,7 +177,7 @@ export function QuotationEditor({
                   className="text-xs"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-2 md:col-span-5 md:grid-cols-[70px_80px_1fr]">
+              <div className="grid grid-cols-3 gap-2 md:col-span-5 md:grid-cols-[70px_80px_minmax(0,1fr)]">
                 <Fld label={s.qty}>
                   <Input
                     type="number"
@@ -216,8 +216,8 @@ export function QuotationEditor({
         </ul>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="gap-4 px-5 py-4">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
+        <Card className="gap-4 p-(--card-pad)">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-semibold">{s.termsTitle}</h2>
             <Button
@@ -268,7 +268,7 @@ export function QuotationEditor({
           </Fld>
         </Card>
 
-        <Card className="gap-3 px-5 py-4">
+        <Card className="gap-3 p-(--card-pad)">
           <Row label={s.subtotal} value={formatRupiah(subtotal)} />
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="q-discount" className="text-sm">

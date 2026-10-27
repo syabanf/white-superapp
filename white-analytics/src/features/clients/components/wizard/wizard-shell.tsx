@@ -35,7 +35,7 @@ export function WizardShell({
   const linkFor = (key: string, done: boolean) => (done && hrefFor ? hrefFor(key) : null);
 
   return (
-    <div className="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[220px_1fr] lg:gap-8">
+    <div className="grid w-full max-w-5xl gap-(--gap) lg:grid-cols-[220px_minmax(0,1fr)]">
       {/* ── Rail (desktop) ── */}
       <nav aria-label={tc.wizard.stepOf} className="hidden lg:block">
         <p className="label-mono mb-4 text-brand">{eyebrow}</p>
@@ -133,15 +133,15 @@ export function WizardShell({
           </ol>
         </div>
 
-        <Card className="-mx-4 gap-0 overflow-visible rounded-none border-x-0 py-0 sm:mx-0 sm:overflow-hidden sm:rounded-xl sm:border-x">
-          <header className="border-b px-4 py-4 sm:px-6 sm:py-5">
+        <Card className="-mx-(--page-x) gap-0 overflow-visible rounded-none py-0 shadow-none sm:mx-0 sm:overflow-hidden sm:rounded-[1.5rem] sm:shadow-(--card-shadow)">
+          <header className="border-b px-(--card-pad) py-4">
             <p className="label-mono text-brand">{meta.index}</p>
             <h2 className="mt-1.5 text-lg font-bold tracking-[-0.03em] sm:text-xl">{meta.title}</h2>
             <p className="mt-1.5 text-sm text-muted-foreground">{meta.description}</p>
           </header>
-          <div className="px-4 py-5 sm:px-6 sm:py-6">{children}</div>
+          <div className="p-(--card-pad)">{children}</div>
           {footer ? (
-            <div className="flex items-center justify-between gap-3 border-t bg-muted/30 px-4 py-4 sm:px-6">{footer}</div>
+            <div className="flex items-center justify-between gap-3 border-t bg-muted/30 px-(--card-pad) py-3">{footer}</div>
           ) : null}
         </Card>
       </div>

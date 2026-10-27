@@ -301,7 +301,7 @@ export function RankTable({
 
   return (
     <Card className="gap-0 py-0">
-      <CardContent className="p-6">
+      <CardContent className="p-(--card-pad)">
         <DataTable
           data={filtered}
           columns={columns}
@@ -315,7 +315,7 @@ export function RankTable({
           toolbar={
             <div className="flex flex-wrap items-center gap-2">
               <Select value={tag} onValueChange={setTag}>
-                <SelectTrigger size="sm" className="min-w-36">
+                <SelectTrigger className="min-w-36">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

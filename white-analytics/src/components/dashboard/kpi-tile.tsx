@@ -63,7 +63,7 @@ export function KpiTile({
     (currentValue != null && previousValue != null ? computeDelta(currentValue, previousValue) : null);
   const valueTone = signedValue == null ? null : changeTone(signedValue, lowerIsBetter);
   const toneClass = valueTone === "positive" ? "text-positive" : valueTone === "negative" ? "text-negative" : undefined;
-  const pad = size === "sm" ? "px-3.5 py-3" : size === "lg" ? "p-5 sm:p-6" : "p-4 sm:p-5";
+  const pad = size === "sm" ? "px-3.5 py-3" : "p-(--card-pad)";
   const valueSize =
     size === "sm"
       ? "text-base sm:text-lg"
@@ -81,7 +81,8 @@ export function KpiTile({
       {accentVar ? (
         <span aria-hidden className="absolute inset-x-0 top-0 h-0.5" style={{ background: accentVar }} />
       ) : null}
-      <div className={cn("flex min-w-0 flex-col", pad, size === "sm" ? "gap-1.5" : "gap-3")}>
+      {/* Label and value on top, delta and caption pinned to the bottom: in an equal-height row the values line up */}
+      <div className={cn("flex min-w-0 flex-1 flex-col", pad, size === "sm" ? "gap-1.5" : "gap-3")}>
         <div className="flex min-w-0 items-start gap-1.5 text-muted-foreground">
           {icon ? <span className="text-muted-foreground/80 [&>svg]:size-3.5">{icon}</span> : null}
           <span className="label-mono line-clamp-2">{label}</span>
@@ -128,7 +129,7 @@ export function KpiTile({
         </div>
 
         {delta || caption || previous ? (
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <div className="mt-auto flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
             {delta ? <DeltaBadge delta={delta} lowerIsBetter={lowerIsBetter} /> : null}
             {caption ? <span className="truncate text-xs text-muted-foreground">{caption}</span> : null}
             {previous && !caption ? (
@@ -197,5 +198,5 @@ export function KpiGrid({
           : cols === 6
             ? "grid-cols-2 md:grid-cols-3 xl:grid-cols-6"
             : "grid-cols-2 lg:grid-cols-4";
-  return <div className={cn("grid gap-3 sm:gap-5", grid, className)}>{children}</div>;
+  return <div className={cn("grid gap-(--gap)", grid, className)}>{children}</div>;
 }

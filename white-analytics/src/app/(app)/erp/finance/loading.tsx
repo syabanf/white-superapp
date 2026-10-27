@@ -9,11 +9,11 @@ export default function FinanceLoading() {
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-4 w-96 max-w-full" />
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Skeleton className="h-8 w-44 rounded-full" />
-        <Skeleton className="h-8 w-44 rounded-full" />
+      <div className="flex flex-wrap gap-(--gap-inner)">
+        <Skeleton className="h-(--control-h) w-44 rounded-full" />
+        <Skeleton className="h-(--control-h) w-44 rounded-full" />
       </div>
-      <Skeleton className="h-9 w-full max-w-xl rounded-full" />
+      <Skeleton className="h-(--control-h) w-full max-w-xl rounded-full" />
       <TabSkeleton />
     </>
   );

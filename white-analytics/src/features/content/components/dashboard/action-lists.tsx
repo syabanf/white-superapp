@@ -16,11 +16,13 @@ import { formatRelative } from "@/lib/format";
 
 const STAGES: Stage[] = ["COPY", "DESIGN", "REVIEW"];
 const card = "rounded-[1.5rem] bg-card shadow-(--card-shadow)";
+// list cards keep an 8px inset for the row hover; rows add the rest so text sits on --card-pad
+const rowX = "px-[calc(var(--card-pad)-0.5rem)]";
 
 function ItemRow({ item, href, meta, late }: { item: Item; href: string; meta: string; late?: boolean }) {
   return (
     <li>
-      <Link href={href} className="flex items-center gap-3 rounded-xl px-4 py-2.5 hover:bg-muted/50">
+      <Link href={href} className={`flex items-center gap-3 rounded-xl py-2.5 hover:bg-muted/50 ${rowX}`}>
         <PlatformIcon platform={item.platform} className="size-4" />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[13px] font-medium">{item.title}</span>
@@ -56,11 +58,11 @@ export async function ActionLists({ slug, clientId, timezone, canWrite, plans }:
   const itemHref = (id: string) => `${base}/board/${id}`;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold tracking-[-0.02em]">{cd.actionTitle}</h2>
+    <div className="page-stack">
+      <h2 className="text-lg font-bold tracking-[-0.015em]">{cd.actionTitle}</h2>
       <Section index="01" title={`${c.thisMonthPlan} · ${monthLabel(month)}`}>
         {plan ? (
-          <Link href={`${base}/plans/${plan.id}`} className={`${card} block space-y-3 p-6 transition-colors hover:bg-muted/30`}>
+          <Link href={`${base}/plans/${plan.id}`} className={`${card} block space-y-3 p-(--card-pad) transition-colors hover:bg-muted/30`}>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-base font-semibold">{plan.title}</span>
               <PlanStatusBadge status={plan.status} />
@@ -73,11 +75,11 @@ export async function ActionLists({ slug, clientId, timezone, canWrite, plans }:
         )}
       </Section>
 
-      <div className="grid gap-6 [&>*]:min-w-0 lg:grid-cols-2">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-2">
         <Section index="02" title={c.dueThisWeek} description={c.dueThisWeekDesc}>
           <div className={`${card} p-2`}>
             {dueThisWeek.length === 0 ? (
-              <p className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
+              <p className={`flex items-center gap-2 py-4 text-sm text-muted-foreground ${rowX}`}>
                 <CalendarClock className="size-4" /> {c.nothingDue}
               </p>
             ) : (
@@ -86,7 +88,7 @@ export async function ActionLists({ slug, clientId, timezone, canWrite, plans }:
                 if (list.length === 0) return null;
                 return (
                   <div key={stage} className="py-1">
-                    <p className="label-mono px-4 pt-2 pb-1 text-muted-foreground">
+                    <p className={`label-mono pt-2 pb-1 text-muted-foreground ${rowX}`}>
                       {c.stageDue[stage]} · {list.length}
                     </p>
                     <ul>
@@ -104,7 +106,7 @@ export async function ActionLists({ slug, clientId, timezone, canWrite, plans }:
         <Section index="03" title={c.overdue} description={c.overdueDesc}>
           <div className={`${card} p-2`}>
             {overdue.length === 0 ? (
-              <p className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
+              <p className={`flex items-center gap-2 py-4 text-sm text-muted-foreground ${rowX}`}>
                 <AlertTriangle className="size-4" /> {c.noOverdue}
               </p>
             ) : (
@@ -122,7 +124,7 @@ export async function ActionLists({ slug, clientId, timezone, canWrite, plans }:
       <Section index="04" title={c.recentActivity}>
         <div className={`${card} p-2`}>
           {recent.length === 0 ? (
-            <p className="px-4 py-4 text-sm text-muted-foreground">{c.noActivity}</p>
+            <p className={`py-4 text-sm text-muted-foreground ${rowX}`}>{c.noActivity}</p>
           ) : (
             <ul>
               {recent.map((i) => (
@@ -138,10 +140,10 @@ export async function ActionLists({ slug, clientId, timezone, canWrite, plans }:
 
 export function ActionListsSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="page-stack">
       <Skeleton className="h-6 w-40" />
       <Skeleton className="h-28 rounded-[1.5rem]" />
-      <div className="grid gap-6 [&>*]:min-w-0 lg:grid-cols-2">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-2">
         <Skeleton className="h-48 rounded-[1.5rem]" />
         <Skeleton className="h-48 rounded-[1.5rem]" />
       </div>

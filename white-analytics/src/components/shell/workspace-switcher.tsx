@@ -40,11 +40,11 @@ export function WorkspaceSwitcher({ collapsed, showErp }: { collapsed?: boolean;
       <DropdownMenuTrigger
         aria-label={t.workspace.switch}
         className={cn(
-          "flex w-full items-center gap-2.5 rounded-2xl bg-card p-1.5 text-left shadow-(--card-shadow) outline-none transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring",
+          "flex w-full items-center gap-2.5 rounded-full bg-muted/70 p-1.5 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring",
           collapsed && "size-11 justify-center p-0",
         )}
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--brand),color-mix(in_oklab,var(--brand)_60%,var(--logo-navy)))] text-white shadow-[0_6px_14px_-6px_var(--brand)]">
           <Icon className="size-4" />
         </span>
         {!collapsed ? (
@@ -55,7 +55,7 @@ export function WorkspaceSwitcher({ collapsed, showErp }: { collapsed?: boolean;
               </span>
               <span className="block truncate text-sm font-medium leading-tight">{current.label}</span>
             </span>
-            <ChevronsUpDown className="mr-1 size-3.5 shrink-0 text-muted-foreground" />
+            <ChevronsUpDown className="mr-1.5 size-3.5 shrink-0 text-muted-foreground" />
           </>
         ) : null}
       </DropdownMenuTrigger>
@@ -71,7 +71,7 @@ export function WorkspaceSwitcher({ collapsed, showErp }: { collapsed?: boolean;
               <Link href={w.href}>
                 <span
                   className={cn(
-                    "flex size-8 shrink-0 items-center justify-center rounded-xl",
+                    "flex size-8 shrink-0 items-center justify-center rounded-full",
                     w.key === "erp"
                       ? "bg-[var(--erp-accent)] text-white"
                       : "bg-[var(--marketing-accent)] text-white",

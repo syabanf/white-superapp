@@ -142,7 +142,7 @@ export function PostActionBar({
 
   return (
     <>
-      <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-2 border-t bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:-mx-6 md:px-6 lg:static lg:mx-0 lg:rounded-xl lg:border lg:bg-card lg:p-3 lg:backdrop-blur-none">
+      <div className="sticky bottom-0 z-10 -mx-(--page-x) flex flex-wrap items-center gap-2 border-t bg-background px-(--page-x) py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:static lg:mx-0 lg:rounded-[1.5rem] lg:border-0 lg:bg-card lg:p-3 lg:shadow-(--card-shadow)">
         {canEdit(status, role) ? (
           <Button asChild variant="outline" size="sm">
             <Link href={`${base}/posts/${postId}?edit=1`}>

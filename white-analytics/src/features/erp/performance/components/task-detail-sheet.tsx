@@ -124,7 +124,7 @@ function TaskDetailBody({
       : `${sp.recurrence[item.recurrence]}${item.weeklyDay ? ` (${sp.days[item.weeklyDay]})` : item.monthlyDay ? ` (tgl ${item.monthlyDay})` : ""}`;
 
   return (
-    <div className="flex flex-col gap-5 px-4 pb-8">
+    <div className="flex flex-col gap-5 px-(--card-pad) pb-8">
       <SheetHeader className="px-0">
         <SheetTitle className="flex flex-wrap items-center gap-2 pr-8">
           {item.title}
@@ -412,7 +412,7 @@ function TaskEditForm({ detail, meta, onSaved }: { detail: TaskDetail; meta?: Ta
 
   return (
     <form
-      className="grid gap-3 sm:grid-cols-2"
+      className="grid gap-4 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         run(

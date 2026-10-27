@@ -154,9 +154,9 @@ export function JournalForm({
   );
 
   return (
-    <div className="flex flex-col gap-5">
-      <Card className="gap-4 p-5">
-        <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+    <div className="page-stack">
+      <Card className="gap-4 px-(--card-pad)">
+        <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
           <FormField label={fs.date} htmlFor="entryDate" error={errors.entryDate} required>
             <DatePicker id="entryDate" value={entryDate} onChange={setEntryDate} invalid={!!errors.entryDate} />
           </FormField>
@@ -174,7 +174,7 @@ export function JournalForm({
       </Card>
 
       <Card className="gap-0 overflow-hidden p-0">
-        <div className="flex items-center justify-between px-5 py-3">
+        <div className="flex items-center justify-between px-(--card-pad) py-3">
           <h2 className="text-sm font-semibold">{j.lines}</h2>
           <Button size="sm" variant="outline" onClick={() => setLines((ls) => [...ls, newLine()])}>
             <Plus className="size-3.5" /> {j.addLine}
@@ -183,7 +183,7 @@ export function JournalForm({
         {/* Below lg, one card per line: the table needs ~680px of content width. */}
         <ul className="border-t lg:hidden">
           {lines.map((l, i) => (
-            <li key={l.key} className="grid gap-2 border-b px-4 py-3">
+            <li key={l.key} className="grid gap-2 border-b px-(--card-pad) py-3">
               <div className="flex items-center gap-2">
                 <span className="w-5 shrink-0 text-xs text-muted-foreground tabular">{i + 1}</span>
                 <div className="min-w-0 flex-1">{cells.account(l)}</div>
@@ -202,7 +202,7 @@ export function JournalForm({
               {cells.memo(l, true)}
             </li>
           ))}
-          <li className="grid gap-1 bg-muted/30 px-4 py-3 text-sm font-medium">
+          <li className="grid gap-1 bg-muted/30 px-(--card-pad) py-3 text-sm font-medium">
             <div className="flex justify-between gap-2">
               <span className="text-xs text-muted-foreground">
                 {fs.total} {fs.debit} / {fs.credit}
@@ -218,41 +218,41 @@ export function JournalForm({
           <table className="w-full min-w-[680px] text-sm">
             <thead className="bg-muted/40 text-xs text-muted-foreground">
               <tr>
-                <th className="w-8 px-3 py-2 text-left font-medium">#</th>
-                <th className="px-3 py-2 text-left font-medium">{fs.account}</th>
-                <th className="w-44 px-3 py-2 text-right font-medium">{fs.debit}</th>
-                <th className="w-44 px-3 py-2 text-right font-medium">{fs.credit}</th>
-                <th className="w-48 px-3 py-2 text-left font-medium">{fs.memo}</th>
+                <th className="w-8 px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">#</th>
+                <th className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.account}</th>
+                <th className="w-44 px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.debit}</th>
+                <th className="w-44 px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-right font-medium">{fs.credit}</th>
+                <th className="w-48 px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 text-left font-medium">{fs.memo}</th>
                 <th className="w-10" />
               </tr>
             </thead>
             <tbody>
               {lines.map((l, i) => (
                 <tr key={l.key} className="border-t align-top">
-                  <td className="px-3 py-2 pt-4 text-xs text-muted-foreground tabular">{i + 1}</td>
-                  <td className="px-3 py-2">{cells.account(l)}</td>
-                  <td className="px-3 py-2">{cells.debit(l)}</td>
-                  <td className="px-3 py-2">{cells.credit(l)}</td>
-                  <td className="px-3 py-2">{cells.memo(l)}</td>
-                  <td className="px-1 py-2">{cells.remove(l)}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2 pt-4 text-xs text-muted-foreground tabular">{i + 1}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2">{cells.account(l)}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2">{cells.debit(l)}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2">{cells.credit(l)}</td>
+                  <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2">{cells.memo(l)}</td>
+                  <td className="px-1 py-2 last:pr-(--card-pad)">{cells.remove(l)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot className="border-t bg-muted/30 font-medium">
               <tr>
-                <td colSpan={2} className="px-3 py-2.5 text-right text-xs text-muted-foreground">
+                <td colSpan={2} className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right text-xs text-muted-foreground">
                   {fs.total}
                 </td>
-                <td className="px-3 py-2.5 text-right tabular">{formatRupiah(totals.debit)}</td>
-                <td className="px-3 py-2.5 text-right tabular">{formatRupiah(totals.credit)}</td>
-                <td colSpan={2} className="px-3 py-2.5">
+                <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right tabular">{formatRupiah(totals.debit)}</td>
+                <td className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5 text-right tabular">{formatRupiah(totals.credit)}</td>
+                <td colSpan={2} className="px-3 first:pl-(--card-pad) last:pr-(--card-pad) py-2.5">
                   {balanceNote}
                 </td>
               </tr>
             </tfoot>
           </table>
         </div>
-        {errors.lines ? <p className="px-5 py-2 text-xs text-destructive">{errors.lines[0]}</p> : null}
+        {errors.lines ? <p className="px-(--card-pad) py-2 text-xs text-destructive">{errors.lines[0]}</p> : null}
       </Card>
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">

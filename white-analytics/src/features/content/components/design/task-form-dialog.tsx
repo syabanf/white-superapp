@@ -65,7 +65,7 @@ export function DesignTaskFormDialog({ open, onOpenChange, slug, people, presets
           <DialogTitle>{mode.kind === "create" ? c.taskNewTitle : c.taskEditTitle}</DialogTitle>
           <DialogDescription className="sr-only">{c.designDesc}</DialogDescription>
         </DialogHeader>
-        <form id="task-form" onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+        <form id="task-form" onSubmit={submit} className="grid items-start gap-4 sm:grid-cols-2">
           <Field id="tk-title" label={c.titleLabel} className="sm:col-span-2">
             <Input id="tk-title" value={v.title} onChange={(e) => set("title", e.target.value)} autoFocus />
           </Field>
@@ -98,10 +98,10 @@ export function DesignTaskFormDialog({ open, onOpenChange, slug, people, presets
           </Field>
         </form>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             {c.cancel}
           </Button>
-          <Button type="submit" form="task-form" size="sm" disabled={pending}>
+          <Button type="submit" form="task-form" disabled={pending}>
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {c.save}
           </Button>
         </DialogFooter>

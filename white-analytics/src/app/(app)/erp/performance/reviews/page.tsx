@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -43,7 +44,7 @@ export default async function ReviewsPage(props: PageProps<"/erp/performance/rev
         <OfflineNotice message={offline.message} />
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
+          <Toolbar>
             <UrlTabs
               label={r.title}
               reset={["cycle"]}
@@ -68,7 +69,7 @@ export default async function ReviewsPage(props: PageProps<"/erp/performance/rev
                 />
               </>
             ) : null}
-          </div>
+          </Toolbar>
           {tab === "cycles" ? (
             <CyclesSection cycleParam={sp1(q.cycle)} canWrite={canAccess(access, "hr.write")} />
           ) : (

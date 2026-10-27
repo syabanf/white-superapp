@@ -54,7 +54,10 @@ export function MarketingFunnel3D({ className }: { className?: string }) {
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    const observer = new ResizeObserver(resize);
+    const observer = new ResizeObserver(() => {
+      resize();
+      start();
+    });
     observer.observe(canvas);
     resize();
 
@@ -103,16 +106,27 @@ export function MarketingFunnel3D({ className }: { className?: string }) {
       ctx.stroke();
     };
 
+    // The loop only runs while the canvas is on screen and sized, at ~30 fps;
+    // reduced motion draws a single still frame.
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let visible = true;
+    let raf = 0;
     let last = performance.now();
     let frame = 0;
+    const start = () => {
+      if (raf || !visible || w === 0 || h === 0) return;
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
     const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      // Hidden instance (the other breakpoint's copy): keep the loop alive, skip the work.
-      if (w === 0 || h === 0) {
+      raf = 0;
+      if (!visible || w === 0 || h === 0) return;
+      if (!reduce && now - last < 32) {
         raf = requestAnimationFrame(tick);
         return;
       }
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
       yaw += dt * 0.12;
       tiltX += (targetX - tiltX) * 0.06;
       tiltY += (targetY - tiltY) * 0.06;
@@ -192,13 +206,19 @@ export function MarketingFunnel3D({ className }: { className?: string }) {
 
       ctx.globalAlpha = 1;
       frame++;
-      raf = requestAnimationFrame(tick);
+      if (!reduce) raf = requestAnimationFrame(tick);
     };
-    let raf = requestAnimationFrame(tick);
+    const onScreen = new IntersectionObserver(([entry]) => {
+      visible = !!entry?.isIntersecting;
+      if (visible) start();
+    });
+    onScreen.observe(canvas);
+    start();
 
     return () => {
       cancelAnimationFrame(raf);
       observer.disconnect();
+      onScreen.disconnect();
       window.removeEventListener("pointermove", onPointer);
     };
   }, []);

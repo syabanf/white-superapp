@@ -85,7 +85,7 @@ export function MyLeaveTable({ leaves, types, balance }: { leaves: Leave[]; type
           <FormDialog
             title={th.leave.newLeave}
             trigger={
-              <Button size="sm">
+              <Button>
                 <Plus className="size-4" /> {th.leave.newLeave}
               </Button>
             }
@@ -133,7 +133,7 @@ export function MyOvertimeTable({ rows }: { rows: Overtime[] }) {
           <FormDialog
             title={tm.overtime.request}
             trigger={
-              <Button size="sm">
+              <Button>
                 <Plus className="size-4" /> {tm.overtime.request}
               </Button>
             }
@@ -157,7 +157,7 @@ export function MyLoansTable({ loans }: { loans: Loan[] }) {
           <FormDialog
             title={tm.loans.request}
             trigger={
-              <Button size="sm">
+              <Button>
                 <Plus className="size-4" /> {tm.loans.request}
               </Button>
             }
@@ -174,10 +174,10 @@ export function MyLoansTable({ loans }: { loans: Loan[] }) {
 export function MyPayslips({ payslips }: { payslips: Payslip[] }) {
   if (!payslips.length) return <ErpEmpty icon={<FileText className="size-5" />} title={tm.payslips.empty} />;
   return (
-    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid gap-(--gap) sm:grid-cols-2 lg:grid-cols-3">
       {payslips.map((s) => (
         <li key={s.id}>
-          <Card className="gap-3 p-4">
+          <Card className="gap-3 px-(--card-pad)">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-semibold">{monthLabel(s.periodMonth, s.periodYear)}</p>

@@ -53,9 +53,9 @@ export function UserMenu({ user, collapsed }: { user: ShellUser; collapsed?: boo
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent">
-              <Avatar className="size-8 rounded-lg">
-                <AvatarFallback className="rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
+            <SidebarMenuButton size="lg" className="h-14 rounded-2xl bg-muted/60 px-2 hover:bg-muted data-[state=open]:bg-muted group-data-[collapsible=icon]:bg-transparent">
+              <Avatar className="size-9 after:border-transparent">
+                <AvatarFallback className="bg-[linear-gradient(135deg,#fbd3e4,#e6c3e8)] text-xs font-semibold text-[#2b2263]">
                   {initials(user.name || user.email)}
                 </AvatarFallback>
               </Avatar>
@@ -72,8 +72,8 @@ export function UserMenu({ user, collapsed }: { user: ShellUser; collapsed?: boo
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" className="w-64">
             <DropdownMenuLabel className="flex items-center gap-2 font-normal">
-              <Avatar className="size-8 rounded-lg">
-                <AvatarFallback className="rounded-lg text-xs font-semibold">
+              <Avatar className="size-8">
+                <AvatarFallback className="bg-accent text-xs font-semibold text-accent-foreground">
                   {initials(user.name || user.email)}
                 </AvatarFallback>
               </Avatar>

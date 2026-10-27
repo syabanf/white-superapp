@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/dashboard/layout";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PlatformIcon, platformLabel } from "@/features/social/components/platform-icon";
@@ -50,7 +51,7 @@ export function BriefForm({ slug, plan, editable }: { slug: string; plan: Plan; 
 
   const disabled = !editable || pending;
   return (
-    <form onSubmit={submit} className="grid gap-4 rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow) sm:grid-cols-2">
+    <form onSubmit={submit} className="grid gap-4 rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow) sm:grid-cols-2">
       <Field id="brief-title" label={c.titleLabel} className="sm:col-span-2">
         <Input id="brief-title" value={title} onChange={(e) => setTitle(e.target.value)} disabled={disabled} />
       </Field>
@@ -64,16 +65,15 @@ export function BriefForm({ slug, plan, editable }: { slug: string; plan: Plan; 
         <legend className="text-sm font-medium">{c.frequency}</legend>
         <div className="grid grid-cols-3 gap-3">
           {PLATFORMS.map((p) => (
-            <label key={p} className="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm">
-              <PlatformIcon platform={p} className="size-4" />
-              <span className="hidden min-w-0 flex-1 truncate sm:inline">{platformLabel(p)}</span>
+            <label key={p} className="flex min-w-0 items-center gap-2 text-sm" title={platformLabel(p)}>
+              <PlatformIcon platform={p} className="size-4 shrink-0" />
               <Input
                 type="number"
                 min={0}
                 max={21}
                 value={freq[p]}
                 onChange={(e) => setFreq((s) => ({ ...s, [p]: Math.max(0, Number(e.target.value) || 0) }))}
-                className="h-7 w-16 text-right tabular"
+                className="min-w-0 flex-1 text-right tabular"
                 aria-label={platformLabel(p)}
                 disabled={disabled}
               />
@@ -88,11 +88,11 @@ export function BriefForm({ slug, plan, editable }: { slug: string; plan: Plan; 
         <Input id="brief-notes" value={notes} onChange={(e) => setNotes(e.target.value)} disabled={disabled} />
       </Field>
       {editable ? (
-        <div className="flex justify-end sm:col-span-2">
-          <Button type="submit" size="sm" disabled={pending}>
-            {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {c.saveBrief}
+        <FormActions className="sm:col-span-2">
+          <Button type="submit" disabled={pending}>
+            {pending ? <Loader2 className="animate-spin" /> : null} {c.saveBrief}
           </Button>
-        </div>
+        </FormActions>
       ) : null}
     </form>
   );

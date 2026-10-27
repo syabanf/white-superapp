@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowUpRight, ShieldAlert } from "lucide-react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { PageHeader, Section } from "@/components/dashboard/page-header";
+import { CardGrid } from "@/components/dashboard/layout";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { canAccess, visibleErpNav } from "@/components/shell/nav-config";
 import { requireErp } from "@/features/erp/access";
@@ -11,12 +12,11 @@ import { OfflineNotice } from "@/features/erp/offline-notice";
 import { resolvePeriod } from "@/features/erp/shared/dashboard-period";
 import { DashboardFilterBar } from "@/features/erp/shared/dashboard-filter-bar";
 import { sp1 } from "@/features/erp/shared/load";
+import { AttentionSkeleton, ModuleSkeleton } from "@/features/erp/home/skeletons";
 import {
-  AttentionSkeleton,
   AttentionStrip,
   FinanceSection,
   HrSection,
-  ModuleSkeleton,
   PerformanceSection,
   RecruitmentSection,
   SalesSection,
@@ -68,7 +68,7 @@ export default async function ErpHomePage(props: PageProps<"/erp">) {
 
   return (
     <>
-      <PageHeader eyebrow={t.erp.eyebrow} title={t.erp.title} description={t.erp.subtitle} />
+      <PageHeader banner eyebrow={t.erp.eyebrow} title={t.erp.title} description={t.erp.subtitle} />
       {offline ? <OfflineNotice message={offline.message} /> : null}
       {sp.unauthorized === "1" ? (
         <Alert className="rounded-2xl">
@@ -92,16 +92,16 @@ export default async function ErpHomePage(props: PageProps<"/erp">) {
         <EmptyState icon={<ShieldAlert className="size-5" />} title={t.erp.noModules} />
       ) : (
         <Section title={hs.modulesTitle}>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <CardGrid cols={3}>
             {modules.map((m) => {
               const Icon = m.icon;
               return (
                 <Link
                   key={m.href}
                   href={m.href}
-                  className="group lift flex min-w-0 items-center gap-3 rounded-2xl bg-card p-3.5 shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="group lift flex min-w-0 items-center gap-3 rounded-2xl bg-card p-(--card-pad) shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[color-mix(in_oklab,var(--brand)_14%,transparent)] text-brand">
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -112,7 +112,7 @@ export default async function ErpHomePage(props: PageProps<"/erp">) {
                 </Link>
               );
             })}
-          </div>
+          </CardGrid>
         </Section>
       )}
     </>

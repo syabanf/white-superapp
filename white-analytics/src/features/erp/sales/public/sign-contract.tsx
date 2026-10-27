@@ -107,14 +107,14 @@ export function SignContract({ token, contract: initial }: { token: string; cont
 
   if (contract.status === "cancelled")
     return (
-      <Card className="px-6 py-5 text-sm text-muted-foreground" role="status">
+      <Card className="text-sm text-muted-foreground p-(--card-pad)" role="status">
         {c.cancelled}
       </Card>
     );
 
   if (contract.signedAt)
     return (
-      <Card className="flex flex-col items-start gap-3 px-6 py-5" role="status">
+      <Card className="flex flex-col items-start gap-3 p-(--card-pad)" role="status">
         <p className="flex items-center gap-2 font-semibold">
           <CheckCircle2 className="size-5 text-positive" /> {c.signed}
         </p>
@@ -149,7 +149,7 @@ export function SignContract({ token, contract: initial }: { token: string; cont
   };
 
   return (
-    <Card className="px-6 py-5">
+    <Card className="p-(--card-pad)">
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <div>
           <h2 className="text-base font-semibold">{c.signTitle}</h2>

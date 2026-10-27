@@ -5,6 +5,7 @@ import { Megaphone, Pencil, Pin, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Toolbar, ToolbarActions } from "@/components/dashboard/layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ function AnnouncementCard({
 }) {
   const deptNames = departments?.filter((d) => item.departmentIds.includes(d.id)).map((d) => d.name);
   return (
-    <Card className={cn("gap-2 p-4 sm:p-5", item.isPinned && "ring-1 ring-brand/30")}>
+    <Card className={cn("gap-2 px-(--card-pad)", item.isPinned && "ring-1 ring-brand/30")}>
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -109,8 +110,8 @@ export function AnnouncementsAdmin({
 }) {
   const sorted = [...items].sort((a, b) => Number(b.isPinned) - Number(a.isPinned));
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="page-stack">
+      <Toolbar label={th.status}>
         <SelectFilter
           param="status"
           label={th.status}
@@ -118,21 +119,21 @@ export function AnnouncementsAdmin({
           options={Object.entries(n.statuses).map(([value, label]) => ({ value, label }))}
         />
         {canWrite ? (
-          <div className="ml-auto">
+          <ToolbarActions>
             <FormDialog
               title={n.newAnnouncement}
               wide
               trigger={
-                <Button size="sm">
+                <Button>
                   <Plus className="size-4" /> {n.newAnnouncement}
                 </Button>
               }
             >
               {(close) => <AnnouncementForm departments={departments} close={close} />}
             </FormDialog>
-          </div>
+          </ToolbarActions>
         ) : null}
-      </div>
+      </Toolbar>
       {sorted.length === 0 ? (
         <ErpEmpty icon={<Megaphone className="size-5" />} title={n.empty} />
       ) : (

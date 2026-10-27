@@ -142,7 +142,7 @@ export function SalariesTable({
                 description={s.newSalaryBody}
                 wide
                 trigger={
-                  <Button size="sm">
+                  <Button>
                     <Plus className="size-4" /> {s.newSalary}
                   </Button>
                 }
@@ -290,7 +290,7 @@ export function AdditionsTable({
               title={a.newAddition}
               description={a.newAdditionBody}
               trigger={
-                <Button size="sm">
+                <Button>
                   <Plus className="size-4" /> {a.newAddition}
                 </Button>
               }
@@ -396,7 +396,7 @@ export function SettingsForm({ settings, canWrite }: { settings: PayrollSettings
   );
   return (
     <form
-      className="grid gap-4 lg:grid-cols-2"
+      className="grid gap-(--gap) lg:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         void run(() => updatePayrollSettingsAction(v), { success: t.saved });

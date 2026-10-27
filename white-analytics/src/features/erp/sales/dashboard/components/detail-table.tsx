@@ -57,9 +57,9 @@ export function DetailTable<T>({
   const shown = limit ? sorted.slice(0, limit) : sorted;
   const hasTotals = columns.some((c) => c.total);
   if (!rows.length) return <p className="py-6 text-center text-sm text-muted-foreground">{empty}</p>;
-  const cell = (c: Column<T>) => cn("px-3 py-2", c.numeric ? "text-right tabular whitespace-nowrap" : "text-left", c.optional && "max-sm:hidden", c.wide && "max-2xl:hidden");
+  const cell = (c: Column<T>) => cn("px-3 py-2 first:pl-(--card-pad) last:pr-(--card-pad)", c.numeric ? "text-right tabular whitespace-nowrap" : "text-left", c.optional && "max-sm:hidden", c.wide && "max-2xl:hidden");
   return (
-    <div className="-mx-1 overflow-x-auto scrollbar-thin">
+    <div className="card-bleed overflow-x-auto scrollbar-thin">
       <table className="w-full min-w-[28rem] text-sm max-sm:min-w-0">
         <thead className="text-xs text-muted-foreground">
           <tr className="border-b">

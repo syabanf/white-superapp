@@ -98,8 +98,8 @@ function NewQuotationDialog({ deals }: { deals: Option[] }) {
     <FormDialog
       title={s.newTitle}
       trigger={
-        <Button size="sm" variant="outline">
-          <Plus className="size-3.5" /> {s.new}
+        <Button variant="outline">
+          <Plus className="size-4" /> {s.new}
         </Button>
       }
     >
@@ -130,14 +130,23 @@ function NewQuotationForm({ deals, close }: { deals: Option[]; close: () => void
 }
 
 /** "Generate from deal": draft from service lines, catalog tiers and retainer discounts. */
-export function GenerateQuotationDialog({ deals, dealId }: { deals?: Option[]; dealId?: string }) {
+export function GenerateQuotationDialog({
+  deals,
+  dealId,
+  size,
+}: {
+  deals?: Option[];
+  dealId?: string;
+  /** "sm" inside a card header */
+  size?: "sm";
+}) {
   return (
     <FormDialog
       title={s.generateTitle}
       description={s.generateHint}
       trigger={
-        <Button size="sm">
-          <Sparkles className="size-3.5" /> {s.generate}
+        <Button size={size}>
+          <Sparkles /> {s.generate}
         </Button>
       }
     >
@@ -204,10 +213,10 @@ function GenerateForm({ deals, dealId, close }: { deals: Option[]; dealId?: stri
 /** Status, revise, PDF, invoices and delete for one quotation. */
 export function QuotationActions({ quotation: q, caps }: { quotation: Quotation; caps: SalesCaps }) {
   const router = useRouter();
-  const pdf = <DownloadButton href={`/api/erp/api/sales/quotations/${q.id}/pdf`} fileName={`${q.quoteNumber}.pdf`}>{s.pdf}</DownloadButton>;
+  const pdf = <DownloadButton href={`/api/erp/api/sales/quotations/${q.id}/pdf`} fileName={`${q.quoteNumber}.pdf`} size="default">{s.pdf}</DownloadButton>;
   if (!caps.write) return pdf;
   const status = (to: string, label: string, icon: React.ReactNode, variant: "default" | "outline" = "outline") => (
-    <ActionButton size="sm" variant={variant} action={() => setQuotationStatusAction(q.id, to)} success={s.statusChanged}>
+    <ActionButton variant={variant} action={() => setQuotationStatusAction(q.id, to)} success={s.statusChanged}>
       {icon} {label}
     </ActionButton>
   );
@@ -219,8 +228,8 @@ export function QuotationActions({ quotation: q, caps }: { quotation: Quotation;
           action={() => deleteQuotationAction(q.id)}
           onDone={() => router.push("/erp/sales/quotations")}
           trigger={
-            <Button size="sm" variant="ghost">
-              <Trash2 className="size-3.5" /> {ss.delete}
+            <Button variant="ghost">
+              <Trash2 /> {ss.delete}
             </Button>
           }
         />
@@ -228,32 +237,31 @@ export function QuotationActions({ quotation: q, caps }: { quotation: Quotation;
       {pdf}
       {q.status !== "draft" && q.status !== "superseded" ? (
         <ActionButton
-          size="sm"
           variant="outline"
           action={() => reviseQuotationAction(q.id)}
           success={s.revised}
           onOk={(d) => router.push(`/erp/sales/quotations/${(d as Quotation).id}`)}
         >
-          <GitBranch className="size-3.5" /> {s.revise}
+          <GitBranch /> {s.revise}
         </ActionButton>
       ) : null}
       {q.status === "terkirim" ? (
         <>
-          {status("ditolak", s.reject, <XCircle className="size-3.5" />)}
-          {status("diterima", s.accept, <CheckCircle2 className="size-3.5" />, "default")}
+          {status("ditolak", s.reject, <XCircle />)}
+          {status("diterima", s.accept, <CheckCircle2 />, "default")}
         </>
       ) : null}
       {q.status === "draft"
-        ? status("terkirim", s.send, <Send className="size-3.5" />, "default")
+        ? status("terkirim", s.send, <Send />, "default")
         : null}
       {q.status === "diterima" ? (
         <>
-          <ActionButton size="sm" variant="outline" action={() => invoicesFromTermsAction(q.id)} success={s.invoicesMade}>
-            <Receipt className="size-3.5" /> {s.makeInvoices}
+          <ActionButton variant="outline" action={() => invoicesFromTermsAction(q.id)} success={s.invoicesMade}>
+            <Receipt /> {s.makeInvoices}
           </ActionButton>
-          <Button size="sm" asChild>
+          <Button asChild>
             <Link href={`/erp/sales/contracts?generate=${q.id}`}>
-              <FilePlus2 className="size-3.5" /> {s.makeContract}
+              <FilePlus2 /> {s.makeContract}
             </Link>
           </Button>
         </>

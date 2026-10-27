@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { KpiTile } from "@/components/dashboard/kpi-tile";
+import { KpiGrid, KpiTile } from "@/components/dashboard/kpi-tile";
 import { PageHeader, Section } from "@/components/dashboard/page-header";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -34,20 +31,16 @@ export default async function PayrollRunPage(props: PageProps<"/erp/hr/payroll/r
 
   return (
     <>
-      <Button variant="ghost" size="sm" asChild className="-ml-2 self-start">
-        <Link href="/erp/hr/payroll">
-          <ArrowLeft className="size-4" /> {p.backToRuns}
-        </Link>
-      </Button>
       <PageHeader
+        back={{ href: "/erp/hr/payroll", label: p.backToRuns }}
         eyebrow={monthLabel(run.periodMonth, run.periodYear)}
         title={run.runName}
         actions={<ErpStatusBadge status={run.status} labels={p.statuses} kinds={kinds.payroll} />}
       />
-      <Card className="p-4 sm:p-5">
+      <Card className="px-(--card-pad)">
         <RunActions run={run} canWrite={hrPerms(access).payroll} />
       </Card>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <KpiGrid cols={4}>
         <KpiTile label={p.employees} value={formatNumber(run.totalEmployees)} size="sm" />
         <KpiTile label={p.gross} value={formatRupiah(run.totalGross)} size="sm" />
         <KpiTile label={p.deductions} value={formatRupiah(run.totalDeductions)} size="sm" />
@@ -55,7 +48,7 @@ export default async function PayrollRunPage(props: PageProps<"/erp/hr/payroll/r
         <KpiTile label={p.bpjsEmployee} value={formatRupiah(run.totalBpjsEmployee)} size="sm" />
         <KpiTile label={p.bpjsEmployer} value={formatRupiah(run.totalBpjsEmployer)} size="sm" />
         <KpiTile label={p.pph21} value={formatRupiah(run.totalPph21)} size="sm" />
-      </div>
+      </KpiGrid>
       <Section title={p.payslips}>
         <PayslipsTable
           payslips={payslips}

@@ -96,7 +96,7 @@ export function IndicatorsTable({ indicators, canWrite }: { indicators: Indicato
         getRowId={(r) => r.id}
         toolbar={
           canWrite ? (
-            <Button size="sm" onClick={() => setEditing("new")}>
+            <Button onClick={() => setEditing("new")}>
               <Plus className="size-4" /> {k.newIndicator}
             </Button>
           ) : null
@@ -150,7 +150,7 @@ function IndicatorDialog({ indicator, onClose }: { indicator: Indicator | null; 
           <DialogHeader>
             <DialogTitle>{indicator ? k.editIndicator : k.newIndicator}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormRow label={k.code} htmlFor="ind-code" error={errors.code?.[0]}>
               <Input id="ind-code" value={form.code} disabled={!!indicator} onChange={(e) => set("code", e.target.value)} required />
             </FormRow>
@@ -256,7 +256,7 @@ export function DepartmentWeights({ config, canWrite }: { config: KpiConfig; can
         {indicators.map((ind) => {
           const d = draft[ind.id] ?? { enabled: false, weight: "10" };
           return (
-            <div key={ind.id} className="flex items-center gap-3 px-4 py-3">
+            <div key={ind.id} className="flex items-center gap-3 px-(--card-pad) py-3">
               <Checkbox
                 checked={d.enabled}
                 disabled={!canWrite}
@@ -290,7 +290,7 @@ export function DepartmentWeights({ config, canWrite }: { config: KpiConfig; can
           );
         })}
       </Card>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 shadow-(--card-shadow)">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card px-(--card-pad) py-3 shadow-(--card-shadow)">
         <p className="text-sm">
           {k.totalWeight}:{" "}
           <span className={cn("font-semibold tabular", total === 100 ? "text-[var(--status-good)]" : "text-[var(--status-warning)]")}>
@@ -395,9 +395,9 @@ export function TargetsPanel({
   return (
     <div className="flex flex-col gap-4">
       {canWrite ? (
-        <Card className="gap-3 p-4">
+        <Card className="gap-3 p-(--card-pad)">
           <p className="text-sm font-semibold">{k.newTarget}</p>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             <FormRow label={k.indicator}>
               <Select value={form.indicatorId || ALL} onValueChange={(v) => set("indicatorId", v === ALL ? "" : v)}>
                 <SelectTrigger className="w-full" aria-label={k.indicator}>

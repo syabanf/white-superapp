@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { formatCompact, formatDate } from "@/lib/format";
 import { changeTone, trendColor } from "@/lib/metrics";
 
+export { areaFill, barFill, cssBarFill } from "./chart-gradients";
+
 /** Categorical slot color by index (fixed order, never cycled past 8). */
 export function slotColor(i: number): string {
   const n = Math.min(Math.max(i, 0), 7) + 1;
@@ -36,7 +38,8 @@ export type TooltipRow = {
 };
 
 /**
- * Tooltip content — values lead, labels follow; line keys not boxes.
+ * Tooltip content: a rounded pill, value first and large, label quiet above it.
+ * `tone="dark"` is the navy pill used over line charts for emphasis.
  * Works for both time-series (label = ISO date) and categorical (label = name).
  */
 export function TooltipBox({
@@ -46,6 +49,7 @@ export function TooltipBox({
   seriesMap,
   labelFormatter,
   hideLabel,
+  tone = "light",
 }: {
   active?: boolean;
   payload?: ReadonlyArray<TooltipRow>;
@@ -53,6 +57,7 @@ export function TooltipBox({
   seriesMap: Record<string, SeriesDef & { color: string }>;
   labelFormatter?: (label: unknown) => React.ReactNode;
   hideLabel?: boolean;
+  tone?: "light" | "dark";
 }) {
   if (!active || !payload?.length) return null;
   const rows = payload.filter((p) => p.value != null && p.dataKey != null);
@@ -61,10 +66,21 @@ export function TooltipBox({
     : typeof label === "string" && /^\d{4}-\d{2}-\d{2}$/.test(label)
       ? formatDate(label)
       : String(label ?? "");
+  const dark = tone === "dark";
+  const quiet = dark ? "text-white/70" : "text-muted-foreground";
+  // One series: the value leads, large; several: label left, value right.
+  const single = rows.length === 1;
   return (
-    <div className="max-w-[min(18rem,calc(100vw-2rem))] min-w-36 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
+    <div
+      className={cn(
+        "max-w-[min(18rem,calc(100vw-2rem))] min-w-32 rounded-2xl px-3.5 py-2.5 text-xs",
+        dark
+          ? "bg-[#2b2263]/95 text-white shadow-[0_16px_34px_-14px_rgba(43,34,99,0.75)] dark:bg-[#3a2163]/95"
+          : "bg-popover text-popover-foreground shadow-(--popover-shadow)",
+      )}
+    >
       {!hideLabel && heading ? (
-        <div className="mb-1.5 font-medium text-muted-foreground">{heading}</div>
+        <div className={cn("mb-1 font-medium", quiet)}>{heading}</div>
       ) : null}
       <div className="grid gap-1">
         {rows.map((r, i) => {
@@ -73,19 +89,33 @@ export function TooltipBox({
           const color = def?.color ?? r.color ?? r.stroke ?? r.fill ?? "var(--foreground)";
           const raw = typeof r.value === "number" ? r.value : Number(r.value);
           const val = def?.format ? def.format(raw) : formatCompact(raw);
+          const name = def?.label ?? String(r.name ?? key);
           return (
             <div key={`${key}-${i}`} className="flex items-center gap-2">
-              <span aria-hidden className="h-0.5 w-3 shrink-0 rounded-full" style={{ background: color }} />
-              <span className="flex-1 truncate text-muted-foreground">
-                {def?.label ?? String(r.name ?? key)}
+              <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ background: color }} />
+              <span className={cn("truncate", quiet, single ? "order-last" : "flex-1")}>{name}</span>
+              <span className={cn("shrink-0 font-semibold tabular", single ? "text-[15px] leading-tight" : "text-[13px]")}>
+                {val}
               </span>
-              <span className="shrink-0 font-semibold tabular text-foreground">{val}</span>
             </div>
           );
         })}
       </div>
     </div>
   );
+}
+
+/** Active point on a line: the series dot inside a soft ring. Pass as `activeDot={ringDot(color)}`. */
+export function ringDot(color: string) {
+  return function RingDot({ cx, cy }: { cx?: number; cy?: number }) {
+    if (cx == null || cy == null) return <g />;
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={10} fill={color} fillOpacity={0.16} />
+        <circle cx={cx} cy={cy} r={5} fill={color} stroke="var(--card)" strokeWidth={2.5} />
+      </g>
+    );
+  };
 }
 
 /**
@@ -114,7 +144,7 @@ export function SeriesLegend({
           s.type === "line" || !s.type ? (
             <span aria-hidden className="h-0.5 w-4 rounded-full" style={{ background: s.color }} />
           ) : (
-            <span aria-hidden className="size-2.5 rounded-[3px]" style={{ background: s.color }} />
+            <span aria-hidden className="size-2.5 rounded-full" style={{ background: s.color }} />
           );
         const dimmed = activeKey != null && activeKey !== s.key;
         return (
@@ -124,7 +154,7 @@ export function SeriesLegend({
                 type="button"
                 onClick={() => onSelect(s)}
                 aria-pressed={activeKey === s.key}
-                className="-mx-1 flex min-h-6 cursor-pointer items-center gap-1.5 rounded-md px-1 outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-pressed:font-medium aria-pressed:text-foreground"
+                className="-mx-1.5 flex min-h-7 cursor-pointer items-center gap-1.5 rounded-full px-2 outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-pressed:font-medium aria-pressed:text-foreground"
               >
                 {swatch}
                 {s.label}
@@ -193,4 +223,12 @@ export function activeIndexOf(
 
 export const AXIS_TICK = { fill: "var(--muted-foreground)", fontSize: 11 } as const;
 export const GRID_STROKE = "var(--grid)";
+export const GRID_DASH = "4 6";
 export const CURSOR_STROKE = "var(--axis)";
+/** Hover band behind a bar group: a faint brand-tinted rounded column. */
+export const BAR_CURSOR = { fill: "var(--brand)", fillOpacity: 0.07, radius: 12 } as const;
+/** Fully rounded data end (recharts clamps the radius to half the bar). */
+export const BAR_RADIUS: [number, number, number, number] = [999, 999, 0, 0];
+export const BAR_RADIUS_H: [number, number, number, number] = [0, 999, 999, 0];
+/** Floating bars (waterfall steps, ranges): round both ends. */
+export const BAR_RADIUS_ALL = 999;

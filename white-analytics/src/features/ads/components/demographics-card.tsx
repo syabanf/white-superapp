@@ -81,7 +81,7 @@ export function DemographicsCard({
       {!hasData ? (
         <p className="py-8 text-center text-sm text-muted-foreground">{t.common.noData}</p>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="mb-2 text-xs font-medium text-muted-foreground">{s.demographicsAgeTitle}</p>
             <HBarChart

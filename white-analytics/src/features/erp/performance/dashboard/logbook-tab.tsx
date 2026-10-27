@@ -63,7 +63,7 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
   );
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <KpiGrid cols={4}>
         <MetricTile
           label={l.rate}
@@ -156,7 +156,7 @@ export function LogbookTab({ data, dept }: { data: DashLogbook; dept?: string })
         />
       </ChartCard>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid gap-(--gap) lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <ChartCard title={l.heatmap} description={l.heatmapHint}>
           {heatCells.length ? (
             <Heatmap

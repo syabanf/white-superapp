@@ -17,13 +17,13 @@ import { CANDIDATE_STATUS, STAGE_ORDER, rs } from "../strings";
 import type { Candidate } from "../types";
 
 /** Stage picker; also used on pipeline cards. */
-export function StageMenu({ candidate, size = "sm" }: { candidate: Pick<Candidate, "id" | "status">; size?: "sm" | "xs" }) {
+export function StageMenu({ candidate, size = "default" }: { candidate: Pick<Candidate, "id" | "status">; size?: "default" | "xs" }) {
   const { run, pending } = useErpAction();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size={size} variant="outline" disabled={pending}>
-          {pending ? <Loader2 className="size-3.5 animate-spin" /> : <ArrowRightLeft className="size-3.5" />}
+          {pending ? <Loader2 className="animate-spin" /> : <ArrowRightLeft />}
           {rs.candidates.moveStage}
         </Button>
       </DropdownMenuTrigger>
@@ -53,7 +53,7 @@ export function DeleteCandidateButton({ id }: { id: string }) {
         return res;
       }}
       trigger={
-        <Button size="sm" variant="ghost" className="text-destructive" aria-label={rs.delete}>
+        <Button size="icon" variant="ghost" className="text-destructive" aria-label={rs.delete}>
           <Trash2 className="size-4" />
         </Button>
       }

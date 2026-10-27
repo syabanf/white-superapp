@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CalendarDays, Plus, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Toolbar, ToolbarActions } from "@/components/dashboard/layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
@@ -110,8 +111,8 @@ export function PlanItems({ slug, planId, month, items, people, pillars, timezon
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="flex min-w-0 flex-col gap-(--gap-inner)">
+      <Toolbar>
         <Tabs value={view} onValueChange={(v) => setView(v as "calendar" | "table")}>
           <TabsList>
             <TabsTrigger value="calendar">
@@ -123,11 +124,13 @@ export function PlanItems({ slug, planId, month, items, people, pillars, timezon
           </TabsList>
         </Tabs>
         {canWrite ? (
-          <Button size="sm" variant="outline" onClick={() => setCreateDate(firstDay)}>
-            <Plus className="size-3.5" /> {c.addItem}
-          </Button>
+          <ToolbarActions>
+            <Button variant="outline" onClick={() => setCreateDate(firstDay)}>
+              <Plus /> {c.addItem}
+            </Button>
+          </ToolbarActions>
         ) : null}
-      </div>
+      </Toolbar>
 
       {items.length === 0 ? (
         <EmptyState compact icon={<CalendarDays />} title={c.noItems} description={c.noItemsDesc} />
@@ -145,8 +148,8 @@ export function PlanItems({ slug, planId, month, items, people, pillars, timezon
           getRowId={(r) => r.id}
         />
       ) : (
-        <div className="overflow-x-auto rounded-[1.5rem] bg-card p-3 shadow-(--card-shadow) scrollbar-thin">
-          <div className="grid min-w-[720px] grid-cols-7 gap-px overflow-hidden rounded-xl border bg-border">
+        <div className="overflow-x-auto rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow) scrollbar-thin">
+          <div className="grid min-w-[640px] grid-cols-7 gap-px overflow-hidden rounded-xl border bg-border">
             {Array.from({ length: 7 }, (_, i) => (
               <div key={i} className="label-mono bg-muted/50 px-2 py-1.5 text-muted-foreground">
                 {weekdayLabel(i)}

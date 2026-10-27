@@ -89,7 +89,7 @@ export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKi
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button>
           <Plus className="size-4" /> {k.newPayment}
         </Button>
       </DialogTrigger>
@@ -309,16 +309,16 @@ export function AgingView({ kind, aging }: { kind: LedgerKind; aging: Aging }) {
     { accessorKey: "paymentStatus", header: iv.paymentStatus, cell: ({ row }) => <PaymentStatusBadge status={row.original.paymentStatus} /> },
   ];
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+    <div className="page-stack">
+      <div className="grid grid-cols-2 gap-(--gap) md:grid-cols-3 xl:grid-cols-6">
         {buckets.map((b) => (
-          <Card key={b.bucket} className="gap-1 px-4 py-3">
+          <Card key={b.bucket} className="gap-1 px-(--card-pad)">
             <span className="label-mono text-muted-foreground">{iv.buckets[b.bucket] ?? b.bucket}</span>
             <Money value={b.amount} className="text-lg font-semibold" />
             <span className="text-xs text-muted-foreground">{iv.count(b.invoiceCount)}</span>
           </Card>
         ))}
-        <Card className="gap-1 bg-brand/5 px-4 py-3">
+        <Card className="gap-1 bg-brand/5 px-(--card-pad)">
           <span className="label-mono text-muted-foreground">{iv.totalOutstanding}</span>
           <Money value={aging.totalOutstanding} className="text-lg font-semibold" />
         </Card>

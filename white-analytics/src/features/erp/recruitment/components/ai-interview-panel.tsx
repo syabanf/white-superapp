@@ -1,5 +1,6 @@
 "use client";
 
+import { Section } from "@/components/dashboard/page-header";
 import * as React from "react";
 import { Bot, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,13 +22,9 @@ const a = rs.ai;
 
 export function AiInterviewPanel({ candidateId, sessions, canWrite }: { candidateId: string; sessions: AiInterviewSession[]; canWrite: boolean }) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold">{a.title}</h2>
-        {canWrite ? <InviteButton candidateId={candidateId} /> : null}
-      </div>
+    <Section title={a.title} actions={canWrite ? <InviteButton candidateId={candidateId} /> : null}>
       {sessions.length === 0 ? <ErpEmpty compact title={a.empty} icon={<Bot className="size-5" />} /> : sessions.map((s) => <SessionCard key={s.id} session={s} canWrite={canWrite} />)}
-    </div>
+    </Section>
   );
 }
 
@@ -123,7 +120,7 @@ function InviteButton({ candidateId }: { candidateId: string }) {
     <FormDialog
       title={a.inviteTitle}
       trigger={
-        <Button size="sm">
+        <Button>
           <Send className="size-4" /> {a.invite}
         </Button>
       }

@@ -17,7 +17,7 @@ import { tm } from "../strings";
 
 export function WeekStrip({ week, today }: { week: TeamScheduleDay[]; today: string }) {
   return (
-    <ul className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 scrollbar-thin">
+    <ul className="flex snap-x gap-2 overflow-x-auto pb-1 scrollbar-thin">
       {week.map((d) => (
         <li
           key={d.date}
@@ -46,7 +46,7 @@ export function MyAnnouncements({ items }: { items: Announcement[] }) {
   if (!items.length) return <p className="text-sm text-muted-foreground">{tm.home.noAnnouncements}</p>;
   const sorted = [...items].sort((a, b) => Number(b.isPinned) - Number(a.isPinned));
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-(--gap-inner)">
       {sorted.map((a) => {
         const unread = !a.isRead && !read.has(a.id);
         return (
@@ -60,7 +60,7 @@ export function MyAnnouncements({ items }: { items: Announcement[] }) {
               }}
             >
               <Card className="gap-0 py-0">
-                <CollapsibleTrigger className="group flex w-full items-start gap-2 px-4 py-3 text-left">
+                <CollapsibleTrigger className="group flex w-full items-start gap-2 px-(--card-pad) py-3 text-left">
                   {a.isPinned ? <Pin className="mt-0.5 size-3.5 shrink-0 text-brand" /> : null}
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
@@ -71,7 +71,7 @@ export function MyAnnouncements({ items }: { items: Announcement[] }) {
                   </span>
                   <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="px-4 pb-3">
+                <CollapsibleContent className="px-(--card-pad) pb-3">
                   <p className="text-sm whitespace-pre-line">{a.body}</p>
                   {a.tags.length ? (
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -97,10 +97,10 @@ export function MyApprovalsList({ data }: { data: MyApprovals }) {
   if (!data.leaves.length && !data.overtime.length)
     return <p className="text-sm text-muted-foreground">{tm.home.approvalsEmpty}</p>;
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-(--gap-inner)">
       {data.leaves.map((l) => (
         <li key={l.id}>
-          <Card className="gap-2 p-4">
+          <Card className="gap-2 px-(--card-pad)">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{l.employee.fullName}</p>
@@ -124,7 +124,7 @@ export function MyApprovalsList({ data }: { data: MyApprovals }) {
       ))}
       {data.overtime.map((o) => (
         <li key={o.id}>
-          <Card className="gap-2 p-4">
+          <Card className="gap-2 px-(--card-pad)">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{o.employee.fullName}</p>
               <p className="text-xs text-muted-foreground tabular">

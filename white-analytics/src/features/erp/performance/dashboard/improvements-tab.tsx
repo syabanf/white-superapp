@@ -24,7 +24,7 @@ export function ImprovementsTab({ data, dept }: { data: DashImprovements; dept?:
     int(data.departments.reduce((a, r) => a + pick(r), 0));
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <KpiGrid cols={5}>
         <MetricTile
           label={m.open}
@@ -99,7 +99,7 @@ export function ImprovementsTab({ data, dept }: { data: DashImprovements; dept?:
         />
       </ChartCard>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-3">
+      <div className="grid gap-(--gap) lg:grid-cols-3">
         <ChartCard title={m.aiTrend} description={m.aiTrendHint} className="lg:col-span-2">
           <LinkedTrendChart
             data={data.trend}
@@ -131,7 +131,7 @@ export function ImprovementsTab({ data, dept }: { data: DashImprovements; dept?:
         </ChartCard>
       </div>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      <div className="grid gap-(--gap) lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <ChartCard title={m.sources}>
           <HBarChart
             showShare

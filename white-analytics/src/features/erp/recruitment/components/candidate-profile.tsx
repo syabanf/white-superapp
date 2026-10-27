@@ -1,5 +1,6 @@
 "use client";
 
+import { DetailLayout } from "@/components/dashboard/layout";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Sparkles, Trash2 } from "lucide-react";
@@ -35,47 +36,50 @@ export function ProfilePanel({
   canWrite: boolean;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <div className="flex flex-col gap-4 lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{p.contact}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <Info label={c.email}>{candidate.email}</Info>
-              <Info label={c.phone}>{candidate.phone}</Info>
-              <Info label={c.domicile}>{candidate.domicile}</Info>
-              <Info label={c.source}>{SOURCE[candidate.source] ?? candidate.source}</Info>
-              <Info label={c.job}>{candidate.jobOpeningTitle}</Info>
-              <Info label={c.availability}>{AVAILABILITY[candidate.availability] ?? candidate.availability}</Info>
-              <Info label={c.lastExperience}>{candidate.lastExperience}</Info>
-              <Info label={c.lastEducation}>{candidate.lastEducation}</Info>
-              <Info label={c.expectedSalary}>
-                {candidate.expectedSalary ? <Money value={candidate.expectedSalary} /> : null}
-              </Info>
-              <Info label={c.applied}>{formatDateTime(candidate.createdAt)}</Info>
-              <Info label={c.notes} className="sm:col-span-2">
-                {candidate.notes ? <span className="whitespace-pre-wrap">{candidate.notes}</span> : null}
-              </Info>
-            </dl>
-          </CardContent>
-        </Card>
-        <AiAnalysisCard candidateId={candidate.id} analysis={analysis} canWrite={canWrite} />
-        <NotesCard candidateId={candidate.id} notes={notes} canWrite={canWrite} />
-      </div>
-      <div className="flex flex-col gap-4">
-        <CvCard candidate={candidate} canWrite={canWrite} />
-        <Card>
-          <CardHeader>
-            <CardTitle>{p.history}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Timeline items={history} />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <DetailLayout
+      aside={
+        <>
+          <CvCard candidate={candidate} canWrite={canWrite} />
+          <Card>
+            <CardHeader>
+              <CardTitle>{p.history}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Timeline items={history} />
+            </CardContent>
+          </Card>
+        </>
+      }
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>{p.contact}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <Info label={c.email}>{candidate.email}</Info>
+            <Info label={c.phone}>{candidate.phone}</Info>
+            <Info label={c.domicile}>{candidate.domicile}</Info>
+            <Info label={c.source}>{SOURCE[candidate.source] ?? candidate.source}</Info>
+            <Info label={c.job}>{candidate.jobOpeningTitle}</Info>
+            <Info label={c.availability}>
+              {AVAILABILITY[candidate.availability] ?? candidate.availability}
+            </Info>
+            <Info label={c.lastExperience}>{candidate.lastExperience}</Info>
+            <Info label={c.lastEducation}>{candidate.lastEducation}</Info>
+            <Info label={c.expectedSalary}>
+              {candidate.expectedSalary ? <Money value={candidate.expectedSalary} /> : null}
+            </Info>
+            <Info label={c.applied}>{formatDateTime(candidate.createdAt)}</Info>
+            <Info label={c.notes} className="sm:col-span-2">
+              {candidate.notes ? <span className="whitespace-pre-wrap">{candidate.notes}</span> : null}
+            </Info>
+          </dl>
+        </CardContent>
+      </Card>
+      <AiAnalysisCard candidateId={candidate.id} analysis={analysis} canWrite={canWrite} />
+      <NotesCard candidateId={candidate.id} notes={notes} canWrite={canWrite} />
+    </DetailLayout>
   );
 }
 
@@ -90,7 +94,10 @@ function CvCard({ candidate, canWrite }: { candidate: Candidate; canWrite: boole
         {candidate.hasCv ? (
           <div className="flex flex-wrap items-center gap-2">
             <span className="min-w-0 flex-1 truncate text-sm">{candidate.cvFileName}</span>
-            <DownloadButton href={`/api/erp/v1/recruitment/candidates/${candidate.id}/cv`} fileName={candidate.cvFileName} />
+            <DownloadButton
+              href={`/api/erp/v1/recruitment/candidates/${candidate.id}/cv`}
+              fileName={candidate.cvFileName}
+            />
             {canWrite ? (
               <ConfirmAction
                 title={p.cvDeleteTitle}
@@ -123,14 +130,27 @@ function CvCard({ candidate, canWrite }: { candidate: Candidate; canWrite: boole
   );
 }
 
-function AiAnalysisCard({ candidateId, analysis, canWrite }: { candidateId: string; analysis: AiAnalysis | null; canWrite: boolean }) {
+function AiAnalysisCard({
+  candidateId,
+  analysis,
+  canWrite,
+}: {
+  candidateId: string;
+  analysis: AiAnalysis | null;
+  canWrite: boolean;
+}) {
   const { run, pending } = useErpAction();
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle>{p.ai}</CardTitle>
         {canWrite ? (
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => void run(() => analyzeCandidateAction(candidateId), { success: p.analyzed })}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={pending}
+            onClick={() => void run(() => analyzeCandidateAction(candidateId), { success: p.analyzed })}
+          >
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
             {analysis ? p.reanalyze : p.analyze}
           </Button>
@@ -147,7 +167,9 @@ function AiAnalysisCard({ candidateId, analysis, canWrite }: { candidateId: stri
                 <span className="text-lg font-semibold tabular">{analysis.matchScore}/100</span>
               </div>
               <Progress value={analysis.matchScore} />
-              {analysis.matchReason ? <p className="mt-2 text-muted-foreground">{analysis.matchReason}</p> : null}
+              {analysis.matchReason ? (
+                <p className="mt-2 text-muted-foreground">{analysis.matchReason}</p>
+              ) : null}
             </div>
             {analysis.summary ? <p className="whitespace-pre-wrap">{analysis.summary}</p> : null}
             <div className="grid gap-4 sm:grid-cols-2">
@@ -160,7 +182,9 @@ function AiAnalysisCard({ candidateId, analysis, canWrite }: { candidateId: stri
                 <Chips items={analysis.gaps} />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">{p.model(analysis.model, formatDateTime(analysis.updatedAt))}</p>
+            <p className="text-xs text-muted-foreground">
+              {p.model(analysis.model, formatDateTime(analysis.updatedAt))}
+            </p>
           </div>
         )}
       </CardContent>
@@ -168,7 +192,15 @@ function AiAnalysisCard({ candidateId, analysis, canWrite }: { candidateId: stri
   );
 }
 
-function NotesCard({ candidateId, notes, canWrite }: { candidateId: string; notes: CandidateNote[]; canWrite: boolean }) {
+function NotesCard({
+  candidateId,
+  notes,
+  canWrite,
+}: {
+  candidateId: string;
+  notes: CandidateNote[];
+  canWrite: boolean;
+}) {
   const [text, setText] = React.useState("");
   const { run, pending } = useErpAction();
   return (
@@ -183,10 +215,19 @@ function NotesCard({ candidateId, notes, canWrite }: { candidateId: string; note
             onSubmit={(e) => {
               e.preventDefault();
               if (!text.trim()) return;
-              void run(() => addNoteAction(candidateId, text), { success: p.noteAdded, onOk: () => setText("") });
+              void run(() => addNoteAction(candidateId, text), {
+                success: p.noteAdded,
+                onOk: () => setText(""),
+              });
             }}
           >
-            <Textarea rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder={p.notePlaceholder} aria-label={p.addNote} />
+            <Textarea
+              rows={2}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={p.notePlaceholder}
+              aria-label={p.addNote}
+            />
             <Button type="submit" size="sm" className="self-end" disabled={pending || !text.trim()}>
               {pending ? <Loader2 className="size-3.5 animate-spin" /> : null}
               {p.addNote}

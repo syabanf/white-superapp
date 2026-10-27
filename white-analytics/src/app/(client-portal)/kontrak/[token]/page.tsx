@@ -27,7 +27,7 @@ export default async function PublicContractPage(props: PageProps<"/kontrak/[tok
           {c.startDate ? ` · ${ps.contract.period} ${formatDate(c.startDate)} – ${formatDate(c.endDate || null)}` : ""}
         </p>
       </div>
-      <Card className="px-6 py-8 md:px-12">
+      <Card className="p-(--card-pad) md:px-12 md:py-8">
         <Markdown source={c.body} />
       </Card>
       <SignContract token={token} contract={c} />

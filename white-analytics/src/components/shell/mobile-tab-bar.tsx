@@ -18,7 +18,7 @@ import {
   adminNav,
   clientNav,
   generalNav,
-  isActivePath,
+  activeNavHref,
   visibleErpNav,
   workspaceOf,
   type ErpAccess,
@@ -33,7 +33,7 @@ const HAS_OWN_BOTTOM_BAR = /^\/(setup|clients\/new)(\/|$)|\/publish\/(new|posts\
 const PRIMARY_SLOTS = 4;
 
 /**
- * Phone navigation: a floating ink pill with the four most used destinations
+ * Phone navigation: a floating navy pill with the four most used destinations
  * and a "more" button. "More" opens a bottom sheet holding the whole menu,
  * the client switcher and the account menu, so the side drawer is not needed
  * on small screens.
@@ -65,13 +65,14 @@ export function MobileTabBar({
         ...(user.role === "ADMIN" ? [{ label: t.nav.admin, items: adminNav }] : []),
       ];
   const primary = groups.flatMap((g) => g.items).slice(0, PRIMARY_SLOTS);
-  const isOn = (item: NavItem) => isActivePath(pathname, item.href, item.exact);
+  const current = activeNavHref(pathname, groups.flatMap((g) => g.items));
+  const isOn = (item: NavItem) => item.href === current || (item.children?.some((c) => c.href === current) ?? false);
   const moreActive = !primary.some(isOn);
 
   return (
     <nav
       aria-label={t.nav.modules}
-      className="fixed inset-x-4 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 flex h-16 items-center justify-around rounded-full bg-primary px-3 text-primary-foreground shadow-[0_18px_40px_-16px_rgba(16,19,31,0.65)] md:hidden dark:bg-card dark:text-foreground dark:ring-1 dark:ring-border"
+      className="fixed inset-x-4 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 flex h-16 items-center justify-around rounded-full bg-[linear-gradient(120deg,rgba(43,34,99,0.96),rgba(84,36,104,0.96))] px-2.5 text-white shadow-[0_20px_40px_-14px_rgba(43,34,99,0.7)] dark:bg-[linear-gradient(120deg,rgba(62,46,130,0.95),rgba(112,40,120,0.95))] ring-1 ring-white/10 md:hidden"
     >
       {primary.map((item) => (
         <Link
@@ -93,7 +94,7 @@ export function MobileTabBar({
         </SheetTrigger>
         <SheetContent
           side="bottom"
-          className="max-h-[85dvh] gap-0 overflow-y-auto rounded-t-[1.75rem] border-t-0 bg-background pb-[max(1rem,env(safe-area-inset-bottom))]"
+          className="max-h-[85dvh] gap-0 overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
           <SheetHeader className="pb-2">
             <span aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-border" />
@@ -107,8 +108,8 @@ export function MobileTabBar({
             {groups.map((g) => (
               <section key={g.label}>
                 <h3 className="label-mono mb-1.5 px-1 text-muted-foreground">{g.label}</h3>
-                <ul className="rounded-2xl bg-card p-1.5 shadow-(--card-shadow)">
-                  {g.items.map((item) => <MobileMenuItem key={`${item.href}:${pathname}`} item={item} pathname={pathname} onNavigate={() => setOpen(false)} />)}
+                <ul className="rounded-3xl bg-card p-1.5 shadow-(--card-shadow)">
+                  {g.items.map((item) => <MobileMenuItem key={`${item.href}:${pathname}`} item={item} current={current} onNavigate={() => setOpen(false)} />)}
                 </ul>
               </section>
             ))}
@@ -120,12 +121,12 @@ export function MobileTabBar({
   );
 }
 
-function MobileMenuItem({ item, pathname, onNavigate }: { item: NavItem; pathname: string; onNavigate: () => void }) {
-  const on = isActivePath(pathname, item.href, item.exact);
-  const childOn = item.children?.some((c) => isActivePath(pathname, c.href)) ?? false;
+function MobileMenuItem({ item, current, onNavigate }: { item: NavItem; current: string | null; onNavigate: () => void }) {
+  const on = item.href === current;
+  const childOn = item.children?.some((c) => c.href === current) ?? false;
   const [expanded, setExpanded] = React.useState(on || childOn);
   return <li>
-    <div className={cn("flex items-center rounded-full", (on || childOn) && "bg-muted")}>
+    <div className={cn("flex items-center rounded-2xl", (on || childOn) && "bg-[color-mix(in_oklab,var(--brand)_9%,transparent)]")}>
       <Link
         href={item.href}
         onClick={onNavigate}
@@ -145,7 +146,7 @@ function MobileMenuItem({ item, pathname, onNavigate }: { item: NavItem; pathnam
     </div>
     {expanded && item.children?.length ? <ul className="mb-2 ml-10 border-l pl-2">
       {item.children.map((child) => {
-        const active = isActivePath(pathname, child.href);
+        const active = child.href === current;
         return <li key={child.href}><Link
           href={child.href}
           onClick={onNavigate}
@@ -161,7 +162,7 @@ function tabClass(active: boolean) {
   return cn(
     "flex size-12 items-center justify-center rounded-full outline-none transition-[background-color,color,transform] duration-200 focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
     active
-      ? "bg-brand text-white shadow-[0_8px_20px_-6px_var(--brand)]"
-      : "text-primary-foreground/70 hover:text-primary-foreground dark:text-foreground/70 dark:hover:text-foreground",
+      ? "bg-white text-brand shadow-[0_8px_20px_-8px_rgba(255,255,255,0.6)]"
+      : "text-white/70 hover:text-white",
   );
 }

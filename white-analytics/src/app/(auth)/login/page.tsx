@@ -17,12 +17,12 @@ export default async function LoginPage(props: PageProps<"/login">) {
   const callbackUrl = typeof sp.callbackUrl === "string" ? sp.callbackUrl : undefined;
 
   return (
-    <main className="relative min-h-dvh bg-canvas">
+    <main className="relative min-h-dvh bg-background">
       <div className="mx-auto grid min-h-dvh w-full max-w-6xl items-center gap-10 px-6 py-14 lg:grid-cols-[1.05fr_minmax(380px,420px)] lg:gap-16">
         {/* ── Hero ── */}
         <section className="hidden lg:block">
           <MixistLogo size={40} />
-          <h1 className="mt-10 text-[52px] leading-[1.02] font-medium tracking-[-0.035em]">
+          <h1 className="mt-10 text-[52px] leading-[1.05] font-semibold tracking-[-0.03em]">
             Tiga kanal, <span className="text-muted-foreground">satu corong.</span>
           </h1>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
@@ -36,7 +36,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
             </div>
             <ul className="absolute inset-x-4 bottom-4 grid grid-cols-3 gap-2.5">
               {HIGHLIGHTS.map((h) => (
-                <li key={h.name} className="surface-glass rounded-2xl px-3.5 py-3">
+                <li key={h.name} className="rounded-2xl bg-card px-3.5 py-3 shadow-(--card-shadow)">
                   <span className="block text-sm font-semibold tracking-[-0.02em]">{h.name}</span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">{h.meta}</span>
                 </li>
@@ -50,7 +50,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
           <div className="stage-tint mb-4 h-44 overflow-hidden rounded-[1.5rem] lg:hidden">
             <MarketingFunnel3D />
           </div>
-          <div className="rounded-[1.75rem] bg-card p-7 shadow-(--card-shadow) sm:p-9">
+          <div className="rounded-[2rem] bg-card p-7 shadow-(--card-shadow) sm:p-9">
             <div className="lg:hidden">
               <MixistLogo size={34} />
             </div>

@@ -105,12 +105,12 @@ export function KeywordGapSection({
 
   return (
     <Card className="gap-0 py-0" id="gap">
-      <CardContent className="space-y-4 p-6">
+      <CardContent className="space-y-4 p-(--card-pad)">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="label-mono">{s.gapPickCompetitor}</span>
             <Select value={selected ?? ""} onValueChange={pick}>
-              <SelectTrigger size="sm" className="min-w-44">
+              <SelectTrigger className="min-w-44">
                 <SelectValue placeholder={s.gapPickCompetitor} />
               </SelectTrigger>
               <SelectContent>

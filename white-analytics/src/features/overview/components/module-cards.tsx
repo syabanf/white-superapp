@@ -67,7 +67,7 @@ function ModulePanel({
 }) {
   return (
     <Card className="lift flex min-h-[330px] flex-col gap-0 overflow-hidden py-0 hover:ring-brand/25">
-      <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-3">
+      <div className="flex items-start justify-between gap-3 px-(--card-pad) pt-(--card-pad) pb-3">
         <div className="min-w-0">
           <span className="label-mono text-brand">{index}</span>
           <h3 className="mt-1 flex items-center gap-2 text-[15px] font-semibold tracking-[-0.02em]">
@@ -85,7 +85,7 @@ function ModulePanel({
 
       <DataQualityLine quality={quality} href={href} />
 
-      <div className="flex flex-1 flex-col justify-center px-6 pb-6">{children}</div>
+      <div className="flex flex-1 flex-col justify-center px-(--card-pad) pb-(--card-pad)">{children}</div>
 
       {footer ? <div className="grid grid-cols-2 divide-x border-t">{footer}</div> : null}
     </Card>
@@ -144,12 +144,12 @@ function FooterStat({
   return href ? (
     <Link
       href={href}
-      className="min-w-0 px-6 py-3.5 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      className="min-w-0 px-(--card-pad) py-3.5 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
     >
       {body}
     </Link>
   ) : (
-    <div className="min-w-0 px-6 py-3.5">{body}</div>
+    <div className="min-w-0 px-(--card-pad) py-3.5">{body}</div>
   );
 }
 

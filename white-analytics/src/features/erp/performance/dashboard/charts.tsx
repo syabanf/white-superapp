@@ -4,10 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,12 +15,18 @@ import {
 } from "recharts";
 import {
   AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS,
   CURSOR_STROKE,
+  GRID_DASH,
   GRID_STROKE,
-  MarkButtons,
   MUTED_SERIES,
+  MarkButtons,
   SeriesLegend,
   TooltipBox,
+  areaFill,
+  barFill,
+  ringDot,
   slotColor,
   type SeriesDef,
 } from "@/components/dashboard/charts/chart-primitives";
@@ -65,6 +71,8 @@ export function TrendChart({
   const map = Object.fromEntries(resolved.map((s) => [s.key, { ...s, format: s.format ?? yFormat }]));
   const bars = resolved.filter((s) => s.type === "bar");
   const lastBar = bars.at(-1)?.key;
+  // A wash under the line reads for one or two lines on their own; with bars or more lines it muddies.
+  const washLines = bars.length === 0 && resolved.length <= 2;
   if (data.length === 0) return EMPTY;
   return (
     <div>
@@ -85,11 +93,11 @@ export function TrendChart({
             }}
             style={onPick ? { cursor: "pointer" } : undefined}
           >
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
             <XAxis
               dataKey={xKey}
               tickLine={false}
-              axisLine={{ stroke: "var(--axis)" }}
+              axisLine={false}
               tick={AXIS_TICK}
               tickFormatter={(v: string) => xFormat(String(v))}
               interval="preserveStartEnd"
@@ -107,7 +115,7 @@ export function TrendChart({
             <Tooltip
               cursor={
                 bars.length
-                  ? { fill: "var(--muted)", fillOpacity: 0.5 }
+                  ? BAR_CURSOR
                   : { stroke: CURSOR_STROKE, strokeWidth: 1 }
               }
               content={<TooltipBox seriesMap={map} labelFormatter={(l) => xFormat(String(l))} />}
@@ -119,24 +127,25 @@ export function TrendChart({
                 <Bar
                   key={s.key}
                   dataKey={s.key}
-                  fill={s.color}
+                  fill={barFill(s.color)}
                   stackId={stacked ? "a" : undefined}
-                  radius={!stacked || s.key === lastBar ? [4, 4, 0, 0] : 0}
+                  radius={!stacked || s.key === lastBar ? BAR_RADIUS : 0}
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
                   isAnimationActive={false}
                 />
               ) : (
-                <Line
+                <Area
                   key={s.key}
                   type="monotone"
                   dataKey={s.key}
                   stroke={s.color}
-                  strokeWidth={2}
+                  fill={washLines && !s.dashed ? areaFill(s.color) : "none"}
+                  strokeWidth={2.5}
                   strokeDasharray={s.dashed ? "5 4" : undefined}
                   dot={data.length < 16 ? { r: 3, strokeWidth: 0, fill: s.color } : false}
-                  activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
+                  activeDot={ringDot(s.color)}
                   connectNulls
                   isAnimationActive={false}
                 />

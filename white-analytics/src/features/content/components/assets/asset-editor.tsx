@@ -51,11 +51,11 @@ export function AssetEditor({ slug, clientId, asset, folders }: { slug: string; 
 
   return (
     <>
-      <form onSubmit={save} className="space-y-4 rounded-[1.5rem] bg-card p-6 shadow-(--card-shadow)">
+      <form onSubmit={save} className="space-y-4 rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
         <Field id="ae-name" label={c.assetName}>
           <Input id="ae-name" value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid items-start gap-4 sm:grid-cols-2">
           <Field id="ae-kind" label={c.kind}>
             <Select value={kind} onValueChange={(v) => isAssetKind(v) && setKind(v)}>
               <SelectTrigger id="ae-kind" className="w-full">
@@ -93,14 +93,14 @@ export function AssetEditor({ slug, clientId, asset, folders }: { slug: string; 
           <Input id="ae-tags" value={tags} onChange={(e) => setTags(e.target.value)} />
         </Field>
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" size="sm" disabled={pending}>
-            {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {c.save}
+          <Button type="submit" disabled={pending}>
+            {pending ? <Loader2 className="animate-spin" /> : null} {c.save}
           </Button>
-          <Button type="button" size="sm" variant="outline" onClick={() => setDialog("version")}>
-            <Upload className="size-3.5" /> {c.newVersion}
+          <Button type="button" variant="outline" onClick={() => setDialog("version")}>
+            <Upload /> {c.newVersion}
           </Button>
-          <Button type="button" size="sm" variant="destructive" className="ml-auto" onClick={() => setDialog("delete")}>
-            <Trash2 className="size-3.5" /> {c.deleteAsset}
+          <Button type="button" variant="destructive" className="ml-auto" onClick={() => setDialog("delete")}>
+            <Trash2 /> {c.deleteAsset}
           </Button>
         </div>
       </form>
@@ -123,10 +123,10 @@ export function AssetEditor({ slug, clientId, asset, folders }: { slug: string; 
             <DialogDescription>{c.deleteAssetDesc}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
+            <Button variant="outline" onClick={() => setDialog(null)}>
               {c.cancel}
             </Button>
-            <Button size="sm" variant="destructive" disabled={pending} onClick={remove}>
+            <Button variant="destructive" disabled={pending} onClick={remove}>
               {c.delete}
             </Button>
           </DialogFooter>

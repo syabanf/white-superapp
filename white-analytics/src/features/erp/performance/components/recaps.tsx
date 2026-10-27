@@ -117,9 +117,9 @@ export function TeamDailyRecaps({ recaps }: { recaps: DailyRecap[] }) {
   if (recaps.length === 0) return <ErpEmpty title={c.noTeamRecaps} />;
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-(--gap) md:grid-cols-2 xl:grid-cols-3">
         {recaps.map((r) => (
-          <Card key={r.employeeId} className="gap-2 p-4">
+          <Card key={r.employeeId} className="gap-2 p-(--card-pad)">
             <button type="button" onClick={() => setOpen(r)} className="text-left outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -258,7 +258,7 @@ export function MonthlyRecaps({
       {recaps.length === 0 ? (
         <ErpEmpty title={c.noMonthly} />
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-(--gap) md:grid-cols-2 xl:grid-cols-3">
           {recaps.map((r) => (
             <button
               key={r.id}

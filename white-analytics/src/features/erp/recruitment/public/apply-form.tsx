@@ -127,7 +127,7 @@ export function ApplyForm({ slug }: { slug: string }) {
           id="apply-availability"
           value={v.availability}
           onChange={(e) => set("availability", e.target.value)}
-          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="h-(--control-h) w-full rounded-full border border-input bg-card px-3.5 text-sm"
         >
           <option value="">{c.pick}</option>
           {Object.entries(AVAILABILITY).map(([value, label]) => (
@@ -145,7 +145,7 @@ export function ApplyForm({ slug }: { slug: string }) {
           id="apply-source"
           value={v.source}
           onChange={(e) => set("source", e.target.value)}
-          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="h-(--control-h) w-full rounded-full border border-input bg-card px-3.5 text-sm"
         >
           <option value="">{c.pick}</option>
           {SOURCES.map((s) => (

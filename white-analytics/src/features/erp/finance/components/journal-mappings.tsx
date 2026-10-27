@@ -351,7 +351,7 @@ export function JournalMappingsTable({
         toolbar={
           <>
             <Select value={module} onValueChange={setModule}>
-              <SelectTrigger size="sm" className="min-w-36" aria-label={m.module}>
+              <SelectTrigger className="min-w-36" aria-label={m.module}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -364,7 +364,7 @@ export function JournalMappingsTable({
               </SelectContent>
             </Select>
             {canWrite ? (
-              <Button size="sm" className="ml-auto" onClick={() => setDialog({})}>
+              <Button className="ml-auto" onClick={() => setDialog({})}>
                 <Plus className="size-4" /> {m.new}
               </Button>
             ) : null}

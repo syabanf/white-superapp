@@ -56,7 +56,7 @@ export function CoaImportDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
+        <Button variant="outline">
           <FileSpreadsheet className="size-4" /> {im.button}
         </Button>
       </DialogTrigger>

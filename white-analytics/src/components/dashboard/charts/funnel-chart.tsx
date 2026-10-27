@@ -6,7 +6,7 @@ import { ArrowDown } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatNumber, formatPercent } from "@/lib/format";
-import { slotColor } from "./chart-primitives";
+import { cssBarFill, slotColor } from "./chart-primitives";
 
 export type FunnelStep = {
   key: string;
@@ -56,10 +56,10 @@ export function FunnelChart({
                 <span className="ml-1.5">{formatPercent(ofTop, 0)}</span>
               </span>
             </div>
-            <div className="h-3 w-full rounded-r-[4px] bg-muted/70">
+            <div className="h-3 w-full rounded-full bg-muted">
               <div
-                className="h-3 rounded-r-[4px] transition-[width] duration-300 group-hover:brightness-110"
-                style={{ width: `${Math.max(ofTop, s.value > 0 ? 1.5 : 0)}%`, background: color }}
+                className="h-3 rounded-full transition-[width] duration-300 group-hover:brightness-110"
+                style={{ width: `${Math.max(ofTop, s.value > 0 ? 1.5 : 0)}%`, background: cssBarFill(color) }}
               />
             </div>
           </div>

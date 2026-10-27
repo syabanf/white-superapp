@@ -44,8 +44,8 @@ export function DealHeaderActions({
         action={() => deleteDealAction(deal.id)}
         onDone={() => router.push("/erp/sales/pipeline")}
         trigger={
-          <Button size="sm" variant="ghost">
-            <Trash2 className="size-3.5" /> {ss.delete}
+          <Button variant="ghost">
+            <Trash2 /> {ss.delete}
           </Button>
         }
       />
@@ -53,15 +53,15 @@ export function DealHeaderActions({
         deal={deal}
         refs={refs}
         trigger={
-          <Button size="sm" variant="outline">
-            <Pencil className="size-3.5" /> {ss.edit}
+          <Button variant="outline">
+            <Pencil /> {ss.edit}
           </Button>
         }
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" disabled={pending}>
-            {pending ? <Loader2 className="size-3.5 animate-spin" /> : <ArrowRightLeft className="size-3.5" />}
+          <Button disabled={pending}>
+            {pending ? <Loader2 className="animate-spin" /> : <ArrowRightLeft />}
             {ss.pipeline.stage}
           </Button>
         </DropdownMenuTrigger>

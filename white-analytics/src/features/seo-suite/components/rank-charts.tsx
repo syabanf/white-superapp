@@ -27,7 +27,7 @@ export function RankTrendCards({ daily, compare }: { daily: RankDailyPoint[]; co
   ];
   const table = <DataTable bare dense data={daily} columns={columns} pageSize={14} />;
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-(--gap) lg:grid-cols-2">
       <ChartCard title={s.visibilityChart} description={s.visibilityChartDesc} table={table}>
         <TimeSeriesChart
           data={daily}
@@ -72,7 +72,7 @@ export function RankBreakdownCards({
     { accessorKey: "share", header: s.sovTitle, meta: right, cell: ({ row }) => formatPercent(row.original.share, 1) },
   ];
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-(--gap) lg:grid-cols-2">
       <ChartCard title={s.distributionTitle} description={s.distributionDesc} table={<DataTable bare dense data={distribution} columns={distColumns} paginate={false} />}>
         <HBarChart items={distribution.map((d) => ({
             label: BUCKET_LABELS[d.bucket],

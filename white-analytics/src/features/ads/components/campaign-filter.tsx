@@ -23,7 +23,7 @@ export function CampaignFilter({ options, className }: { options: { id: string; 
   return (
     <div className={className}>
       <Select value={value} onValueChange={(v) => void setCampaign(v === ALL ? null : v)}>
-        <SelectTrigger size="sm" className="w-full max-w-xs bg-background" aria-label={s.filterCampaign}>
+        <SelectTrigger className="w-full max-w-xs" aria-label={s.filterCampaign}>
           {isPending ? (
             <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
           ) : (

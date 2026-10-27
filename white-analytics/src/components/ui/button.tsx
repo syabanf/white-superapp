@@ -9,11 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default:
+          "bg-[linear-gradient(135deg,var(--action-from),var(--action-to))] text-white shadow-(--action-glow) hover:brightness-110 hover:shadow-[0_14px_28px_-12px_var(--action-to)]",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border/80 bg-card hover:bg-card hover:text-foreground aria-expanded:bg-card aria-expanded:text-foreground dark:border-input dark:bg-input/40 dark:hover:bg-input/70",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground shadow-(--card-shadow) hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_4%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
@@ -22,14 +23,15 @@ const buttonVariants = cva(
       },
       size: {
         // Pill shapes need roomier horizontal padding than square buttons to look balanced.
-        default: "h-9 gap-2 px-4 text-sm",
+        // default = toolbar and form height (--control-h: 40, 44 on touch); sm = compact, inside cards and tables
+        default: "h-(--control-h) gap-2 px-4 text-sm",
         xs: "h-7 gap-1.5 px-3 text-xs [&_svg:not([class*='size-'])]:size-3.5",
         sm: "h-8 gap-1.5 px-3.5 text-[13px] [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-10 gap-2 px-5 text-sm",
-        icon: "size-9",
+        lg: "h-11 gap-2 px-5 text-sm",
+        icon: "size-(--control-h)",
         "icon-xs": "size-7 [&_svg:not([class*='size-'])]:size-3.5",
         "icon-sm": "size-8 [&_svg:not([class*='size-'])]:size-3.5",
-        "icon-lg": "size-10",
+        "icon-lg": "size-11",
       },
     },
     defaultVariants: {

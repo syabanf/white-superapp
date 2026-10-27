@@ -114,7 +114,7 @@ export function DateRangePicker({
     <div className={cn("flex items-center gap-2", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="bg-background font-normal shadow-none">
+          <Button variant="outline" className="h-10 border-transparent bg-card font-normal shadow-(--card-shadow) hover:bg-card">
             {isPending ? (
               <Loader2 className="size-4 animate-spin text-muted-foreground" />
             ) : (

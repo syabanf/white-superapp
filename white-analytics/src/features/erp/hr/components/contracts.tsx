@@ -165,7 +165,7 @@ export function ContractsTable({
       title={c.newContract}
       wide
       trigger={
-        <Button size="sm">
+        <Button>
           <FilePlus2 className="size-4" /> {c.newContract}
         </Button>
       }
@@ -363,7 +363,7 @@ function ContractActionForm({ contract, action, close }: { contract: Contract; a
 /** Contracts ending soon, probations ending, and active staff with no contract. */
 export function ExpiringPanel({ data }: { data: ExpiringContracts }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid gap-(--gap) lg:grid-cols-3">
       <ExpiringCard title={c.expiringContracts} count={data.contracts.length}>
         {data.contracts.map((k) => (
           <ExpiringRow

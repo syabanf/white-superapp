@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load, sp1 } from "@/features/erp/shared/load";
@@ -56,12 +53,8 @@ export default async function EmployeeProfilePage(props: PageProps<"/erp/hr/empl
 
   return (
     <>
-      <Button variant="ghost" size="sm" asChild className="-ml-2 self-start">
-        <Link href="/erp/hr/employees">
-          <ArrowLeft className="size-4" /> {th.employees.back}
-        </Link>
-      </Button>
       <PageHeader
+        back={{ href: "/erp/hr/employees", label: th.employees.back }}
         eyebrow={`${e.employeeNo} · ${p.employmentStatusName || "–"}`}
         title={
           <span className="flex items-center gap-3">

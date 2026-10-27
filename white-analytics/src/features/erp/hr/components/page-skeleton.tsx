@@ -9,15 +9,15 @@ export function PageSkeleton({ tiles = 0 }: { tiles?: number }) {
         <Skeleton className="h-8 w-56" />
         <Skeleton className="h-4 w-72" />
       </div>
-      <Skeleton className="h-9 w-80 rounded-full" />
+      <Skeleton className="h-(--control-h) w-80 max-w-full rounded-full" />
       {tiles ? (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-(--gap) md:grid-cols-4">
           {Array.from({ length: tiles }, (_, i) => (
-            <Skeleton key={i} className="h-24 rounded-2xl" />
+            <Skeleton key={i} className="h-24 rounded-[1.5rem]" />
           ))}
         </div>
       ) : null}
-      <Skeleton className="h-80 rounded-xl" />
+      <Skeleton className="h-80 rounded-[1.5rem]" />
     </>
   );
 }

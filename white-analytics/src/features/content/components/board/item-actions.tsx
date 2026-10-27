@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, CalendarClock, Loader2, Palette, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { Toolbar } from "@/components/dashboard/layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,43 +88,42 @@ export function ItemActions({ slug, item, allowedMoves, people, pillars, presets
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
+      <Toolbar label={c.itemActions}>
         {allowedMoves.map((to) => (
           <Button
             key={to}
-            size="sm"
             variant={to === "REVISION" || ITEM_STATUSES.indexOf(to) < ITEM_STATUSES.indexOf(item.status) ? "outline" : "default"}
             disabled={pending}
             onClick={() => (to === "REVISION" ? setDialog("revision") : run(() => moveItem({ slug, itemId: item.id, to }), c.moved(c.itemStatus[to])))}
           >
-            <ArrowRight className="size-3.5" /> {c.itemStatus[to]}
+            <ArrowRight /> {c.itemStatus[to]}
           </Button>
         ))}
         {canSchedule ? (
-          <Button size="sm" disabled={pending} onClick={() => setDialog("schedule")}>
-            <CalendarClock className="size-3.5" /> {c.schedule}
+          <Button disabled={pending} onClick={() => setDialog("schedule")}>
+            <CalendarClock /> {c.schedule}
           </Button>
         ) : null}
         {item.publishingPostId ? (
-          <Button size="sm" variant="outline" disabled={pending} onClick={sync}>
-            <RefreshCw className="size-3.5" /> {c.sync}
+          <Button variant="outline" disabled={pending} onClick={sync}>
+            <RefreshCw /> {c.sync}
           </Button>
         ) : null}
         {!locked ? (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => setDialog("edit")}>
-            <Pencil className="size-3.5" /> {c.edit}
+          <Button variant="ghost" disabled={pending} onClick={() => setDialog("edit")}>
+            <Pencil /> {c.edit}
           </Button>
         ) : null}
-        <Button size="sm" variant="ghost" disabled={pending} onClick={() => setDialog("design")}>
-          <Palette className="size-3.5" /> {c.addDesignTask}
+        <Button variant="ghost" disabled={pending} onClick={() => setDialog("design")}>
+          <Palette /> {c.addDesignTask}
         </Button>
         {!locked ? (
-          <Button size="sm" variant="destructive" className="ml-auto" disabled={pending} onClick={() => setDialog("delete")}>
-            <Trash2 className="size-3.5" /> {c.deleteItem}
+          <Button variant="destructive" className="ml-auto" disabled={pending} onClick={() => setDialog("delete")}>
+            <Trash2 /> {c.deleteItem}
           </Button>
         ) : null}
         {pending ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
-      </div>
+      </Toolbar>
 
       {dialog === "edit" ? (
         <ItemFormDialog
@@ -167,11 +167,11 @@ export function ItemActions({ slug, item, allowedMoves, people, pillars, presets
           </DialogHeader>
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={c.notePlaceholder} rows={3} autoFocus />
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
+            <Button variant="outline" onClick={() => setDialog(null)}>
               {c.cancel}
             </Button>
             <Button
-              size="sm"
+             
               disabled={pending || !note.trim()}
               onClick={() => run(() => moveItem({ slug, itemId: item.id, to: "REVISION", note }), c.moved(c.itemStatus.REVISION))}
             >
@@ -187,7 +187,7 @@ export function ItemActions({ slug, item, allowedMoves, people, pillars, presets
             <DialogTitle>{c.scheduleTitle}</DialogTitle>
             <DialogDescription>{item.hasFinalDesign ? c.scheduleDesc : c.scheduleNeedsDesign}</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid items-start gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="sch-date">{c.plannedDate}</Label>
               <Input id="sch-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -213,10 +213,10 @@ export function ItemActions({ slug, item, allowedMoves, people, pillars, presets
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
+            <Button variant="outline" onClick={() => setDialog(null)}>
               {c.cancel}
             </Button>
-            <Button size="sm" disabled={pending || !date || !time} onClick={schedule}>
+            <Button disabled={pending || !date || !time} onClick={schedule}>
               {pending ? <Loader2 className="size-3.5 animate-spin" /> : <CalendarClock className="size-3.5" />} {c.schedule}
             </Button>
           </DialogFooter>
@@ -230,11 +230,11 @@ export function ItemActions({ slug, item, allowedMoves, people, pillars, presets
             <DialogDescription>{c.deleteItemDesc}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
+            <Button variant="outline" onClick={() => setDialog(null)}>
               {c.cancel}
             </Button>
             <Button
-              size="sm"
+             
               variant="destructive"
               disabled={pending}
               onClick={() => run(() => deleteItem({ slug, itemId: item.id }), c.itemDeleted, () => router.push(`/clients/${slug}/content/board`))}

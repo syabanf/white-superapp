@@ -8,7 +8,6 @@ import {
   CartesianGrid,
   Cell,
   ComposedChart,
-  Line,
   Pie,
   PieChart,
   ReferenceLine,
@@ -20,11 +19,18 @@ import {
 import { Tooltip as Tip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS,
+  BAR_RADIUS_ALL,
   CURSOR_STROKE,
+  GRID_DASH,
   GRID_STROKE,
   MUTED_SERIES,
   SeriesLegend,
   TooltipBox,
+  areaFill,
+  barFill,
+  ringDot,
   slotColor,
   type SeriesDef,
 } from "@/components/dashboard/charts/chart-primitives";
@@ -84,6 +90,8 @@ export function ComboChart({
   const map = React.useMemo(() => Object.fromEntries(resolved.map((s) => [s.key, s])), [resolved]);
   const hasBars = resolved.some((s) => s.type === "bar");
   const bars = resolved.filter((s) => s.type === "bar");
+  // A wash under the line reads for one or two lines on their own; with bars or more lines it muddies.
+  const washLines = !hasBars && resolved.length <= 2;
   const topBar = bars.at(-1)?.key;
   // A bar click runs before the chart click; it leaves its series here.
   const clickedSeries = React.useRef<string | undefined>(undefined);
@@ -111,11 +119,11 @@ export function ComboChart({
             stackOffset={resolved.some((s) => s.signed) ? "sign" : undefined}
             onClick={selectColumn}
           >
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
             <XAxis
               dataKey="label"
               tickLine={false}
-              axisLine={{ stroke: "var(--axis)" }}
+              axisLine={false}
               tick={AXIS_TICK}
               interval={data.length <= 8 ? 0 : "preserveStartEnd"}
               minTickGap={14}
@@ -131,7 +139,7 @@ export function ComboChart({
               allowDecimals={false}
             />
             <Tooltip
-              cursor={hasBars ? { fill: "var(--muted)", fillOpacity: 0.5 } : { stroke: CURSOR_STROKE, strokeWidth: 1 }}
+              cursor={hasBars ? BAR_CURSOR : { stroke: CURSOR_STROKE, strokeWidth: 1 }}
               content={
                 <TooltipBox
                   seriesMap={map}
@@ -156,14 +164,20 @@ export function ComboChart({
                   stroke: s.color,
                   strokeWidth: 2,
                   dot: data.length <= 2 ? { r: 3, fill: s.color } : false,
-                  activeDot: { r: 4, strokeWidth: 2, stroke: "var(--card)" },
+                  activeDot: ringDot(s.color),
                   isAnimationActive: false,
                   connectNulls: true,
                 } as const;
                 return s.type === "area" ? (
                   <Area key={s.key} type="monotone" {...common} fill={s.color} fillOpacity={0.1} />
                 ) : (
-                  <Line key={s.key} type="monotone" {...common} strokeDasharray={s.color === MUTED_SERIES ? "5 4" : undefined} />
+                  <Area
+                    key={s.key}
+                    type="monotone"
+                    {...common}
+                    fill={washLines && s.color !== MUTED_SERIES ? areaFill(s.color) : "none"}
+                    strokeDasharray={s.color === MUTED_SERIES ? "5 4" : undefined}
+                  />
                 );
               }
               const isTop = !stacked || s.key === topBar;
@@ -171,9 +185,9 @@ export function ComboChart({
                 <Bar
                   key={s.key}
                   dataKey={s.key}
-                  fill={s.color}
+                  fill={barFill(s.color)}
                   stackId={stacked ? "s" : undefined}
-                  radius={isTop ? [4, 4, 0, 0] : 0}
+                  radius={isTop ? BAR_RADIUS : 0}
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
@@ -181,7 +195,7 @@ export function ComboChart({
                   onClick={onSelect ? () => (clickedSeries.current = s.key) : undefined}
                 >
                   {s.signed
-                    ? data.map((r, i) => <Cell key={i} fill={trendColor(Number(r[s.key] ?? 0), s.lowerIsBetter)} />)
+                    ? data.map((r, i) => <Cell key={i} fill={barFill(trendColor(Number(r[s.key] ?? 0), s.lowerIsBetter), false, Number(r[s.key] ?? 0) < 0)} />)
                     : null}
                 </Bar>
               );
@@ -438,11 +452,11 @@ export function Waterfall({
       <div style={{ height }} role="img" aria-label={summary} className={onSelect ? "cursor-pointer" : undefined}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 520, height }}>
           <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%" onClick={select}>
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-            <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} interval={0} tickMargin={8} />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS_TICK} interval={0} tickMargin={8} />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => format(v)} width={66} />
             <Tooltip
-              cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
+              cursor={BAR_CURSOR}
               content={({ active, payload, label }) => {
                 const row = active ? (payload?.[0]?.payload as { raw: number } | undefined) : undefined;
                 return row ? (
@@ -455,9 +469,9 @@ export function Waterfall({
               isAnimationActive={false}
             />
             <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" isAnimationActive={false} />
-            <Bar dataKey="total" stackId="w" fill={series[0]!.color} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />
-            <Bar dataKey="minus" stackId="w" fill={series[1]!.color} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />
-            <Bar dataKey="plus" stackId="w" fill={series[2]!.color} radius={[4, 4, 0, 0]} maxBarSize={44} isAnimationActive={false} />
+            <Bar dataKey="total" stackId="w" fill={barFill(series[0]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} isAnimationActive={false} />
+            <Bar dataKey="minus" stackId="w" fill={barFill(series[1]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} isAnimationActive={false} />
+            <Bar dataKey="plus" stackId="w" fill={barFill(series[2]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

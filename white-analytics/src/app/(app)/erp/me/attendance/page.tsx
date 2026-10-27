@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { KpiTile } from "@/components/dashboard/kpi-tile";
+import { KpiGrid, KpiTile } from "@/components/dashboard/kpi-tile";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -49,12 +49,12 @@ export default async function MyAttendancePage(props: PageProps<"/erp/me/attenda
       <MonthFilter fallback={ym} />
       {res.data ? (
         <>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <KpiGrid cols={4}>
             <KpiTile size="sm" label={t.present} value={formatNumber(rows.filter((r) => r.clockIn).length)} />
             <KpiTile size="sm" label={t.late} value={formatNumber(rows.filter((r) => r.isLate).length)} />
             <KpiTile size="sm" label={t.hours} value={th.hours(sumHours(rows.map((r) => r.workHours)))} />
             <KpiTile size="sm" label={t.overtime} value={th.hours(sumHours(rows.map((r) => r.overtimeHours)))} />
-          </div>
+          </KpiGrid>
           <MyAttendanceTable records={rows} />
         </>
       ) : (

@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { DM_Sans, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { ChartGradientDefs } from "@/components/dashboard/charts/chart-gradients";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   display: "swap",
 });
@@ -30,8 +31,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f4f2" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0c0e" },
+    { media: "(prefers-color-scheme: light)", color: "#f8eef3" },
+    { media: "(prefers-color-scheme: dark)", color: "#120c27" },
   ],
 };
 
@@ -40,9 +41,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <ChartGradientDefs />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

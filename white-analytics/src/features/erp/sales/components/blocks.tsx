@@ -26,11 +26,11 @@ export function Panel({
 }) {
   return (
     <Card className={cn("gap-0 py-0", className)}>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-(--card-pad) py-3">
         <h2 className="min-w-0 text-[15px] font-semibold tracking-[-0.015em]">{title}</h2>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
-      <div className={flush ? undefined : "px-5 py-4"}>{children}</div>
+      <div className={flush ? undefined : "p-(--card-pad)"}>{children}</div>
     </Card>
   );
 }
@@ -43,12 +43,12 @@ export function DealStatus({ deal }: { deal: Pick<Deal, "isWon" | "isLost" | "st
 }
 
 export function DealRows({ deals, empty }: { deals: Deal[]; empty: string }) {
-  if (!deals.length) return <p className="px-5 py-4 text-sm text-muted-foreground">{empty}</p>;
+  if (!deals.length) return <p className="px-(--card-pad) py-4 text-sm text-muted-foreground">{empty}</p>;
   return (
     <ul className="divide-y">
       {deals.map((d) => (
         <li key={d.id}>
-          <Link href={`/erp/sales/pipeline/${d.id}`} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-accent/50">
+          <Link href={`/erp/sales/pipeline/${d.id}`} className="flex items-center gap-3 px-(--card-pad) py-3 text-sm hover:bg-accent/50">
             <span className="min-w-0 flex-1">
               <span className="block truncate font-medium">{d.title}</span>
               <span className="text-xs text-muted-foreground">{formatDate(d.createdAt)}</span>
@@ -63,14 +63,14 @@ export function DealRows({ deals, empty }: { deals: Deal[]; empty: string }) {
 }
 
 export function ConversationRows({ conversations, empty }: { conversations: Conversation[]; empty: string }) {
-  if (!conversations.length) return <p className="px-5 py-4 text-sm text-muted-foreground">{empty}</p>;
+  if (!conversations.length) return <p className="px-(--card-pad) py-4 text-sm text-muted-foreground">{empty}</p>;
   return (
     <ul className="divide-y">
       {conversations.map((c) => {
         const Icon = c.channel === "whatsapp" ? MessageCircle : Globe;
         return (
           <li key={c.id}>
-            <Link href={`/erp/sales/chatbot?c=${c.id}`} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-accent/50">
+            <Link href={`/erp/sales/chatbot?c=${c.id}`} className="flex items-center gap-3 px-(--card-pad) py-3 text-sm hover:bg-accent/50">
               <Icon className="size-4 shrink-0 text-muted-foreground" aria-label={lbl(CHANNEL, c.channel)} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{c.displayName || c.phone || c.email}</span>

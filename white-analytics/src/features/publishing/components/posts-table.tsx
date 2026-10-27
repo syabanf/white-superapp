@@ -153,7 +153,7 @@ export function PostsTable({ rows, counts, tab, slug, timezone, nowIso }: { rows
         getRowId={(r) => r.id}
         toolbar={
           <Select value={platform} onValueChange={(v) => setPlatform(v as Platform | "ALL")}>
-            <SelectTrigger size="sm" className="w-[150px]" aria-label={p.allPlatforms}>
+            <SelectTrigger className="w-[150px]" aria-label={p.allPlatforms}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

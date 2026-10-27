@@ -33,8 +33,9 @@ export function ChartCard({
 }) {
   const [view, setView] = React.useState<"chart" | "table">("chart");
   return (
-    <Card className={cn("gap-4 py-0 transition-shadow duration-200 hover:shadow-[var(--lift-shadow)]", className)}>
-      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 px-6 pt-5 pb-0">
+    <Card className={cn("transition-shadow duration-200 hover:shadow-(--lift-shadow)", className)}>
+      {/* min-h-8 keeps headers with and without actions the same height across a row */}
+      <CardHeader className="flex min-h-8 flex-row items-center justify-between gap-3 space-y-0">
         <div className="flex min-w-0 items-center gap-1.5">
           <CardTitle className="truncate text-[15px] font-semibold tracking-[-0.015em]">{title}</CardTitle>
           {description ? <InfoHint>{description}</InfoHint> : null}
@@ -61,7 +62,7 @@ export function ChartCard({
           ) : null}
         </div>
       </CardHeader>
-      <CardContent className={cn("px-6 pb-6", contentClassName)}>
+      <CardContent className={cn("min-w-0", contentClassName)}>
         {view === "table" && table ? <div className="max-h-[360px] overflow-auto scrollbar-thin">{table}</div> : children}
         {footer ? <div className="mt-3 border-t pt-3 text-xs text-muted-foreground">{footer}</div> : null}
       </CardContent>

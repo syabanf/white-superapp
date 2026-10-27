@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { canAccess } from "@/components/shell/nav-config";
 import { requireErp } from "@/features/erp/access";
@@ -56,7 +57,7 @@ export default async function KpiPage(props: PageProps<"/erp/performance/kpi">) 
         <OfflineNotice message={offline.message} />
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
+          <Toolbar>
             <UrlTabs
               label={k.title}
               reset={["scope", "month", "dept"]}
@@ -91,7 +92,7 @@ export default async function KpiPage(props: PageProps<"/erp/performance/kpi">) 
                 <ResetFilters params={["scope", "month", "dept"]} />
               </>
             ) : null}
-          </div>
+          </Toolbar>
           {tab === "indicators" ? (
             <IndicatorsSection canWrite={canWrite} />
           ) : tab === "config" ? (

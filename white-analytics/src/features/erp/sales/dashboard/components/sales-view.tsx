@@ -49,7 +49,7 @@ export function SalesView({ data, query }: { data: DashboardSales; query: Dashbo
           time_to_accept_days: "/erp/sales/quotations?status=diterima",
         }}
       />
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-(--gap) xl:grid-cols-2">
         <ChartCard title={s.wonLost} description={s.wonLostHint}>
           <MonthlyChart
             months={period.months}
@@ -108,7 +108,7 @@ export function SalesView({ data, query }: { data: DashboardSales; query: Dashbo
           />
         </ChartCard>
       </div>
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-(--gap) xl:grid-cols-3">
         <ChartCard className="xl:col-span-2" title={s.lineTable}>
           <DetailTable<DashboardSlice>
             rows={data.serviceLines}

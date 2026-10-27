@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -49,7 +50,7 @@ export default async function DepartmentTasksPage(props: PageProps<"/erp/perform
         <ErpEmpty title={s.teamNone} />
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
+          <Toolbar>
             <UrlTabs
               label={s.title}
               tabs={[
@@ -79,7 +80,7 @@ export default async function DepartmentTasksPage(props: PageProps<"/erp/perform
             ) : (
               <MonthFilter fallback={thisMonth} />
             )}
-          </div>
+          </Toolbar>
           {tab === "monitor" ? (
             <MonitorSection month={month} dept={dept} meta={meta} />
           ) : tab === "kpi" ? (

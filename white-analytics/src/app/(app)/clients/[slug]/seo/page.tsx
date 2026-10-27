@@ -146,18 +146,18 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
 
       <SearchTrendCards daily={overview.daily} compare={compare} />
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <PositionTrendCard daily={overview.daily} compare={compare} />
         <PositionDistributionCard distribution={queryStats.distribution} keywordsHref={kw()} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <DeviceCountryCards devices={breakdown.devices} countries={breakdown.countries} keywordsHref={kw()} />
       </div>
 
       <Ga4SessionsCard daily={overview.ga4Daily} />
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <TopQueriesCard rows={queryStats.rows} href={kw()} compare={compare} />
         <TopPagesCard rows={pageStats} href={withQuery(`${base}/pages`, keep)} compare={compare} />
       </div>

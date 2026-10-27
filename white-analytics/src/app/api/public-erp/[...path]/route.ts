@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { gatewayUrl } from "@/lib/erp/gateway";
+import { gatewayUrl, GATEWAY_TIMEOUT } from "@/lib/erp/gateway";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +36,7 @@ async function proxy(req: NextRequest, ctx: RouteContext<"/api/public-erp/[...pa
       body: hasBody ? req.body : undefined,
       ...(hasBody ? { duplex: "half" } : {}),
       cache: "no-store",
+      signal: AbortSignal.timeout(GATEWAY_TIMEOUT.transfer),
       redirect: "manual",
     } as RequestInit);
   } catch {

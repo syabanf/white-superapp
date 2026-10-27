@@ -29,6 +29,12 @@ export class GatewayError extends Error {
   }
 }
 
+/**
+ * Upper bounds for gateway calls, so a slow or unreachable backend shows the
+ * offline notice instead of holding the page render open until TCP gives up.
+ */
+export const GATEWAY_TIMEOUT = { session: 5_000, data: 15_000, transfer: 60_000 } as const;
+
 async function mintToken(userId: string): Promise<Cached> {
   const secret = process.env.INTERNAL_API_SECRET;
   if (!secret) throw new GatewayError(503, "UNKNOWN", "INTERNAL_API_SECRET belum diset.");
@@ -39,6 +45,7 @@ async function mintToken(userId: string): Promise<Cached> {
       headers: { "Content-Type": "application/json", "X-Internal-Secret": secret },
       body: JSON.stringify({ userId }),
       cache: "no-store",
+      signal: AbortSignal.timeout(GATEWAY_TIMEOUT.session),
     });
   } catch {
     throw new GatewayError(503, "NETWORK", "Layanan ERP tidak dapat dihubungi. Pastikan backend berjalan.");
@@ -80,6 +87,7 @@ export async function gatewayFetch<T>(path: string, init: RequestInit = {}): Pro
         Authorization: `Bearer ${session.token}`,
       },
       cache: "no-store",
+      signal: init.signal ?? AbortSignal.timeout(GATEWAY_TIMEOUT.data),
     });
   } catch {
     throw new GatewayError(503, "NETWORK", "Layanan ERP tidak dapat dihubungi. Pastikan backend berjalan.");
@@ -119,6 +127,7 @@ export async function syncUserToGateway(
       headers: { "Content-Type": "application/json", "X-Internal-Secret": secret },
       body: JSON.stringify(user),
       cache: "no-store",
+      signal: AbortSignal.timeout(GATEWAY_TIMEOUT.session),
     });
     if (!res.ok) console.warn("[erp] sync user failed", user.id, res.status, await res.text());
   } catch (e) {

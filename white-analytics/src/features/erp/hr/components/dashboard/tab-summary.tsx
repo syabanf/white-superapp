@@ -53,7 +53,7 @@ export function SummaryTab({ data, leaveTypes }: TabProps) {
   }));
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       <KpiGrid cols={4}>
         <KpiTile
           label={k.headcount}

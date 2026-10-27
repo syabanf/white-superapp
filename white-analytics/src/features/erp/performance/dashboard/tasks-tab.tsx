@@ -46,7 +46,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
     int(data.people.reduce((a, r) => a + pick(r), 0));
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
+    <div className="page-stack">
       <KpiGrid cols={6} className="xl:grid-cols-3">
         <MetricTile label={t.due} metric={data.due} format={int} href={monitor()} />
         <MetricTile
@@ -142,7 +142,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
         />
       </ChartCard>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid gap-(--gap) lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <ChartCard title={t.byDept} description={t.byDeptHint}>
           <StackedRows
             segments={SEGMENTS}
@@ -176,7 +176,7 @@ export function TasksTab({ data, dept }: { data: DashTasks; dept?: string }) {
         </ChartCard>
       </div>
 
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         <ChartCard title={t.workload} description={t.workloadHint}>
           <HBarChart
             maxItems={10}

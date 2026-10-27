@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { load, sp1 } from "@/features/erp/shared/load";
@@ -24,16 +21,12 @@ export default async function CashLedgerPage(props: PageProps<"/erp/finance/cash
   return (
     <>
       <PageHeader
+        back={{ href: "/erp/finance/cash-bank", label: fs.back }}
         eyebrow={fs.cash.ledger}
         title={acc ? `${acc.codeDisplay || acc.code} ${acc.name}` : fs.cash.ledger}
         description={res.data ? `${formatDate(res.data.dateFrom)} – ${formatDate(res.data.dateTo)}` : undefined}
         actions={
           <>
-            <Button asChild size="sm" variant="ghost" data-print-hide>
-              <Link href="/erp/finance/cash-bank">
-                <ArrowLeft className="size-4" /> {fs.back}
-              </Link>
-            </Button>
             <DateRangeFilter />
             <PrintButton label={fs.print} />
           </>

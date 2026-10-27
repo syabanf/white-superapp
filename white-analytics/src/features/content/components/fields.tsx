@@ -82,7 +82,7 @@ export function OptionSelect<T extends string>({
 }) {
   return (
     <Select value={value || NONE} onValueChange={(v) => onChange(v === NONE ? "" : (v as T))}>
-      <SelectTrigger size="sm" className={cn("w-[170px]", className)} aria-label={label}>
+      <SelectTrigger className={cn("w-[170px]", className)} aria-label={label}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

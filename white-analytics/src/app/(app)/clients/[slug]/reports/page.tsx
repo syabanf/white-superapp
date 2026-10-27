@@ -333,7 +333,7 @@ async function InsightTab({
       title={t.reports.aiInsight}
       description={`${t.reports.aiInsightDesc} · ${rs.insight.forRange} ${rangeLabel}`}
     >
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         {INSIGHT_MODULES.map((m, i) => {
           const insight = insights[i];
           return (

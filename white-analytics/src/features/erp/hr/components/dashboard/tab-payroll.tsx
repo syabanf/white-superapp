@@ -46,7 +46,7 @@ export function PayrollTab({ data }: TabProps) {
   const employer = sum((b) => b.payrollBpjsEmployer);
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       <StatStrip
         items={[
           { label: k.gross, value: rpCompact(cur.payrollGross), delta: delta(m(cur.payrollGross), m(prev.payrollGross)), lowerIsBetter: true, hint: k.exact(rp(cur.payrollGross)), href: runs },

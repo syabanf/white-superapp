@@ -118,8 +118,8 @@ export function LeadsTable({
                 accounts={accounts}
                 customFields={customFields}
                 trigger={
-                  <Button size="sm">
-                    <Plus className="size-3.5" /> {s.add}
+                  <Button>
+                    <Plus className="size-4" /> {s.add}
                   </Button>
                 }
               />

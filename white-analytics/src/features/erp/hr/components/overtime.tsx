@@ -137,7 +137,7 @@ export function OvertimeTable({
                     title={o.assign}
                     description={o.assignBody}
                     trigger={
-                      <Button size="sm">
+                      <Button>
                         <Plus className="size-4" /> {o.assign}
                       </Button>
                     }

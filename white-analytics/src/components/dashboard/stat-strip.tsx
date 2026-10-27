@@ -59,7 +59,7 @@ export function StatStrip({
               ? computeDelta(it.currentValue, it.previousValue)
               : null);
           const className = cn(
-            "-mt-px -ml-px min-w-0 flex-1 border-t border-l px-4 py-3 transition-colors duration-150 hover:bg-muted/40",
+            "-mt-px -ml-px min-w-0 flex-1 border-t border-l px-(--card-pad) py-3 transition-colors duration-150 hover:bg-muted/40",
             it.href && "outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand",
             scrollOnMobile && "shrink-0 md:shrink",
           );

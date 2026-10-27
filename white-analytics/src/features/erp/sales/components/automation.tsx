@@ -84,15 +84,15 @@ export function WorkflowRules({ rules, owners, runs }: { rules: WorkflowRule[]; 
           rule={null}
           owners={owners}
           trigger={
-            <Button size="sm">
-              <Plus className="size-3.5" /> {a.addRule}
+            <Button>
+              <Plus className="size-4" /> {a.addRule}
             </Button>
           }
         />
       </div>
       <ul className="divide-y rounded-xl border bg-card">
         {rules.map((r) => (
-          <li key={r.id} className="flex flex-col gap-2 px-5 py-3">
+          <li key={r.id} className="flex flex-col gap-2 px-(--card-pad) py-3">
             <div className="flex flex-wrap items-center gap-3">
               <span className="min-w-0 flex-1">
                 <span className="block font-medium">{r.name}</span>
@@ -434,7 +434,7 @@ export function ScoringRules({ rules }: { rules: ScoringRule[] }) {
       </div>
       <ul className="divide-y rounded-xl border bg-card">
         {rules.map((r) => (
-          <li key={r.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+          <li key={r.id} className="flex items-center gap-3 px-(--card-pad) py-3 text-sm">
             <span className="w-12 text-right font-semibold tabular">{r.points > 0 ? `+${r.points}` : r.points}</span>
             <span className="min-w-0 flex-1">
               <span className="block font-medium">{r.name}</span>
@@ -546,7 +546,7 @@ export function StagesEditor({ pipelines }: { pipelines: Pipeline[] }) {
     <div className="flex flex-col gap-4">
       {pipelines.map((p) => (
         <div key={p.id} className="rounded-xl border bg-card">
-          <div className="flex items-center justify-between border-b px-5 py-3">
+          <div className="flex items-center justify-between border-b px-(--card-pad) py-3">
             <h3 className="font-medium">{p.name}</h3>
             <StageDialog
               stage={null}
@@ -561,7 +561,7 @@ export function StagesEditor({ pipelines }: { pipelines: Pipeline[] }) {
           </div>
           <ul className="divide-y">
             {[...p.stages].sort((x, y) => x.sortOrder - y.sortOrder).map((st) => (
-              <li key={st.id} className="flex items-center gap-3 px-5 py-2.5 text-sm">
+              <li key={st.id} className="flex items-center gap-3 px-(--card-pad) py-2.5 text-sm">
                 <span className="w-6 text-xs text-muted-foreground tabular">{st.sortOrder}</span>
                 <span className="min-w-0 flex-1">
                   <span className="font-medium">{st.name}</span>
@@ -683,7 +683,7 @@ export function CustomFieldsManager({ fields }: { fields: CustomField[] }) {
       ) : (
         <ul className="divide-y rounded-xl border bg-card">
           {[...fields].sort((x, y) => x.object.localeCompare(y.object) || x.sortOrder - y.sortOrder).map((f) => (
-            <li key={f.id} className="flex items-center gap-3 px-5 py-2.5 text-sm">
+            <li key={f.id} className="flex items-center gap-3 px-(--card-pad) py-2.5 text-sm">
               <span className="w-16 text-xs text-muted-foreground">{lbl(RECORD_OBJECT, f.object)}</span>
               <span className="min-w-0 flex-1">
                 <span className="font-medium">{f.label}</span>

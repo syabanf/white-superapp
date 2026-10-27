@@ -81,7 +81,7 @@ export function MonthlySummaryView({ summary, showEmployee = true }: { summary: 
     { accessorKey: "paidAmount", header: rb.paidAmount, meta: { align: "right" }, cell: ({ row }) => <Money value={row.original.paidAmount} muteZero /> },
   ];
   return (
-    <div className="flex flex-col gap-4">
+    <div className="page-stack">
       <KpiGrid cols={3}>
         <KpiTile label={rb.submittedAmount} value={formatRupiah(summary.totalSubmitted)} size="sm" />
         <KpiTile label={rb.approvedAmount} value={formatRupiah(summary.totalApproved)} size="sm" />

@@ -6,7 +6,12 @@ import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis
 import { formatCompact } from "@/lib/format";
 import {
   AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS,
+  BAR_RADIUS_H,
+  GRID_DASH,
   GRID_STROKE,
+  barFill,
   MarkButtons,
   SeriesLegend,
   TooltipBox,
@@ -20,8 +25,9 @@ export type CategoryRow = { label: string; href?: string; [key: string]: number 
 
 /**
  * Categorical bars, stacked or grouped, on one axis. `horizontal` lays the
- * categories down the y-axis for long names. Stacked segments are split by a
- * 2px surface gap; only the outer end is rounded. A row with `href` opens it
+ * categories down the y-axis for long names. Bars carry a gradient from the
+ * series color to a lighter tint; stacked segments are split by a 2px surface
+ * gap and only the outer end is rounded (fully). A row with `href` opens it
  * on click; `onSelect` receives the row and, when a segment was hit, its
  * series key. `onSeriesSelect` makes the legend a filter toggle.
  */
@@ -96,7 +102,7 @@ export function StackedBarChart({
     dataKey: "label",
     tick: AXIS_TICK,
     tickLine: false,
-    axisLine: { stroke: "var(--axis)" },
+    axisLine: false,
     tickFormatter: tickLabel,
     interval: horizontal || data.length <= 12 ? 0 : ("preserveStartEnd" as const),
   };
@@ -135,6 +141,7 @@ export function StackedBarChart({
               vertical={horizontal}
               stroke={GRID_STROKE}
               strokeWidth={1}
+              strokeDasharray={GRID_DASH}
             />
             {horizontal ? (
               <>
@@ -164,7 +171,7 @@ export function StackedBarChart({
               </>
             )}
             <Tooltip
-              cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }}
+              cursor={BAR_CURSOR}
               content={
                 <TooltipBox
                   seriesMap={seriesMap}
@@ -178,15 +185,15 @@ export function StackedBarChart({
               const outer = !stacked || i === resolved.length - 1;
               const radius: [number, number, number, number] = outer
                 ? horizontal
-                  ? [0, 4, 4, 0]
-                  : [4, 4, 0, 0]
+                  ? BAR_RADIUS_H
+                  : BAR_RADIUS
                 : [0, 0, 0, 0];
               return (
                 <Bar
                   key={s.key}
                   dataKey={s.key}
                   name={s.label}
-                  fill={s.color}
+                  fill={barFill(s.color, horizontal)}
                   stackId={stacked ? "a" : undefined}
                   radius={radius}
                   maxBarSize={24}
@@ -205,7 +212,7 @@ export function StackedBarChart({
                 >
                   {s.signed && !stacked
                     ? data.map((d, j) => (
-                        <Cell key={j} fill={signedFill(Number(d[s.key] ?? 0), s.lowerIsBetter)} />
+                        <Cell key={j} fill={barFill(signedFill(Number(d[s.key] ?? 0), s.lowerIsBetter), horizontal, Number(d[s.key] ?? 0) < 0)} />
                       ))
                     : null}
                 </Bar>

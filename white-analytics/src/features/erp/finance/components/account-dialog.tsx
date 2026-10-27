@@ -96,7 +96,7 @@ export function AccountDialog({
             <DialogTitle>{account ? a.editTitle : a.newTitle}</DialogTitle>
             {parent ? <DialogDescription>{`${a.parent}: ${parent.codeDisplay} ${parent.name}`}</DialogDescription> : null}
           </DialogHeader>
-          <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+          <div className="grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
             <FormField label={fs.code} htmlFor="acc-code" error={errors.code} hint={a.codeHint} required>
               <Input id="acc-code" value={form.code} onChange={(e) => set("code", e.target.value)} className="font-mono" />
             </FormField>

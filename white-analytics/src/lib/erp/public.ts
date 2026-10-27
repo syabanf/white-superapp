@@ -1,6 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
-import { GatewayError, gatewayUrl } from "@/lib/erp/gateway";
+import { GATEWAY_TIMEOUT, GatewayError, gatewayUrl } from "@/lib/erp/gateway";
 
 /** Visitor IP from the incoming request, for the gateway's per-IP rate limits. */
 async function visitorIp(): Promise<string | null> {
@@ -27,6 +27,7 @@ export async function publicFetch<T>(path: string, init: RequestInit = {}): Prom
         ...(ip ? { "X-Forwarded-For": ip } : {}),
       },
       cache: "no-store",
+      signal: init.signal ?? AbortSignal.timeout(GATEWAY_TIMEOUT.data),
     });
   } catch {
     throw new GatewayError(503, "NETWORK", "Layanan sedang tidak dapat dihubungi. Coba lagi beberapa saat.");

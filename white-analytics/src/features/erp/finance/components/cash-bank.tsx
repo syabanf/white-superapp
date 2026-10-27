@@ -29,17 +29,17 @@ const c = fs.cash;
 export function CashAccountCards({ accounts, total }: { accounts: CashBankAccount[]; total: string }) {
   if (accounts.length === 0) return <ErpEmpty title={c.noAccounts} />;
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="flex-row items-center justify-between px-5 py-4">
+    <div className="page-stack">
+      <Card className="flex-row items-center justify-between px-(--card-pad)">
         <span className="label-mono text-muted-foreground">{c.totalBalance}</span>
         <Money value={total} signed className="text-2xl font-bold" />
       </Card>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-(--gap) sm:grid-cols-2 xl:grid-cols-3">
         {accounts.map((a) => (
           <Link
             key={a.id}
             href={`/erp/finance/cash-bank/${a.id}`}
-            className="group lift flex flex-col gap-3 rounded-2xl bg-card p-5 shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group lift flex flex-col gap-3 rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">

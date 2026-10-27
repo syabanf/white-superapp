@@ -216,7 +216,7 @@ export function LeaveTable({
                 <FormDialog
                   title={l.newLeaveFor}
                   trigger={
-                    <Button size="sm">
+                    <Button>
                       <Plus className="size-4" /> {l.newLeave}
                     </Button>
                   }

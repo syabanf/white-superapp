@@ -101,7 +101,7 @@ export function BenchmarkTable({ rows, gapHref }: { rows: BenchmarkRow[]; gapHre
   ];
   return (
     <Card className="gap-0 py-0">
-      <CardContent className="p-6">
+      <CardContent className="p-(--card-pad)">
         <DataTable
           data={rows}
           columns={columns}

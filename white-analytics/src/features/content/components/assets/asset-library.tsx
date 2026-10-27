@@ -7,6 +7,8 @@ import { Folder, FolderPlus, Loader2, MoreHorizontal, Search, Upload } from "luc
 import { toast } from "@/lib/toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Toolbar } from "@/components/dashboard/layout";
+import { EmptyState } from "@/components/dashboard/empty-state";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,9 +86,9 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
   const [folderId, setFolderId] = React.useState(filters.folder);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-      <nav aria-label={c.folders} className="min-w-0 space-y-1">
-        <div className="flex items-center justify-between px-2 pb-1">
+    <div className="grid items-start gap-(--gap) lg:grid-cols-[240px_minmax(0,1fr)]">
+      <nav aria-label={c.folders} className="min-w-0 space-y-1 rounded-[1.5rem] bg-card p-2 shadow-(--card-shadow)">
+        <div className="flex min-h-8 items-center justify-between pt-1 pl-[calc(var(--card-pad)-0.5rem)]">
           <span className="label-mono text-muted-foreground">{c.folders}</span>
           {canWrite ? (
             <Button size="icon-xs" variant="ghost" onClick={() => setFolderDialog({ name: "" })} aria-label={c.newFolder}>
@@ -101,7 +103,7 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
                 type="button"
                 onClick={() => setParam("folder", f.id)}
                 className={cn(
-                  "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] hover:bg-muted",
+                  "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-[calc(var(--card-pad)-0.5rem)] py-1.5 text-left text-[13px] hover:bg-muted",
                   filters.folder === f.id && "bg-muted font-medium",
                 )}
                 aria-current={filters.folder === f.id ? "true" : undefined}
@@ -130,11 +132,11 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
         </ul>
       </nav>
 
-      <div className="min-w-0 space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={c.searchAssets} className="h-8 pl-8" aria-label={c.search} />
+      <div className="page-stack min-w-0">
+        <Toolbar label={c.assetsTitle}>
+          <div className="relative w-full min-w-0 sm:w-auto sm:max-w-xs sm:flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={c.searchAssets} className="pl-9" aria-label={c.search} />
           </div>
           <OptionSelect
             label={c.allKinds}
@@ -142,7 +144,7 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
             onChange={(v) => setParam("kind", v)}
             allLabel={c.allKinds}
             options={ASSET_KINDS.map((k) => ({ value: k, label: c.assetKind[k] }))}
-            className="w-[150px]"
+            className="min-w-0 flex-1 sm:w-[150px] sm:flex-none"
           />
           <OptionSelect
             label={c.allTags}
@@ -150,25 +152,25 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
             onChange={(v) => setParam("tag", v)}
             allLabel={c.allTags}
             options={tags.map((t) => ({ value: t, label: `#${t}` }))}
-            className="w-[150px]"
+            className="min-w-0 flex-1 sm:w-[150px] sm:flex-none"
           />
           {pending ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
           {canWrite ? (
-            <Button size="sm" className="ml-auto" onClick={() => setUpload(true)}>
-              <Upload className="size-3.5" /> {c.uploadAsset}
+            <Button className="ml-auto max-sm:w-full" onClick={() => setUpload(true)}>
+              <Upload /> {c.uploadAsset}
             </Button>
           ) : null}
-        </div>
+        </Toolbar>
 
         {assets.length === 0 ? (
-          <p className="rounded-xl border border-dashed px-3 py-10 text-center text-sm text-muted-foreground">{c.noAssetsFound}</p>
+          <EmptyState compact icon={<Search />} title={c.noAssetsFound} />
         ) : (
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          <ul className="grid grid-cols-2 gap-(--gap) sm:grid-cols-3 xl:grid-cols-4">
             {assets.map((a) => (
               <li key={a.id}>
                 <Link
                   href={`/clients/${slug}/content/assets/${a.id}`}
-                  className="group block overflow-hidden rounded-xl bg-card shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="group block overflow-hidden rounded-[1.5rem] bg-card shadow-(--card-shadow) outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <div className="aspect-[4/3] overflow-hidden border-b">
                     <FilePreview
@@ -179,7 +181,7 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
                       className="transition-transform duration-200 group-hover:scale-[1.02]"
                     />
                   </div>
-                  <div className="space-y-1 p-3">
+                  <div className="space-y-1 p-3 md:p-4">
                     <p className="truncate text-[13px] font-medium">{a.name}</p>
                     <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                       <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{c.assetKind[a.kind] ?? a.kind}</Badge>
@@ -213,10 +215,10 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
             />
           </Field>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setFolderDialog(null)}>
+            <Button variant="outline" onClick={() => setFolderDialog(null)}>
               {c.cancel}
             </Button>
-            <Button size="sm" disabled={pending || !folderDialog?.name.trim()} onClick={saveFolder}>
+            <Button disabled={pending || !folderDialog?.name.trim()} onClick={saveFolder}>
               {c.save}
             </Button>
           </DialogFooter>
@@ -248,7 +250,7 @@ export function AssetLibrary({ slug, clientId, assets, folders, tags, filters, c
         <Field id="as-name" label={c.assetName}>
           <Input id="as-name" value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid items-start gap-4 sm:grid-cols-2">
           <Field id="as-kind" label={c.kind}>
             <Select value={kind} onValueChange={(v) => isAssetKind(v) && setKind(v)}>
               <SelectTrigger id="as-kind" className="w-full">

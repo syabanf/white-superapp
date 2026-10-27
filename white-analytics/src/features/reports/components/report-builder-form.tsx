@@ -91,7 +91,7 @@ export function ReportBuilderForm({
             <input type="hidden" name="includeAi" value={includeAi ? "true" : "false"} />
             <input type="hidden" name="language" value={language} />
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="report-title">{t.reports.reportTitle}</Label>
                 <Input

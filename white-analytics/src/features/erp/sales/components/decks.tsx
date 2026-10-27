@@ -20,7 +20,7 @@ import { ChipToggle, ConfirmAction, Fld, FormDialog, FormFooter, type Option, Pi
 
 const s = ss.decks;
 
-export function DeckDownload({ deck, size = "sm" }: { deck: PitchDeck; size?: "sm" | "xs" }) {
+export function DeckDownload({ deck, size = "default" }: { deck: PitchDeck; size?: "default" | "xs" }) {
   return (
     <DownloadButton href={`/api/erp/api/sales/pitch-decks/${deck.id}/file`} fileName={`${deck.title}.pptx`} size={size}>
       {s.download}
@@ -32,9 +32,9 @@ export function DeckDownload({ deck, size = "sm" }: { deck: PitchDeck; size?: "s
 export function DeckList({ decks, dealNames }: { decks: PitchDeck[]; dealNames: Record<string, string> }) {
   if (!decks.length) return <p className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">{s.empty}</p>;
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-(--gap) sm:grid-cols-2 xl:grid-cols-3">
       {decks.map((d) => (
-        <Card key={d.id} className="gap-3 px-5 py-4">
+        <Card key={d.id} className="gap-3 p-(--card-pad)">
           <div className="flex items-start gap-3">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
               <Presentation className="size-4" />
@@ -135,15 +135,15 @@ function GenerateForm({ deals, dealId, close }: { deals: Option[]; dealId?: stri
 /** Slide outline preview of a generated deck. */
 export function SlidePreview({ deck }: { deck: PitchDeck }) {
   return (
-    <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <ol className="grid gap-(--gap) sm:grid-cols-2 xl:grid-cols-3">
       {deck.slides.map((sl, i) => (
         <li key={i} className="flex aspect-video flex-col overflow-hidden rounded-xl border bg-card p-4">
-          <span className="label-mono text-[10px] text-muted-foreground">
+          <span className="label-mono shrink-0 text-[10px] text-muted-foreground">
             {String(i + 1).padStart(2, "0")} · {sl.kind}
           </span>
-          <h3 className="mt-1 line-clamp-2 text-sm font-semibold">{sl.title}</h3>
-          {sl.subtitle ? <p className="line-clamp-1 text-xs text-muted-foreground">{sl.subtitle}</p> : null}
-          <ul className="mt-2 list-disc space-y-0.5 overflow-hidden pl-4 text-[11px] leading-snug text-muted-foreground">
+          <h3 className="mt-1 line-clamp-2 shrink-0 text-sm font-semibold">{sl.title}</h3>
+          {sl.subtitle ? <p className="line-clamp-1 shrink-0 text-xs text-muted-foreground">{sl.subtitle}</p> : null}
+          <ul className="mt-2 min-h-0 list-disc space-y-0.5 overflow-hidden pl-4 text-[11px] leading-snug text-muted-foreground">
             {sl.bullets.slice(0, 5).map((b, j) => (
               <li key={j} className="line-clamp-1">
                 {b}
@@ -187,9 +187,9 @@ export function CaseStudies({ items, admin }: { items: CaseStudy[]; admin: boole
       ) : (
         <p className="text-xs text-muted-foreground">{ss.adminOnly}</p>
       )}
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-(--gap) lg:grid-cols-2">
         {items.map((c) => (
-          <Card key={c.id} className="gap-2 px-5 py-4">
+          <Card key={c.id} className="gap-2 p-(--card-pad)">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <h3 className="font-medium">{c.title}</h3>

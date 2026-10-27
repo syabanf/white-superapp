@@ -92,12 +92,12 @@ export function ClientSwitcher({
         onClick={() => setOpen(true)}
         aria-label={t.nav.switchClient}
         className={cn(
-          "h-10 w-full justify-start gap-2 bg-background px-2 text-left shadow-none",
-          collapsed && "size-8 justify-center p-0",
+          "h-12 w-full justify-start gap-2.5 border-transparent bg-card px-1.5 text-left shadow-(--card-shadow)",
+          collapsed && "size-11 justify-center p-0",
         )}
       >
-        <Avatar className="size-6 rounded-md">
-          <AvatarFallback className="rounded-md bg-primary text-[10px] font-semibold text-primary-foreground">
+        <Avatar className="size-8 after:border-transparent">
+          <AvatarFallback className="bg-[linear-gradient(135deg,var(--logo-navy),var(--brand))] text-[11px] font-semibold text-white">
             {current ? initials(current.name) : "W"}
           </AvatarFallback>
         </Avatar>
@@ -132,8 +132,8 @@ export function ClientSwitcher({
                   value={`${c.name} ${c.slug}`}
                   onSelect={() => go(`/clients/${c.slug}`)}
                 >
-                  <Avatar className="size-6 rounded-md">
-                    <AvatarFallback className="rounded-md text-[10px] font-semibold">
+                  <Avatar className="size-7">
+                    <AvatarFallback className="bg-accent text-[10px] font-semibold text-accent-foreground">
                       {initials(c.name)}
                     </AvatarFallback>
                   </Avatar>

@@ -85,7 +85,7 @@ export function ItemFormDialog({ open, onOpenChange, slug, timezone, people, pil
           <DialogTitle>{mode.kind === "create" ? c.itemNewTitle : c.itemEditTitle}</DialogTitle>
           <DialogDescription>{c.itemDesc}</DialogDescription>
         </DialogHeader>
-        <form id="item-form" onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+        <form id="item-form" onSubmit={submit} className="grid items-start gap-4 sm:grid-cols-2">
           <Field id="it-title" label={c.itemTitle} error={errors?.title} className="sm:col-span-2">
             <Input id="it-title" value={v.title} onChange={(e) => set("title", e.target.value)} autoFocus />
           </Field>
@@ -166,10 +166,10 @@ export function ItemFormDialog({ open, onOpenChange, slug, timezone, people, pil
           </div>
         </form>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             {c.cancel}
           </Button>
-          <Button type="submit" form="item-form" size="sm" disabled={pending}>
+          <Button type="submit" form="item-form" disabled={pending}>
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {c.save}
           </Button>
         </DialogFooter>

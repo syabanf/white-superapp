@@ -30,10 +30,10 @@ export default async function GuidePage() {
         }
       />
 
-      <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
+      <div className="grid gap-(--gap) lg:grid-cols-[220px_minmax(0,1fr)]">
         {/* ── Table of contents ── */}
         <nav aria-label={tg.toc} className="hidden lg:block">
-          <p className="label-mono mb-3 text-brand">{tg.toc}</p>
+          <p className="label-mono mb-3 px-2 text-brand">{tg.toc}</p>
           <ol className="space-y-0.5">
             {GUIDE_SECTIONS.map((s, i) => (
               <li key={s.id}>
@@ -50,10 +50,10 @@ export default async function GuidePage() {
         </nav>
 
         {/* ── Sections ── */}
-        <div className="min-w-0 space-y-5">
+        <div className="page-stack min-w-0">
           {GUIDE_SECTIONS.map((s, i) => (
             <Card key={s.id} id={s.id} className="scroll-mt-20 gap-0 overflow-hidden py-0">
-              <header className="border-b px-6 py-5">
+              <header className="border-b px-(--card-pad) py-4">
                 <p className="label-mono text-brand">{String(i + 1).padStart(2, "0")}</p>
                 <h2 className="mt-1.5 flex items-center gap-2 text-lg font-bold tracking-[-0.025em]">
                   <BookOpen className="size-4 text-muted-foreground" />
@@ -61,7 +61,7 @@ export default async function GuidePage() {
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">{s.summary}</p>
               </header>
-              <div className="px-6 py-6">
+              <div className="p-(--card-pad)">
                 <GuideBody section={s} />
               </div>
             </Card>

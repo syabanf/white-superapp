@@ -26,7 +26,7 @@ export function HelpButton() {
       <Tooltip>
         <TooltipTrigger asChild>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label={tg.helpAria}>
+            <Button variant="ghost" size="icon" aria-label={tg.helpAria} className="size-10 rounded-2xl bg-card shadow-(--card-shadow) hover:bg-card">
               <HelpCircle className="size-4" />
             </Button>
           </SheetTrigger>

@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { load } from "@/features/erp/shared/load";
@@ -24,13 +21,7 @@ export default async function BeginningBalancePage(props: PageProps<"/erp/financ
         eyebrow={fs.fiscal.title}
         title={fs.fiscal.bb.title}
         description={res.data ? fs.fiscal.bb.subtitle(res.data.fiscalYearName) : undefined}
-        actions={
-          <Button asChild size="sm" variant="ghost">
-            <Link href="/erp/finance/fiscal">
-              <ArrowLeft className="size-4" /> {fs.back}
-            </Link>
-          </Button>
-        }
+        back={{ href: "/erp/finance/fiscal", label: fs.back }}
       />
       {res.error ? (
         <ErpLoadError error={res.error} />

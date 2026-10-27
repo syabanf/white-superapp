@@ -49,8 +49,8 @@ export function ClientFields({
   websiteHint?: string;
 }) {
   return (
-    <div className="grid gap-5">
-      <div className="grid gap-5 sm:grid-cols-2">
+    <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-name`}>
             {t.clients.name} <span className="text-destructive">*</span>
@@ -95,7 +95,7 @@ export function ClientFields({
         <FieldError errors={errors} name="description" />
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-industry`}>{t.clients.industry}</Label>
           <Input
@@ -132,7 +132,7 @@ export function ClientFields({
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-currency`}>{t.clients.currency}</Label>
           <Select value={values.currency} onValueChange={(v) => onChange("currency", v)} disabled={disabled}>

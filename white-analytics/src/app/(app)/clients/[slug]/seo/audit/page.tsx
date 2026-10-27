@@ -95,7 +95,7 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
         <EmptyState icon={<ShieldCheck />} title={t.seo.noAudit} description={t.seo.noAuditDesc} />
       ) : (
         <>
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-(--gap) lg:grid-cols-2">
             <AuditStrategyCard audit={data.latestMobile} strategy="MOBILE" />
             <AuditStrategyCard audit={data.latestDesktop} strategy="DESKTOP" />
           </div>
@@ -125,15 +125,15 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
           </div>
         }
       >
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div className="grid gap-(--gap) lg:grid-cols-3">
           <Card className="gap-3 py-0">
-            <CardHeader className="px-5 pt-4 pb-0">
+            <CardHeader className="px-(--card-pad) pt-(--card-pad) pb-0">
               <CardTitle className="text-sm font-semibold">{s.crawlSummary}</CardTitle>
               <CardDescription className="text-xs">
                 {data.crawl ? `${t.seo.lastAudit}: ${formatDateTime(data.crawl.startedAt)}` : s.noCrawl}
               </CardDescription>
             </CardHeader>
-            <CardContent className="px-5 pb-5">
+            <CardContent className="px-(--card-pad) pb-(--card-pad)">
               {data.crawl ? (
                 <dl className="space-y-2.5 text-sm">
                   <div className="flex items-center justify-between gap-2">

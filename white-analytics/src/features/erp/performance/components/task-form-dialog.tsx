@@ -80,7 +80,7 @@ export function TaskFormDialog({ meta, departmentId }: { meta: TaskMeta; departm
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" disabled={!departmentId}>
+        <Button disabled={!departmentId}>
           <Plus className="size-4" /> {s.newTask}
         </Button>
       </DialogTrigger>
@@ -96,7 +96,7 @@ export function TaskFormDialog({ meta, departmentId }: { meta: TaskMeta; departm
             <DialogTitle>{s.newTaskTitle}</DialogTitle>
             <DialogDescription>{s.newTaskDesc}</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormRow label={s.titleLabel} htmlFor="task-title" className="sm:col-span-2" error={errors.title?.[0]}>
               <Input id="task-title" value={form.title} onChange={(e) => set("title", e.target.value)} required minLength={3} maxLength={200} autoFocus />
             </FormRow>

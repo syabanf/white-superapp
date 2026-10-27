@@ -449,7 +449,7 @@ export function ActionButton({
 }
 
 /** Copies an absolute URL built from a path on this origin. */
-export function CopyLinkButton({ path, label = ss.copy, size = "sm" }: { path: string; label?: string; size?: "sm" | "xs" }) {
+export function CopyLinkButton({ path, label = ss.copy, size = "sm" }: { path: string; label?: string; size?: "default" | "sm" | "xs" }) {
   return (
     <Button
       type="button"

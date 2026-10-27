@@ -29,8 +29,8 @@ export function LeadActions({
         action={() => deleteLeadAction(lead.id)}
         onDone={() => router.push("/erp/sales/leads")}
         trigger={
-          <Button variant="ghost" size="sm">
-            <Trash2 className="size-3.5" /> {ss.delete}
+          <Button variant="ghost">
+            <Trash2 /> {ss.delete}
           </Button>
         }
       />
@@ -40,8 +40,8 @@ export function LeadActions({
         accounts={refs.accounts}
         customFields={leadFields}
         trigger={
-          <Button variant="outline" size="sm">
-            <Pencil className="size-3.5" /> {ss.edit}
+          <Button variant="outline">
+            <Pencil /> {ss.edit}
           </Button>
         }
       />
@@ -55,8 +55,8 @@ export function LeadActions({
           ownerUserId: lead.ownerUserId,
         }}
         trigger={
-          <Button size="sm">
-            <Plus className="size-3.5" /> {ss.leads.createDeal}
+          <Button>
+            <Plus /> {ss.leads.createDeal}
           </Button>
         }
       />
@@ -74,8 +74,8 @@ export function AccountActions({ account, owners }: { account: Account; owners: 
         action={() => deleteAccountAction(account.id)}
         onDone={() => router.push("/erp/sales/leads?tab=accounts")}
         trigger={
-          <Button variant="ghost" size="sm">
-            <Trash2 className="size-3.5" /> {ss.delete}
+          <Button variant="ghost">
+            <Trash2 /> {ss.delete}
           </Button>
         }
       />
@@ -83,8 +83,8 @@ export function AccountActions({ account, owners }: { account: Account; owners: 
         account={account}
         owners={owners}
         trigger={
-          <Button variant="outline" size="sm">
-            <Pencil className="size-3.5" /> {ss.edit}
+          <Button variant="outline">
+            <Pencil /> {ss.edit}
           </Button>
         }
       />

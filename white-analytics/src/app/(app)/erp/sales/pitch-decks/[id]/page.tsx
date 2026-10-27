@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { DetailLayout } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -34,60 +34,64 @@ export default async function PitchDeckPage(props: PageProps<"/erp/sales/pitch-d
 
   return (
     <>
-      <Link href="/erp/sales/pitch-decks" className="-mb-3 inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="size-4" /> {s.title}
-      </Link>
       <PageHeader
+        back={{ href: "/erp/sales/pitch-decks", label: s.title }}
         eyebrow={`${s.title} · ${s.version(deck.version)}`}
         title={deck.title}
         description={`${s.slides(deck.slides.length)} · ${fileSize(deck.sizeBytes)} · ${formatDateTime(deck.createdAt)}`}
         actions={
           <>
-            {caps.write && deck.dealId ? <GeneratePitchDeckDialog dealId={deck.dealId} label={s.regenerate} variant="outline" /> : null}
+            {caps.write && deck.dealId ? (
+              <GeneratePitchDeckDialog dealId={deck.dealId} label={s.regenerate} variant="outline" />
+            ) : null}
             <DeckDownload deck={deck} />
           </>
         }
       />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          <SlidePreview deck={deck} />
-        </div>
-        <div className="flex flex-col gap-4">
-          <Panel title={ss.detail}>
-            <dl className="grid gap-3">
-              <Info label={s.tone}>{lbl(DECK_TONE, o?.tone)}</Info>
-              <Info label={s.includePricing}>{o?.includePricing ? ss.yes : ss.no}</Info>
-              <Info label={s.includeCases}>{o?.includeCaseStudies ? ss.yes : ss.no}</Info>
-              {o?.extraNotes ? <Info label={s.extraNotes}>{o.extraNotes}</Info> : null}
-              <Info label={s.model}>{deck.model}</Info>
-              {deck.dealId ? (
-                <Info label={s.deal}>
-                  <Link href={`/erp/sales/pipeline/${deck.dealId}`} className="hover:underline">
-                    {ss.detail}
-                  </Link>
-                </Info>
-              ) : null}
-            </dl>
-          </Panel>
-          {versions.length > 1 ? (
-            <Panel title={s.versions} flush>
-              <ul className="divide-y text-sm">
-                {versions.map((v) => (
-                  <li key={v.id}>
-                    <Link
-                      href={`/erp/sales/pitch-decks/${v.id}`}
-                      className={cn("flex justify-between gap-2 px-5 py-2.5 hover:bg-accent/50", v.id === deck.id && "font-medium")}
-                    >
-                      <span>{s.version(v.version)}</span>
-                      <span className="text-xs text-muted-foreground">{formatDateTime(v.createdAt)}</span>
+      <DetailLayout
+        aside={
+          <>
+            <Panel title={ss.detail}>
+              <dl className="grid gap-3">
+                <Info label={s.tone}>{lbl(DECK_TONE, o?.tone)}</Info>
+                <Info label={s.includePricing}>{o?.includePricing ? ss.yes : ss.no}</Info>
+                <Info label={s.includeCases}>{o?.includeCaseStudies ? ss.yes : ss.no}</Info>
+                {o?.extraNotes ? <Info label={s.extraNotes}>{o.extraNotes}</Info> : null}
+                <Info label={s.model}>{deck.model}</Info>
+                {deck.dealId ? (
+                  <Info label={s.deal}>
+                    <Link href={`/erp/sales/pipeline/${deck.dealId}`} className="hover:underline">
+                      {ss.detail}
                     </Link>
-                  </li>
-                ))}
-              </ul>
+                  </Info>
+                ) : null}
+              </dl>
             </Panel>
-          ) : null}
-        </div>
-      </div>
+            {versions.length > 1 ? (
+              <Panel title={s.versions} flush>
+                <ul className="divide-y text-sm">
+                  {versions.map((v) => (
+                    <li key={v.id}>
+                      <Link
+                        href={`/erp/sales/pitch-decks/${v.id}`}
+                        className={cn(
+                          "flex justify-between gap-2 px-(--card-pad) py-2.5 hover:bg-accent/50",
+                          v.id === deck.id && "font-medium",
+                        )}
+                      >
+                        <span>{s.version(v.version)}</span>
+                        <span className="text-xs text-muted-foreground">{formatDateTime(v.createdAt)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+            ) : null}
+          </>
+        }
+      >
+        <SlidePreview deck={deck} />
+      </DetailLayout>
     </>
   );
 }

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { currentMonth, formatMonth, shiftMonth } from "./month";
 import { useUrlFilters } from "./url-state";
 import { ss } from "./strings";
 
@@ -129,10 +130,9 @@ export function DateRangeFilter({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          size="sm"
           className={cn("font-normal shadow-none", !from && "text-muted-foreground", className)}
         >
-          <CalendarDays className="size-3.5" />
+          <CalendarDays />
           <span className="tabular">{text}</span>
         </Button>
       </PopoverTrigger>
@@ -168,37 +168,9 @@ export function DateRangeFilter({
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-const MONTHS_LONG = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
 
-/** "2026-10" → "Oktober 2026" */
-export function formatMonth(ym: string): string {
-  const [y, m] = ym.split("-").map(Number);
-  if (!y || !m) return ym;
-  return `${MONTHS_LONG[m - 1]} ${y}`;
-}
 
-export function currentMonth(now = new Date()): string {
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
 
-function shiftMonth(ym: string, delta: number): string {
-  const [y, m] = ym.split("-").map(Number);
-  const d = new Date(y, m - 1 + delta, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
 
 /** Month stepper bound to a URL param ("YYYY-MM"); empty param means `fallback`. */
 export function MonthFilter({ param = "month", fallback }: { param?: string; fallback?: string }) {
@@ -208,7 +180,7 @@ export function MonthFilter({ param = "month", fallback }: { param?: string; fal
   const [year, setYear] = React.useState(Number(value.slice(0, 4)));
   return (
     <div className="flex items-center gap-1">
-      <Button variant="outline" size="icon-sm" aria-label={ss.prev} onClick={() => set({ [param]: shiftMonth(value, -1) })}>
+      <Button variant="outline" size="icon" aria-label={ss.prev} onClick={() => set({ [param]: shiftMonth(value, -1) })}>
         <ChevronLeft className="size-4" />
       </Button>
       <Popover
@@ -219,8 +191,8 @@ export function MonthFilter({ param = "month", fallback }: { param?: string; fal
         }}
       >
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="min-w-36 font-normal shadow-none" aria-label={ss.pickMonth}>
-            <CalendarDays className="size-3.5" />
+          <Button variant="outline" className="min-w-36 font-normal shadow-none" aria-label={ss.pickMonth}>
+            <CalendarDays />
             {formatMonth(value)}
           </Button>
         </PopoverTrigger>
@@ -254,7 +226,7 @@ export function MonthFilter({ param = "month", fallback }: { param?: string; fal
           </div>
         </PopoverContent>
       </Popover>
-      <Button variant="outline" size="icon-sm" aria-label={ss.next} onClick={() => set({ [param]: shiftMonth(value, 1) })}>
+      <Button variant="outline" size="icon" aria-label={ss.next} onClick={() => set({ [param]: shiftMonth(value, 1) })}>
         <ChevronRight className="size-4" />
       </Button>
     </div>
@@ -280,8 +252,8 @@ export function DateFilter({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className={cn("font-normal shadow-none", !date && "text-muted-foreground", className)}>
-          <CalendarDays className="size-3.5" />
+        <Button variant="outline" className={cn("font-normal shadow-none", !date && "text-muted-foreground", className)}>
+          <CalendarDays />
           {label ? <span className="text-muted-foreground">{label}</span> : null}
           <span className="tabular">{date ? dayLabel(date) : placeholder}</span>
         </Button>
@@ -303,3 +275,5 @@ export function DateFilter({
     </Popover>
   );
 }
+
+export { currentMonth, formatMonth };

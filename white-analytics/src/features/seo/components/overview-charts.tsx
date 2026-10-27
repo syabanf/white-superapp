@@ -34,7 +34,7 @@ function dailyColumns(label: string, key: keyof SearchDailyPoint, prevKey: keyof
 export function SearchTrendCards({ daily, compare }: { daily: SearchDailyPoint[]; compare: boolean }) {
   const drill = useDayDrill();
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-(--gap) lg:grid-cols-2">
       <ChartCard
         title={t.seo.clicks}
         description={s.clicksCardDesc}

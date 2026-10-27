@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Loader2, Send, Sparkles, Trash2, Undo2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { Toolbar } from "@/components/dashboard/layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,35 +53,35 @@ export function PlanActions({ slug, planId, status, ownSubmission }: Props) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
+      <Toolbar label={c.planActions}>
         {status === "PLAN_DRAFT" ? (
           <>
-            <Button size="sm" variant="outline" disabled={pending} onClick={() => setDialog("generate")}>
-              <Sparkles className="size-3.5" /> {c.generate}
+            <Button variant="outline" disabled={pending} onClick={() => setDialog("generate")}>
+              <Sparkles /> {c.generate}
             </Button>
-            <Button size="sm" disabled={pending} onClick={() => run(() => submitPlan({ slug, planId }), c.submitted)}>
-              <Send className="size-3.5" /> {c.submit}
+            <Button disabled={pending} onClick={() => run(() => submitPlan({ slug, planId }), c.submitted)}>
+              <Send /> {c.submit}
             </Button>
           </>
         ) : null}
         {status === "PLAN_IN_REVIEW" ? (
           <>
-            <Button size="sm" disabled={pending || ownSubmission} onClick={() => run(() => approvePlan({ slug, planId }), c.approved)}>
-              <Check className="size-3.5" /> {c.approve}
+            <Button disabled={pending || ownSubmission} onClick={() => run(() => approvePlan({ slug, planId }), c.approved)}>
+              <Check /> {c.approve}
             </Button>
-            <Button size="sm" variant="outline" disabled={pending} onClick={() => setDialog("changes")}>
-              <Undo2 className="size-3.5" /> {c.requestChanges}
+            <Button variant="outline" disabled={pending} onClick={() => setDialog("changes")}>
+              <Undo2 /> {c.requestChanges}
             </Button>
             {ownSubmission ? <span className="text-xs text-muted-foreground">{c.ownApprovalHint}</span> : null}
           </>
         ) : null}
         {status === "PLAN_DRAFT" ? (
-          <Button size="sm" variant="destructive" className="ml-auto" disabled={pending} onClick={() => setDialog("delete")}>
-            <Trash2 className="size-3.5" /> {c.deletePlan}
+          <Button variant="destructive" className="ml-auto" disabled={pending} onClick={() => setDialog("delete")}>
+            <Trash2 /> {c.deletePlan}
           </Button>
         ) : null}
         {pending ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : null}
-      </div>
+      </Toolbar>
 
       <Dialog open={dialog === "generate"} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent>
@@ -96,10 +97,10 @@ export function PlanActions({ slug, planId, status, ownSubmission }: Props) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
+            <Button variant="outline" onClick={() => setDialog(null)}>
               {c.cancel}
             </Button>
-            <Button size="sm" disabled={pending} onClick={() => run(() => generatePlanDraft({ slug, planId, replace }), c.generated)}>
+            <Button disabled={pending} onClick={() => run(() => generatePlanDraft({ slug, planId, replace }), c.generated)}>
               {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />} {c.generate}
             </Button>
           </DialogFooter>
@@ -114,10 +115,10 @@ export function PlanActions({ slug, planId, status, ownSubmission }: Props) {
           </DialogHeader>
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={c.notePlaceholder} rows={3} autoFocus />
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
+            <Button variant="outline" onClick={() => setDialog(null)}>
               {c.cancel}
             </Button>
-            <Button size="sm" disabled={pending || !note.trim()} onClick={() => run(() => requestPlanChanges({ slug, planId, note }), c.changesRequested)}>
+            <Button disabled={pending || !note.trim()} onClick={() => run(() => requestPlanChanges({ slug, planId, note }), c.changesRequested)}>
               {c.requestChanges}
             </Button>
           </DialogFooter>
@@ -131,11 +132,11 @@ export function PlanActions({ slug, planId, status, ownSubmission }: Props) {
             <DialogDescription>{c.deletePlanDesc}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialog(null)}>
+            <Button variant="outline" onClick={() => setDialog(null)}>
               {c.cancel}
             </Button>
             <Button
-              size="sm"
+             
               variant="destructive"
               disabled={pending}
               onClick={() => run(() => deletePlan({ slug, planId }), c.planDeleted, () => router.push(`/clients/${slug}/content/plans`))}

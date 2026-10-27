@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import Link from "next/link";
 import { BookOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/dashboard/page-header";
+import { PageHeader, Section } from "@/components/dashboard/page-header";
 import { cn } from "@/lib/utils";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -114,7 +115,7 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
       ]);
       body = (
         <>
-          <div data-print-hide>
+          <Toolbar label={fs.pickAccount} className="print:hidden">
             <SearchSelectFilter
               param="account"
               placeholder={fs.pickAccount}
@@ -124,19 +125,16 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
                 hint: a.codeDisplay || a.code,
               }))}
             />
-          </div>
+          </Toolbar>
           {accounts.error ? <ErpLoadError error={accounts.error} /> : null}
           {!ledger ? (
             <ErpEmpty icon={<BookOpen className="size-5" />} title={r.pickAccount} />
           ) : ledger.error ? (
             <ErpLoadError error={ledger.error} />
           ) : (
-            <>
-              <h2 className="text-base font-semibold">
-                {ledger.data.account?.codeDisplay} {ledger.data.account?.name}
-              </h2>
+            <Section title={`${ledger.data.account?.codeDisplay ?? ""} ${ledger.data.account?.name ?? ""}`}>
               <LedgerTable ledger={ledger.data} />
-            </>
+            </Section>
           )}
         </>
       );
@@ -151,7 +149,7 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
       ]);
       body = (
         <>
-          <div className="flex flex-wrap items-center gap-2" data-print-hide>
+          <Toolbar label={r.party} className="print:hidden">
             <UrlTabs
               param="kind"
               label={r.party}
@@ -169,7 +167,7 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
                 label: `${p.partyName} · ${formatRupiah(p.outstanding)}`,
               }))}
             />
-          </div>
+          </Toolbar>
           {parties.error ? <ErpLoadError error={parties.error} /> : null}
           {!ledger ? (
             <ErpEmpty icon={<Users className="size-5" />} title={r.pickParty} />

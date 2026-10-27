@@ -104,7 +104,7 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
         ]}
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-(--gap) lg:grid-cols-3">
         <SocialModuleCard data={social} href={detailHref("social")} settingsHref={detailHref("settings")} />
         <SeoModuleCard data={seo} href={detailHref("seo")} settingsHref={detailHref("settings")} />
         <AdsModuleCard
@@ -115,7 +115,7 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-(--gap) lg:grid-cols-3">
         <div className="lg:col-span-2 [&>div]:h-full">
           <AiInsightCard
             content={insight?.content}

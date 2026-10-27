@@ -150,7 +150,7 @@ export function PerformanceTab({ data, ctx }: TabProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <KpiGrid>
         <KpiTile label={cd.engagement} value={formatCompact(num(k.engagements))} delta={d(k.engagements, p.engagements)} previous={formatCompact(num(p.engagements))} spark={spark(buckets, (b) => b.engagements)} href={publishedBoard} hint={cd.hEngagement} />
         <KpiTile label={cd.reach} value={formatCompact(num(k.reach))} delta={d(k.reach, p.reach)} previous={formatCompact(num(p.reach))} spark={spark(buckets, (b) => b.reach)} href={publishedBoard} hint={cd.hReach} />
@@ -158,7 +158,7 @@ export function PerformanceTab({ data, ctx }: TabProps) {
         <KpiTile label={cd.perPost} value={formatNumber(Math.round(perPostNow))} delta={d(perPostNow, perPostPrev)} caption={cd.measuredPosts(k.measuredPosts)} href={publishedBoard} hint={cd.hPerPost} />
       </KpiGrid>
 
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-2">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-2">
         <ChartCard title={cd.engagementTrend} description={cd.engagementTrendDesc}>
           <PeriodChart
             onSelect={openBucket}
@@ -194,26 +194,26 @@ export function PerformanceTab({ data, ctx }: TabProps) {
         />
       </ChartCard>
 
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-3">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-3">
         <BreakdownCard title={cd.byPlatform} rows={cur.byPlatform ?? []} label={platformLabel} param="platform" ctx={ctx} />
         <BreakdownCard title={cd.byFormat} rows={cur.byFormat ?? []} label={(k) => c.format[k as ContentFormat] ?? k} param="format" ctx={ctx} />
         <BreakdownCard title={cd.byPillar} rows={cur.byPillar ?? []} label={(k) => k} param="pillar" ctx={ctx} topN={5} />
       </div>
 
-      <div className="grid gap-6 [&>*]:min-w-0">
+      <div className="grid gap-(--gap) [&>*]:min-w-0">
         <Section title={cd.topPosts} description={cd.topPostsDesc}>
-          <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
+          <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
             <PostsTable posts={measured.slice(0, 5)} ctx={ctx} />
           </div>
         </Section>
         <Section title={cd.bottomPosts} description={cd.bottomPostsDesc}>
-          <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
+          <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
             <PostsTable posts={bottom} ctx={ctx} />
           </div>
         </Section>
       </div>
       <Section title={cd.allPosts(posts.length)}>
-        <div className="max-h-[560px] overflow-y-auto rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow) scrollbar-thin">
+        <div className="max-h-[560px] overflow-y-auto rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow) scrollbar-thin">
           <PostsTable posts={posts} ctx={ctx} />
         </div>
       </Section>
@@ -236,7 +236,7 @@ export function AssetsTab({ data, ctx }: TabProps) {
   const assetsHref = `${ctx.base}/assets`;
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <KpiGrid>
         <KpiTile label={cd.designTasks} value={formatNumber(k.designTasks)} delta={d(k.designTasks, p.designTasks)} caption={cd.approvedOf(k.designApproved)} href={designHref} hint={cd.hDesignTasks} />
         <KpiTile
@@ -253,7 +253,7 @@ export function AssetsTab({ data, ctx }: TabProps) {
         <KpiTile label={cd.assetUploads} value={formatNumber(k.assetUploads)} delta={d(k.assetUploads, p.assetUploads)} spark={spark(buckets, (b) => b.assetUploads)} href={assetsHref} hint={cd.hAssetUploads} />
       </KpiGrid>
 
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-5">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-5">
         <ChartCard className="lg:col-span-3" title={cd.turnaroundTrend} description={cd.turnaroundTrendDesc}>
           <PeriodChart
             onSelect={() => router.push(designHref)}
@@ -273,7 +273,7 @@ export function AssetsTab({ data, ctx }: TabProps) {
         </ChartCard>
       </div>
 
-      <div className="grid gap-5 [&>*]:min-w-0 lg:grid-cols-5">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 lg:grid-cols-5">
         <ChartCard className="lg:col-span-3" title={cd.uploadsTrend} description={cd.uploadsTrendDesc}>
           <PeriodChart
             onSelect={() => router.push(assetsHref)}
@@ -294,9 +294,9 @@ export function AssetsTab({ data, ctx }: TabProps) {
         </ChartCard>
       </div>
 
-      <div className="grid gap-6 [&>*]:min-w-0 xl:grid-cols-2">
+      <div className="grid gap-(--gap) [&>*]:min-w-0 xl:grid-cols-2">
         <Section title={cd.designerTable} description={cd.designerTableDesc}>
-          <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
+          <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
             <DetailTable
               rows={designers}
               rowKey={(x) => x.userId}
@@ -313,7 +313,7 @@ export function AssetsTab({ data, ctx }: TabProps) {
           </div>
         </Section>
         <Section title={cd.assetTable} description={cd.assetTableDesc}>
-          <div className="rounded-[1.5rem] bg-card p-5 shadow-(--card-shadow)">
+          <div className="rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
             <DetailTable
               rows={cur.topAssets ?? []}
               rowKey={(a) => a.assetId}

@@ -24,7 +24,7 @@ export function ShareControls({ slug }: { slug: string }) {
   return (
     <div className="flex items-center gap-2">
       <Select value={active} onValueChange={(v) => void setPreset(v)}>
-        <SelectTrigger size="sm" className="w-[110px]" aria-label={rs.share.presetLabel}>
+        <SelectTrigger className="w-[110px]" aria-label={rs.share.presetLabel}>
           {isPending ? <Loader2 className="size-3.5 animate-spin" /> : null}
           <SelectValue>{PRESET_OPTIONS.find((p) => p.key === active)?.label}</SelectValue>
         </SelectTrigger>

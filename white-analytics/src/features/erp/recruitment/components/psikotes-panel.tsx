@@ -1,5 +1,7 @@
 "use client";
 
+import { DetailLayout } from "@/components/dashboard/layout";
+import { Section } from "@/components/dashboard/page-header";
 import * as React from "react";
 import { Eye, Loader2, Send, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,8 +25,23 @@ import {
   reviewTestAction,
   savePsikotesSummaryAction,
 } from "../actions";
-import { INSTRUMENT_KIND, PROCTOR_EVENT, RECOMMENDATION, SESSION_STATUS, TEST_STATUS, kinds, rs } from "../strings";
-import type { Instrument, ProctorEvent, PsikotesPanel as Panel, PsikotesSession, SessionTest, TestAnswers } from "../types";
+import {
+  INSTRUMENT_KIND,
+  PROCTOR_EVENT,
+  RECOMMENDATION,
+  SESSION_STATUS,
+  TEST_STATUS,
+  kinds,
+  rs,
+} from "../strings";
+import type {
+  Instrument,
+  ProctorEvent,
+  PsikotesPanel as Panel,
+  PsikotesSession,
+  SessionTest,
+  TestAnswers,
+} from "../types";
 import { Info, PortalLink } from "./ui";
 
 const t = rs.psikotes;
@@ -41,24 +58,34 @@ export function PsikotesPanel({
   canWrite: boolean;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <div className="flex flex-col gap-4 lg:col-span-2">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-base font-semibold">{t.title}</h2>
-          {canWrite ? <InviteButton candidateId={candidateId} instruments={instruments} /> : null}
-        </div>
+    <DetailLayout
+      aside={<SummaryCard candidateId={candidateId} summary={panel.summary} canWrite={canWrite} />}
+    >
+      <Section
+        title={t.title}
+        actions={canWrite ? <InviteButton candidateId={candidateId} instruments={instruments} /> : null}
+      >
         {panel.sessions.length === 0 ? (
           <ErpEmpty compact title={t.empty} />
         ) : (
-          panel.sessions.map((s, i) => <SessionCard key={s.id} session={s} index={panel.sessions.length - i} canWrite={canWrite} />)
+          panel.sessions.map((s, i) => (
+            <SessionCard key={s.id} session={s} index={panel.sessions.length - i} canWrite={canWrite} />
+          ))
         )}
-      </div>
-      <SummaryCard candidateId={candidateId} summary={panel.summary} canWrite={canWrite} />
-    </div>
+      </Section>
+    </DetailLayout>
   );
 }
 
-function SessionCard({ session, index, canWrite }: { session: PsikotesSession; index: number; canWrite: boolean }) {
+function SessionCard({
+  session,
+  index,
+  canWrite,
+}: {
+  session: PsikotesSession;
+  index: number;
+  canWrite: boolean;
+}) {
   const flags = session.proctor?.flags ?? 0;
   return (
     <Card>
@@ -73,7 +100,9 @@ function SessionCard({ session, index, canWrite }: { session: PsikotesSession; i
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Info label={t.invitedAt}>{formatDateTime(session.invitedAt)}</Info>
           <Info label={t.expiresAt}>{formatDateTime(session.expiresAt)}</Info>
-          <Info label={t.completedAt}>{session.completedAt ? formatDateTime(session.completedAt) : null}</Info>
+          <Info label={t.completedAt}>
+            {session.completedAt ? formatDateTime(session.completedAt) : null}
+          </Info>
         </dl>
         {canWrite && session.token && ["draft", "sent", "in_progress"].includes(session.status) ? (
           <div>
@@ -105,7 +134,9 @@ function TestRow({ test, canWrite }: { test: SessionTest; canWrite: boolean }) {
         </div>
         <div className="mt-0.5 text-xs text-muted-foreground">
           {INSTRUMENT_KIND[test.instrumentKind] ?? test.instrumentKind}
-          {test.instrumentKind === "mcq" && d && d.mcqTotal ? ` · ${t.mcqScore(d.mcqCorrect, d.mcqTotal)}` : null}
+          {test.instrumentKind === "mcq" && d && d.mcqTotal
+            ? ` · ${t.mcqScore(d.mcqCorrect, d.mcqTotal)}`
+            : null}
           {test.score != null ? ` · ${t.score} ${test.score}` : null}
         </div>
         {test.instrumentKind === "forced_choice" && d?.papiDominant.length ? (
@@ -127,7 +158,10 @@ function TestRow({ test, canWrite }: { test: SessionTest; canWrite: boolean }) {
       <div className="flex shrink-0 flex-wrap gap-1.5">
         {done && test.instrumentKind !== "drawing" ? <AnswersButton test={test} /> : null}
         {test.hasAttachment ? (
-          <DownloadButton href={`/api/erp/v1/recruitment/psikotes/session-tests/${test.id}/attachment`} size="xs">
+          <DownloadButton
+            href={`/api/erp/v1/recruitment/psikotes/session-tests/${test.id}/attachment`}
+            size="xs"
+          >
             {t.attachment}
           </DownloadButton>
         ) : null}
@@ -210,9 +244,14 @@ function AnswersBody({ testId }: { testId: string }) {
               {(["a", "b"] as const).map((k) => {
                 const st = k === "a" ? it.statementA : it.statementB;
                 return (
-                  <li key={k} className={cn("rounded px-2 py-1", it.given === k && "bg-brand/10 font-medium")}>
+                  <li
+                    key={k}
+                    className={cn("rounded px-2 py-1", it.given === k && "bg-brand/10 font-medium")}
+                  >
                     <span className="uppercase">{k}.</span> {st?.text}
-                    {st?.scale ? <span className="ml-1 text-xs text-muted-foreground">({st.scale})</span> : null}
+                    {st?.scale ? (
+                      <span className="ml-1 text-xs text-muted-foreground">({st.scale})</span>
+                    ) : null}
                   </li>
                 );
               })}
@@ -252,12 +291,21 @@ function ReviewForm({ test, close }: { test: SessionTest; close: () => void }) {
       }}
     >
       {test.hasAttachment ? (
-        <DownloadButton href={`/api/erp/v1/recruitment/psikotes/session-tests/${test.id}/attachment`} className="self-start">
+        <DownloadButton
+          href={`/api/erp/v1/recruitment/psikotes/session-tests/${test.id}/attachment`}
+          className="self-start"
+        >
           {t.attachment}
         </DownloadButton>
       ) : null}
       <Fld label={t.reviewNotes} htmlFor="review-notes">
-        <Textarea id="review-notes" rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} autoFocus />
+        <Textarea
+          id="review-notes"
+          rows={4}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          autoFocus
+        />
       </Fld>
       <FormFooter onCancel={close} pending={pending} />
     </form>
@@ -265,12 +313,24 @@ function ReviewForm({ test, close }: { test: SessionTest; close: () => void }) {
 }
 
 /** Proctor flag count that opens the event log. */
-export function ProctorButton({ sessionType, sessionId, flags }: { sessionType: "psikotes" | "interview"; sessionId: string; flags: number }) {
+export function ProctorButton({
+  sessionType,
+  sessionId,
+  flags,
+}: {
+  sessionType: "psikotes" | "interview";
+  sessionId: string;
+  flags: number;
+}) {
   return (
     <FormDialog
       title={t.proctorTitle}
       trigger={
-        <Button size="xs" variant={flags ? "outline" : "ghost"} className={cn(flags > 0 && "text-amber-600 dark:text-amber-400")}>
+        <Button
+          size="xs"
+          variant={flags ? "outline" : "ghost"}
+          className={cn(flags > 0 && "text-amber-600 dark:text-amber-400")}
+        >
           <ShieldAlert className="size-3.5" /> {t.flags(flags)}
         </Button>
       }
@@ -280,7 +340,13 @@ export function ProctorButton({ sessionType, sessionId, flags }: { sessionType: 
   );
 }
 
-function ProctorBody({ sessionType, sessionId }: { sessionType: "psikotes" | "interview"; sessionId: string }) {
+function ProctorBody({
+  sessionType,
+  sessionId,
+}: {
+  sessionType: "psikotes" | "interview";
+  sessionId: string;
+}) {
   const { data, error } = useLoad<ProctorEvent[]>(() => listProctorEventsAction(sessionType, sessionId));
   if (error) return <ErpError compact message={error} />;
   if (!data) return <Loading />;
@@ -293,7 +359,11 @@ function ProctorBody({ sessionType, sessionId }: { sessionType: "psikotes" | "in
             {PROCTOR_EVENT[e.eventType] ?? e.eventType}
             {Object.keys(e.meta ?? {}).length ? (
               <span className="ml-1 text-xs text-muted-foreground">
-                ({Object.entries(e.meta).map(([k, v]) => `${k}: ${v}`).join(", ")})
+                (
+                {Object.entries(e.meta)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(", ")}
+                )
               </span>
             ) : null}
           </span>
@@ -309,17 +379,31 @@ function InviteButton({ candidateId, instruments }: { candidateId: string; instr
     <FormDialog
       title={t.inviteTitle}
       trigger={
-        <Button size="sm">
+        <Button>
           <Send className="size-4" /> {t.invite}
         </Button>
       }
     >
-      {(close) => <InviteForm candidateId={candidateId} instruments={instruments.filter((i) => i.isActive)} close={close} />}
+      {(close) => (
+        <InviteForm
+          candidateId={candidateId}
+          instruments={instruments.filter((i) => i.isActive)}
+          close={close}
+        />
+      )}
     </FormDialog>
   );
 }
 
-function InviteForm({ candidateId, instruments, close }: { candidateId: string; instruments: Instrument[]; close: () => void }) {
+function InviteForm({
+  candidateId,
+  instruments,
+  close,
+}: {
+  candidateId: string;
+  instruments: Instrument[];
+  close: () => void;
+}) {
   const [picked, setPicked] = React.useState<string[]>(instruments.map((i) => i.id));
   const [days, setDays] = React.useState(3);
   const [link, setLink] = React.useState<string | null>(null);
@@ -365,14 +449,30 @@ function InviteForm({ candidateId, instruments, close }: { candidateId: string; 
         ))}
       </fieldset>
       <Fld label={t.expiresDays} htmlFor="inv-days">
-        <Input id="inv-days" type="number" min={1} max={30} value={days} onChange={(e) => setDays(Number(e.target.value))} className="w-28" />
+        <Input
+          id="inv-days"
+          type="number"
+          min={1}
+          max={30}
+          value={days}
+          onChange={(e) => setDays(Number(e.target.value))}
+          className="w-28"
+        />
       </Fld>
       <FormFooter onCancel={close} pending={pending} submitLabel={t.invite} />
     </form>
   );
 }
 
-function SummaryCard({ candidateId, summary, canWrite }: { candidateId: string; summary: Panel["summary"]; canWrite: boolean }) {
+function SummaryCard({
+  candidateId,
+  summary,
+  canWrite,
+}: {
+  candidateId: string;
+  summary: Panel["summary"];
+  canWrite: boolean;
+}) {
   const [rec, setRec] = React.useState(summary?.recommendation ?? "");
   const [notes, setNotes] = React.useState(summary?.notes ?? "");
   const { run, pending } = useErpAction();
@@ -381,7 +481,9 @@ function SummaryCard({ candidateId, summary, canWrite }: { candidateId: string; 
       <CardHeader>
         <CardTitle>{t.summary}</CardTitle>
         {summary?.updatedByName ? (
-          <p className="text-xs text-muted-foreground">{rs.screening.updatedBy(summary.updatedByName, formatDateTime(summary.updatedAt))}</p>
+          <p className="text-xs text-muted-foreground">
+            {rs.screening.updatedBy(summary.updatedByName, formatDateTime(summary.updatedAt))}
+          </p>
         ) : null}
       </CardHeader>
       <CardContent>
@@ -403,7 +505,13 @@ function SummaryCard({ candidateId, summary, canWrite }: { candidateId: string; 
             />
           </Fld>
           <Fld label={rs.screening.notes} htmlFor="psi-notes">
-            <Textarea id="psi-notes" rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={!canWrite} />
+            <Textarea
+              id="psi-notes"
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              disabled={!canWrite}
+            />
           </Fld>
           {canWrite ? (
             <Button type="submit" size="sm" className="self-end" disabled={pending}>

@@ -91,8 +91,8 @@ export function CreatePlanButton({ slug, defaultMonth }: { slug: string; default
 
   return (
     <>
-      <Button size="sm" onClick={() => setOpen(true)}>
-        <Plus className="size-3.5" /> {c.createPlan}
+      <Button onClick={() => setOpen(true)}>
+        <Plus /> {c.createPlan}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
@@ -109,10 +109,10 @@ export function CreatePlanButton({ slug, defaultMonth }: { slug: string; default
             </Field>
           </form>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => setOpen(false)}>
               {c.cancel}
             </Button>
-            <Button type="submit" form="plan-form" size="sm" disabled={pending || !month}>
+            <Button type="submit" form="plan-form" disabled={pending || !month}>
               {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {c.createPlan}
             </Button>
           </DialogFooter>

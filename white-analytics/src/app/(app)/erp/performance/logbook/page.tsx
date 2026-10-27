@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toolbar } from "@/components/dashboard/layout";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
@@ -47,7 +48,7 @@ export default async function LogbookPage(props: PageProps<"/erp/performance/log
         title={l.title}
         description={me.isFullAccess ? l.subtitle : `${l.subtitle} ${sp.common.department}: ${me.departmentName}.`}
       />
-      <div className="flex flex-wrap items-center gap-2">
+      <Toolbar>
         <UrlTabs
           label={l.title}
           reset={["date", "status", "from", "to"]}
@@ -68,7 +69,7 @@ export default async function LogbookPage(props: PageProps<"/erp/performance/log
         ) : null}
         {tab === "checklist" ? <UrlDate fallback={today} /> : null}
         {tab === "summary" ? <DateRangeFilter /> : null}
-      </div>
+      </Toolbar>
       {!me.me.employeeId && !me.isFullAccess ? <SectionNote text={sp.common.unlinked} /> : null}
       {tab === "history" ? (
         <HistorySection

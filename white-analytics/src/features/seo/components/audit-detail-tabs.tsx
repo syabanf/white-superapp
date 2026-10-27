@@ -62,7 +62,7 @@ export function AuditDetailTabs({ issues, pages }: { issues: IssueRow[]; pages: 
 
   return (
     <Card className="gap-0 py-0">
-      <CardContent className="p-6">
+      <CardContent className="p-(--card-pad)">
         <Tabs defaultValue="issues">
           <TabsList>
             <TabsTrigger value="issues">

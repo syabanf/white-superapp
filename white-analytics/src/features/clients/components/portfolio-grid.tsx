@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { EmptyState } from "@/components/dashboard/empty-state";
+import { Toolbar, ToolbarActions } from "@/components/dashboard/layout";
 import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { ArrowUpRight, CircleAlert, Clock, Megaphone, Search, Share2 } from "lucide-react";
@@ -87,22 +89,22 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
   }, [cards, query, sort]);
 
   return (
-    <div id="clients" className="scroll-mt-20 space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+    <div id="clients" className="flex scroll-mt-20 flex-col gap-(--gap-inner)">
+      <Toolbar>
+        <div className="relative max-sm:w-full">
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={tc.portfolio.search}
-            className="h-8 w-60 pl-8 text-sm"
+            className="w-full pl-9 sm:w-64"
             aria-label={tc.portfolio.search}
           />
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <ToolbarActions>
           <span className="text-xs text-muted-foreground">{tc.portfolio.sort}</span>
           <Select value={sort} onValueChange={(v) => void setSort(v as SortKey)}>
-            <SelectTrigger size="sm" className="w-40" aria-label={tc.portfolio.sort}>
+            <SelectTrigger className="w-40" aria-label={tc.portfolio.sort}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -113,15 +115,13 @@ export function PortfolioGrid({ cards }: { cards: PortfolioCardData[] }) {
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
+        </ToolbarActions>
+      </Toolbar>
 
       {visible.length === 0 ? (
-        <p className="rounded-xl border border-dashed bg-card/50 py-10 text-center text-sm text-muted-foreground">
-          {tc.portfolio.noMatch}
-        </p>
+        <EmptyState compact state="zero" title={tc.portfolio.noMatch} />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-(--gap) sm:grid-cols-2 xl:grid-cols-3">
           {visible.map((c) => (
             <ClientCard key={c.id} data={c} />
           ))}
@@ -145,7 +145,7 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
   if (data.modules.ads) activeModules.push({ key: "ads", label: tc.portfolio.moduleAds, icon: Megaphone });
 
   return (
-    <Card className="lift flex flex-col gap-4 p-6 hover:ring-brand/25">
+    <Card className="lift flex flex-col gap-4 p-(--card-pad) hover:ring-brand/25">
       <div className="flex items-start justify-between gap-3">
         <Link href={href()} className="group flex min-w-0 items-center gap-3">
           <Avatar className="size-11 rounded-full">

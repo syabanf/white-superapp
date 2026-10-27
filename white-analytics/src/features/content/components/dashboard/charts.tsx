@@ -4,12 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Area,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  LabelList,
   ComposedChart,
+  LabelList,
   Line,
   ResponsiveContainer,
   Scatter,
@@ -21,13 +22,20 @@ import {
 } from "recharts";
 import {
   AXIS_TICK,
+  BAR_CURSOR,
+  BAR_RADIUS,
+  BAR_RADIUS_ALL,
   CURSOR_STROKE,
+  GRID_DASH,
   GRID_STROKE,
   MUTED_SERIES,
   MarkButtons,
   SeriesLegend,
   TooltipBox,
   activeIndexOf,
+  areaFill,
+  barFill,
+  ringDot,
   slotColor,
   type SeriesDef,
 } from "@/components/dashboard/charts/chart-primitives";
@@ -96,6 +104,8 @@ export function PeriodChart({
   if (data.length === 0) return <Empty height={height} />;
   const bars = resolved.filter((s) => s.type === "bar");
   const lastBar = bars.at(-1)?.key;
+  // A wash under the line reads for one or two lines on their own; with bars or more lines it muddies.
+  const washLines = bars.length === 0 && resolved.length <= 2;
   return (
     <div>
       <div style={{ height }} role="img" aria-label={summary} className="w-full">
@@ -115,11 +125,11 @@ export function PeriodChart({
               if (idx != null) select(idx, null);
             }}
           >
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-            <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} interval="preserveStartEnd" minTickGap={18} tickMargin={8} />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS_TICK} interval="preserveStartEnd" minTickGap={18} tickMargin={8} />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => yFormat(v)} width={48} allowDecimals={false} />
             <Tooltip
-              cursor={bars.length ? { fill: "var(--muted)", fillOpacity: 0.5 } : { stroke: CURSOR_STROKE }}
+              cursor={bars.length ? BAR_CURSOR : { stroke: CURSOR_STROKE }}
               content={<TooltipBox seriesMap={map} />}
               isAnimationActive={false}
               wrapperStyle={{ outline: "none" }}
@@ -129,9 +139,9 @@ export function PeriodChart({
                 <Bar
                   key={s.key}
                   dataKey={s.key}
-                  fill={s.color}
+                  fill={barFill(s.color)}
                   stackId={stacked ? "s" : undefined}
-                  radius={!stacked || s.key === lastBar ? [4, 4, 0, 0] : 0}
+                  radius={!stacked || s.key === lastBar ? BAR_RADIUS : 0}
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 2 : 0}
@@ -143,7 +153,7 @@ export function PeriodChart({
                   }}
                 />
               ) : (
-                <Line key={s.key} type="monotone" dataKey={s.key} stroke={s.color} strokeWidth={2} dot={data.length < 16 ? { r: 3, strokeWidth: 0, fill: s.color } : false} activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }} isAnimationActive={false} connectNulls />
+                <Area key={s.key} type="monotone" dataKey={s.key} stroke={s.color} fill={washLines ? areaFill(s.color) : "none"} strokeWidth={2.5} dot={data.length < 16 ? { r: 3, strokeWidth: 0, fill: s.color } : false} activeDot={ringDot(s.color)} isAnimationActive={false} connectNulls />
               ),
             )}
             {previousKey ? (
@@ -199,14 +209,14 @@ export function CategoryBars({
             if (idx != null) select(idx);
           }}
         >
-          <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-          <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickMargin={8} interval={0} />
+          <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+          <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS_TICK} tickMargin={8} interval={0} />
           <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={36} allowDecimals={false} />
-          <Tooltip cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
+          <Tooltip cursor={BAR_CURSOR} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
           <Bar
             dataKey="value"
-            fill={color}
-            radius={[4, 4, 0, 0]}
+            fill={barFill(color)}
+            radius={BAR_RADIUS}
             maxBarSize={44}
             isAnimationActive={false}
             label={{ position: "top", fill: "var(--muted-foreground)", fontSize: 11 }}
@@ -258,16 +268,16 @@ export function GroupedBars({
               if (onSelect && idx != null && data[idx]) onSelect(data[idx], null);
             }}
           >
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-            <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickMargin={8} interval={0} />
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS_TICK} tickMargin={8} interval={0} />
             <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={32} allowDecimals={false} />
-            <Tooltip cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
+            <Tooltip cursor={BAR_CURSOR} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
             {series.map((s) => (
               <Bar
                 key={s.key}
                 dataKey={s.key}
-                fill={s.color}
-                radius={[4, 4, 0, 0]}
+                fill={barFill(s.color)}
+                radius={BAR_RADIUS}
                 maxBarSize={28}
                 isAnimationActive={false}
                 onClick={(_e, idx) => {
@@ -319,15 +329,15 @@ export function WaterfallChart({
             if (onSelect && idx != null && steps[idx]) onSelect(steps[idx], idx);
           }}
         >
-          <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 4" />
-          <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickMargin={8} interval={0} />
+          <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+          <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS_TICK} tickMargin={8} interval={0} />
           <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={32} allowDecimals={false} />
-          <Tooltip cursor={{ fill: "var(--muted)", fillOpacity: 0.5 }} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
+          <Tooltip cursor={BAR_CURSOR} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
           <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" isAnimationActive={false} />
-          <Bar dataKey="value" stackId="w" radius={[4, 4, 4, 4]} maxBarSize={48} isAnimationActive={false}>
+          <Bar dataKey="value" stackId="w" radius={BAR_RADIUS_ALL} maxBarSize={48} isAnimationActive={false}>
             <LabelList dataKey="text" position="top" fill="var(--muted-foreground)" fontSize={11} />
             {data.map((d) => (
-              <Cell key={d.label} fill={d.kind === "total" ? slotColor(0) : "var(--negative)"} />
+              <Cell key={d.label} fill={barFill(d.kind === "total" ? slotColor(0) : "var(--negative)")} />
             ))}
           </Bar>
         </BarChart>
@@ -425,8 +435,8 @@ export function PostScatter({
       <div style={{ height }} role="img" aria-label={summary}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 520, height }}>
           <ScatterChart margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
-            <CartesianGrid stroke={GRID_STROKE} strokeDasharray="3 4" />
-            <XAxis type="number" dataKey="x" name={cd.reach} tickLine={false} axisLine={{ stroke: "var(--axis)" }} tick={AXIS_TICK} tickFormatter={(v: number) => formatCompact(v)} />
+            <CartesianGrid stroke={GRID_STROKE} strokeDasharray={GRID_DASH} />
+            <XAxis type="number" dataKey="x" name={cd.reach} tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => formatCompact(v)} />
             <YAxis type="number" dataKey="y" name={cd.engagement} tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(v: number) => formatCompact(v)} width={44} />
             <ZAxis range={[64, 64]} />
             <Tooltip

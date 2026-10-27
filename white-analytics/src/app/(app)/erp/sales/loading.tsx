@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { DashboardSkeleton } from "@/features/erp/sales/dashboard/sections";
+import { DashboardSkeleton } from "@/features/erp/sales/dashboard/skeleton";
 
 export default function SalesLoading() {
   return (

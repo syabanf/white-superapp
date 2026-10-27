@@ -79,7 +79,7 @@ function PersonCard({
       {body}
     </button>
   ) : (
-    <Card className="gap-0 p-4">{body}</Card>
+    <Card className="gap-0 p-(--card-pad)">{body}</Card>
   );
 }
 
@@ -87,7 +87,7 @@ function PersonCard({
 export function RealtimeGrid({ data }: { data: RealtimeKpi }) {
   if (data.employees.length === 0) return <ErpEmpty title={r.realtimeEmpty} />;
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-(--gap) sm:grid-cols-2 lg:grid-cols-3">
       {data.employees.map((e) => (
         <PersonCard key={e.employeeId} name={e.employeeName} department={e.departmentName} score={e.avgScore}>
           <div className="flex gap-2">
@@ -153,7 +153,7 @@ function OpenCycleDialog() {
           <DialogTitle>{r.openCycleTitle}</DialogTitle>
           <DialogDescription>{r.openCycleBody}</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-[6rem_1fr] gap-3">
+        <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3">
           <FormRow label={sp.common.year} htmlFor="cy-year">
             <Input id="cy-year" type="number" value={year} onChange={(e) => setYear(e.target.value)} />
           </FormRow>
@@ -193,7 +193,7 @@ export function ReviewsGrid({ reviews }: { reviews: Review[] }) {
   if (reviews.length === 0) return <ErpEmpty title={r.noReviews} />;
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-(--gap) sm:grid-cols-2 lg:grid-cols-3">
         {reviews.map((v) => (
           <PersonCard key={v.id} name={v.employeeName} department={v.departmentName} score={v.grandTotalScore} onClick={() => setOpenId(v.id)}>
             <div className="flex flex-wrap items-center gap-1.5">
