@@ -107,7 +107,7 @@ function MappingDialog({
   const cells = {
     side: (l: LineState) => (
       <Select value={l.entrySide} onValueChange={(v) => patch(l.key, { entrySide: v as "DEBIT" | "CREDIT" })}>
-        <SelectTrigger size="sm" className="w-full" aria-label={fs.type}>
+        <SelectTrigger className="w-full" aria-label={fs.type}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -118,7 +118,6 @@ function MappingDialog({
     ),
     role: (l: LineState) => (
       <Input
-        className="h-8"
         value={l.lineRole}
         onChange={(e) => patch(l.key, { lineRole: e.target.value })}
         aria-label={m.lineRole}
@@ -130,7 +129,7 @@ function MappingDialog({
     ),
     source: (l: LineState) => (
       <Select value={l.amountSource} onValueChange={(v) => patch(l.key, { amountSource: v })}>
-        <SelectTrigger size="sm" className="w-full" aria-label={m.amountSource}>
+        <SelectTrigger className="w-full" aria-label={m.amountSource}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

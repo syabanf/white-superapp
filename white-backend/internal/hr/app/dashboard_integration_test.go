@@ -15,8 +15,8 @@ import (
 func TestHrDashboardOverSeed(t *testing.T) {
 	e := setup(t)
 	e.d.Events = events.Noop{}
-	users := []app.UserInfo{{ID: "user-admin", Email: "admin@white.id"}, {ID: "user-tim", Email: "tim@white.id"}}
-	e.must(seed.New(e.d, docs.Renderer{CompanyName: "WHITE"}).Run(e.ctx, users))
+	users := []app.UserInfo{{ID: "user-admin", Email: "admin@mixist.id"}, {ID: "user-tim", Email: "tim@mixist.id"}}
+	e.must(seed.New(e.d, docs.Renderer{CompanyName: "Mixist"}).Run(e.ctx, users))
 	dash := app.NewDashboard(e.d, e.leaves)
 
 	_, err := dash.HR(e.ctx, e.actor("user-tim", authn.PermSelfService), app.DashboardQuery{})
@@ -91,14 +91,14 @@ func TestHrDashboardOverSeed(t *testing.T) {
 func TestMyDashboardOverSeed(t *testing.T) {
 	e := setup(t)
 	e.d.Events = events.Noop{}
-	users := []app.UserInfo{{ID: "user-admin", Email: "admin@white.id"}, {ID: "user-tim", Email: "tim@white.id"}}
-	e.must(seed.New(e.d, docs.Renderer{CompanyName: "WHITE"}).Run(e.ctx, users))
+	users := []app.UserInfo{{ID: "user-admin", Email: "admin@mixist.id"}, {ID: "user-tim", Email: "tim@mixist.id"}}
+	e.must(seed.New(e.d, docs.Renderer{CompanyName: "Mixist"}).Run(e.ctx, users))
 	dash := app.NewDashboard(e.d, e.leaves)
 
 	_, err := dash.Me(e.ctx, e.actor("user-nobody", authn.PermSelfService), "")
 	wantCode(t, err, apperr.NotFound)
 
-	// Gita (tim@white.id) is a content strategist reporting to Fajar.
+	// Gita (tim@mixist.id) is a content strategist reporting to Fajar.
 	gita := e.actor("user-tim", authn.PermSelfService)
 	m, err := dash.Me(e.ctx, gita, "2026-09")
 	e.must(err)

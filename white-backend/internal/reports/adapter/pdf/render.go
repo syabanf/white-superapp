@@ -95,9 +95,9 @@ func layout(data domain.PdfData, totalPages int) (*doc, error) {
 	d.pageW, d.pageH = f.GetPageSize()
 	d.contentW = d.pageW - 2*margin
 	f.SetTitle(d.tr(Safe(data.Title)), false)
-	f.SetAuthor("WHITE Analytics", false)
-	f.SetCreator("WHITE Analytics", false)
-	f.SetProducer("WHITE Analytics", false)
+	f.SetAuthor("Mixist Analytics", false)
+	f.SetCreator("Mixist Analytics", false)
+	f.SetProducer("Mixist Analytics", false)
 	f.SetFooterFunc(d.drawFooter)
 
 	d.cover()

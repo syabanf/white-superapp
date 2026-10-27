@@ -119,7 +119,7 @@ func showcaseRows(ctx context.Context, pool *pgxpool.Pool, owners []string) erro
 		  SELECT c.id || '-n', c.id, coalesce(c.assigned_user_id, $1), (ARRAY['Minta dikirimi portofolio F&B sebelum meeting.','Budget masih dibahas dengan owner, follow up Kamis.','Klien komplain respons lambat, prioritaskan.','Sudah dikirim price list paket social media.'])[1 + abs(hashtext(c.id)) % 4], c.created_at + interval '2 hours'
 		  FROM sales.lead_conversations c WHERE c.id LIKE 'hist-conv-%' AND c.created_at > now() - interval '45 days' ON CONFLICT DO NOTHING`, []any{owners[0]}},
 		{`INSERT INTO sales.reply_templates (id, title, body) VALUES
-		  ('show-rt-portfolio', 'Kirim portofolio', 'Berikut portofolio kami untuk industri {industri}: https://white.id/portofolio. Ada yang ingin dibahas lebih lanjut?'),
+		  ('show-rt-portfolio', 'Kirim portofolio', 'Berikut portofolio kami untuk industri {industri}: https://mixist.id/portofolio. Ada yang ingin dibahas lebih lanjut?'),
 		  ('show-rt-jadwal', 'Ajak meeting', 'Boleh kami jadwalkan video call 30 menit minggu ini untuk membahas kebutuhan {perusahaan}? Silakan pilih hari yang cocok.')
 		  ON CONFLICT DO NOTHING`, nil},
 		{`INSERT INTO sales.case_studies (id, title, client_name, industry, service_lines, challenge, solution, results, sort_order) VALUES

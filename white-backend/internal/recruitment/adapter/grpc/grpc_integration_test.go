@@ -196,7 +196,7 @@ func TestHandlersOverGRPC(t *testing.T) {
 		t.Fatalf("offers: %v %v", panelOffers, err)
 	}
 	offerView, err := public.GetOfferPortal(edge, &pb.PortalTokenRequest{Token: panelOffers.Offers[0].Token})
-	if err != nil || offerView.CompanyName != "WHITE" || offerView.BaseSalary != "7000000.00" {
+	if err != nil || offerView.CompanyName != "Mixist" || offerView.BaseSalary != "7000000.00" {
 		t.Fatalf("offer portal: %v %v", offerView, err)
 	}
 	letter, err := public.DownloadPublicOfferLetter(edge, &pb.PortalTokenRequest{Token: panelOffers.Offers[0].Token})

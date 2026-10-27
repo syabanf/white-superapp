@@ -171,7 +171,7 @@ export const t = {
   erp: {
     eyebrow: "ERP",
     title: "Beranda ERP",
-    subtitle: "Keuangan, SDM, kinerja, dan penjualan WHITE dalam satu tempat.",
+    subtitle: "Keuangan, SDM, kinerja, dan penjualan Mixist dalam satu tempat.",
     offlineTitle: "Layanan ERP belum terhubung",
     unauthorized: "Anda belum punya izin untuk modul itu. Minta admin menambahkannya di Manajemen User.",
     noModules: "Akun Anda belum punya izin modul ERP. Minta admin menambahkannya di Manajemen User.",
@@ -555,7 +555,7 @@ export const t = {
     notFoundDesc: "Periksa kembali link atau hubungi agency Anda.",
     disabled: "Link ini tidak aktif",
     disabledDesc: "Agency menonaktifkan akses publik untuk dashboard ini.",
-    footer: "Dashboard disediakan oleh WHITE",
+    footer: "Dashboard disediakan oleh Mixist",
   },
   settings: {
     title: "Pengaturan Klien",

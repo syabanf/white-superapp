@@ -2951,7 +2951,7 @@ type ReportServiceClient interface {
 	ListSubsidiaryParties(ctx context.Context, in *ListSubsidiaryPartiesRequest, opts ...grpc.CallOption) (*ListSubsidiaryPartiesResponse, error)
 	GetSubsidiaryLedger(ctx context.Context, in *SubsidiaryLedgerRequest, opts ...grpc.CallOption) (*SubsidiaryLedger, error)
 	GetDashboard(ctx context.Context, in *DashboardRequest, opts ...grpc.CallOption) (*Dashboard, error)
-	// Dashboard tabs (new for WHITE): range totals against a comparison
+	// Dashboard tabs (new for Mixist): range totals against a comparison
 	// range plus monthly trends, all from posted journals.
 	GetFinanceSummary(ctx context.Context, in *FinanceAnalyticsRequest, opts ...grpc.CallOption) (*FinanceSummary, error)
 	GetFinanceProfitability(ctx context.Context, in *FinanceAnalyticsRequest, opts ...grpc.CallOption) (*FinanceProfitability, error)
@@ -3121,7 +3121,7 @@ type ReportServiceServer interface {
 	ListSubsidiaryParties(context.Context, *ListSubsidiaryPartiesRequest) (*ListSubsidiaryPartiesResponse, error)
 	GetSubsidiaryLedger(context.Context, *SubsidiaryLedgerRequest) (*SubsidiaryLedger, error)
 	GetDashboard(context.Context, *DashboardRequest) (*Dashboard, error)
-	// Dashboard tabs (new for WHITE): range totals against a comparison
+	// Dashboard tabs (new for Mixist): range totals against a comparison
 	// range plus monthly trends, all from posted journals.
 	GetFinanceSummary(context.Context, *FinanceAnalyticsRequest) (*FinanceSummary, error)
 	GetFinanceProfitability(context.Context, *FinanceAnalyticsRequest) (*FinanceProfitability, error)

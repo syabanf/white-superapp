@@ -156,7 +156,7 @@ func (r *Real) Generate(ctx context.Context, in domain.InsightInput) (string, er
 	req.Header.Set("Authorization", "Bearer "+r.apiKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", r.referer)
-	req.Header.Set("X-Title", "WHITE Analytics")
+	req.Header.Set("X-Title", "Mixist Analytics")
 	res, err := r.client.Do(req)
 	if err != nil {
 		return "", providerErr(apperr.Network, fmt.Errorf("tidak dapat menghubungi OpenRouter (timeout/jaringan): %w", err))

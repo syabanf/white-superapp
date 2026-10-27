@@ -45,7 +45,7 @@ type Client struct {
 }
 
 func New(timeout time.Duration) *Client {
-	return &Client{HTTP: &http.Client{Timeout: timeout}, UserAgent: "WHITEAnalytics/1.0", MaxBody: 16 << 20}
+	return &Client{HTTP: &http.Client{Timeout: timeout}, UserAgent: "MixistAnalytics/1.0", MaxBody: 16 << 20}
 }
 
 func (c *Client) Do(ctx context.Context, method, rawURL string, body io.Reader, headers map[string]string) (*Response, error) {

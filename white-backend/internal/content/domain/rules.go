@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-// AgencyTZ is where deadlines and "today" are evaluated: WHITE works in
+// AgencyTZ is where deadlines and "today" are evaluated: Mixist works in
 // Jakarta time.
 const AgencyTZ = "Asia/Jakarta"
 

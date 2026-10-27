@@ -1,6 +1,6 @@
 // Package seed loads finance reference data (account types, a standard
 // Indonesian agency chart of accounts, journal mappings, reimbursement
-// policies) and demo transactions for WHITE. Every step is idempotent.
+// policies) and demo transactions for Mixist. Every step is idempotent.
 package seed
 
 import (
@@ -116,7 +116,7 @@ type mappingDef struct {
 	lines []mappingLine
 }
 
-// mappings are the journal templates WHITE posts automatically.
+// mappings are the journal templates Mixist posts automatically.
 var mappings = []mappingDef{
 	{domain.EventPayrollAccrual, []mappingLine{{domain.Debit, "EXPENSE", "6101001", "TOTAL", true}, {domain.Credit, "PAYABLE", "2102001", "TOTAL", true}}},
 	{domain.EventPayrollPPh21, []mappingLine{{domain.Debit, "PAYABLE", "2102001", "TAX", true}, {domain.Credit, "TAX_PAYABLE", "2103001", "TAX", true}}},

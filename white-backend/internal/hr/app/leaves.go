@@ -12,7 +12,7 @@ import (
 )
 
 // Leaves is leave requests and balances (lib/hris/leaves-repo,
-// leave-balances-repo, leaves-export) with WHITE's manager-then-HR
+// leave-balances-repo, leaves-export) with Mixist's manager-then-HR
 // approval.
 type Leaves struct{ d Deps }
 

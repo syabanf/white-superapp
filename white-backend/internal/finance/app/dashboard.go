@@ -10,7 +10,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
 )
 
-// Dashboard tabs (new for WHITE): every tab compares the range with a
+// Dashboard tabs (new for Mixist): every tab compares the range with a
 // comparison range and plots monthly trends. Range totals come from exact
 // day windows; trends from monthly sums and month-end balances.
 

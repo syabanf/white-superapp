@@ -173,7 +173,7 @@ function UserFormBody({
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            placeholder="Tim WHITE"
+            placeholder="Tim Mixist"
           />
           <FieldError errors={errors} name="name" />
         </div>
@@ -185,7 +185,7 @@ function UserFormBody({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="nama@white.id"
+            placeholder="nama@mixist.id"
           />
           <FieldError errors={errors} name="email" />
         </div>

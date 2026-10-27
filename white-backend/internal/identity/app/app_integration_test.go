@@ -45,7 +45,7 @@ func setup(t *testing.T) *fixture {
 		share:   app.NewShare(store, "test-secret", clk),
 		clock:   clk,
 	}
-	admin, err := f.users.Create(context.Background(), app.UserInput{Name: "Admin", Email: "Admin@White.id ", Password: "admin12345", Role: domain.RoleAdmin, IsActive: true})
+	admin, err := f.users.Create(context.Background(), app.UserInput{Name: "Admin", Email: "Admin@Mixist.id ", Password: "admin12345", Role: domain.RoleAdmin, IsActive: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,14 +69,14 @@ func TestIntegrationLoginRefreshDeactivate(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
 
-	if _, err := f.auth.Login(ctx, "admin@white.id", "wrong", "", ""); err == nil {
+	if _, err := f.auth.Login(ctx, "admin@mixist.id", "wrong", "", ""); err == nil {
 		t.Fatal("wrong password accepted")
 	}
-	tok, err := f.auth.Login(ctx, "ADMIN@white.id", "admin12345", "ua", "1.1.1.1")
+	tok, err := f.auth.Login(ctx, "ADMIN@mixist.id", "admin12345", "ua", "1.1.1.1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tok.User.Email != "admin@white.id" || tok.AccessToken == "" || tok.RefreshToken == "" {
+	if tok.User.Email != "admin@mixist.id" || tok.AccessToken == "" || tok.RefreshToken == "" {
 		t.Fatalf("%+v", tok)
 	}
 	pub, _ := authn.PublicKey("", "", "test-secret")
@@ -91,11 +91,11 @@ func TestIntegrationLoginRefreshDeactivate(t *testing.T) {
 	}
 	code(t, errOf(f.auth.Refresh(ctx, tok.RefreshToken, "", "")), apperr.Unauthenticated)
 
-	member, err := f.users.Create(ctx, app.UserInput{Name: "Tim", Email: "tim@white.id", Password: "member12345", Role: domain.RoleMember, IsActive: true})
+	member, err := f.users.Create(ctx, app.UserInput{Name: "Tim", Email: "tim@mixist.id", Password: "member12345", Role: domain.RoleMember, IsActive: true})
 	if err != nil {
 		t.Fatal(err)
 	}
-	mt, err := f.auth.Login(ctx, "tim@white.id", "member12345", "", "")
+	mt, err := f.auth.Login(ctx, "tim@mixist.id", "member12345", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestIntegrationLoginRefreshDeactivate(t *testing.T) {
 		t.Fatal(err)
 	}
 	code(t, errOf(f.auth.Refresh(ctx, mt.RefreshToken, "", "")), apperr.Unauthenticated)
-	code(t, errOf(f.auth.Login(ctx, "tim@white.id", "member12345", "", "")), apperr.Unauthenticated)
+	code(t, errOf(f.auth.Login(ctx, "tim@mixist.id", "member12345", "", "")), apperr.Unauthenticated)
 	code(t, errOf(f.auth.Me(ctx, member.ID)), apperr.Unauthenticated)
 
 	if _, err := f.auth.Me(ctx, rotated.User.ID); err != nil {
@@ -121,24 +121,24 @@ func TestIntegrationUsersRules(t *testing.T) {
 			t.Fatalf("missing field error for %s: %+v", field, e.FieldErrors)
 		}
 	}
-	e = code(t, errOf(f.users.Create(ctx, app.UserInput{Name: "Dup", Email: "admin@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true})), apperr.Validation)
+	e = code(t, errOf(f.users.Create(ctx, app.UserInput{Name: "Dup", Email: "admin@mixist.id", Password: "12345678", Role: domain.RoleMember, IsActive: true})), apperr.Validation)
 	if e.FieldErrors["email"][0] != "Email sudah terdaftar" {
 		t.Fatalf("%+v", e.FieldErrors)
 	}
 
-	code(t, errOf(f.users.Update(ctx, f.admin.ID, f.admin.ID, app.UserInput{Name: "Admin", Email: "admin@white.id", Role: domain.RoleMember, IsActive: true})), apperr.Validation)
+	code(t, errOf(f.users.Update(ctx, f.admin.ID, f.admin.ID, app.UserInput{Name: "Admin", Email: "admin@mixist.id", Role: domain.RoleMember, IsActive: true})), apperr.Validation)
 	code(t, errOf(f.users.SetActive(ctx, f.admin.ID, f.admin.ID, false)), apperr.Validation)
 	code(t, f.users.Delete(ctx, f.admin.ID, f.admin.ID), apperr.Validation)
 
 	c1, _ := f.clients.Create(ctx, f.admin.ID, app.ClientProfile{Name: "A", Slug: "aa", Currency: "IDR", Timezone: "Asia/Jakarta"}, nil)
 	c2, _ := f.clients.Create(ctx, f.admin.ID, app.ClientProfile{Name: "B", Slug: "bb", Currency: "IDR", Timezone: "Asia/Jakarta"}, nil)
-	u, err := f.users.Create(ctx, app.UserInput{Name: "Tim", Email: "tim@white.id", Password: "member12345", Role: domain.RoleMember, IsActive: true,
+	u, err := f.users.Create(ctx, app.UserInput{Name: "Tim", Email: "tim@mixist.id", Password: "member12345", Role: domain.RoleMember, IsActive: true,
 		Memberships: []domain.Membership{{ClientID: c1.ID, Role: domain.MemberViewer}}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Update replaces every membership and keeps the password when blank.
-	if _, err := f.users.Update(ctx, f.admin.ID, u.ID, app.UserInput{Name: "Tim", Email: "tim@white.id", Role: domain.RoleMember, IsActive: true,
+	if _, err := f.users.Update(ctx, f.admin.ID, u.ID, app.UserInput{Name: "Tim", Email: "tim@mixist.id", Role: domain.RoleMember, IsActive: true,
 		Memberships: []domain.Membership{{ClientID: c2.ID, Role: domain.MemberManager}}}); err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +152,7 @@ func TestIntegrationUsersRules(t *testing.T) {
 	if tim == nil || len(tim.Clients) != 1 || tim.Clients[0].ClientID != c2.ID || tim.Clients[0].Role != domain.MemberManager {
 		t.Fatalf("%+v", tim)
 	}
-	if _, err := f.auth.Login(ctx, "tim@white.id", "member12345", "", ""); err != nil {
+	if _, err := f.auth.Login(ctx, "tim@mixist.id", "member12345", "", ""); err != nil {
 		t.Fatal("password changed on blank update:", err)
 	}
 	if err := f.users.Delete(ctx, f.admin.ID, u.ID); err != nil {
@@ -183,7 +183,7 @@ func TestIntegrationClientsAccessShare(t *testing.T) {
 		t.Fatalf("%+v", e.FieldErrors)
 	}
 
-	viewer, _ := f.users.Create(ctx, app.UserInput{Name: "V", Email: "v@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true})
+	viewer, _ := f.users.Create(ctx, app.UserInput{Name: "V", Email: "v@mixist.id", Password: "12345678", Role: domain.RoleMember, IsActive: true})
 	code(t, errOf(f.clients.Access(ctx, viewer.ID, false, c.ID, "")), apperr.Unauthorized)
 	code(t, errOf(f.clients.Access(ctx, viewer.ID, false, "", "missing")), apperr.NotFound)
 	if err := f.clients.UpsertMember(ctx, f.admin.ID, true, c.ID, viewer.ID, domain.MemberViewer); err != nil {
@@ -240,9 +240,9 @@ func TestIntegrationNotifyAudience(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
 	c, _ := f.clients.Create(ctx, f.admin.ID, app.ClientProfile{Name: "A", Slug: "aa", Currency: "IDR", Timezone: "Asia/Jakarta"}, nil)
-	mgr, _ := f.users.Create(ctx, app.UserInput{Name: "M", Email: "m@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Memberships: []domain.Membership{{ClientID: c.ID, Role: domain.MemberManager}}})
-	viewer, _ := f.users.Create(ctx, app.UserInput{Name: "V", Email: "v@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Memberships: []domain.Membership{{ClientID: c.ID, Role: domain.MemberViewer}}})
-	inactive, _ := f.users.Create(ctx, app.UserInput{Name: "I", Email: "i@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: false, Memberships: []domain.Membership{{ClientID: c.ID, Role: domain.MemberManager}}})
+	mgr, _ := f.users.Create(ctx, app.UserInput{Name: "M", Email: "m@mixist.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Memberships: []domain.Membership{{ClientID: c.ID, Role: domain.MemberManager}}})
+	viewer, _ := f.users.Create(ctx, app.UserInput{Name: "V", Email: "v@mixist.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Memberships: []domain.Membership{{ClientID: c.ID, Role: domain.MemberViewer}}})
+	inactive, _ := f.users.Create(ctx, app.UserInput{Name: "I", Email: "i@mixist.id", Password: "12345678", Role: domain.RoleMember, IsActive: false, Memberships: []domain.Membership{{ClientID: c.ID, Role: domain.MemberManager}}})
 	_ = inactive
 
 	n, err := f.notif.Notify(ctx, app.NotifyInput{ClientID: c.ID, Audience: app.AudienceClientApprovers, ExceptUserID: mgr.ID, Type: "POST_REVIEW", Title: "Review"})
@@ -273,12 +273,12 @@ func errOf2[A, B any](_ A, _ B, err error) error { return err }
 func TestIntegrationPermissionsTravelInToken(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
-	code(t, errOf(f.users.Create(ctx, app.UserInput{Name: "X", Email: "x@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Permissions: []string{"root.all"}})), apperr.Validation)
-	u, err := f.users.Create(ctx, app.UserInput{Name: "Fin", Email: "fin@white.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Permissions: []string{authn.PermFinanceRead, "hr.*"}})
+	code(t, errOf(f.users.Create(ctx, app.UserInput{Name: "X", Email: "x@mixist.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Permissions: []string{"root.all"}})), apperr.Validation)
+	u, err := f.users.Create(ctx, app.UserInput{Name: "Fin", Email: "fin@mixist.id", Password: "12345678", Role: domain.RoleMember, IsActive: true, Permissions: []string{authn.PermFinanceRead, "hr.*"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	tok, err := f.auth.Login(ctx, "fin@white.id", "12345678", "", "")
+	tok, err := f.auth.Login(ctx, "fin@mixist.id", "12345678", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +288,7 @@ func TestIntegrationPermissionsTravelInToken(t *testing.T) {
 		t.Fatalf("%+v %v", p, err)
 	}
 	// Update replaces the set.
-	if _, err := f.users.Update(ctx, f.admin.ID, u.ID, app.UserInput{Name: "Fin", Email: "fin@white.id", Role: domain.RoleMember, IsActive: true, Permissions: []string{authn.PermSalesRead}}); err != nil {
+	if _, err := f.users.Update(ctx, f.admin.ID, u.ID, app.UserInput{Name: "Fin", Email: "fin@mixist.id", Role: domain.RoleMember, IsActive: true, Permissions: []string{authn.PermSalesRead}}); err != nil {
 		t.Fatal(err)
 	}
 	got, _ := f.store.GetUser(ctx, u.ID)
@@ -301,22 +301,22 @@ func TestIntegrationLegacySyncAndPermissions(t *testing.T) {
 	f := setup(t)
 	ctx := context.Background()
 	hash, _ := password.Hash("legacy-pass")
-	u, err := f.users.SyncLegacy(ctx, domain.User{ID: "cm-legacy-1", Email: " New@White.ID", Name: "Baru", PasswordHash: hash, Role: domain.RoleMember, IsActive: true})
-	if err != nil || u.Email != "new@white.id" {
+	u, err := f.users.SyncLegacy(ctx, domain.User{ID: "cm-legacy-1", Email: " New@Mixist.ID", Name: "Baru", PasswordHash: hash, Role: domain.RoleMember, IsActive: true})
+	if err != nil || u.Email != "new@mixist.id" {
 		t.Fatalf("%+v %v", u, err)
 	}
 	if _, err := f.users.SetPermissions(ctx, u.ID, []string{authn.PermSalesRead}); err != nil {
 		t.Fatal(err)
 	}
 	// A later sync (rename, deactivate) keeps permissions and blocks login.
-	if _, err := f.users.SyncLegacy(ctx, domain.User{ID: "cm-legacy-1", Email: "new@white.id", Name: "Baru Lagi", PasswordHash: hash, Role: domain.RoleMember, IsActive: false}); err != nil {
+	if _, err := f.users.SyncLegacy(ctx, domain.User{ID: "cm-legacy-1", Email: "new@mixist.id", Name: "Baru Lagi", PasswordHash: hash, Role: domain.RoleMember, IsActive: false}); err != nil {
 		t.Fatal(err)
 	}
 	got, _ := f.store.GetUser(ctx, "cm-legacy-1")
 	if got.Name != "Baru Lagi" || len(got.Permissions) != 1 || got.IsActive {
 		t.Fatalf("%+v", got)
 	}
-	code(t, errOf(f.auth.Login(ctx, "new@white.id", "legacy-pass", "", "")), apperr.Unauthenticated)
+	code(t, errOf(f.auth.Login(ctx, "new@mixist.id", "legacy-pass", "", "")), apperr.Unauthenticated)
 	code(t, errOf(f.users.SetPermissions(ctx, u.ID, []string{"nope.x"})), apperr.Validation)
 	code(t, errOf(f.users.SetPermissions(ctx, "missing", nil)), apperr.NotFound)
 	if err := f.users.RemoveLegacy(ctx, "cm-legacy-1"); err != nil {
@@ -335,10 +335,10 @@ func TestIntegrationPermissionHolders(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	mk("direct@white.id", true, authn.PermFinanceApprove)
-	mk("wild@white.id", true, "finance.*")
-	mk("other@white.id", true, authn.PermFinanceRead)
-	mk("off@white.id", false, authn.PermFinanceApprove)
+	mk("direct@mixist.id", true, authn.PermFinanceApprove)
+	mk("wild@mixist.id", true, "finance.*")
+	mk("other@mixist.id", true, authn.PermFinanceRead)
+	mk("off@mixist.id", false, authn.PermFinanceApprove)
 
 	got, err := f.users.PermissionHolders(ctx, authn.PermFinanceApprove)
 	if err != nil {
@@ -348,7 +348,7 @@ func TestIntegrationPermissionHolders(t *testing.T) {
 	for _, u := range got {
 		emails[u.Email] = true
 	}
-	if len(got) != 3 || !emails["direct@white.id"] || !emails["wild@white.id"] || !emails[f.admin.Email] {
+	if len(got) != 3 || !emails["direct@mixist.id"] || !emails["wild@mixist.id"] || !emails[f.admin.Email] {
 		t.Fatalf("%v", emails)
 	}
 	code(t, errOf(f.users.PermissionHolders(ctx, "root.all")), apperr.Validation)

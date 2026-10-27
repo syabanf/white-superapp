@@ -139,7 +139,7 @@ func NewLifecycle(d Deps) *Lifecycle { return &Lifecycle{d: d} }
 
 var onboardingCategories = []string{"admin", "it", "hr", "manager", "general"}
 
-// OnboardingTemplate is WHITE's default first-month checklist (days after
+// OnboardingTemplate is Mixist's default first-month checklist (days after
 // the join date).
 var OnboardingTemplate = []struct {
 	Name, Category string
@@ -148,9 +148,9 @@ var OnboardingTemplate = []struct {
 	{"Tanda tangan kontrak kerja", "hr", 1, 0},
 	{"Kumpulkan KTP, NPWP, KK dan rekening bank", "admin", 1, 3},
 	{"Daftarkan BPJS Ketenagakerjaan dan Kesehatan", "hr", 1, 14},
-	{"Buat akun email, Slack dan akses WHITE Platform", "it", 1, 1},
+	{"Buat akun email, Slack dan akses Mixist Platform", "it", 1, 1},
 	{"Serahkan laptop dan perangkat kerja", "it", 2, 1},
-	{"Perkenalan tim dan budaya kerja WHITE", "manager", 2, 2},
+	{"Perkenalan tim dan budaya kerja Mixist", "manager", 2, 2},
 	{"Briefing klien dan proyek yang dipegang", "manager", 2, 5},
 	{"Atur jadwal shift dan absensi", "hr", 2, 1},
 	{"Review masa percobaan bulan pertama", "manager", 3, 30},

@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-// Rules WHITE adds on top of the NüHabit port: the two-step leave
+// Rules Mixist adds on top of the NüHabit port: the two-step leave
 // approval, work hours at clock-out (the calculate_work_hours trigger moved
 // into Go), reminder windows for the daily tick and birthdays.
 
 // Leave statuses. NüHabit decided in one step (HR or the manager);
-// WHITE asks the direct manager first, then HR.
+// Mixist asks the direct manager first, then HR.
 const (
 	LeavePending         = "pending"
 	LeaveManagerApproved = "manager_approved"

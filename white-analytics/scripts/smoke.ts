@@ -7,7 +7,7 @@
  * Exit code 1 when any route fails.
  */
 const BASE = process.argv[2] ?? process.env.SMOKE_BASE_URL ?? "http://localhost:3100";
-const EMAIL = process.env.SMOKE_EMAIL ?? "admin@white.id";
+const EMAIL = process.env.SMOKE_EMAIL ?? "admin@mixist.id";
 const PASSWORD = process.env.SMOKE_PASSWORD ?? "admin12345";
 
 const jar = new Map<string, string>();

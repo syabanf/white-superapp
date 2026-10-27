@@ -1,11 +1,11 @@
-# WHITE Analytics
+# Mixist Analytics
 
 Platform pemasaran digital multi-klien untuk tim agency: **analitik dan laporan Social Media, SEO, Meta Ads**, **publikasi konten**, dan **SEO suite**. Menggantikan aplikasi Flutter Web lama (`../white_super_app`) dengan Next.js.
 
 - Analitik sosial: Instagram, Facebook, TikTok: pertumbuhan followers (snapshot harian nyata), engagement rate, jangkauan, konten teratas, waktu posting terbaik, perbandingan kompetitor.
 - SEO: Google Search Console + GA4, explorer kata kunci dengan peluang (striking distance, CTR rendah, menurun), performa halaman, audit Lighthouse/Core Web Vitals + crawler on-page internal.
 - Meta Ads: KPI (spend, hasil, CPR, CTR, CPC, CPM, frekuensi, ROAS), drill-down Campaign → Ad Set → Ad, demografi, impor CSV Meta Ads Manager (upsert, anti-duplikat).
-- Laporan PDF bermerek WHITE, ringkasan strategis AI, dan **link klien read-only** (`/share/<slug>`) dengan PIN opsional.
+- Laporan PDF bermerek Mixist, ringkasan strategis AI, dan **link klien read-only** (`/share/<slug>`) dengan PIN opsional.
 - **Publikasi** (`/clients/<slug>/publish`): komposer multi-akun dengan pratinjau per platform, pustaka media, kalender konten bulan/minggu, alur draf → review → disetujui → terjadwal → terbit, komentar internal, dan penjadwal otomatis.
 - **SEO suite**: riset kata kunci (volume, KD, CPC, intent, kesenjangan vs kompetitor), rank tracker harian dengan visibilitas dan share of voice, analisa backlink, benchmark domain kompetitor, audit terjadwal.
 - **Setup awal** (`/setup`, khusus ADMIN): wizard yang menyimpan kredensial Meta, Google, DataForSEO, Apify, dan OpenRouter secara terenkripsi, lengkap dengan uji koneksi, checklist App Review Meta, dan estimator biaya.
@@ -49,8 +49,8 @@ Buka http://localhost:3000.
 
 | Email | Kata sandi | Peran |
 |---|---|---|
-| `admin@white.id` | `admin12345` | ADMIN (semua klien) |
-| `tim@white.id` | `member12345` | MEMBER (Kopi Nusantara sebagai Manajer, Adiharjo sebagai Viewer) |
+| `admin@mixist.id` | `admin12345` | ADMIN (semua klien) |
+| `tim@mixist.id` | `member12345` | MEMBER (Kopi Nusantara sebagai Manajer, Adiharjo sebagai Viewer) |
 
 Klien demo: **Kopi Nusantara** (link klien ber-PIN `123456`), **Adiharjo Property**, **Bali Villa Escapes**, masing-masing 120 hari data sosial, SEO, dan iklan.
 

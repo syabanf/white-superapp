@@ -50,11 +50,11 @@ var DefaultOnboardingItems = []OnboardingTemplateItem{
 	{KeyKickoff, "Kickoff meeting", "Jadwalkan kickoff dengan PIC klien: perkenalan tim, tujuan, KPI, dan jalur komunikasi.", 3, ItemManual},
 	{KeyBrandAssets, "Kumpulkan aset brand", "Logo, panduan brand, foto produk, dan materi lain lewat portal onboarding.", 5, ItemAssets},
 	{KeySocialAccess, "Akses akun media sosial", "Minta akses admin atau partner untuk Instagram, Facebook, TikTok, LinkedIn.", 5, ItemManual},
-	{KeySearchAccess, "Akses Google Search Console dan GA4", "Tambahkan email tim WHITE sebagai pengguna Search Console dan GA4.", 7, ItemManual},
+	{KeySearchAccess, "Akses Google Search Console dan GA4", "Tambahkan email tim Mixist sebagai pengguna Search Console dan GA4.", 7, ItemManual},
 	{KeyAdAccess, "Akses akun iklan", "Akses Meta Business Manager, Google Ads, atau TikTok Ads sesuai layanan.", 7, ItemManual},
 	{KeySignContract, "Tanda tangan kontrak", "Kontrak dikirim lewat tautan tanda tangan digital dan sudah ditandatangani klien.", 5, ItemContract},
 	{KeyFirstInvoice, "Invoice pertama lunas", "Pembayaran termin pertama sudah diterima.", 14, ItemInvoicePaid},
-	{KeyCreateClient, "Buat klien di platform marketing", "Daftarkan klien di platform analytics WHITE agar tim bisa mulai bekerja.", 7, ItemCreateClient},
+	{KeyCreateClient, "Buat klien di platform marketing", "Daftarkan klien di platform analytics Mixist agar tim bisa mulai bekerja.", 7, ItemCreateClient},
 }
 
 // ItemKind returns the kind of a checklist key from the default template,

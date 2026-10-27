@@ -476,7 +476,7 @@ export const RECRUITMENT_NAV = [
 
 /** Candidate-facing copy for the public portals. */
 export const cp = {
-  footer: "Didukung oleh WHITE",
+  footer: "Didukung oleh Mixist",
   notFound: "Tautan tidak ditemukan",
   notFoundDesc: "Tautan tidak valid atau sudah tidak berlaku. Hubungi tim HR untuk tautan baru.",
   offline: "Layanan sedang tidak dapat dihubungi. Coba lagi beberapa saat.",

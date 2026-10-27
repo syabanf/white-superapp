@@ -126,11 +126,11 @@ func setup(t *testing.T) *env {
 		('intern','Magang',4),('resigned','Mengundurkan Diri',5),('terminated','Diberhentikan',6) ON CONFLICT DO NOTHING`); err != nil {
 		t.Fatal(err)
 	}
-	id := &fakeIdentity{users: map[string]app.UserInfo{"user-ayu": {ID: "user-ayu", Email: "ayu@white.id"}, "user-budi": {ID: "user-budi"}, "user-wulan": {ID: "user-wulan"}}}
+	id := &fakeIdentity{users: map[string]app.UserInfo{"user-ayu": {ID: "user-ayu", Email: "ayu@mixist.id"}, "user-budi": {ID: "user-budi"}, "user-wulan": {ID: "user-wulan"}}}
 	rec := &recorder{}
 	d := app.Deps{Store: postgres.NewStore(pool), Identity: id, Files: storage.NewLocal(t.TempDir()), Events: rec, Clock: now,
 		Logger: slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))}
-	r := docs.Renderer{CompanyName: "WHITE"}
+	r := docs.Renderer{CompanyName: "Mixist"}
 	return &env{t: t, ctx: ctx, d: d, identity: id, events: rec, people: app.NewPeople(d), att: app.NewAttendance(d, r),
 		sched: app.NewSchedules(d), leaves: app.NewLeaves(d), ot: app.NewOvertime(d), contract: app.NewContracts(d),
 		payroll: app.NewPayroll(d, r), loans: app.NewLoans(d), maint: app.NewMaintenance(d),
@@ -175,9 +175,9 @@ func (e *env) org() org {
 		e.must(err)
 		return emp.ID
 	}
-	o.wulan = mk("Wulan Sari", "wulan@white.id", o.hrDept, "", "user-wulan", "permanent")
-	o.budi = mk("Budi Santoso", "budi@white.id", o.creative, "", "user-budi", "permanent")
-	o.ayu = mk("Ayu Lestari", "ayu@white.id", o.creative, o.budi, "user-ayu", "permanent")
+	o.wulan = mk("Wulan Sari", "wulan@mixist.id", o.hrDept, "", "user-wulan", "permanent")
+	o.budi = mk("Budi Santoso", "budi@mixist.id", o.creative, "", "user-budi", "permanent")
+	o.ayu = mk("Ayu Lestari", "ayu@mixist.id", o.creative, o.budi, "user-ayu", "permanent")
 	sh, err := e.sched.SaveShift(e.ctx, e.admin, domain.Shift{Name: "Reguler", StartTime: "09:00", EndTime: "18:00", BreakMinutes: 60, LateToleranceMinutes: 15, IsActive: true})
 	e.must(err)
 	o.shift = sh.ID
@@ -204,7 +204,7 @@ func TestPeopleRecordsHistoryAndRefusesCycles(t *testing.T) {
 	_, err = e.people.Update(e.ctx, e.admin, o.budi, app.EmployeeInput{FullName: "Budi Santoso", JoinDate: "2024-01-15", ManagerID: o.ayu, EmploymentStatus: "permanent"})
 	wantCode(t, err, apperr.Validation)
 
-	_, err = e.people.Update(e.ctx, e.admin, o.ayu, app.EmployeeInput{FullName: "Ayu Lestari", Email: "ayu@white.id", JoinDate: "2024-01-15",
+	_, err = e.people.Update(e.ctx, e.admin, o.ayu, app.EmployeeInput{FullName: "Ayu Lestari", Email: "ayu@mixist.id", JoinDate: "2024-01-15",
 		DepartmentID: o.hrDept, ManagerID: o.wulan, EmploymentStatus: "contract"})
 	e.must(err)
 	hist, err := e.people.History(e.ctx, e.admin, o.ayu)
@@ -212,7 +212,7 @@ func TestPeopleRecordsHistoryAndRefusesCycles(t *testing.T) {
 	if len(hist) != 1 || !strings.Contains(hist[0].Notes, "permanent → contract") || hist[0].NewDepartment != "HR" {
 		t.Fatalf("history %+v", hist)
 	}
-	_, err = e.people.Create(e.ctx, e.admin, app.EmployeeInput{FullName: "Dup", Email: "AYU@white.id", JoinDate: "2025-01-01"})
+	_, err = e.people.Create(e.ctx, e.admin, app.EmployeeInput{FullName: "Dup", Email: "AYU@mixist.id", JoinDate: "2025-01-01"})
 	wantCode(t, err, apperr.Conflict)
 	_, err = e.people.LinkUser(e.ctx, e.admin, o.wulan, "user-ghost")
 	wantCode(t, err, apperr.Validation)
@@ -612,8 +612,8 @@ func TestDailyRemindersAreSentOnce(t *testing.T) {
 func TestSeedIsIdempotent(t *testing.T) {
 	e := setup(t)
 	e.d.Events = events.Noop{}
-	users := []app.UserInfo{{ID: "user-admin", Email: "admin@white.id"}, {ID: "user-tim", Email: "tim@white.id"}}
-	e.must(seed.New(e.d, docs.Renderer{CompanyName: "WHITE"}).Run(e.ctx, users))
+	users := []app.UserInfo{{ID: "user-admin", Email: "admin@mixist.id"}, {ID: "user-tim", Email: "tim@mixist.id"}}
+	e.must(seed.New(e.d, docs.Renderer{CompanyName: "Mixist"}).Run(e.ctx, users))
 	count := func() []int {
 		emps, _, err := e.d.Store.ListEmployees(e.ctx, domain.EmployeeFilter{IncludeInactive: true})
 		e.must(err)
@@ -624,7 +624,7 @@ func TestSeedIsIdempotent(t *testing.T) {
 		return []int{len(emps), atts, len(runs)}
 	}
 	first := count()
-	e.must(seed.New(e.d, docs.Renderer{CompanyName: "WHITE"}).Run(e.ctx, users))
+	e.must(seed.New(e.d, docs.Renderer{CompanyName: "Mixist"}).Run(e.ctx, users))
 	second := count()
 	if first[0] != 34 || first[1] < 5000 || first[2] != 15 || first[0] != second[0] || first[1] != second[1] || first[2] != second[2] {
 		t.Fatalf("seed counts %v then %v", first, second)
@@ -644,7 +644,7 @@ func TestSeedIsIdempotent(t *testing.T) {
 	a, _ := e.d.Store.GetEmployee(e.ctx, admin)
 	g, _ := e.d.Store.GetEmployee(e.ctx, tim)
 	if a == nil || a.DepartmentName != "Management" || g == nil || g.DepartmentName != "Social Media" {
-		t.Fatal("seed links admin@white.id and tim@white.id")
+		t.Fatal("seed links admin@mixist.id and tim@mixist.id")
 	}
 }
 

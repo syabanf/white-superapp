@@ -1,5 +1,5 @@
 // Package seed loads the sales reference data (pipeline, catalog, templates,
-// chatbot settings) and the demo data for WHITE. Both are idempotent: rows
+// chatbot settings) and the demo data for Mixist. Both are idempotent: rows
 // have fixed ids and inserts skip existing ones, so admins' edits survive.
 package seed
 
@@ -57,7 +57,7 @@ func Reference(ctx context.Context, pool *pgxpool.Pool) error {
 	exec(`INSERT INTO sales.chatbot_settings (id, enabled, bot_name, persona, services_offered, pricing_hints, business_hours_start, business_hours_end, handoff_rules, greeting, min_confidence)
 		VALUES ('default', true, $1, $2, $3, $4, 9, 18, $5, $6, 0.55) ON CONFLICT DO NOTHING`, chatbot.name, chatbot.persona, chatbot.services, chatbot.pricing, chatbot.handoff, chatbot.greeting)
 	fields, _ := json.Marshal(contactForm)
-	exec(`INSERT INTO sales.forms (id, slug, name, description, fields, default_source, lead_temperature) VALUES ('form-konsultasi', 'konsultasi-gratis', 'Konsultasi Gratis', 'Ceritakan kebutuhan digital marketing Anda, tim WHITE akan menghubungi dalam 1 hari kerja.', $1, 'website', 'hangat') ON CONFLICT DO NOTHING`, fields)
+	exec(`INSERT INTO sales.forms (id, slug, name, description, fields, default_source, lead_temperature) VALUES ('form-konsultasi', 'konsultasi-gratis', 'Konsultasi Gratis', 'Ceritakan kebutuhan digital marketing Anda, tim Mixist akan menghubungi dalam 1 hari kerja.', $1, 'website', 'hangat') ON CONFLICT DO NOTHING`, fields)
 	for _, t := range replyTemplates {
 		exec(`INSERT INTO sales.reply_templates (id, title, body) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, t[0], t[1], t[2])
 	}
@@ -259,7 +259,7 @@ Perjanjian ini tunduk pada hukum Republik Indonesia.
 
 var chatbot = struct{ name, persona, services, pricing, handoff, greeting string }{
 	name:    "Wira",
-	persona: "Asisten WHITE yang ramah, sigap, dan to the point. Memakai sapaan Kak, tidak berlebihan, selalu menawarkan langkah berikutnya.",
+	persona: "Asisten Mixist yang ramah, sigap, dan to the point. Memakai sapaan Kak, tidak berlebihan, selalu menawarkan langkah berikutnya.",
 	services: `- Social media management (Instagram, TikTok, LinkedIn)
 - SEO dan konten artikel
 - Ads management (Meta Ads, Google Ads, TikTok Ads)
@@ -276,7 +276,7 @@ var chatbot = struct{ name, persona, services, pricing, handoff, greeting string
 - Komplain atau ketidakpuasan
 - Pertanyaan kontrak, pembayaran, atau harga khusus di luar panduan
 - Kamu tidak yakin dengan jawabannya`,
-	greeting: "Halo Kak! Saya Wira dari WHITE. Lagi cari bantuan untuk social media, SEO, iklan, konten, website, atau branding?",
+	greeting: "Halo Kak! Saya Wira dari Mixist. Lagi cari bantuan untuk social media, SEO, iklan, konten, website, atau branding?",
 }
 
 var contactForm = []domain.FormField{
@@ -290,7 +290,7 @@ var contactForm = []domain.FormField{
 }
 
 var replyTemplates = [][3]string{
-	{"rt-salam", "Salam pembuka", "Halo Kak, terima kasih sudah menghubungi WHITE. Boleh diceritakan kebutuhan digital marketing-nya?"},
+	{"rt-salam", "Salam pembuka", "Halo Kak, terima kasih sudah menghubungi Mixist. Boleh diceritakan kebutuhan digital marketing-nya?"},
 	{"rt-jadwal", "Ajak discovery call", "Bagaimana kalau kita jadwalkan discovery call 30 menit minggu ini? Silakan pilih waktu yang nyaman."},
 	{"rt-penawaran", "Penawaran dikirim", "Penawaran resmi sudah kami kirim ke email Kakak. Kalau ada pertanyaan, kami siap bantu."},
 }

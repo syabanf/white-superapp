@@ -12,7 +12,7 @@ import (
 )
 
 // The prior fiscal year gives the dashboard a year of history to compare
-// against. WHITE was smaller then: six clients growing to nine, retainers
+// against. Mixist was smaller then: six clients growing to nine, retainers
 // at 85% and a 20-person team. Every client pays the next month (December
 // before year end, except one slow payer), vendor bills, taxes and BPJS
 // are settled within the month, laptops are bought in March and a dividend

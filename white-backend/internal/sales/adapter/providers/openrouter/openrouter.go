@@ -134,7 +134,7 @@ func (s *Source) post(ctx context.Context, key string, body chatRequest) (string
 	httpReq.Header.Set("Authorization", "Bearer "+key)
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("HTTP-Referer", s.opts.Referer)
-	httpReq.Header.Set("X-Title", "WHITE Sales")
+	httpReq.Header.Set("X-Title", "Mixist Sales")
 	res, err := s.opts.HTTPClient.Do(httpReq)
 	if err != nil {
 		return "", 0, providerErr(apperr.Network, fmt.Errorf("tidak dapat menghubungi OpenRouter: %w", err))

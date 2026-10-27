@@ -239,12 +239,12 @@ export function MediaPicker({
             <DialogDescription>{p.selected(picked.length)}</DialogDescription>
           </DialogHeader>
           <div className="relative">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={p.librarySearch}
-              className="h-8 pl-8 text-[13px]"
+              className="pl-9"
             />
           </div>
           <div className="max-h-[50vh] overflow-y-auto scrollbar-thin">
@@ -287,7 +287,7 @@ export function MediaPicker({
                 setPicked((cur) => [...cur, ...assets.map((a) => a.id)]);
               }}
             />
-            <Button type="button" size="sm" onClick={confirm}>
+            <Button type="button" onClick={confirm}>
               {p.done}
             </Button>
           </DialogFooter>

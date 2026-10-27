@@ -4,7 +4,7 @@
 //
 // Env: IDENTITY_ADDR (default localhost:9001), HR_UPLOAD_DIR (selfies and
 // employee documents, default ./.uploads/hr), HR_COMPANY_NAME (payslip and
-// recap header, default WHITE).
+// recap header, default Mixist).
 package hr
 
 import (
@@ -65,7 +65,7 @@ func Wire(d pkgapp.Deps) (*grpcapi.Services, *clients.Identity, func(), error) {
 		Clock:    clock.Real{},
 		Logger:   d.Logger,
 	}
-	renderer := docs.Renderer{CompanyName: config.Env("HR_COMPANY_NAME", "WHITE")}
+	renderer := docs.Renderer{CompanyName: config.Env("HR_COMPANY_NAME", "Mixist")}
 	leaves := app.NewLeaves(deps)
 	announcements := app.NewAnnouncements(deps)
 	svc := &grpcapi.Services{

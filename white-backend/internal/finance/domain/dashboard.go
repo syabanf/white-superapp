@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Read models for the dashboard tabs (new for WHITE).
+// Read models for the dashboard tabs (new for Mixist).
 
 // MonthMovement is one account's posted lines in one month (YYYY-MM).
 type MonthMovement struct {

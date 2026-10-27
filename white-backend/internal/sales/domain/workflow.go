@@ -436,7 +436,7 @@ func MaxWindow(rules []ScoringRule, eventType string) *int {
 	return widest
 }
 
-// Approver roles a rule can name (NüHabit used IAM roles; WHITE has
+// Approver roles a rule can name (NüHabit used IAM roles; Mixist has
 // permission keys and the ADMIN role).
 const (
 	ApproverPerm  = "sales.approve"

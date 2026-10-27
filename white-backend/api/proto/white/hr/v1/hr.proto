@@ -1179,7 +1179,7 @@ service LifecycleService {
   rpc ListOnboardingTasks(GetEmployeeRequest) returns (OnboardingChecklist) {
     option (google.api.http) = {get: "/v1/hr/employees/{employee_id}/onboarding"};
   }
-  // Adds the default WHITE checklist (skips tasks that already exist).
+  // Adds the default Mixist checklist (skips tasks that already exist).
   rpc ApplyOnboardingTemplate(GetEmployeeRequest) returns (OnboardingChecklist) {
     option (google.api.http) = {post: "/v1/hr/employees/{employee_id}/onboarding:applyTemplate" body: "*"};
   }

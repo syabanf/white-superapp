@@ -97,7 +97,7 @@ func NewApifySerp(token, actorsJSON, base string) *ApifySerp {
 		base = ApifyBase
 	}
 	return &ApifySerp{
-		http:   &httpx.Client{HTTP: &http.Client{}, UserAgent: "WHITEAnalytics/1.0"},
+		http:   &httpx.Client{HTTP: &http.Client{}, UserAgent: "MixistAnalytics/1.0"},
 		base:   strings.TrimRight(base, "/"),
 		token:  token,
 		actors: ParseActorOverrides(actorsJSON),

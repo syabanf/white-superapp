@@ -10,7 +10,7 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/syabanf/white-superapp/white-backend/gen/go/white/sales/v1;salesv1";
 
 // Sales: the CRM pipeline ported from NüHabit (salesfunnel, crm advance,
-// crm inbox, public forms) plus WHITE's automations (quotation drafts,
+// crm inbox, public forms) plus Mixist's automations (quotation drafts,
 // contracts with e-signature, pitch decks, client onboarding, lead
 // chatbot).
 //

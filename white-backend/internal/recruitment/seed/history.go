@@ -149,7 +149,7 @@ func (s *seeder) pastOpening(ctx context.Context, o pastOpening) error {
 		VALUES ($1, $2, $3, $4, $5, $6, 'Full-time', 'Hybrid', $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17, $18, $19)
 		ON CONFLICT (id) DO NOTHING`,
 		id, o.title, slug, deptID, dept, domain.DefaultLocation, o.headcount,
-		"Posisi "+o.title+" untuk tim "+dept+" WHITE, mendukung akun klien agency.",
+		"Posisi "+o.title+" untuk tim "+dept+" Mixist, mendukung akun klien agency.",
 		"Pengalaman relevan minimal 1 tahun, portofolio atau studi kasus, terbiasa bekerja dengan target klien.",
 		"BPJS Kesehatan dan Ketenagakerjaan, laptop kerja, budget pelatihan.",
 		domain.Rupiah(o.salaryMin*100_000), domain.Rupiah(o.salaryMax*100_000), manager, status, opened,
@@ -454,7 +454,7 @@ func (s *seeder) queueInterviews(b *pgx.Batch, o pastOpening, a applicant, start
 		if scorecard == nil {
 			scorecard = []byte("[]")
 		}
-		mode, link, location := "offline", (*string)(nil), ptr("Kantor WHITE, Kemang, Jakarta Selatan")
+		mode, link, location := "offline", (*string)(nil), ptr("Kantor Mixist, Kemang, Jakarta Selatan")
 		if pick(a.key+":mode"+typ, 2) == 0 {
 			mode, link, location = "online", ptr(fmt.Sprintf("https://meet.google.com/whi-%03d-hst", pick(id, 1000))), nil
 		}

@@ -50,7 +50,7 @@ func TestLoginFlow(t *testing.T) {
 				_, _ = w.Write([]byte(`{"error":{"message":"Bad token","code":190,"type":"OAuthException"}}`))
 				return
 			}
-			_, _ = w.Write([]byte(`{"id":"777","name":"White Agency"}`))
+			_, _ = w.Write([]byte(`{"id":"777","name":"Mixist Agency"}`))
 		default:
 			w.WriteHeader(404)
 		}
@@ -68,7 +68,7 @@ func TestLoginFlow(t *testing.T) {
 		t.Fatalf("%+v %v", long, err)
 	}
 	me, err := c.Me(ctx, long.AccessToken)
-	if err != nil || me.ID != "777" || me.Name != "White Agency" {
+	if err != nil || me.ID != "777" || me.Name != "Mixist Agency" {
 		t.Fatalf("%+v %v", me, err)
 	}
 

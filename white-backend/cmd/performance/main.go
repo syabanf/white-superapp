@@ -10,7 +10,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/app"
 )
 
-// serve | migrate | worker come from pkg/app; seed inserts the WHITE demo data.
+// serve | migrate | worker come from pkg/app; seed inserts the Mixist demo data.
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "seed" {
 		if err := seed.Run(context.Background()); err != nil {

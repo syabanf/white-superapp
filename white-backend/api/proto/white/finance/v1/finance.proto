@@ -1150,7 +1150,7 @@ service ReportService {
   rpc GetDashboard(DashboardRequest) returns (Dashboard) {
     option (google.api.http) = {get: "/v1/finance/dashboard"};
   }
-  // Dashboard tabs (new for WHITE): range totals against a comparison
+  // Dashboard tabs (new for Mixist): range totals against a comparison
   // range plus monthly trends, all from posted journals.
   rpc GetFinanceSummary(FinanceAnalyticsRequest) returns (FinanceSummary) {
     option (google.api.http) = {get: "/v1/finance/dashboard/summary"};

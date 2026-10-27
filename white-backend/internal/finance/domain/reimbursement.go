@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Reimbursement claims (new for WHITE; NüHabit had none).
+// Reimbursement claims (new for Mixist; NüHabit had none).
 //
 //	DRAFT -> SUBMITTED -> APPROVED_MANAGER -> APPROVED_FINANCE -> PAID
 //	SUBMITTED | APPROVED_MANAGER -> REJECTED (with a reason)

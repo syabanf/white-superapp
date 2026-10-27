@@ -382,7 +382,7 @@ func TestPublicFormAndChatbot(t *testing.T) {
 		t.Fatal("invalid submission")
 	}
 
-	chat := must(e.svc.Chat.StartPublic(ctx, "8.8.8.8", app.StartInput{Name: "Lia", PageURL: "https://white.id"}))
+	chat := must(e.svc.Chat.StartPublic(ctx, "8.8.8.8", app.StartInput{Name: "Lia", PageURL: "https://mixist.id"}))
 	if len(chat.Token) < 32 || len(chat.Messages) != 1 {
 		t.Fatalf("start %+v", chat)
 	}

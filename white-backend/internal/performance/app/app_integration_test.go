@@ -31,7 +31,7 @@ const (
 	deptSEO    = "dept_seo"
 )
 
-// The WHITE fixture: Social Media (head Hana, members Rani and Dimas) and
+// The Mixist fixture: Social Media (head Hana, members Rani and Dimas) and
 // SEO (head Sari, member Bayu). hr users have no employee record.
 var staff = []domain.Employee{
 	{ID: "emp_hana", UserID: sp("u_hana"), Name: "Hana", DepartmentID: sp(deptSocial), DepartmentName: "Social Media", Active: true},

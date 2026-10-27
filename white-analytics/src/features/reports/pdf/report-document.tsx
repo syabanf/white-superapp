@@ -4,7 +4,7 @@ import { pdfLabels } from "@/features/reports/strings";
 import type { PdfChart, PdfKpi, PdfModuleBlock, PdfSection, PdfTable, ReportPdfData } from "./types";
 
 /**
- * WHITE monochrome A4 report. Built-in Helvetica only (no network fonts) —
+ * Mixist monochrome A4 report. Built-in Helvetica only (no network fonts) —
  * `safe()` strips the few Unicode chars WinAnsi cannot encode.
  */
 

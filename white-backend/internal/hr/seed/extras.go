@@ -163,7 +163,7 @@ func (s *Seeder) offboardingInProgress(ctx context.Context, emps []domain.Employ
 }
 
 // requestStatuses adds leave and overtime in every status for the two demo
-// logins (admin@white.id is Andika, tim@white.id is Gita) and requests from
+// logins (admin@mixist.id is Andika, tim@mixist.id is Gita) and requests from
 // Andika's direct reports for his approval queue.
 func (s *Seeder) requestStatuses(ctx context.Context, emps []domain.Employee, _ map[string]string) error {
 	leaves := []struct {
@@ -335,7 +335,7 @@ func (s *Seeder) contractStatuses(ctx context.Context, emps []domain.Employee, _
 		end := hris.AddDaysISO(start, 364)
 		base := people[4].Base * 1.08
 		c := domain.Contract{ID: ids.New(), EmployeeID: dimas.ID, ContractType: "pkwt", StartDate: start, EndDate: &end, Sequence: 2,
-			PositionTitle: people[4].Title, DepartmentName: dimas.DepartmentName, WorkLocation: "Kantor WHITE, Jakarta Selatan",
+			PositionTitle: people[4].Title, DepartmentName: dimas.DepartmentName, WorkLocation: "Kantor Mixist, Jakarta Selatan",
 			BaseSalary: &base, Notes: "Perpanjangan PKWT kedua, kenaikan gaji 8%", CreatedBy: s.actor}
 		if err := insert(c); err != nil {
 			return err
@@ -347,7 +347,7 @@ func (s *Seeder) contractStatuses(ctx context.Context, emps []domain.Employee, _
 		end := hris.AddDaysISO(oki.JoinDate, 180)
 		base := people[15].Base * 0.9
 		c := domain.Contract{ID: ids.New(), EmployeeID: oki.ID, ContractType: "pkwt", StartDate: oki.JoinDate, EndDate: &end, Sequence: 1,
-			PositionTitle: people[15].Title, DepartmentName: oki.DepartmentName, WorkLocation: "Kantor WHITE, Jakarta Selatan",
+			PositionTitle: people[15].Title, DepartmentName: oki.DepartmentName, WorkLocation: "Kantor Mixist, Jakarta Selatan",
 			BaseSalary: &base, Notes: "Dikonversi menjadi PKWTT setelah evaluasi enam bulan", CreatedBy: s.actor}
 		if err := insert(c); err != nil {
 			return err
@@ -382,7 +382,7 @@ func (s *Seeder) moreAnnouncements(ctx context.Context, _ []domain.Employee, _ m
 			Tags: []string{"kesehatan"}, Status: "published", TargetScope: "global", PublishAt: &published, ExpiresAt: &expired},
 		{Title: "Pindah sementara ke lantai 3", Body: "Selama renovasi pantry, tim Creative bekerja di lantai 3.",
 			Tags: []string{"kantor"}, Status: "archived", TargetScope: "global", PublishAt: &published},
-		{Title: "Jadwal family gathering", Body: "Family gathering WHITE diadakan Sabtu, 14 November di Puncak. Konfirmasi kehadiran ke HR.",
+		{Title: "Jadwal family gathering", Body: "Family gathering Mixist diadakan Sabtu, 14 November di Puncak. Konfirmasi kehadiran ke HR.",
 			Tags: []string{"acara"}, Status: "published", IsPinned: true, TargetScope: "global", PublishAt: &s.now},
 	}
 	for _, a := range items {
@@ -398,7 +398,7 @@ func (s *Seeder) moreAnnouncements(ctx context.Context, _ []domain.Employee, _ m
 }
 
 // loanStatuses adds a rejected loan, a loan already paid off, an active
-// loan for Gita (tim@white.id) and a repaid kasbon for Andika.
+// loan for Gita (tim@mixist.id) and a repaid kasbon for Andika.
 func (s *Seeder) loanStatuses(ctx context.Context, emps []domain.Employee, _ map[string]string) error {
 	hr := emps[22].ID
 	type loanDef struct {
@@ -537,7 +537,7 @@ func (s *Seeder) todayAttendance(ctx context.Context, emps []domain.Employee, _ 
 	}
 	for i, e := range emps {
 		email := people[i].Email
-		if !e.IsActive || email == "admin@white.id" || email == "tim@white.id" || onLeave[e.ID] != "" {
+		if !e.IsActive || email == "admin@mixist.id" || email == "tim@mixist.id" || onLeave[e.ID] != "" {
 			continue
 		}
 		var mine []domain.ScheduleRow

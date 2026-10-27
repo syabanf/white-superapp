@@ -1,5 +1,5 @@
 /**
- * Migrasi data dari aplikasi Flutter lama (Firestore) ke WHITE Analytics.
+ * Migrasi data dari aplikasi Flutter lama (Firestore) ke Mixist Analytics.
  *
  * Cara pakai:
  *   1) Ekspor koleksi Firestore ke JSON, mis. dengan:

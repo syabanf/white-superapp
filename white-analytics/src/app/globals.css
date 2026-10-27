@@ -528,3 +528,10 @@
   --brand-ink: #d2c8fa;
   --accent: #1d1834;
 }
+
+/* Forms inside overlays: grid items may shrink below their content's
+   intrinsic width (native date inputs, long values), so a form never pushes
+   past the dialog or sheet padding on a phone. */
+:where([data-slot="dialog-content"], [data-slot="sheet-content"], [data-slot="alert-dialog-content"]) :where(.grid, form) > * {
+  min-width: 0;
+}

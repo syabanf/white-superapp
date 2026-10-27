@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Financial ratios from ledger totals (new for WHITE; NüHabit's dashboard
+// Financial ratios from ledger totals (new for Mixist; NüHabit's dashboard
 // computed none).
 
 // LedgerSnapshot holds what one period's ratios need.

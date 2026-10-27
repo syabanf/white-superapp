@@ -729,7 +729,7 @@ Notes:
 **Crawler** (`crawler/index.ts`)
 - BFS, same-origin only, concurrency 4, request timeout 10 s.
 - `maxPages` default 30, hard cap 60. Time budget default 45 s; workers stop when less than 1.5 s is left.
-- Respects robots.txt (UA token `whiteanalyticsbot`, UA string `"WHITEAnalyticsBot/1.0 (+https://white.id/bot)"`; longest match wins, allow wins ties).
+- Respects robots.txt (UA token `mixistanalyticsbot`, UA string `"MixistAnalyticsBot/1.0 (+https://mixist.id/bot)"`; longest match wins, allow wins ties).
 - Sitemap seeds: up to 4 documents and 3 child sitemaps each, capped at `maxPages × 2`.
 - Queue cap: `maxPages × 6`. Redirects followed manually, max 5.
 - Binary extensions are skipped.

@@ -80,10 +80,10 @@ export async function seedPublishing(db: PrismaClient): Promise<void> {
   await db.notification.deleteMany({ where: { type: { startsWith: "POST_" } } });
 
   const [admin, tim] = await Promise.all([
-    db.user.findUnique({ where: { email: "admin@white.id" }, select: { id: true } }),
-    db.user.findUnique({ where: { email: "tim@white.id" }, select: { id: true } }),
+    db.user.findUnique({ where: { email: "admin@mixist.id" }, select: { id: true } }),
+    db.user.findUnique({ where: { email: "tim@mixist.id" }, select: { id: true } }),
   ]);
-  if (!admin) throw new Error("seedPublishing: admin@white.id belum ada — jalankan seed utama dulu");
+  if (!admin) throw new Error("seedPublishing: admin@mixist.id belum ada — jalankan seed utama dulu");
   const authors = [admin.id, tim?.id ?? admin.id];
 
   for (const [ci, c] of SEED_CLIENTS.entries()) {

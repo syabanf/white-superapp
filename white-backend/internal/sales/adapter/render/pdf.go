@@ -1,5 +1,5 @@
 // Package render turns sales documents into bytes: quotation, invoice and
-// contract PDFs (go-pdf/fpdf with the WHITE letterhead, built-in Helvetica)
+// contract PDFs (go-pdf/fpdf with the Mixist letterhead, built-in Helvetica)
 // and pitch decks (PPTX written as OOXML with archive/zip).
 package render
 
@@ -22,11 +22,11 @@ func New() Renderer { return Renderer{} }
 
 // Letterhead details printed on every document.
 const (
-	brandName    = "WHITE"
+	brandName    = "Mixist"
 	brandTagline = "Digital Marketing Agency"
-	legalName    = "PT WHITE Digital Kreatif"
+	legalName    = "PT Mixist Digital Kreatif"
 	brandAddress = "Jl. Senopati No. 8, Kebayoran Baru, Jakarta Selatan 12190"
-	brandContact = "hello@white.id  ·  +62 21 5000 8800  ·  white.id"
+	brandContact = "hello@mixist.id  ·  +62 21 5000 8800  ·  mixist.id"
 )
 
 type rgb struct{ r, g, b int }

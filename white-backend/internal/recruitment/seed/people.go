@@ -111,7 +111,7 @@ func pathTo(status string) []string {
 	return []string{status}
 }
 
-const hrName = "Tim HR WHITE"
+const hrName = "Tim HR Mixist"
 
 func (s *seeder) candidates(ctx context.Context) error {
 	for i, p := range people {
@@ -309,7 +309,7 @@ var transcripts = map[string][]struct{ topic, question, answer string }{
 		{"keahlian", domain.FallbackQuestions["keahlian"],
 			"Paling kuat di copywriting dan content planning. Saya pakai Canva untuk mockup, CapCut untuk video pendek, dan Spreadsheet untuk laporan insight mingguan."},
 		{"motivasi", domain.FallbackQuestions["motivasi"],
-			"Saya ingin pegang lebih banyak klien dengan industri berbeda. Agency seperti WHITE memberi ruang belajar strategi, bukan hanya eksekusi."},
+			"Saya ingin pegang lebih banyak klien dengan industri berbeda. Agency seperti Mixist memberi ruang belajar strategi, bukan hanya eksekusi."},
 		{"ketersediaan", domain.FallbackQuestions["ketersediaan"], "Saya perlu dua minggu untuk serah terima. Lokasi Kemang terjangkau dari rumah."},
 		{"gaji", domain.FallbackQuestions["gaji"], "Harapan saya di kisaran Rp 6,5 juta sampai 7 juta per bulan."},
 	},
@@ -423,7 +423,7 @@ func (s *seeder) interviews(ctx context.Context) error {
 		if pl.mode == "online" {
 			iv.MeetingLink = "https://meet.google.com/whi-" + fmt.Sprintf("%03d", pick(id, 1000)) + "-rec"
 		} else {
-			iv.Location = "Kantor WHITE, Kemang, Jakarta Selatan"
+			iv.Location = "Kantor Mixist, Kemang, Jakarta Selatan"
 		}
 		if pl.status == "cancelled" {
 			iv.CancelReason = "Kandidat meminta jadwal ulang karena sakit"

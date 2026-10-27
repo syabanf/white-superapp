@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// fakeHR serves a small WHITE directory over real gRPC so the seed runs
+// fakeHR serves a small Mixist directory over real gRPC so the seed runs
 // end to end through the hr client.
 type fakeHR struct {
 	hrv1.UnimplementedEmployeeServiceServer

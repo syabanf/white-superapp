@@ -1,6 +1,6 @@
-# WHITE Backend: architecture
+# Mixist Backend: architecture
 
-Go rewrite of the WHITE Analytics backend (`../white-analytics`, Next.js server
+Go rewrite of the Mixist Analytics backend (`../white-analytics`, Next.js server
 actions + Prisma). Eight deployable services, one Postgres instance with one
 schema per service, NATS JetStream for asynchronous work, gRPC between
 services and a grpc-gateway REST facade for the Next.js frontend.

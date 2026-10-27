@@ -1,5 +1,5 @@
 /**
- * Seed — deterministic, realistic demo data for WHITE Analytics.
+ * Seed — deterministic, realistic demo data for Mixist Analytics.
  * Run: pnpm db:seed   (tsx --env-file=.env prisma/seed.ts)
  */
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -98,10 +98,10 @@ async function main() {
 
   console.log("→ Users…");
   const admin = await db.user.create({
-    data: { email: "admin@white.id", name: "Admin WHITE", passwordHash: await hash("admin12345", 10), role: "ADMIN" },
+    data: { email: "admin@mixist.id", name: "Admin Mixist", passwordHash: await hash("admin12345", 10), role: "ADMIN" },
   });
   const member = await db.user.create({
-    data: { email: "tim@white.id", name: "Tim Analis", passwordHash: await hash("member12345", 10), role: "MEMBER" },
+    data: { email: "tim@mixist.id", name: "Tim Analis", passwordHash: await hash("member12345", 10), role: "MEMBER" },
   });
   await db.user.create({
     data: { email: "aloha.mrwhite@gmail.com", name: "Mr. White", passwordHash: await hash("waliwisbodas-ganti", 10), role: "ADMIN" },

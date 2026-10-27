@@ -1,6 +1,6 @@
-# WHITE Super App
+# Mixist Super App
 
-Platform pemasaran digital untuk tim agency WHITE: analitik & laporan **Social Media, SEO, Meta Ads**, publikasi konten (komposer, kalender, persetujuan, penjadwalan), dan SEO suite (riset kata kunci, rank tracker, backlink, kompetitor domain).
+Platform pemasaran digital untuk tim agency Mixist: analitik & laporan **Social Media, SEO, Meta Ads**, publikasi konten (komposer, kalender, persetujuan, penjadwalan), dan SEO suite (riset kata kunci, rank tracker, backlink, kompetitor domain).
 
 | Folder | Isi |
 |---|---|
@@ -18,7 +18,7 @@ pnpm db:migrate && pnpm db:seed
 pnpm dev --port 3100
 ```
 
-Login demo: `admin@white.id / admin12345`. Kredensial integrasi (Meta, Google, DataForSEO, Apify, OpenRouter) diisi dari dalam aplikasi: **Admin → Setup awal & integrasi**.
+Login demo: `admin@mixist.id / admin12345`. Kredensial integrasi (Meta, Google, DataForSEO, Apify, OpenRouter) diisi dari dalam aplikasi: **Admin → Setup awal & integrasi**.
 
 ## Verifikasi
 

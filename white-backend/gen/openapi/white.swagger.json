@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "WHITE API",
+    "title": "Mixist API",
     "version": "v1",
     "description": "Login lewat POST /v1/auth/login, lalu tekan Authorize dan isi `Bearer` diikuti accessToken dari respons login."
   },
@@ -6647,7 +6647,7 @@
     },
     "/v1/finance/dashboard/summary": {
       "get": {
-        "summary": "Dashboard tabs (new for WHITE): range totals against a comparison\nrange plus monthly trends, all from posted journals.",
+        "summary": "Dashboard tabs (new for Mixist): range totals against a comparison\nrange plus monthly trends, all from posted journals.",
         "operationId": "ReportService_GetFinanceSummary",
         "responses": {
           "200": {
@@ -9553,7 +9553,7 @@
     },
     "/v1/hr/employees/{employeeId}/onboarding:applyTemplate": {
       "post": {
-        "summary": "Adds the default WHITE checklist (skips tasks that already exist).",
+        "summary": "Adds the default Mixist checklist (skips tasks that already exist).",
         "operationId": "LifecycleService_ApplyOnboardingTemplate",
         "responses": {
           "200": {

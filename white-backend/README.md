@@ -1,6 +1,6 @@
-# WHITE Backend (Go)
+# Mixist Backend (Go)
 
-Backend microservice untuk WHITE Analytics, ditulis ulang dari server action Next.js + Prisma di `../white-analytics`. Platform punya dua workspace: Digital Marketing dan ERP (keuangan, SDM, kinerja, penjualan, porting dari NüHabit). Service Go berjalan di atas satu PostgreSQL dengan skema per service, NATS JetStream untuk kerja asinkron, gRPC antar service, dan grpc-gateway sebagai REST untuk frontend.
+Backend microservice untuk Mixist Analytics, ditulis ulang dari server action Next.js + Prisma di `../white-analytics`. Platform punya dua workspace: Digital Marketing dan ERP (keuangan, SDM, kinerja, penjualan, porting dari NüHabit). Service Go berjalan di atas satu PostgreSQL dengan skema per service, NATS JetStream untuk kerja asinkron, gRPC antar service, dan grpc-gateway sebagai REST untuk frontend.
 
 | Service | Port | Tanggung jawab |
 |---|---|---|
@@ -54,7 +54,7 @@ Dengan Docker:
 make up
 ```
 
-Data demo ERP dan konten untuk agency WHITE (aman dijalankan ulang):
+Data demo ERP dan konten untuk agency Mixist (aman dijalankan ulang):
 
 ```bash
 for s in hr finance recruitment sales performance content; do go run ./cmd/$s seed; done

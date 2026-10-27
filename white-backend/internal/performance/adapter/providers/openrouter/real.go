@@ -14,7 +14,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 )
 
-const baseRules = `Kamu adalah asisten HR di sebuah digital agency Indonesia bernama WHITE.
+const baseRules = `Kamu adalah asisten HR di sebuah digital agency Indonesia bernama Mixist.
 Aturan wajib:
 - Tulis dalam Bahasa Indonesia yang ringkas, hangat, dan profesional.
 - Gunakan hanya fakta dan angka dari data JSON; jangan mengarang.
@@ -108,7 +108,7 @@ func (r *Real) chat(ctx context.Context, system, user string, maxTokens int) (st
 	req.Header.Set("Authorization", "Bearer "+r.apiKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", r.referer)
-	req.Header.Set("X-Title", "WHITE ERP")
+	req.Header.Set("X-Title", "Mixist ERP")
 	res, err := r.client.Do(req)
 	if err != nil {
 		return "", providerErr(apperr.Network, fmt.Errorf("tidak dapat menghubungi OpenRouter: %w", err))

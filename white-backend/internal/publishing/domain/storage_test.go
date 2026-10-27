@@ -46,8 +46,8 @@ func TestKeysAndExtensions(t *testing.T) {
 	if ExtensionFor("image/jpeg") != "jpg" || ExtensionFor("image/svg+xml") != "" || ContentTypeForExtension("mov") != "video/quicktime" || ContentTypeForExtension("bin") != "application/octet-stream" {
 		t.Fatal("extensions")
 	}
-	url := PublicMediaURL("https://app.white.id/", "c1/x.png")
-	if url != "https://app.white.id/api/media/c1/x.png" || KeyFromURL(url) != "c1/x.png" || KeyFromURL("https://cdn.example.com/a.png") != "" {
+	url := PublicMediaURL("https://app.mixist.id/", "c1/x.png")
+	if url != "https://app.mixist.id/api/media/c1/x.png" || KeyFromURL(url) != "c1/x.png" || KeyFromURL("https://cdn.example.com/a.png") != "" {
 		t.Fatal(url)
 	}
 	if KindForMime("video/mp4") != MediaVideo || KindForMime("image/png") != MediaImage {

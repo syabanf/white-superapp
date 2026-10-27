@@ -69,6 +69,6 @@ type Result struct {
 }
 
 const (
-	UserAgent = "WHITEAnalyticsBot/1.0 (+https://white.id/bot)"
-	UAToken   = "whiteanalyticsbot"
+	UserAgent = "MixistAnalyticsBot/1.0 (+https://mixist.id/bot)"
+	UAToken   = "mixistanalyticsbot"
 )

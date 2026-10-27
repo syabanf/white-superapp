@@ -54,7 +54,7 @@ func RenderMonthlyRecap(r domain.MonthlyRecap, subjectName, departmentName strin
 		f.SetY(-12)
 		f.SetFont("Helvetica", "", 8)
 		f.SetTextColor(120, 120, 125)
-		f.CellFormat(0, 5, text(fmt.Sprintf("WHITE ERP - dibuat %s - halaman %d", r.GeneratedAt.In(domain.Jakarta).Format("02/01/2006 15:04"), f.PageNo())),
+		f.CellFormat(0, 5, text(fmt.Sprintf("Mixist ERP - dibuat %s - halaman %d", r.GeneratedAt.In(domain.Jakarta).Format("02/01/2006 15:04"), f.PageNo())),
 			"", 0, "C", false, 0, "")
 	})
 	f.AddPage()

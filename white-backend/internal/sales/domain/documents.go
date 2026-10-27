@@ -45,7 +45,7 @@ func ContractTransitionAllowed(from, to string) bool {
 // ContractPlaceholders documents every placeholder the renderer knows (the
 // template editor shows this list).
 var ContractPlaceholders = map[string]string{
-	"agency_name":     "Nama agensi (WHITE)",
+	"agency_name":     "Nama agensi (Mixist)",
 	"contract_number": "Nomor kontrak (KTR-YYMM-####)",
 	"today":           "Tanggal hari ini",
 	"client_name":     "Nama klien (akun atau instansi lead)",

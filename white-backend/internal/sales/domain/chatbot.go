@@ -103,7 +103,7 @@ func BotSystemPrompt(s ChatbotSettings, now time.Time) string {
 		open = "di luar jam kerja; tim manusia membalas pada jam kerja berikutnya"
 	}
 	return strings.Join([]string{
-		"Kamu adalah " + s.BotName + ", asisten chat untuk WHITE, digital marketing agency di Indonesia.",
+		"Kamu adalah " + s.BotName + ", asisten chat untuk Mixist, digital marketing agency di Indonesia.",
 		"Persona: " + s.Persona,
 		"Layanan yang ditawarkan:\n" + s.ServicesOffered,
 		"Panduan harga (HANYA boleh menyebut angka yang ada di sini):\n" + s.PricingHints,
@@ -348,13 +348,13 @@ func MockBotReply(s ChatbotSettings, known LeadExtract, msg string, now time.Tim
 		for i, l := range lines {
 			labels[i] = ServiceLineLabel(l)
 		}
-		parts = append(parts, "Tentu, WHITE bisa bantu untuk "+strings.Join(labels, " dan ")+".")
+		parts = append(parts, "Tentu, Mixist bisa bantu untuk "+strings.Join(labels, " dan ")+".")
 	case !extract.Empty():
 		parts = append(parts, "Terima kasih, sudah saya catat.")
 	case strings.Contains(msg, "?"):
 		return BotReply{Reply: "Pertanyaan yang bagus. Supaya jawabannya tepat, saya hubungkan dengan tim sales kami ya.", Confidence: 0.4, Lead: extract}
 	default:
-		parts = append(parts, "Terima kasih sudah menghubungi WHITE.")
+		parts = append(parts, "Terima kasih sudah menghubungi Mixist.")
 		confidence = 0.7
 	}
 	switch {

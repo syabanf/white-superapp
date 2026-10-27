@@ -1,6 +1,6 @@
 // Package domain holds the sales entities, value sets, repository ports and
 // the pure rules ported from NüHabit (salesfunnel, crm/advance, crm/inbox,
-// crm/publicforms) plus WHITE's agency automations.
+// crm/publicforms) plus Mixist's agency automations.
 package domain
 
 import (

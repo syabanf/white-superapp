@@ -109,7 +109,7 @@ func (c core) log() *slog.Logger {
 
 func (c core) company() string {
 	if c.CompanyName == "" {
-		return "WHITE"
+		return "Mixist"
 	}
 	return c.CompanyName
 }

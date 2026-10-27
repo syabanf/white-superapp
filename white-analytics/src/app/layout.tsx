@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s · Mixist",
   },
   description:
-    "Dashboard analisa & reporting Social Media, SEO, dan Meta Ads untuk klien agency WHITE.",
+    "Dashboard analisa & reporting Social Media, SEO, dan Meta Ads untuk klien agency Mixist.",
   applicationName: "Mixist",
 };
 

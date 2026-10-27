@@ -14,7 +14,7 @@ import (
 // Scheduled interviews with a human interviewer (recruitment.interviews in
 // NüHabit: type hrd | hiring_manager, mode offline | online, a scorecard
 // jsonb and a recommendation proceed | pool | reject). NüHabit kept the
-// table without routes; the scheduling flow and scorecard rules are WHITE's.
+// table without routes; the scheduling flow and scorecard rules are Mixist's.
 
 var (
 	InterviewTypes           = []string{"hrd", "hiring_manager"}

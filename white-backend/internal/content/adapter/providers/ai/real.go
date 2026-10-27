@@ -115,7 +115,7 @@ func (r *Real) complete(ctx context.Context, system, user string, maxTokens int)
 	req.Header.Set("Authorization", "Bearer "+r.apiKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", r.referer)
-	req.Header.Set("X-Title", "WHITE Content")
+	req.Header.Set("X-Title", "Mixist Content")
 	res, err := r.client.Do(req)
 	if err != nil {
 		return "", providerErr(apperr.Network, fmt.Errorf("tidak dapat menghubungi OpenRouter (timeout/jaringan): %w", err))

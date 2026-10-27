@@ -24,7 +24,7 @@ func NewContracts(d *Deps, onboarding *Onboarding) *Contracts {
 }
 
 // AgencyName is printed on documents.
-const AgencyName = "PT WHITE Digital Kreatif"
+const AgencyName = "PT Mixist Digital Kreatif"
 
 var contractTypeLabels = map[string]string{"retainer": "Retainer", "project": "Proyek", "nda": "Kerahasiaan (NDA)"}
 

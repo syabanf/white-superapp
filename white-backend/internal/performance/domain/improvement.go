@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// "Things to improve" (new for WHITE): improvement items per employee or
+// "Things to improve" (new for Mixist): improvement items per employee or
 // department, filed by people or by automations, and monthly retros.
 
 const (

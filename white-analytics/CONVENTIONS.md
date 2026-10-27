@@ -1,4 +1,4 @@
-# WHITE Analytics — Conventions (READ BEFORE WRITING CODE)
+# Mixist Analytics — Conventions (READ BEFORE WRITING CODE)
 
 Next.js 16 (App Router, RSC, Turbopack) · TypeScript strict · Tailwind v4 + shadcn/ui · Recharts 3 · TanStack Table v8 · Prisma 7 + PostgreSQL · Auth.js v5 · nuqs. UI copy is **Bahasa Indonesia**. Code identifiers/comments in English.
 
@@ -108,7 +108,7 @@ Feedback cues are synthesised with the Web Audio API in `src/lib/sound.ts` — n
 
 ## Visual tone (READ THIS BEFORE STYLING ANYTHING)
 
-Set on 2026-09-19 from four dashboard references the WHITE team supplied. It replaces the earlier withwhite.id tone (white canvas, hairline borders, crop marks, mono labels).
+Set on 2026-09-19 from four dashboard references the Mixist team supplied. It replaces the earlier withwhite.id tone (white canvas, hairline borders, crop marks, mono labels).
 
 The page is a **soft cool-grey canvas**. Content sits in **borderless white cards with a 24 px radius** and a faint shadow. Actions are **ink pills**. Royal blue marks **data and active state only**. Landing pages open with a **hero stage**: greeting headline, the 3D funnel on a blue-tinted panel, and headline numbers as glass cards beside it.
 
@@ -128,7 +128,7 @@ The page is a **soft cool-grey canvas**. Content sits in **borderless white card
 | Selects next to buttons | `<SelectTrigger size="sm">`, no manual height. |
 | Sidebar (md and up) | Grey rail, no border. Each row is a round icon chip plus label. The active chip turns ink. Sub-menus are an accordion: one section open at a time (the route decides, a manual toggle lasts until the next navigation), rendered as a white rounded panel with pill rows and a brand dot on the active one. |
 | Phone navigation | `MobileTabBar` (`components/shell/mobile-tab-bar.tsx`): floating ink pill, the first 4 destinations of the current context, active one in a brand circle, plus a "Semua menu" button that opens a bottom sheet with the full menu, client switcher and account menu. The drawer trigger is hidden below `md`. The bar hides on routes that own a sticky bottom action bar (`HAS_OWN_BOTTOM_BAR`): add new ones there. Page content gets `pb-28` on phones from the app layout. |
-| Logo | `WhiteLogo`: eight blades around an open centre, inherits `currentColor`. Traced by eye from the raster. Replace the path when the official SVG arrives. |
+| Logo | `MixistLogo`: eight blades around an open centre, inherits `currentColor`. Traced by eye from the raster. Replace the path when the official SVG arrives. |
 | 3D | `MarketingFunnel3D` is a 2D canvas with hand-rolled perspective. No WebGL and no dependency. Keep it on the hero and the login page. Do not put it behind charts or tables. |
 | Numbers | Proportional figures for big values. `.tabular` only in aligned columns. |
 | Motion | One vocabulary, tokens in `globals.css` (`--dur-fast/--dur/--dur-slow`, `--ease-out`). `.lift` for a clickable surface, `.nudge` inside `group/nudge` for a directional arrow, `.page-enter` on a page wrapper for staggered arrival. **Never hand-roll a transform or duration.** |
@@ -162,7 +162,7 @@ Do not reintroduce crop marks, mono uppercase labels, hairline card borders, or 
 
 ## Data facts (seed) you can rely on
 - 3 clients: `kopi-nusantara`, `adiharjo-property`, `bali-villa-escapes` (each with IG/FB/TikTok own accounts + 2–3 IG competitors, 120 days of `SocialSnapshot`, ~50–70 `SocialPost` per own account, 1 `SeoProperty` with 120 days `SeoDailyMetric` + `SeoDimensionMetric` (QUERY ~46 keys, PAGE 15, COUNTRY 5–8, DEVICE 3) + `Ga4DailyMetric`, 4 audit runs × MOBILE/DESKTOP in `SeoAudit`, 1 `SeoCrawl` with ~27 pages + issues, 1 `AdAccount` with 4 campaigns → adsets → ads and ad-level `AdDailyInsight` per day (`resultType` per campaign: link_click / purchase (+purchaseValue) / lead / messaging_conversation_started / reach), `AdDemographic` per campaign (age×gender), 2 `Report`s, 3 `SyncJob`s.
-- Users: `admin@white.id / admin12345` (ADMIN), `tim@white.id / member12345` (MEMBER of kopi-nusantara as MANAGER, adiharjo-property as VIEWER). Client `kopi-nusantara` has share PIN `123456`; others no PIN.
+- Users: `admin@mixist.id / admin12345` (ADMIN), `tim@mixist.id / member12345` (MEMBER of kopi-nusantara as MANAGER, adiharjo-property as VIEWER). Client `kopi-nusantara` has share PIN `123456`; others no PIN.
 - Demo data ages: the seed ends on the day it ran. `pnpm db:extend-demo` continues every active daily series (social snapshots, GSC daily and dimensions, GA4, ad insights, rank, backlink and domain snapshots) up to yesterday. It only inserts, skips rows that already exist, and is safe to re-run. Prefer it over `db:seed`, which wipes users and posts created since.
 - Query layers keep an unreported GSC/GA4 day as `null` all the way to the chart. Never coalesce it to `0` (`?? 0`) on the way.
 - Awareness campaigns report `resultType: "reach"`; exclude `NON_CONVERSION_RESULT_TYPES` (exported from `features/overview/queries.ts`) when summing "hasil"/CPR.

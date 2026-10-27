@@ -14,7 +14,7 @@ var (
 	JournalAmountSources = []string{"TOTAL", "SUBTOTAL", "TAX", "COGS", "PAID", "DISCOUNT", "SERVICE_CHARGE"}
 )
 
-// Event codes WHITE posts automatically.
+// Event codes Mixist posts automatically.
 const (
 	EventPayrollAccrual         = "PAYROLL_ACCRUAL"
 	EventPayrollPayment         = "PAYROLL_PAYMENT"
@@ -39,7 +39,7 @@ type JournalEvent struct {
 }
 
 // JournalEvents is the catalog the mapping editor offers (names and
-// descriptions from NüHabit JOURNAL_EVENT_META for the codes WHITE uses).
+// descriptions from NüHabit JOURNAL_EVENT_META for the codes Mixist uses).
 var JournalEvents = []JournalEvent{
 	{EventPayrollAccrual, "Payroll Accrual", "Pengakuan beban gaji (expense) dan hutang gaji", "PAYROLL"},
 	{EventPayrollPPh21, "Payroll PPh 21 Withholding", "Potongan PPh 21 dari payroll", "PAYROLL"},

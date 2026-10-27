@@ -1,4 +1,4 @@
-// Package seed fills the content schema with demo data for WHITE's
+// Package seed fills the content schema with demo data for Mixist's
 // marketing clients: an approved editorial plan for last month, a draft
 // plan for next month with items in every workflow state, caption
 // revisions, design tasks with files, a brand asset library and one

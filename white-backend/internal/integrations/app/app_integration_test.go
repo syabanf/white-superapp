@@ -110,7 +110,7 @@ func newFakeProvider(t *testing.T) *fakeProvider {
 			}
 			_, _ = w.Write([]byte(`{"access_token":"m-short","expires_in":5000}`))
 		case r.URL.Path == "/meta/me":
-			_, _ = w.Write([]byte(`{"id":"m-777","name":"White Agency"}`))
+			_, _ = w.Write([]byte(`{"id":"m-777","name":"Mixist Agency"}`))
 		default:
 			w.WriteHeader(404)
 		}
@@ -451,7 +451,7 @@ func TestIntegrationOAuthMeta(t *testing.T) {
 		t.Fatalf("%+v %v", r, err)
 	}
 	c := r.Connection
-	if c.AccountID != "m-777" || c.DisplayName != "White Agency" || c.RefreshTokenEnc != nil || !c.ExpiresAt.Equal(f.clock.T.Add(5184000*time.Second)) || len(c.Scopes) != 6 {
+	if c.AccountID != "m-777" || c.DisplayName != "Mixist Agency" || c.RefreshTokenEnc != nil || !c.ExpiresAt.Equal(f.clock.T.Add(5184000*time.Second)) || len(c.Scopes) != 6 {
 		t.Fatalf("%+v", c)
 	}
 	if plain, _ := f.cipher.Decrypt(c.AccessTokenEnc); plain != "m-long" {

@@ -403,7 +403,7 @@ func (q *Quotes) DeleteQuotation(ctx context.Context, id string) error {
 	})
 }
 
-// RenderPDF renders the quotation with the WHITE letterhead.
+// RenderPDF renders the quotation with the Mixist letterhead.
 func (q *Quotes) RenderPDF(ctx context.Context, id string) (string, []byte, error) {
 	qt, err := q.load(ctx, id)
 	if err != nil {
@@ -525,7 +525,7 @@ type scopeAnswer struct {
 	} `json:"items"`
 }
 
-const scopeSystemPrompt = `Kamu adalah account manager di WHITE, digital marketing agency di Indonesia.
+const scopeSystemPrompt = `Kamu adalah account manager di Mixist, digital marketing agency di Indonesia.
 Tulis deskripsi ruang lingkup (scope of work) untuk setiap item penawaran berdasarkan catatan kebutuhan klien.
 Aturan: Bahasa Indonesia, 2-4 kalimat per item, konkret (deliverable, frekuensi, laporan), tanpa harga, tanpa janji hasil angka.
 Jawab HANYA dengan JSON tanpa pagar kode: {"items": [{"index": number, "scope": string}]}`

@@ -160,7 +160,7 @@ func TestRealRequestAndResponse(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	src := NewSource(func(context.Context) (Credentials, error) { return Credentials{APIKey: "sk-test"}, nil }, Options{Endpoint: srv.URL, Referer: "https://app.white.id"})
+	src := NewSource(func(context.Context) (Credentials, error) { return Credentials{APIKey: "sk-test"}, nil }, Options{Endpoint: srv.URL, Referer: "https://app.mixist.id"})
 	content, model, err := src.Generate(context.Background(), input(domain.ModuleSeo, "en"))
 	if err != nil {
 		t.Fatal(err)
@@ -169,7 +169,7 @@ func TestRealRequestAndResponse(t *testing.T) {
 		t.Fatalf("content %q model %q", content, model)
 	}
 	h := got.header
-	if h.Get("Authorization") != "Bearer sk-test" || h.Get("HTTP-Referer") != "https://app.white.id" || h.Get("X-Title") != "WHITE Analytics" {
+	if h.Get("Authorization") != "Bearer sk-test" || h.Get("HTTP-Referer") != "https://app.mixist.id" || h.Get("X-Title") != "Mixist Analytics" {
 		t.Fatalf("headers %v", h)
 	}
 	b := got.body

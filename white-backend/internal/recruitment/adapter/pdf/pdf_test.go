@@ -16,7 +16,7 @@ func TestRenderers(t *testing.T) {
 	offer := domain.Offer{ID: "o1", CandidateName: "Dinda Pratiwi", Version: 2, Status: "accepted", PositionTitle: "SEO Analyst",
 		BaseSalary: domain.Rupiah(8_000_000), Benefits: []string{"BPJS Kesehatan", "Laptop kerja"}, StartDate: &start,
 		SentAt: &now, ExpiresAt: &now, RespondedAt: &now, CreatedByName: "Nadia (HR)"}
-	report := domain.PipelineReport{CompanyName: "WHITE",
+	report := domain.PipelineReport{CompanyName: "Mixist",
 		Candidate:     domain.Candidate{FullName: "Dinda Pratiwi", Status: "offer", Source: "portal", ExpectedSalary: &salary, CreatedAt: now},
 		PsikotesTests: []domain.SessionTest{{InstrumentName: "Aritmatika", Status: "selesai", Score: &score}},
 		AiInterviews:  []domain.AiSession{{Status: "completed", Summary: &domain.InterviewSummary{Summary: "Jawaban rinci — relevan", RedFlags: []string{"x"}}}},
@@ -25,7 +25,7 @@ func TestRenderers(t *testing.T) {
 	for name, render := range map[string]func() ([]byte, error){
 		"report": func() ([]byte, error) { return Renderer{}.PipelineReport(report, now) },
 		"letter": func() ([]byte, error) {
-			return Renderer{}.OfferLetter(domain.OfferLetter{Offer: offer, CompanyName: "WHITE", IssuedAt: now})
+			return Renderer{}.OfferLetter(domain.OfferLetter{Offer: offer, CompanyName: "Mixist", IssuedAt: now})
 		},
 	} {
 		b, err := render()
@@ -33,7 +33,7 @@ func TestRenderers(t *testing.T) {
 			t.Fatalf("%s: %v (%d bytes)", name, err, len(b))
 		}
 	}
-	if got := LetterNumber("WHITE", 3, now); got != "OL-0003/WHITE/X/2026" {
+	if got := LetterNumber("Mixist", 3, now); got != "OL-0003/MIXIST/X/2026" {
 		t.Fatal(got)
 	}
 	if safe("A → B — “c”") != `A -> B - "c"` {

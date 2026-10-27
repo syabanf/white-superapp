@@ -8,7 +8,7 @@ and extended with the agency automations listed below.
 
 ## Services
 
-| Service | gRPC port | Schema | Source in NüHabit | New for WHITE |
+| Service | gRPC port | Schema | Source in NüHabit | New for Mixist |
 |---|---|---|---|---|
 | `finance` | 9007 | `finance` | `accounting` module (COA, account types, fiscal years/periods, journals, journal mappings, cash-bank, AP, AR, reports, dashboard) and `/api/finance` B2B invoices | reimbursement claims, financial ratios and AI analysis |
 | `hr` | 9008 | `hr` | `hris` (employees, master data, attendance, leave, overtime, shifts, holidays, contracts, announcements, employee onboarding/offboarding, org chart, HR reports, ESS) and the compensation half of `payroll` (payroll runs, BPJS/PPh21, salary, loans, payslips) | |
@@ -20,7 +20,7 @@ and extended with the agency automations listed below.
 ## Rules every ERP service follows
 
 - Same layout and conventions as the marketing services (`docs/CONVENTIONS.md`, reference `internal/identity`).
-- **Single company.** WHITE is one agency, so NüHabit's holding/company/branch scope is dropped. Keep `company_id` out of the schema.
+- **Single company.** Mixist is one agency, so NüHabit's holding/company/branch scope is dropped. Keep `company_id` out of the schema.
 - **Authorization** uses permission keys from `pkg/authn/perms.go`: `authn.RequirePerm(ctx, authn.PermFinanceWrite)`. ADMIN holds every key. `self.service` covers what any employee does for themselves (own attendance, leave, reimbursement, tasks, payslip). NüHabit IAM menu prefixes map as: `accounting` -> `finance.*`, `hris*` -> `hr.*`, `hris.compensation` -> `hr.payroll`, `hris.recruitment` -> `recruitment.*`, `sales-funnel` / `crm*` -> `sales.*`, `tasks*` -> `self.service` plus `hr.read` for team views.
 - **People.** `identity.users` are logins. `hr.employees` are people on the payroll, with an optional `user_id`. Other services resolve "the employee of this user" through `hr.EmployeeService.GetEmployeeByUser`.
 - **Cross-service effects go through events** (`pkg/events`), never cross-schema SQL:

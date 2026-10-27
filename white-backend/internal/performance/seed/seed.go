@@ -1,4 +1,4 @@
-// Package seed inserts idempotent demo data for WHITE, an Indonesian
+// Package seed inserts idempotent demo data for Mixist, an Indonesian
 // digital agency: department KPI indicators and weights, a year of
 // department tasks, logbook entries and daily recaps for the hr employees,
 // thirteen months of KPI scorecards, four review cycles, two 360 cycles,
@@ -135,7 +135,7 @@ type indicatorSeed struct {
 	base, spread float64
 }
 
-// profile is what a WHITE department gets: its indicators, tasks and
+// profile is what a Mixist department gets: its indicators, tasks and
 // logbook checklist.
 type profile struct {
 	key        string

@@ -74,8 +74,8 @@ Repo root: `/Users/syabanf/Documents/works/WHITE-Superapps-main/white-analytics`
 - bcryptjs, cost **10**, everywhere: `hash(pw, 10)`, verified with `compare`.
 - Used for user passwords (`User.passwordHash`) and share PINs (`Client.sharePinHash`).
 - Seed users (prisma/seed.ts l.101-107):
-  - admin@white.id / admin12345 (ADMIN)
-  - tim@white.id / member12345 (MEMBER)
+  - admin@mixist.id / admin12345 (ADMIN)
+  - tim@mixist.id / member12345 (MEMBER)
   - aloha.mrwhite@gmail.com (ADMIN)
   - The first seeded client has share PIN "123456".
 

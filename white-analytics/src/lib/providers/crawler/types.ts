@@ -72,5 +72,5 @@ export type CrawlResult = {
   durationMs: number;
 };
 
-export const CRAWLER_UA = "WHITEAnalyticsBot/1.0 (+https://white.id/bot)";
-export const CRAWLER_UA_TOKEN = "whiteanalyticsbot";
+export const CRAWLER_UA = "MixistAnalyticsBot/1.0 (+https://mixist.id/bot)";
+export const CRAWLER_UA_TOKEN = "mixistanalyticsbot";

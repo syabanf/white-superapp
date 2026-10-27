@@ -10,7 +10,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/authn"
 )
 
-// Demo data for WHITE, a 25-person digital agency: the prior fiscal year
+// Demo data for Mixist, a 25-person digital agency: the prior fiscal year
 // (prior.go), then fiscal year 2026 with an opening balance and month by month (January to the current month)
 // client invoices and receipts through the sales events, vendor bills and
 // payments, payroll through the hr event, cash movements and depreciation,

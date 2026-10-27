@@ -3,7 +3,7 @@
 //	sales serve            # migrate (unless AUTO_MIGRATE=false), gRPC :9010 + worker
 //	sales migrate          # apply migrations and exit
 //	sales worker           # ERP tick consumer only
-//	sales seed [reference] # reference data, plus WHITE demo data unless "reference"
+//	sales seed [reference] # reference data, plus Mixist demo data unless "reference"
 package main
 
 import (

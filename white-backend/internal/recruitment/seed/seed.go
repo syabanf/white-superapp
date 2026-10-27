@@ -1,4 +1,4 @@
-// Package seed inserts idempotent demo recruitment data for WHITE, an
+// Package seed inserts idempotent demo recruitment data for Mixist, an
 // Indonesian digital agency: five live job openings with about forty
 // candidates across the pipeline and talent pool, two years of past
 // openings and applicants (history.go), a psikotes question bank with one

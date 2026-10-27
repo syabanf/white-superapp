@@ -1,6 +1,6 @@
 -- +goose Up
 -- Sales: CRM pipeline (ported from NüHabit salesfunnel + crm/advance +
--- crm/inbox + crm/publicforms) plus WHITE's agency automations: quotation
+-- crm/inbox + crm/publicforms) plus Mixist's agency automations: quotation
 -- drafts, contracts with e-signature, pitch decks, client onboarding and
 -- the lead chatbot. Value sets are CHECK constraints, as in NüHabit.
 CREATE SCHEMA IF NOT EXISTS sales;

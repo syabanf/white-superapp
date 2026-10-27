@@ -7,7 +7,7 @@
 // INTEGRATIONS_ADDR (localhost:9002), RECRUITMENT_UPLOAD_DIR (CVs and
 // drawings, default .uploads/recruitment), RECRUITMENT_NOTIFY_USER_IDS
 // (comma-separated identity users told about applications, responses and
-// reminders, on top of every recruitment.write holder from identity), RECRUITMENT_COMPANY_NAME (default WHITE), APP_BASE_URL
+// reminders, on top of every recruitment.write holder from identity), RECRUITMENT_COMPANY_NAME (default Mixist), APP_BASE_URL
 // (OpenRouter HTTP-Referer). GRPC_ADDR is :9009 in docker.
 package recruitment
 
@@ -124,7 +124,7 @@ func Wire(d pkgapp.Deps) (*Wiring, error) {
 		Clock:       clk,
 		Logger:      d.Logger,
 		Recruiters:  splitIDs(config.Env("RECRUITMENT_NOTIFY_USER_IDS", "")),
-		CompanyName: config.Env("RECRUITMENT_COMPANY_NAME", "WHITE"),
+		CompanyName: config.Env("RECRUITMENT_COMPANY_NAME", "Mixist"),
 	}
 	return &Wiring{
 		Services: grpcapi.Services{Jobs: app.NewJobOpenings(deps), Candidates: app.NewCandidates(deps), Psikotes: app.NewPsikotes(deps),

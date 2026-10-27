@@ -406,7 +406,7 @@ func (Renderer) PipelineReport(r domain.PipelineReport, now time.Time) ([]byte, 
 
 var romanMonths = []string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"}
 
-// LetterNumber is "OL-0003/WHITE/X/2026": the offer version within the
+// LetterNumber is "OL-0003/MIXIST/X/2026": the offer version within the
 // candidate, the company and the Roman month of issue.
 func LetterNumber(company string, version int, issued time.Time) string {
 	t := issued.In(domain.Jakarta)

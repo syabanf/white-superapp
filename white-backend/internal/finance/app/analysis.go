@@ -12,7 +12,7 @@ import (
 )
 
 // Analysis computes financial ratios from the ledger and writes the AI
-// CFO memo (new for WHITE).
+// CFO memo (new for Mixist).
 type Analysis struct{ Deps }
 
 func NewAnalysis(d Deps) *Analysis { return &Analysis{d} }

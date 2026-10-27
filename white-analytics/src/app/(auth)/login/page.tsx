@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LoginForm } from "@/features/auth/login-form";
+import { LoginForm, type DemoAccount } from "@/features/auth/login-form";
 import { MixistLogo } from "@/components/brand/logo";
 import { MarketingFunnel3D } from "@/components/brand/marketing-funnel-3d";
 import { t } from "@/i18n/id";
@@ -10,6 +10,14 @@ const HIGHLIGHTS = [
   { name: "Social Media", meta: "Analitik · Publikasi" },
   { name: "SEO", meta: "GSC · Rank · Backlink" },
   { name: "Meta Ads", meta: "Spend · CPR · ROAS" },
+];
+
+// Seeded demo accounts. Prod hides them unless NEXT_PUBLIC_DEMO_LOGIN=true, so the
+// credentials only reach the browser when the quick-login buttons are meant to show.
+const DEMO_LOGIN = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_DEMO_LOGIN === "true";
+const DEMO_ACCOUNTS: DemoAccount[] = [
+  { label: "Admin", email: "admin@mixist.id", password: "admin12345" },
+  { label: "Tim", email: "tim@mixist.id", password: "member12345" },
 ];
 
 export default async function LoginPage(props: PageProps<"/login">) {
@@ -60,24 +68,10 @@ export default async function LoginPage(props: PageProps<"/login">) {
             </h2>
             <p className="mt-2 mb-7 text-sm text-muted-foreground">{t.auth.subtitle}</p>
 
-            <LoginForm callbackUrl={callbackUrl} />
-
-            <div className="mt-7 border-t pt-5">
-              <p className="label-mono text-muted-foreground">{t.auth.demoHint}</p>
-              <dl className="mt-2.5 space-y-1 font-mono text-xs text-muted-foreground">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-foreground/80">admin@white.id</dt>
-                  <dd>admin12345</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-foreground/80">tim@white.id</dt>
-                  <dd>member12345</dd>
-                </div>
-              </dl>
-            </div>
+            <LoginForm callbackUrl={callbackUrl} demoAccounts={DEMO_LOGIN ? DEMO_ACCOUNTS : undefined} />
           </div>
           <p className="label-mono mt-6 text-center text-muted-foreground">
-            © {new Date().getFullYear()} WHITE · {t.app.name}
+            © {new Date().getFullYear()} {t.app.name}
           </p>
         </section>
       </div>

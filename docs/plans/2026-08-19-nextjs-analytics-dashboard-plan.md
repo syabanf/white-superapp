@@ -1,4 +1,4 @@
-# WHITE Analytics — Rencana Implementasi Fase 1
+# Mixist Analytics — Rencana Implementasi Fase 1
 
 Mengacu ke design doc `2026-08-19-nextjs-analytics-dashboard-design.md`. Semua pekerjaan di folder baru `white-analytics/`.
 
@@ -29,7 +29,7 @@ white-analytics/
 ### Tahap 0 — Fondasi (berurutan)
 1. Scaffold `pnpm create next-app` (TS, Tailwind, ESLint, App Router, src/, alias `@/*`); init shadcn; pasang semua dependensi.
 2. DB `white_analytics` di Postgres lokal; `prisma/schema.prisma` lengkap sesuai design §5; migrasi awal; Prisma client singleton (adapter-pg).
-3. Token desain WHITE (CSS variables light/dark), Inter, `next-themes`; komponen shadcn yang dibutuhkan.
+3. Token desain Mixist (CSS variables light/dark), Inter, `next-themes`; komponen shadcn yang dibutuhkan.
 4. `lib/format` (id-ID, IDR, compact, persen, tanggal), `lib/dates` (preset, periode sebelumnya, parsing dari URL via nuqs), `lib/metrics` (semua rumus) + unit test.
 5. Auth.js: Credentials + bcrypt, JWT, `auth()` helper, middleware proteksi `(app)`, halaman login, RBAC helper (`requireUser`, `requireAdmin`, `requireClientAccess`).
 6. Shell: Sidebar (collapsible, nav per klien + global), Topbar (ClientSwitcher ⌘K, DateRangePicker + compare, status sync, theme, user menu). Layout `(app)`, layout `clients/[slug]`.

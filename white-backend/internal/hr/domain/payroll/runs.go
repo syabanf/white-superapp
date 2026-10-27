@@ -3,7 +3,7 @@ package payroll
 import "slices"
 
 // Run statuses. NüHabit used draft -> processing -> completed -> paid and
-// calculated inside draft; WHITE names the steps after what happened:
+// calculated inside draft; Mixist names the steps after what happened:
 // draft (created), calculated, approved, paid.
 const (
 	RunDraft      = "draft"
@@ -29,7 +29,7 @@ func CanDeleteRun(status string) bool { return status != RunPaid }
 func CanCalculateRun(status string) bool { return status == RunDraft || status == RunCalculated }
 
 // SlipShare is what one payslip contributes to the paid-run totals finance
-// posts (RunSlipShare without the company split: WHITE is one company).
+// posts (RunSlipShare without the company split: Mixist is one company).
 // Gross is the slip's gross less its unpaid-leave and late deductions, so
 // Gross = Net + Pph21 + Loan + every employee BPJS and Tapera share and
 // finance's salary payable clears.

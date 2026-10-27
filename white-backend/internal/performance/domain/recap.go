@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Daily and monthly work recaps (new for WHITE): what an employee did,
+// Daily and monthly work recaps (new for Mixist): what an employee did,
 // built from task occurrences, their sub-tasks and history, logbook entries
 // and an optional free-text note, summarised by OpenRouter or the mock.
 

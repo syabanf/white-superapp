@@ -14,12 +14,12 @@ var pngBytes = []byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0x0d
 
 func TestLocalRoundTrip(t *testing.T) {
 	ctx := context.Background()
-	l := NewLocal(t.TempDir(), "https://app.white.id/")
+	l := NewLocal(t.TempDir(), "https://app.mixist.id/")
 	obj, err := l.Put(ctx, "client1", "image/png", pngBytes)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasPrefix(obj.Key, "client1/") || !strings.HasSuffix(obj.Key, ".png") || obj.URL != "https://app.white.id/api/media/"+obj.Key || obj.SizeBytes != int64(len(pngBytes)) {
+	if !strings.HasPrefix(obj.Key, "client1/") || !strings.HasSuffix(obj.Key, ".png") || obj.URL != "https://app.mixist.id/api/media/"+obj.Key || obj.SizeBytes != int64(len(pngBytes)) {
 		t.Fatalf("%+v", obj)
 	}
 	got, err := l.Get(ctx, obj.Key)

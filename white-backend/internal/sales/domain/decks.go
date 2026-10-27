@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Pitch deck automation: a fixed slide structure (cover, about WHITE,
+// Pitch deck automation: a fixed slide structure (cover, about Mixist,
 // challenges, strategy per service line, timeline, team, pricing, case
 // studies, next steps) whose free text comes from OpenRouter or the mock.
 
@@ -67,7 +67,7 @@ func DeckSystemPrompt(tone string) string {
 		tone = "profesional"
 	}
 	return strings.Join([]string{
-		"Kamu adalah strategist senior di WHITE, digital marketing agency di Indonesia, yang menyusun isi pitch deck untuk calon klien.",
+		"Kamu adalah strategist senior di Mixist, digital marketing agency di Indonesia, yang menyusun isi pitch deck untuk calon klien.",
 		"Nada penulisan: " + tone + ". Bahasa Indonesia, kalimat pendek, siap tampil di slide (maksimal 14 kata per butir).",
 		"Gunakan hanya informasi dari data yang diberikan; jangan mengarang angka, harga, atau nama klien lain.",
 		"Jawab HANYA dengan satu objek JSON tanpa pagar kode:",
@@ -140,7 +140,7 @@ func MockDeckCopy(in DeckInput) DeckCopy {
 func BuildSlides(in DeckInput, c DeckCopy) []Slide {
 	slides := []Slide{
 		{Kind: "cover", Title: "Proposal Kerja Sama " + in.ClientName, Subtitle: c.Tagline},
-		{Kind: "about", Title: "Tentang WHITE", Bullets: []string{
+		{Kind: "about", Title: "Tentang Mixist", Bullets: []string{
 			"Digital marketing agency di Jakarta dengan tim 25 orang",
 			"Tim Creative, Social Media, SEO, Ads, dan Sales dalam satu atap",
 			"Berbasis data: laporan performa transparan setiap bulan",

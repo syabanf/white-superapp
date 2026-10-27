@@ -63,7 +63,7 @@ func TestAnalyzeHTMLIssues(t *testing.T) {
 }
 
 func TestRobots(t *testing.T) {
-	txt := "User-agent: *\nDisallow: /\n\nUser-agent: WHITEAnalyticsBot\nUser-agent: other\nDisallow: /private\nAllow: /private/ok$\nDisallow: /*.pdf$\nSitemap: https://kopi.id/sm.xml\n"
+	txt := "User-agent: *\nDisallow: /\n\nUser-agent: MixistAnalyticsBot\nUser-agent: other\nDisallow: /private\nAllow: /private/ok$\nDisallow: /*.pdf$\nSitemap: https://kopi.id/sm.xml\n"
 	r := ParseRobots(txt, UAToken)
 	if len(r.Sitemaps) != 1 {
 		t.Fatal("sitemaps")

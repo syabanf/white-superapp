@@ -417,7 +417,7 @@ Base path: `/Users/syabanf/Documents/works/WHITE-Superapps-main/white-analytics/
 ## 14. crawler (no external API, crawls the site directly)
 - `crawlSite(startUrl, {maxPages=30 (hard cap 60), timeBudgetMs=45_000, concurrency=4, requestTimeoutMs=10_000}): Promise<CrawlResult {pages, issues, pagesCrawled, durationMs}>`.
 - Also exports `analyzeHtml` and `CRAWLER_UA`.
-- User agent: `CRAWLER_UA = "WHITEAnalyticsBot/1.0 (+https://white.id/bot)"`, robots token `"whiteanalyticsbot"`. Accept header `text/html,application/xhtml+xml,*/*;q=0.8`.
+- User agent: `CRAWLER_UA = "MixistAnalyticsBot/1.0 (+https://mixist.id/bot)"`, robots token `"mixistanalyticsbot"`. Accept header `text/html,application/xhtml+xml,*/*;q=0.8`.
 - Start URL: `sc-domain:x` becomes `https://x/`; a missing scheme becomes https; the hash is stripped. Same-origin only.
 - robots.txt (`robots.ts`):
   - Fetches `{origin}/robots.txt` with a 5 s timeout, best effort.
@@ -467,7 +467,7 @@ Base path: `/Users/syabanf/Documents/works/WHITE-Superapps-main/white-analytics/
 - `generateInsight(input): Promise<{content, model}>`. The model id is stored on AiInsight rows; it is `"mock"` for the mock.
 - Real:
   - `POST https://openrouter.ai/api/v1/chat/completions`
-  - Headers: `Authorization: Bearer`, `HTTP-Referer: NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"`, `X-Title: "WHITE Analytics"`.
+  - Headers: `Authorization: Bearer`, `HTTP-Referer: NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"`, `X-Title: "Mixist Analytics"`.
   - Timeout 90_000 ms.
   - Body: `{model: OPENROUTER_MODEL || "anthropic/claude-sonnet-4.5", max_tokens: 2500, temperature: 0.4, messages: [system, user]}`.
   - Response: `choices[0].message.content` trimmed. Empty → UNKNOWN.

@@ -153,7 +153,7 @@ func complete(ctx context.Context, opts Options, apiKey, model string, in app.In
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("HTTP-Referer", referer)
-	req.Header.Set("X-Title", "WHITE ERP")
+	req.Header.Set("X-Title", "Mixist ERP")
 	res, err := client.Do(req)
 	if err != nil {
 		return "", providerErr(apperr.Network, fmt.Errorf("tidak dapat menghubungi OpenRouter (timeout/jaringan): %w", err))

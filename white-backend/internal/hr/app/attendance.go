@@ -327,7 +327,7 @@ func (s *Attendance) ExportXLSX(ctx context.Context, a Actor, f ExportFilter) ([
 		rows[i] = row
 	}
 	hris.SortReportRows(rows)
-	meta := AttendanceReportMeta{CompanyName: "WHITE", PeriodLabel: "Semua tanggal", GeneratedAt: s.d.now()}
+	meta := AttendanceReportMeta{CompanyName: "Mixist", PeriodLabel: "Semua tanggal", GeneratedAt: s.d.now()}
 	if f.StartDate != "" && f.EndDate != "" {
 		meta.PeriodLabel = hris.PeriodLabel(f.StartDate, f.EndDate)
 	}

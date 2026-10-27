@@ -16,7 +16,7 @@ const docsPage = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>WHITE API</title>
+<title>Mixist API</title>
 <style>:root{color-scheme:light}body{margin:0;background:#fff}</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css">
 </head>

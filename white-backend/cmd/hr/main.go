@@ -1,5 +1,5 @@
 // Command hr runs the hr service: serve | migrate | worker (pkg/app) and
-// seed, which inserts the WHITE demo data (idempotent).
+// seed, which inserts the Mixist demo data (idempotent).
 package main
 
 import (
@@ -54,7 +54,7 @@ func runSeed(ctx context.Context) error {
 	}
 	defer closeFn()
 	users := identityUsers(ctx, identity, logger)
-	renderer := docs.Renderer{CompanyName: config.Env("HR_COMPANY_NAME", "WHITE")}
+	renderer := docs.Renderer{CompanyName: config.Env("HR_COMPANY_NAME", "Mixist")}
 	if err := seed.New(svc.Deps, renderer).Run(ctx, users); err != nil {
 		return err
 	}

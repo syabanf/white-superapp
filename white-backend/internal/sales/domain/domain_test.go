@@ -311,7 +311,7 @@ func TestContractRendering(t *testing.T) {
 	q := &Quotation{QuoteNumber: "QT-2610-0001", Total: rp("11100000"), PpnNominal: rp("1100000"), Subtotal: rp("10000000"),
 		Items: []QuotationItem{{Description: "SEO Bulanan", Scope: "4 artikel", Qty: 6, Unit: "bulan", UnitPrice: rp("1666666.67"), LineTotal: rp("10000000")}},
 		Terms: []QuotationTerm{{Label: "DP", Percent: 50}, {Label: "Pelunasan", Percent: 50}}}
-	v := ContractValues(ContractContext{AgencyName: "WHITE", ContractNumber: "KTR-2610-0001", Today: start, ClientName: "PT Maju", Quotation: q, StartDate: &start, EndDate: &end})
+	v := ContractValues(ContractContext{AgencyName: "Mixist", ContractNumber: "KTR-2610-0001", Today: start, ClientName: "PT Maju", Quotation: q, StartDate: &start, EndDate: &end})
 	eq(t, v["fees"], "Rp11.100.000")
 	eq(t, v["duration_months"], "6")
 	eq(t, strings.Contains(v["payment_terms"], "- DP (50%): Rp5.550.000"), true)

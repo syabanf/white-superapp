@@ -38,7 +38,7 @@ func TestIntegrationGRPC(t *testing.T) {
 	clk := clock.Real{}
 	users := app.NewUsers(store, events.Noop{})
 	ctx := context.Background()
-	if _, err := users.Create(ctx, app.UserInput{Name: "Admin", Email: "admin@white.id", Password: "admin12345", Role: domain.RoleAdmin, IsActive: true}); err != nil {
+	if _, err := users.Create(ctx, app.UserInput{Name: "Admin", Email: "admin@mixist.id", Password: "admin12345", Role: domain.RoleAdmin, IsActive: true}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -73,11 +73,11 @@ func TestIntegrationGRPC(t *testing.T) {
 		t.Fatalf("expected UNAUTHENTICATED, got %v", err)
 	}
 
-	_, err = auth.Login(ctx, &identityv1.LoginRequest{Email: "admin@white.id", Password: "nope"})
+	_, err = auth.Login(ctx, &identityv1.LoginRequest{Email: "admin@mixist.id", Password: "nope"})
 	if e := grpcx.FromStatus(err); e == nil || e.Code != apperr.Unauthenticated || e.Message != "Email atau kata sandi salah" {
 		t.Fatalf("got %v", err)
 	}
-	tok, err := auth.Login(ctx, &identityv1.LoginRequest{Email: "admin@white.id", Password: "admin12345"})
+	tok, err := auth.Login(ctx, &identityv1.LoginRequest{Email: "admin@mixist.id", Password: "admin12345"})
 	if err != nil {
 		t.Fatal(err)
 	}

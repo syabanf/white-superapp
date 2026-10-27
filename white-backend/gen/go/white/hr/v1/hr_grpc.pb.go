@@ -3193,7 +3193,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LifecycleServiceClient interface {
 	ListOnboardingTasks(ctx context.Context, in *GetEmployeeRequest, opts ...grpc.CallOption) (*OnboardingChecklist, error)
-	// Adds the default WHITE checklist (skips tasks that already exist).
+	// Adds the default Mixist checklist (skips tasks that already exist).
 	ApplyOnboardingTemplate(ctx context.Context, in *GetEmployeeRequest, opts ...grpc.CallOption) (*OnboardingChecklist, error)
 	AddOnboardingTask(ctx context.Context, in *OnboardingTaskInput, opts ...grpc.CallOption) (*OnboardingTask, error)
 	UpdateOnboardingTask(ctx context.Context, in *UpdateOnboardingTaskRequest, opts ...grpc.CallOption) (*OnboardingTask, error)
@@ -3297,7 +3297,7 @@ func (c *lifecycleServiceClient) UpdateOffboarding(ctx context.Context, in *Upda
 // for forward compatibility.
 type LifecycleServiceServer interface {
 	ListOnboardingTasks(context.Context, *GetEmployeeRequest) (*OnboardingChecklist, error)
-	// Adds the default WHITE checklist (skips tasks that already exist).
+	// Adds the default Mixist checklist (skips tasks that already exist).
 	ApplyOnboardingTemplate(context.Context, *GetEmployeeRequest) (*OnboardingChecklist, error)
 	AddOnboardingTask(context.Context, *OnboardingTaskInput) (*OnboardingTask, error)
 	UpdateOnboardingTask(context.Context, *UpdateOnboardingTaskRequest) (*OnboardingTask, error)

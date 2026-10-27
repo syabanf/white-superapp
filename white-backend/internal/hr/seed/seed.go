@@ -1,4 +1,4 @@
-// Package seed inserts demo data for WHITE, an Indonesian digital agency:
+// Package seed inserts demo data for Mixist, an Indonesian digital agency:
 // departments, positions, shifts, 34 employees (nine joined and five left
 // within the last year) with managers, weekly schedules, public holidays,
 // twelve months of attendance, leave, overtime and paid monthly payroll
@@ -44,44 +44,44 @@ type person struct {
 	Birth                           string // MM-DD
 }
 
-// people are WHITE's 25 employees; index+1 is the reference used by Manager.
+// people are Mixist's 25 employees; index+1 is the reference used by Manager.
 var people = []person{
-	{"Andika Wijaya", "admin@white.id", "MGT", "Chief Executive Officer", "director", 0, "permanent", 60, "male", 35_000_000, "reg", "K/2", "03-14"},
-	{"Sari Kusuma", "sari.kusuma@white.id", "MGT", "Chief Operating Officer", "director", 1, "permanent", 54, "female", 30_000_000, "reg", "K/1", "07-22"},
-	{"Bima Prasetyo", "bima.prasetyo@white.id", "CRV", "Creative Director", "manager", 1, "permanent", 48, "male", 22_000_000, "reg", "K/1", "11-02"},
-	{"Citra Ayu Lestari", "citra.ayu@white.id", "CRV", "Senior Graphic Designer", "senior", 3, "permanent", 36, "female", 12_500_000, "late", "TK/0", "01-30"},
-	{"Dimas Saputra", "dimas.saputra@white.id", "CRV", "Graphic Designer", "staff", 3, "contract", 14, "male", 8_000_000, "late", "TK/0", "09-09"},
-	{"Eka Putri Handayani", "eka.putri@white.id", "CRV", "Video Editor", "staff", 3, "permanent", 26, "female", 9_000_000, "late", "TK/1", "05-17"},
-	{"Fajar Nugroho", "fajar.nugroho@white.id", "SOC", "Social Media Lead", "lead", 2, "permanent", 40, "male", 16_000_000, "reg", "K/0", "12-05"},
-	{"Gita Permata", "tim@white.id", "SOC", "Content Strategist", "senior", 7, "permanent", 30, "female", 11_000_000, "reg", "TK/0", "10-26"},
-	{"Hana Lestari", "hana.lestari@white.id", "SOC", "Community Specialist", "staff", 7, "permanent", 20, "female", 7_500_000, "late", "TK/0", "04-11"},
-	{"Indra Kurniawan", "indra.kurniawan@white.id", "SOC", "Copywriter", "staff", 7, "contract", 11, "male", 7_000_000, "reg", "TK/0", "08-28"},
-	{"Joko Santoso", "joko.santoso@white.id", "SEO", "SEO Lead", "lead", 2, "permanent", 44, "male", 15_000_000, "reg", "K/2", "02-19"},
-	{"Kartika Sari Dewi", "kartika.sari@white.id", "SEO", "SEO Specialist", "staff", 11, "permanent", 22, "female", 8_500_000, "reg", "TK/0", "06-06"},
-	{"Lukman Hakim", "lukman.hakim@white.id", "SEO", "Content Writer", "staff", 11, "contract", 9, "male", 6_500_000, "reg", "TK/0", "10-29"},
-	{"Maya Anggraini", "maya.anggraini@white.id", "ADS", "Performance Marketing Lead", "lead", 2, "permanent", 38, "female", 17_000_000, "reg", "K/1", "03-03"},
-	{"Nanda Firmansyah", "nanda.firmansyah@white.id", "ADS", "Ads Specialist", "staff", 14, "permanent", 18, "male", 9_500_000, "reg", "TK/0", "07-07"},
-	{"Oki Ramadhan", "oki.ramadhan@white.id", "ADS", "Data Analyst", "staff", 14, "permanent", 16, "male", 10_000_000, "reg", "TK/0", "01-12"},
-	{"Putri Rahayu", "putri.rahayu@white.id", "SLS", "Sales Manager", "manager", 1, "permanent", 42, "female", 18_000_000, "reg", "K/1", "09-21"},
-	{"Rizky Maulana", "rizky.maulana@white.id", "SLS", "Account Executive", "staff", 17, "permanent", 24, "male", 9_000_000, "reg", "TK/0", "05-25"},
-	{"Salsabila Nur Aini", "salsabila.nur@white.id", "SLS", "Account Manager", "senior", 17, "permanent", 28, "female", 11_500_000, "reg", "TK/0", "11-15"},
-	{"Taufik Hidayat", "taufik.hidayat@white.id", "SLS", "Business Development", "staff", 17, "contract", 13, "male", 8_500_000, "reg", "K/0", "12-31"},
-	{"Utami Dewi", "utami.dewi@white.id", "FIN", "Finance Manager", "manager", 2, "permanent", 46, "female", 19_000_000, "reg", "K/2", "04-04"},
-	{"Vina Oktaviani", "vina.oktaviani@white.id", "FIN", "Accounting Staff", "staff", 21, "permanent", 19, "female", 8_000_000, "reg", "TK/0", "10-08"},
-	{"Wulan Sari", "wulan.sari@white.id", "HR", "HR Manager", "manager", 2, "permanent", 45, "female", 18_500_000, "reg", "K/1", "08-17"},
-	{"Yoga Pratama", "yoga.pratama@white.id", "HR", "HR Generalist", "staff", 23, "permanent", 21, "male", 8_500_000, "reg", "TK/0", "02-02"},
-	{"Zahra Amelia", "zahra.amelia@white.id", "SOC", "Social Media Officer", "staff", 7, "probation", 2, "female", 6_000_000, "reg", "TK/0", "06-30"},
+	{"Andika Wijaya", "admin@mixist.id", "MGT", "Chief Executive Officer", "director", 0, "permanent", 60, "male", 35_000_000, "reg", "K/2", "03-14"},
+	{"Sari Kusuma", "sari.kusuma@mixist.id", "MGT", "Chief Operating Officer", "director", 1, "permanent", 54, "female", 30_000_000, "reg", "K/1", "07-22"},
+	{"Bima Prasetyo", "bima.prasetyo@mixist.id", "CRV", "Creative Director", "manager", 1, "permanent", 48, "male", 22_000_000, "reg", "K/1", "11-02"},
+	{"Citra Ayu Lestari", "citra.ayu@mixist.id", "CRV", "Senior Graphic Designer", "senior", 3, "permanent", 36, "female", 12_500_000, "late", "TK/0", "01-30"},
+	{"Dimas Saputra", "dimas.saputra@mixist.id", "CRV", "Graphic Designer", "staff", 3, "contract", 14, "male", 8_000_000, "late", "TK/0", "09-09"},
+	{"Eka Putri Handayani", "eka.putri@mixist.id", "CRV", "Video Editor", "staff", 3, "permanent", 26, "female", 9_000_000, "late", "TK/1", "05-17"},
+	{"Fajar Nugroho", "fajar.nugroho@mixist.id", "SOC", "Social Media Lead", "lead", 2, "permanent", 40, "male", 16_000_000, "reg", "K/0", "12-05"},
+	{"Gita Permata", "tim@mixist.id", "SOC", "Content Strategist", "senior", 7, "permanent", 30, "female", 11_000_000, "reg", "TK/0", "10-26"},
+	{"Hana Lestari", "hana.lestari@mixist.id", "SOC", "Community Specialist", "staff", 7, "permanent", 20, "female", 7_500_000, "late", "TK/0", "04-11"},
+	{"Indra Kurniawan", "indra.kurniawan@mixist.id", "SOC", "Copywriter", "staff", 7, "contract", 11, "male", 7_000_000, "reg", "TK/0", "08-28"},
+	{"Joko Santoso", "joko.santoso@mixist.id", "SEO", "SEO Lead", "lead", 2, "permanent", 44, "male", 15_000_000, "reg", "K/2", "02-19"},
+	{"Kartika Sari Dewi", "kartika.sari@mixist.id", "SEO", "SEO Specialist", "staff", 11, "permanent", 22, "female", 8_500_000, "reg", "TK/0", "06-06"},
+	{"Lukman Hakim", "lukman.hakim@mixist.id", "SEO", "Content Writer", "staff", 11, "contract", 9, "male", 6_500_000, "reg", "TK/0", "10-29"},
+	{"Maya Anggraini", "maya.anggraini@mixist.id", "ADS", "Performance Marketing Lead", "lead", 2, "permanent", 38, "female", 17_000_000, "reg", "K/1", "03-03"},
+	{"Nanda Firmansyah", "nanda.firmansyah@mixist.id", "ADS", "Ads Specialist", "staff", 14, "permanent", 18, "male", 9_500_000, "reg", "TK/0", "07-07"},
+	{"Oki Ramadhan", "oki.ramadhan@mixist.id", "ADS", "Data Analyst", "staff", 14, "permanent", 16, "male", 10_000_000, "reg", "TK/0", "01-12"},
+	{"Putri Rahayu", "putri.rahayu@mixist.id", "SLS", "Sales Manager", "manager", 1, "permanent", 42, "female", 18_000_000, "reg", "K/1", "09-21"},
+	{"Rizky Maulana", "rizky.maulana@mixist.id", "SLS", "Account Executive", "staff", 17, "permanent", 24, "male", 9_000_000, "reg", "TK/0", "05-25"},
+	{"Salsabila Nur Aini", "salsabila.nur@mixist.id", "SLS", "Account Manager", "senior", 17, "permanent", 28, "female", 11_500_000, "reg", "TK/0", "11-15"},
+	{"Taufik Hidayat", "taufik.hidayat@mixist.id", "SLS", "Business Development", "staff", 17, "contract", 13, "male", 8_500_000, "reg", "K/0", "12-31"},
+	{"Utami Dewi", "utami.dewi@mixist.id", "FIN", "Finance Manager", "manager", 2, "permanent", 46, "female", 19_000_000, "reg", "K/2", "04-04"},
+	{"Vina Oktaviani", "vina.oktaviani@mixist.id", "FIN", "Accounting Staff", "staff", 21, "permanent", 19, "female", 8_000_000, "reg", "TK/0", "10-08"},
+	{"Wulan Sari", "wulan.sari@mixist.id", "HR", "HR Manager", "manager", 2, "permanent", 45, "female", 18_500_000, "reg", "K/1", "08-17"},
+	{"Yoga Pratama", "yoga.pratama@mixist.id", "HR", "HR Generalist", "staff", 23, "permanent", 21, "male", 8_500_000, "reg", "TK/0", "02-02"},
+	{"Zahra Amelia", "zahra.amelia@mixist.id", "SOC", "Social Media Officer", "staff", 7, "probation", 2, "female", 6_000_000, "reg", "TK/0", "06-30"},
 	// Joined during the last year.
-	{"Rangga Saputra", "rangga.saputra@white.id", "CRV", "Motion Designer", "staff", 3, "contract", 6, "male", 8_500_000, "late", "TK/0", "02-14"},
-	{"Nadia Paramitha", "nadia.paramitha@white.id", "ADS", "Ads Specialist", "staff", 14, "probation", 1, "female", 8_000_000, "reg", "TK/0", "09-03"},
-	{"Bayu Aditya", "bayu.aditya@white.id", "SEO", "SEO Specialist", "staff", 11, "contract", 4, "male", 7_500_000, "reg", "TK/0", "12-12"},
-	{"Laras Wening", "laras.wening@white.id", "SLS", "Account Executive", "staff", 17, "permanent", 8, "female", 8_500_000, "reg", "TK/0", "07-19"},
+	{"Rangga Saputra", "rangga.saputra@mixist.id", "CRV", "Motion Designer", "staff", 3, "contract", 6, "male", 8_500_000, "late", "TK/0", "02-14"},
+	{"Nadia Paramitha", "nadia.paramitha@mixist.id", "ADS", "Ads Specialist", "staff", 14, "probation", 1, "female", 8_000_000, "reg", "TK/0", "09-03"},
+	{"Bayu Aditya", "bayu.aditya@mixist.id", "SEO", "SEO Specialist", "staff", 11, "contract", 4, "male", 7_500_000, "reg", "TK/0", "12-12"},
+	{"Laras Wening", "laras.wening@mixist.id", "SLS", "Account Executive", "staff", 17, "permanent", 8, "female", 8_500_000, "reg", "TK/0", "07-19"},
 	// Left during the last year (see departures).
-	{"Reza Pahlevi", "reza.pahlevi@white.id", "CRV", "Graphic Designer", "staff", 3, "permanent", 30, "male", 8_000_000, "late", "TK/0", "04-23"},
-	{"Anisa Rahma", "anisa.rahma@white.id", "SOC", "Community Specialist", "staff", 7, "permanent", 18, "female", 7_500_000, "late", "TK/0", "11-09"},
-	{"Galih Prakoso", "galih.prakoso@white.id", "SLS", "Account Executive", "staff", 17, "contract", 14, "male", 8_000_000, "reg", "TK/0", "03-27"},
-	{"Dewi Maharani", "dewi.maharani@white.id", "FIN", "Accounting Staff", "staff", 21, "permanent", 26, "female", 8_000_000, "reg", "K/0", "08-08"},
-	{"Hendra Gunawan", "hendra.gunawan@white.id", "ADS", "Ads Specialist", "staff", 14, "permanent", 20, "male", 9_000_000, "reg", "TK/0", "01-05"},
+	{"Reza Pahlevi", "reza.pahlevi@mixist.id", "CRV", "Graphic Designer", "staff", 3, "permanent", 30, "male", 8_000_000, "late", "TK/0", "04-23"},
+	{"Anisa Rahma", "anisa.rahma@mixist.id", "SOC", "Community Specialist", "staff", 7, "permanent", 18, "female", 7_500_000, "late", "TK/0", "11-09"},
+	{"Galih Prakoso", "galih.prakoso@mixist.id", "SLS", "Account Executive", "staff", 17, "contract", 14, "male", 8_000_000, "reg", "TK/0", "03-27"},
+	{"Dewi Maharani", "dewi.maharani@mixist.id", "FIN", "Accounting Staff", "staff", 21, "permanent", 26, "female", 8_000_000, "reg", "K/0", "08-08"},
+	{"Hendra Gunawan", "hendra.gunawan@mixist.id", "ADS", "Ads Specialist", "staff", 14, "permanent", 20, "male", 9_000_000, "reg", "TK/0", "01-05"},
 }
 
 // departure is how a seeded former employee left: days before today and
@@ -94,11 +94,11 @@ type departure struct {
 }
 
 var departures = map[string]departure{
-	"reza.pahlevi@white.id":   {300, "voluntary", "resigned", "Pindah ke agensi lain"},
-	"anisa.rahma@white.id":    {210, "voluntary", "resigned", "Melanjutkan studi S2"},
-	"galih.prakoso@white.id":  {120, "end_of_contract", "resigned", "Kontrak PKWT selesai, tidak diperpanjang"},
-	"dewi.maharani@white.id":  {60, "voluntary", "resigned", "Ikut pasangan pindah ke Surabaya"},
-	"hendra.gunawan@white.id": {150, "termination", "terminated", "Restrukturisasi tim Ads"},
+	"reza.pahlevi@mixist.id":   {300, "voluntary", "resigned", "Pindah ke agensi lain"},
+	"anisa.rahma@mixist.id":    {210, "voluntary", "resigned", "Melanjutkan studi S2"},
+	"galih.prakoso@mixist.id":  {120, "end_of_contract", "resigned", "Kontrak PKWT selesai, tidak diperpanjang"},
+	"dewi.maharani@mixist.id":  {60, "voluntary", "resigned", "Ikut pasangan pindah ke Surabaya"},
+	"hendra.gunawan@mixist.id": {150, "termination", "terminated", "Restrukturisasi tim Ads"},
 }
 
 // historyMonths is how many full months of attendance, leave, overtime and
@@ -381,7 +381,7 @@ func (s *Seeder) holidaysOf(ctx context.Context, y int) error {
 		{Date: year + "-08-17", Name: "Hari Kemerdekaan Republik Indonesia", Type: "nasional"},
 		{Date: year + "-12-24", Name: "Cuti Bersama Natal", Type: "cuti_bersama", DeductsLeave: true},
 		{Date: year + "-12-25", Name: "Hari Raya Natal", Type: "nasional"},
-		{Date: year + "-10-30", Name: "Ulang Tahun WHITE", Type: "perusahaan"},
+		{Date: year + "-10-30", Name: "Ulang Tahun Mixist", Type: "perusahaan"},
 	}
 	switch year {
 	case "2025":
@@ -435,7 +435,7 @@ func (s *Seeder) contracts(ctx context.Context, emps []domain.Employee, _ map[st
 		p := people[i]
 		base := p.Base
 		c := domain.Contract{ID: ids.New(), EmployeeID: e.ID, ContractType: "pkwtt", StartDate: e.JoinDate, Sequence: 1,
-			PositionTitle: p.Title, DepartmentName: e.DepartmentName, WorkLocation: "Kantor WHITE, Jakarta Selatan", BaseSalary: &base, CreatedBy: s.actor}
+			PositionTitle: p.Title, DepartmentName: e.DepartmentName, WorkLocation: "Kantor Mixist, Jakarta Selatan", BaseSalary: &base, CreatedBy: s.actor}
 		if p.Status == "contract" {
 			// The first contract ends inside the 30-day reminder window.
 			end := hris.AddDaysISO(s.today, 20+contractIndex*75)
@@ -732,7 +732,7 @@ func (s *Seeder) announcements(ctx context.Context, emps []domain.Employee, _ ma
 	items := []domain.Announcement{
 		{Title: "Jadwal libur Natal dan cuti bersama", Body: "Kantor libur 24 dan 25 Desember. Cuti bersama 24 Desember memotong cuti tahunan. Tim on-call akan dijadwalkan per klien.",
 			Tags: []string{"libur", "cuti"}, Status: "published", IsPinned: true, TargetScope: "global", PublishAt: &published},
-		{Title: "Town hall bulanan WHITE", Body: "Town hall Jumat ini pukul 16.00 di ruang utama dan Google Meet. Agenda: hasil kampanye kuartal ini dan rencana klien baru.",
+		{Title: "Town hall bulanan Mixist", Body: "Town hall Jumat ini pukul 16.00 di ruang utama dan Google Meet. Agenda: hasil kampanye kuartal ini dan rencana klien baru.",
 			Tags: []string{"acara"}, Status: "published", TargetScope: "global", PublishAt: &published},
 		{Title: "Pengumpulan bukti reimburse", Body: "Bukti reimburse bulan ini paling lambat tanggal 25 melalui menu Keuangan.", Tags: []string{"keuangan"}, Status: "draft", TargetScope: "global"},
 	}

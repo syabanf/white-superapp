@@ -31,7 +31,7 @@ func NewChat(d *Deps, auto *Automation) *Chat {
 func DefaultChatbotSettings() domain.ChatbotSettings {
 	return domain.ChatbotSettings{Enabled: true, BotName: "Wira", Persona: "Ramah, sigap, dan profesional.", ServicesOffered: "Social media management, SEO, ads management, produksi konten, website, branding.",
 		PricingHints: "Harga menyesuaikan kebutuhan; tim sales akan mengirim penawaran resmi.", BusinessHoursStart: 9, BusinessHoursEnd: 18,
-		HandoffRules: "Serahkan ke tim sales bila pengguna minta bicara dengan manusia, komplain, atau pertanyaan di luar layanan.", Greeting: "Halo! Saya Wira dari WHITE. Ada yang bisa saya bantu?", MinConfidence: 0.55}
+		HandoffRules: "Serahkan ke tim sales bila pengguna minta bicara dengan manusia, komplain, atau pertanyaan di luar layanan.", Greeting: "Halo! Saya Wira dari Mixist. Ada yang bisa saya bantu?", MinConfidence: 0.55}
 }
 
 func (c *Chat) settings(ctx context.Context) (domain.ChatbotSettings, error) {
@@ -362,7 +362,7 @@ func (c *Chat) StartPublic(ctx context.Context, ip string, in StartInput) (*Publ
 	}
 	greeting := domain.Message{ID: ids.New(), ConversationID: conv.ID, Direction: "out", Sender: "bot", Body: s.Greeting, Status: "sent", CreatedAt: now}
 	if !s.Enabled {
-		greeting.Sender, greeting.Body = "system", "Terima kasih sudah menghubungi WHITE. Tinggalkan pesan dan tim kami akan membalas di sini."
+		greeting.Sender, greeting.Body = "system", "Terima kasih sudah menghubungi Mixist. Tinggalkan pesan dan tim kami akan membalas di sini."
 	}
 	if _, err := c.Store.InsertMessage(ctx, greeting); err != nil {
 		return nil, err

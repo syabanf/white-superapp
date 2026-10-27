@@ -894,9 +894,9 @@ export function opts(map: Record<string, string>) {
 
 /** Copy for the public client pages (no login). */
 export const ps = {
-  footer: "Didukung oleh WHITE",
+  footer: "Didukung oleh Mixist",
   notFound: "Tautan tidak ditemukan",
-  notFoundDesc: "Tautan tidak valid atau sudah tidak berlaku. Hubungi tim WHITE untuk tautan baru.",
+  notFoundDesc: "Tautan tidak valid atau sudah tidak berlaku. Hubungi tim Mixist untuk tautan baru.",
   offline: "Layanan sedang tidak dapat dihubungi. Coba lagi beberapa saat.",
   required: "Wajib diisi",
   sending: "Mengirim…",

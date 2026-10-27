@@ -83,8 +83,8 @@ export function MediaLibrary({
         </div>
         {canManage ? (
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setUrlOpen(true)}>
-              <Link2 className="size-3.5" /> {p.addByUrl}
+            <Button variant="outline" onClick={() => setUrlOpen(true)}>
+              <Link2 /> {p.addByUrl}
             </Button>
             <UploadButton clientId={clientId} variant="default" onUploaded={() => router.refresh()} />
           </div>
@@ -284,7 +284,7 @@ function AddUrlDialog({ clientId, open, onClose }: { clientId: string; open: boo
             <div className="space-y-1">
               <Label>{p.kindLabel}</Label>
               <Select value={kind} onValueChange={(v) => setKind(v as "IMAGE" | "VIDEO")}>
-                <SelectTrigger size="sm" className="w-full">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,16 +300,16 @@ function AddUrlDialog({ clientId, open, onClose }: { clientId: string; open: boo
                 value={alt}
                 onChange={(e) => setAlt(e.target.value)}
                 placeholder={p.altPlaceholder}
-                className="h-8 text-sm"
+               
               />
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             {t.common.cancel}
           </Button>
-          <Button size="sm" onClick={submit} disabled={pending || !/^https:\/\//.test(url.trim())}>
+          <Button onClick={submit} disabled={pending || !/^https:\/\//.test(url.trim())}>
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : null} {t.common.add}
           </Button>
         </DialogFooter>

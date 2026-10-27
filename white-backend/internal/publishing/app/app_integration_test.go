@@ -154,7 +154,7 @@ func setup(t *testing.T) *fixture {
 	deps := app.Deps{
 		Events:       ev,
 		Store:        store,
-		Storage:      storage.NewLocal(uploads, "https://app.white.id"),
+		Storage:      storage.NewLocal(uploads, "https://app.mixist.id"),
 		Identity:     id,
 		Integrations: fakeIntegrations{},
 		Analytics: fakeAnalytics{accounts: []domain.SocialAccount{
@@ -518,7 +518,7 @@ func TestIntegrationMediaLibrary(t *testing.T) {
 		t.Fatal("nothing should be stored when one file fails")
 	}
 	assets := must(f.media.Upload(ctx, mgrID, clientID, []app.UploadFile{{Filename: "a.png", Content: pngBytes}, {Filename: "b.jpg", Content: jpegBytes}}))(t)
-	if len(assets) != 2 || assets[0].MimeType != "image/png" || assets[1].MimeType != "image/jpeg" || assets[1].Kind != domain.MediaImage || !strings.HasPrefix(assets[0].URL, "https://app.white.id/api/media/"+clientID+"/") {
+	if len(assets) != 2 || assets[0].MimeType != "image/png" || assets[1].MimeType != "image/jpeg" || assets[1].Kind != domain.MediaImage || !strings.HasPrefix(assets[0].URL, "https://app.mixist.id/api/media/"+clientID+"/") {
 		t.Fatalf("%+v", assets)
 	}
 	key := domain.KeyFromURL(assets[0].URL)

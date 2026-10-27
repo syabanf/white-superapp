@@ -1,4 +1,4 @@
-# WHITE Analytics — Design Doc (Next.js rebuild)
+# Mixist Analytics — Design Doc (Next.js rebuild)
 
 Tanggal: 2026-08-19  
 Status: **Disetujui** (scope: Social + SEO + Ads reporting; arsitektur C: Postgres + Prisma + Auth.js; UI Bahasa Indonesia)
@@ -17,7 +17,7 @@ Masalah utama yang **tidak dibawa**:
 | Data palsu | Growth series sosial disintesis linear (+150/hari); persentase tren KPI dashboard literal (`+12.4%`, `+5.2%`, …); demografi mock disuntik ke laporan klien saat data kosong |
 | Rumus/bug | `ctr = results/impressions`; CSV re-import menggandakan data (append tanpa upsert); KPI report mengabaikan date range sementara chart menghormatinya; token FB short-lived disimpan dengan expiry 60 hari karangan; prompt AI sosial memakai system prompt deck Ads (MARP) & model id `openrouter/free` tidak valid; `DateFilter.weekly` tidak berbuat apa-apa |
 
-Yang **dibawa** (konsep): multi-klien + slug + share link + PIN, KPI card dengan delta, hierarki Campaign→AdSet→Ad, CSV import Meta, report PDF bermerek WHITE, AI insight per laporan, role-based access, brand monokrom WHITE.
+Yang **dibawa** (konsep): multi-klien + slug + share link + PIN, KPI card dengan delta, hierarki Campaign→AdSet→Ad, CSV import Meta, report PDF bermerek Mixist, AI insight per laporan, role-based access, brand monokrom Mixist.
 
 ## 2. Keputusan
 
@@ -133,7 +133,7 @@ Global: client switcher (⌘K), date range picker (7/14/28/30/90 hari, bulan lal
 
 ## 8. Desain visual — tone withwhite.id
 
-Referensi tone: **withwhite.id** (situs agency WHITE). Diadopsi 2026-08-21 menggantikan arah monokrom awal.
+Referensi tone: **withwhite.id** (situs agency sebelum rebrand ke Mixist). Diadopsi 2026-08-21 menggantikan arah monokrom awal.
 
 **Prinsip:** kanvas cetak-biru (blueprint) yang tenang, satu aksen biru royal yang tegas, tipografi tebal rapat, dan label teknis monospace. Data adalah satu-satunya elemen yang "berisik".
 

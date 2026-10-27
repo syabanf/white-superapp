@@ -49,8 +49,8 @@ func TestHandlersOverGRPC(t *testing.T) {
 	}
 	d := app.Deps{Store: postgres.NewStore(pool), Identity: noIdentity{}, Files: storage.NewLocal(t.TempDir()), Events: events.Noop{},
 		Clock: clock.At("2026-10-21T01:20:00Z"), Logger: slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))}
-	r := docs.Renderer{CompanyName: "WHITE"}
-	if err := seed.New(d, r).Run(ctx, []app.UserInfo{{ID: "user-tim", Email: "tim@white.id"}}); err != nil {
+	r := docs.Renderer{CompanyName: "Mixist"}
+	if err := seed.New(d, r).Run(ctx, []app.UserInfo{{ID: "user-tim", Email: "tim@mixist.id"}}); err != nil {
 		t.Fatal(err)
 	}
 	leaves, ann := app.NewLeaves(d), app.NewAnnouncements(d)

@@ -13,7 +13,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/validate"
 )
 
-// Reimbursements is the employee claim flow (new for WHITE):
+// Reimbursements is the employee claim flow (new for Mixist):
 //
 //	DRAFT -> SUBMITTED -> APPROVED_MANAGER -> APPROVED_FINANCE -> PAID
 //

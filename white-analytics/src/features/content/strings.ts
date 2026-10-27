@@ -4,7 +4,7 @@
  */
 export const c = {
   offlineTitle: "Layanan konten tidak dapat dihubungi",
-  offlineDesc: "Data konten disimpan di backend WHITE. Pastikan layanan berjalan, lalu muat ulang halaman.",
+  offlineDesc: "Data konten disimpan di backend Mixist. Pastikan layanan berjalan, lalu muat ulang halaman.",
   none: "–",
   system: "Sistem",
   unassigned: "Belum ditugaskan",

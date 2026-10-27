@@ -214,7 +214,7 @@ func signatureDataURL() (string, error) {
 }
 
 func demoChat(ctx context.Context, a Apps) error {
-	chat, err := a.Chat.StartPublic(ctx, "seed", app.StartInput{Name: "Melati", PageURL: "https://white.id/layanan/ads"})
+	chat, err := a.Chat.StartPublic(ctx, "seed", app.StartInput{Name: "Melati", PageURL: "https://mixist.id/layanan/ads"})
 	if err != nil {
 		return err
 	}

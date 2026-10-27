@@ -17,9 +17,9 @@ import (
 func TestAttendanceXLSX(t *testing.T) {
 	in := time.Date(2026, 10, 5, 1, 58, 0, 0, time.UTC)
 	hours, status, nip := 8.5, "late", "EMP-2026-00001"
-	data, err := Renderer{CompanyName: "WHITE"}.AttendanceXLSX([]hris.ReportRow{{Date: "2026-10-05", EmployeeName: "Ayu & Co <QA>",
+	data, err := Renderer{CompanyName: "Mixist"}.AttendanceXLSX([]hris.ReportRow{{Date: "2026-10-05", EmployeeName: "Ayu & Co <QA>",
 		NIP: &nip, ClockIn: &in, WorkHours: &hours, Status: &status, IsLate: true, LateMinutes: 48}},
-		app.AttendanceReportMeta{CompanyName: "WHITE", PeriodLabel: "1–31 Oktober 2026", GeneratedAt: in})
+		app.AttendanceReportMeta{CompanyName: "Mixist", PeriodLabel: "1–31 Oktober 2026", GeneratedAt: in})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestAttendanceXLSX(t *testing.T) {
 			sheet = string(b)
 		}
 	}
-	for _, want := range []string{"WHITE: Rekap Absensi", "Periode: 1–31 Oktober 2026", "Ayu &amp; Co &lt;QA&gt;", "Sen, 05 Okt 2026",
+	for _, want := range []string{"Mixist: Rekap Absensi", "Periode: 1–31 Oktober 2026", "Ayu &amp; Co &lt;QA&gt;", "Sen, 05 Okt 2026",
 		"08.58", "<v>8.5</v>", "Terlambat", "<v>48</v>", `<mergeCell ref="A1:K1"/>`} {
 		if !strings.Contains(sheet, want) {
 			t.Errorf("sheet lacks %q", want)
@@ -51,7 +51,7 @@ func TestPayslipPDF(t *testing.T) {
 	slip := domain.Payslip{EmployeeName: "Ayu Lestari", EmployeeNo: "EMP-2026-00001", PeriodMonth: 10, PeriodYear: 2026,
 		BaseSalary: r.BaseSalary, FixedAllowance: r.FixedAllowance, GrossSalary: r.GrossSalary, Pph21Deduction: r.Pph21Deduction,
 		LoanDeduction: r.LoanDeduction, TotalDeductions: r.TotalDeductions, NetSalary: r.NetSalary, ProrateFactor: 1}
-	data, err := Renderer{CompanyName: "WHITE"}.PayslipPDF(slip, []payroll.LoanInstallmentDetail{{LoanType: &kasbon, InstallmentNo: 1, TenorMonths: &tenor, Amount: 500_000}})
+	data, err := Renderer{CompanyName: "Mixist"}.PayslipPDF(slip, []payroll.LoanInstallmentDetail{{LoanType: &kasbon, InstallmentNo: 1, TenorMonths: &tenor, Amount: 500_000}})
 	if err != nil {
 		t.Fatal(err)
 	}

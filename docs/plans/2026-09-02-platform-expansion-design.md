@@ -1,4 +1,4 @@
-# WHITE Analytics → Platform Pemasaran Digital — Design Doc (Fase A + B)
+# Mixist Analytics → Platform Pemasaran Digital — Design Doc (Fase A + B)
 
 Tanggal: 2 September 2026. Melanjutkan `2026-08-19-nextjs-analytics-dashboard-design.md`.
 
@@ -6,7 +6,7 @@ Tanggal: 2 September 2026. Melanjutkan `2026-08-19-nextjs-analytics-dashboard-de
 
 ## 1. Tujuan
 
-Mengubah WHITE Analytics dari **dashboard pelaporan** menjadi **platform yang bekerja**: gabungan
+Mengubah Mixist Analytics dari **dashboard pelaporan** menjadi **platform yang bekerja**: gabungan
 inti Hootsuite (publikasi & kalender konten dengan alur persetujuan) dan inti Semrush (riset kata
 kunci, rank tracking, backlink, benchmark kompetitor). Analitik yang sudah ada tetap menjadi
 fondasi; modul baru menempel pada `Client`, `SocialAccount`, dan `SeoProperty` yang sudah ada.
