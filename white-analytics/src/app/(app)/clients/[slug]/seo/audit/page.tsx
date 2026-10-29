@@ -21,6 +21,7 @@ import { AuditCadenceSelect } from "@/features/seo/components/audit-cadence-sele
 import { IssueTrendChart } from "@/features/seo/components/issue-trend-chart";
 import { FilterChips } from "@/features/seo/components/filter-chips";
 import { pickQuery, withQuery } from "@/lib/drill-query";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/audit">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -38,7 +39,7 @@ const CRAWL_STATUS: Record<string, { kind: StatusKind; label: string }> = {
   PENDING: { kind: "neutral", label: "Menunggu" },
 };
 
-export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo/audit">) {
+async function SeoAuditPageInner(props: PageProps<"/clients/[slug]/seo/audit">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const basePath = `/clients/${slug}/seo/audit`;
@@ -173,4 +174,10 @@ export default async function SeoAuditPage(props: PageProps<"/clients/[slug]/seo
       </Section>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoAuditPage(props: Parameters<typeof SeoAuditPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoAuditPageInner(props));
 }

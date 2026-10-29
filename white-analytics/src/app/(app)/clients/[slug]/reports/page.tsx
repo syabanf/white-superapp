@@ -19,6 +19,7 @@ import { toISODate } from "@/lib/dates";
 import { formatCompact, formatCurrency, formatDateRange, formatNumber, formatPercent } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { rs } from "@/features/reports/strings";
+import { withClientMode } from "@/lib/client-mode";
 
 const TABS = ["builder", "history", "insight", "share"] as const;
 type TabKey = (typeof TABS)[number];
@@ -33,7 +34,7 @@ function monthTitle(d: Date): string {
   return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric", timeZone: "UTC" }).format(d);
 }
 
-export default async function ReportsPage(props: PageProps<"/clients/[slug]/reports">) {
+async function ReportsPageInner(props: PageProps<"/clients/[slug]/reports">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -362,4 +363,10 @@ async function InsightTab({
       </div>
     </Section>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ReportsPage(props: Parameters<typeof ReportsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ReportsPageInner(props));
 }

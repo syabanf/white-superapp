@@ -1,4 +1,6 @@
 import { ProviderError, type ProviderErrorCode } from "@/lib/action-result";
+import { META_DIALOG_BASE, META_GRAPH_BASE } from "@/lib/providers/meta-graph/version";
+import { inDemoMode } from "@/lib/demo-mode";
 
 /**
  * Meta (Facebook) OAuth 2.0 helpers — pure fetch-based, no SDK, no env access
@@ -6,21 +8,74 @@ import { ProviderError, type ProviderErrorCode } from "@/lib/action-result";
  * into ProviderError("meta", code, message).
  */
 
-const FB_VERSION = "v21.0";
-const GRAPH_BASE = `https://graph.facebook.com/${FB_VERSION}`;
-const DIALOG_BASE = `https://www.facebook.com/${FB_VERSION}/dialog/oauth`;
+const GRAPH_BASE = META_GRAPH_BASE;
+const DIALOG_BASE = META_DIALOG_BASE;
 
+/**
+ * Semua izin yang dipakai aplikasi, sama dengan checklist App Review di wizard
+ * Setup. Izin yang belum disetujui Meta tidak diberikan ke pengguna di luar
+ * peran aplikasi; yang benar-benar diberikan dibaca ulang lewat /me/permissions.
+ */
 export const META_SCOPES = [
   "pages_show_list",
   "pages_read_engagement",
+  "read_insights",
   "instagram_basic",
   "instagram_manage_insights",
   "business_management",
   "ads_read",
+  "pages_manage_posts",
+  "instagram_content_publish",
 ];
 
+/** Page Facebook yang diizinkan pengguna, beserta akun IG Business yang tertaut. */
+export type MetaAsset = {
+  pageId: string;
+  pageName: string;
+  pageUsername: string | null;
+  igId: string | null;
+  igUsername: string | null;
+};
+
+/** Bentuk `Connection.meta` untuk koneksi META. */
+export type MetaConnectionMeta = { assets: MetaAsset[]; grantedScopes: string[]; syncedAt: string };
+
+export function parseMetaConnectionMeta(raw: unknown): MetaConnectionMeta | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Partial<MetaConnectionMeta>;
+  if (!Array.isArray(o.assets)) return null;
+  return { assets: o.assets, grantedScopes: Array.isArray(o.grantedScopes) ? o.grantedScopes : [], syncedAt: o.syncedAt ?? "" };
+}
+
+const norm = (v: string | null | undefined) => (v ?? "").trim().replace(/^@+/, "").toLowerCase();
+
+/**
+ * Cocokkan username yang diketik admin dengan aset Meta. Instagram dicocokkan
+ * dengan username IG; Facebook dengan username Page, Page ID, atau nama Page.
+ * Mengembalikan ID numerik yang dibutuhkan Graph API.
+ */
+export function resolveMetaAsset(
+  assets: MetaAsset[],
+  platform: "INSTAGRAM" | "FACEBOOK",
+  username: string,
+): { externalId: string; username: string; displayName: string } | null {
+  const u = norm(username);
+  if (!u) return null;
+  if (platform === "INSTAGRAM") {
+    const a = assets.find((x) => x.igId && norm(x.igUsername) === u);
+    return a?.igId ? { externalId: a.igId, username: norm(a.igUsername), displayName: a.igUsername ?? a.pageName } : null;
+  }
+  const a = assets.find((x) => norm(x.pageUsername) === u || x.pageId === u || norm(x.pageName) === u);
+  return a ? { externalId: a.pageId, username: norm(a.pageUsername) || a.pageId, displayName: a.pageName } : null;
+}
+
+/** ID koneksi demo (dibuat tombol simulasi) — tidak pernah dipanggil ke Meta. */
+export function isDemoConnectionId(accountId: string): boolean {
+  return accountId.startsWith("demo-");
+}
+
 export function metaConfigured(env: Record<string, string | undefined> = process.env): boolean {
-  return Boolean(env.META_APP_ID && env.META_APP_SECRET);
+  return !inDemoMode() && Boolean(env.META_APP_ID && env.META_APP_SECRET);
 }
 
 export function buildMetaAuthUrl(opts: { appId: string; redirectUri: string; state: string; scopes?: string[] }): string {
@@ -63,6 +118,41 @@ export async function fetchMetaMe(accessToken: string): Promise<{ id: string; na
   const rec = data as { id?: unknown; name?: unknown };
   if (typeof rec.id !== "string") throw new ProviderError("meta", "UNKNOWN", "Respons /me tidak valid");
   return { id: rec.id, name: typeof rec.name === "string" ? rec.name : rec.id };
+}
+
+/** Izin yang benar-benar diberikan pengguna (status "granted"). */
+export async function fetchMetaGrantedScopes(accessToken: string): Promise<string[]> {
+  const data = (await graphGet("/me/permissions", { access_token: accessToken })) as { data?: { permission?: string; status?: string }[] };
+  return (data.data ?? []).filter((p) => p.status === "granted" && p.permission).map((p) => p.permission!);
+}
+
+/**
+ * Page yang diizinkan pengguna + akun IG Business tertaut (`/me/accounts`).
+ * Token Page sengaja tidak disimpan: diambil ulang saat dipakai.
+ */
+export async function fetchMetaAssets(accessToken: string): Promise<MetaAsset[]> {
+  type RawPage = { id: string; name?: string; username?: string; instagram_business_account?: { id?: string; username?: string } };
+  const out: MetaAsset[] = [];
+  let params: Record<string, string> | null = {
+    fields: "id,name,username,instagram_business_account{id,username}",
+    limit: "100",
+    access_token: accessToken,
+  };
+  for (let page = 0; params && page < 10; page++) {
+    const data = (await graphGet("/me/accounts", params)) as { data?: RawPage[]; paging?: { cursors?: { after?: string }; next?: string } };
+    for (const p of data.data ?? []) {
+      out.push({
+        pageId: p.id,
+        pageName: p.name ?? p.id,
+        pageUsername: p.username ?? null,
+        igId: p.instagram_business_account?.id ?? null,
+        igUsername: p.instagram_business_account?.username ?? null,
+      });
+    }
+    const after = data.paging?.next ? data.paging.cursors?.after : undefined;
+    params = after ? { ...params, after } : null;
+  }
+  return out;
 }
 
 // ── internals ────────────────────────────────────────────────

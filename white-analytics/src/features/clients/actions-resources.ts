@@ -5,7 +5,7 @@ import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { encrypt } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { GOOGLE_SCOPES } from "@/lib/providers/google-oauth";
-import { META_SCOPES } from "@/lib/providers/meta-oauth";
+import { isDemoConnectionId, META_SCOPES, parseMetaConnectionMeta, resolveMetaAsset } from "@/lib/providers/meta-oauth";
 import { t } from "@/i18n/id";
 import { tc } from "@/features/clients/strings";
 import { SOCIAL_PLATFORMS } from "@/features/clients/constants";
@@ -77,17 +77,18 @@ export async function addSocialAccountAction(
   const parsed = socialAccountSchema.safeParse(input);
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION", zodErrors(parsed.error));
   const d = parsed.data;
-  const connection = await db.connection.findFirst({ where: { clientId, provider: "META" }, select: { id: true } });
+  const link = await linkMetaAccount(clientId, d.platform, d.username);
+  if (link === "missing") return fail(tc.settings.metaAssetMissing, "VALIDATION", { username: [tc.settings.metaAssetMissing] });
   try {
     await db.socialAccount.create({
       data: {
         clientId,
         platform: d.platform,
-        externalId: `${d.platform.toLowerCase()}:${d.username}`,
+        externalId: link?.externalId ?? `${d.platform.toLowerCase()}:${d.username}`,
         username: d.username,
-        displayName: d.displayName || d.username,
+        displayName: d.displayName || link?.displayName || d.username,
         isCompetitor: false,
-        connectionId: connection?.id ?? null,
+        connectionId: link?.connectionId ?? null,
       },
     });
   } catch (e) {
@@ -96,6 +97,31 @@ export async function addSocialAccountAction(
   }
   revalidateClientPaths(ctx.slug);
   return ok(undefined);
+}
+
+/**
+ * Koneksi Meta + ID numerik untuk akun IG/FB baru. TikTok tidak pernah memakai
+ * koneksi Meta. Koneksi asli wajib memuat akun itu ("missing" bila tidak);
+ * koneksi demo tetap ditautkan apa adanya supaya mode demo jalan seperti biasa.
+ */
+async function linkMetaAccount(
+  clientId: string,
+  platform: string,
+  username: string,
+): Promise<{ connectionId: string; externalId?: string; displayName?: string } | "missing" | null> {
+  if (platform !== "INSTAGRAM" && platform !== "FACEBOOK") return null;
+  const connections = await db.connection.findMany({
+    where: { clientId, provider: "META" },
+    select: { id: true, accountId: true, meta: true },
+    orderBy: { updatedAt: "desc" },
+  });
+  const real = connections.filter((c) => !isDemoConnectionId(c.accountId));
+  for (const c of real) {
+    const hit = resolveMetaAsset(parseMetaConnectionMeta(c.meta)?.assets ?? [], platform, username);
+    if (hit) return { connectionId: c.id, externalId: hit.externalId, displayName: hit.displayName };
+  }
+  if (real.length > 0) return "missing";
+  return connections[0] ? { connectionId: connections[0].id } : null;
 }
 
 export async function removeSocialAccountAction(clientId: string, accountId: string): Promise<ActionResult<void>> {

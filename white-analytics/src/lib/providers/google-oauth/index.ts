@@ -1,4 +1,5 @@
 import { ProviderError, type ProviderErrorCode } from "@/lib/action-result";
+import { inDemoMode } from "@/lib/demo-mode";
 
 /**
  * Google OAuth 2.0 helpers — pure fetch-based (no SDK), errors normalized into
@@ -18,7 +19,7 @@ export const GOOGLE_SCOPES = [
 ];
 
 export function googleConfigured(env: Record<string, string | undefined> = process.env): boolean {
-  return Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+  return !inDemoMode() && Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 }
 
 export function buildGoogleAuthUrl(opts: { clientId: string; redirectUri: string; state: string; scopes?: string[] }): string {

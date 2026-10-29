@@ -24,6 +24,7 @@ import { DimensionFocus } from "@/features/seo/components/dimension-focus";
 import { FilterChips } from "@/features/seo/components/filter-chips";
 import { BUCKET_LABELS } from "@/features/seo/components/buckets";
 import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/keywords">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -31,7 +32,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/key
   return { title: `${client.name} · ${t.seo.keywords}` };
 }
 
-export default async function SeoKeywordsPage(props: PageProps<"/clients/[slug]/seo/keywords">) {
+async function SeoKeywordsPageInner(props: PageProps<"/clients/[slug]/seo/keywords">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -111,4 +112,10 @@ export default async function SeoKeywordsPage(props: PageProps<"/clients/[slug]/
       />
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoKeywordsPage(props: Parameters<typeof SeoKeywordsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoKeywordsPageInner(props));
 }

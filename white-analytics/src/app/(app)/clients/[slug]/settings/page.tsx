@@ -5,6 +5,7 @@ import { PageHeader, Section } from "@/components/dashboard/page-header";
 import { ClientProfileForm } from "@/features/clients/components/client-profile-form";
 import { ConnectionCard } from "@/features/clients/components/connection-card";
 import { DangerZone } from "@/features/clients/components/danger-zone";
+import { DemoModeCard } from "@/features/clients/components/demo-mode-card";
 import { MembersSection } from "@/features/clients/components/members-section";
 import { AdAccountsList, SeoPropertiesList, SocialAccountsList } from "@/features/clients/components/resource-lists";
 import { ShareSection } from "@/features/clients/components/share-section";
@@ -14,6 +15,7 @@ import { metaConfigured } from "@/lib/providers/meta-oauth";
 import { requireClientAccess, requireUser } from "@/lib/rbac";
 import { t } from "@/i18n/id";
 import { tc } from "@/features/clients/strings";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/settings">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -33,7 +35,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   UNKNOWN: t.errors.UNKNOWN,
 };
 
-export default async function ClientSettingsPage(props: PageProps<"/clients/[slug]/settings">) {
+async function ClientSettingsPageInner(props: PageProps<"/clients/[slug]/settings">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const [{ client, canManage }, user] = await Promise.all([requireClientAccess(slug), requireUser()]);
   const isAdmin = user.role === "ADMIN";
@@ -138,10 +140,22 @@ export default async function ClientSettingsPage(props: PageProps<"/clients/[slu
       </Section>
 
       {isAdmin ? (
+        <Section title={tc.settings.demoTitle} description={tc.settings.demoDesc}>
+          <DemoModeCard clientId={client.id} isDemo={client.isDemo} />
+        </Section>
+      ) : null}
+
+      {isAdmin ? (
         <Section title={t.settings.danger} description={t.settings.dangerDesc}>
           <DangerZone clientId={client.id} slug={client.slug} name={client.name} />
         </Section>
       ) : null}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ClientSettingsPage(props: Parameters<typeof ClientSettingsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ClientSettingsPageInner(props));
 }

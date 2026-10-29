@@ -14,6 +14,7 @@ import { getCompetitorData, getSuiteProperty, isSuiteDemo, lastJobAt } from "@/f
 import { CompetitorManager } from "@/features/seo-suite/components/competitor-manager";
 import { BenchmarkTable, TrafficChart } from "@/features/seo-suite/components/competitor-charts";
 import { RefreshButton } from "@/features/seo-suite/components/refresh-button";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/competitors">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -21,7 +22,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/com
   return { title: `${client.name} · ${t.nav.seoCompetitors}` };
 }
 
-export default async function SeoCompetitorsPage(props: PageProps<"/clients/[slug]/seo/competitors">) {
+async function SeoCompetitorsPageInner(props: PageProps<"/clients/[slug]/seo/competitors">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const { range } = getRange(sp);
@@ -74,4 +75,10 @@ export default async function SeoCompetitorsPage(props: PageProps<"/clients/[slu
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoCompetitorsPage(props: Parameters<typeof SeoCompetitorsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoCompetitorsPageInner(props));
 }

@@ -15,6 +15,7 @@ import { FilterChips } from "@/features/seo/components/filter-chips";
 import { BUCKET_LABELS } from "@/features/seo/components/buckets";
 import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
 import { ClicksPerPageCard, PagesTable } from "@/features/seo/components/pages-explorer";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/pages">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -22,7 +23,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/pag
   return { title: `${client.name} · ${t.seo.pages}` };
 }
 
-export default async function SeoPagesPage(props: PageProps<"/clients/[slug]/seo/pages">) {
+async function SeoPagesPageInner(props: PageProps<"/clients/[slug]/seo/pages">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -71,4 +72,10 @@ export default async function SeoPagesPage(props: PageProps<"/clients/[slug]/seo
       </Section>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoPagesPage(props: Parameters<typeof SeoPagesPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoPagesPageInner(props));
 }

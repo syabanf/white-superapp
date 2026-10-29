@@ -1,11 +1,12 @@
 /**
- * Adapter Meta Marketing API (Graph v21.0) — fetch polos, tanpa SDK.
+ * Adapter Meta Marketing API (Graph, versi di meta-graph/version.ts) — fetch polos, tanpa SDK.
  * Error dinormalkan menjadi ProviderError (ditangkap di boundary action).
  */
 import { ProviderError, type ProviderErrorCode } from "@/lib/action-result";
 import type { InsightsQuery, MetaInsightRow, MetaMarketingAdapter } from "./types";
+import { META_GRAPH_BASE } from "@/lib/providers/meta-graph/version";
 
-const GRAPH = "https://graph.facebook.com/v21.0";
+const GRAPH = META_GRAPH_BASE;
 const PROVIDER = "meta-marketing";
 
 /** Kode error Graph API → ProviderErrorCode. */

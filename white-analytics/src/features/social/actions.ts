@@ -1,5 +1,6 @@
 "use server";
 
+import { withClientMode } from "@/lib/client-mode";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -45,7 +46,7 @@ const addCompetitorSchema = z.object({
   username: z.string().min(1).max(64),
 });
 
-export async function addCompetitor(input: {
+async function addCompetitorInner(input: {
   clientId: string;
   username: string;
 }): Promise<ActionResult<{ accountId: string; username: string }>> {
@@ -179,7 +180,7 @@ const syncSchema = z.object({
  * snapshot terakhir (rata-rata pertumbuhan 7 hari + jitter deterministik),
  * lalu catat SyncJob SOCIAL_SNAPSHOT.
  */
-export async function syncSocial(input: {
+async function syncSocialInner(input: {
   clientId: string;
   platform: (typeof PLATFORMS)[number];
 }): Promise<ActionResult<{ updated: number }>> {
@@ -213,8 +214,9 @@ export async function syncSocial(input: {
           },
         });
         revalidateSocial(access.slug);
-        if (r.updated === 0 && r.failed[0]) return fail(r.failed[0].error);
-        return ok({ updated: r.updated });
+        if (r.updated > 0) return ok({ updated: r.updated });
+        // Meta gagal total (token, izin, akun belum tertaut): tetap coba data publik Apify.
+        if (!isApifyConfigured() && r.failed[0]) return fail(r.failed[0].error);
       }
     }
 
@@ -296,4 +298,14 @@ export async function syncSocial(input: {
       .catch(() => undefined);
     return fail(message, isProviderError(e) ? e.code : undefined);
   }
+}
+
+// ── Mode demo per klien: klien isDemo selalu memakai adapter mock ──
+
+export async function addCompetitor(...args: Parameters<typeof addCompetitorInner>): ReturnType<typeof addCompetitorInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => addCompetitorInner(...args));
+}
+
+export async function syncSocial(...args: Parameters<typeof syncSocialInner>): ReturnType<typeof syncSocialInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => syncSocialInner(...args));
 }

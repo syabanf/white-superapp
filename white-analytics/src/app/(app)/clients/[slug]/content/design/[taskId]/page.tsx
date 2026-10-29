@@ -14,6 +14,7 @@ import { contentContext, getDesignTask, listSizePresets, loadContent } from "@/f
 import { c } from "@/features/content/strings";
 import { formatRelative, initials } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/design/[taskId]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -21,7 +22,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
   return { title: `${client.name} · ${c.taskEyebrow}` };
 }
 
-export default async function DesignTaskPage(props: PageProps<"/clients/[slug]/content/design/[taskId]">) {
+async function DesignTaskPageInner(props: PageProps<"/clients/[slug]/content/design/[taskId]">) {
   const { slug, taskId } = await props.params;
   const { client, canWrite, people, names } = await contentContext(slug);
   const base = `/clients/${slug}/content`;
@@ -118,4 +119,10 @@ export default async function DesignTaskPage(props: PageProps<"/clients/[slug]/c
       </DetailLayout>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function DesignTaskPage(props: Parameters<typeof DesignTaskPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => DesignTaskPageInner(props));
 }

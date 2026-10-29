@@ -47,8 +47,35 @@ function applyRow(row: Row): void {
   }
 }
 
+/** Token pada baris pertama yang bukan komentar (`#`) atau kosong. */
+export function parseKeyFile(text: string): string | null {
+  for (const line of text.split(/\r?\n/)) {
+    const v = line.trim();
+    if (v && !v.startsWith("#")) return v;
+  }
+  return null;
+}
+
+/**
+ * `apify-api-key.txt` di root aplikasi: cara cepat mengisi token Apify tanpa
+ * wizard. Menimpa APIFY_TOKEN bawaan environment, tapi kalah dari database.
+ * Lokasi bisa diatur lewat APIFY_KEY_FILE (dev server yang dijalankan dari
+ * folder lain); default `<cwd>/apify-api-key.txt`.
+ */
+async function applyApifyKeyFile(): Promise<void> {
+  const { readFile } = await import("node:fs/promises");
+  const path = await import("node:path");
+  const file = process.env.APIFY_KEY_FILE || path.join(process.cwd(), "apify-api-key.txt");
+  const text = await readFile(file, "utf8").catch(() => null);
+  const token = text ? parseKeyFile(text) : null;
+  if (!token) return;
+  process.env.APIFY_TOKEN = token;
+  console.info(`[setup] token Apify dibaca dari ${file}`);
+}
+
 /** Copy every stored credential into process.env. Safe to call repeatedly. */
 export async function hydrateIntegrationEnv(): Promise<number> {
+  await applyApifyKeyFile();
   const rows = await db.integrationSetting.findMany();
   for (const r of rows) applyRow(r);
   return rows.length;

@@ -1,0 +1,6 @@
+# Tempel API token Apify di baris di bawah ini (satu baris, tanpa tanda kutip).
+# Ambil di console.apify.com → Settings → API & Integrations → Personal API tokens.
+# Baris yang diawali # diabaikan. Restart dev server setelah mengganti token.
+# Urutan prioritas: token dari wizard Setup (database) > file ini > environment variable APIFY_TOKEN.
+# Klien bertanda demo tetap memakai data demo walau token ini terisi.
+

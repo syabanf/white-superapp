@@ -30,6 +30,7 @@ import {
   formatRelative,
 } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/ads">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -37,7 +38,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/ads">):
   return { title: `${client.name} · ${t.ads.title}` };
 }
 
-export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
+async function AdsPageInner(props: PageProps<"/clients/[slug]/ads">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -233,4 +234,10 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function AdsPage(props: Parameters<typeof AdsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => AdsPageInner(props));
 }

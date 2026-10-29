@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { addDays, todayUtc } from "@/lib/dates";
 import { clientAudience, notify } from "@/lib/notify";
 import { runAuditCore } from "@/features/seo/audit-core";
+import { inDemoMode, runInDemoMode } from "@/lib/demo-mode";
 import { s } from "./strings";
 import { refreshBacklinks, refreshDomains, trackRanks } from "./tracker";
 
@@ -29,10 +30,11 @@ export async function runSeoSuiteDaily(opts: { now?: Date; clientId?: string } =
 
   const properties = await db.seoProperty.findMany({
     where: opts.clientId ? { clientId: opts.clientId } : undefined,
-    select: { id: true, siteUrl: true, locationCode: true, languageCode: true, auditCadence: true, clientId: true, client: { select: { slug: true } } },
+    select: { id: true, siteUrl: true, locationCode: true, languageCode: true, auditCadence: true, clientId: true, client: { select: { slug: true, isDemo: true } } },
   });
 
-  for (const p of properties) {
+  // Properti klien demo diproses dalam mode demo (DataForSEO/Apify → mock, tanpa audit asli).
+  for (const p of properties) await runInDemoMode(p.client.isDemo, async () => {
     out.properties++;
     const job = await db.syncJob.create({ data: { clientId: p.clientId, kind: "SEO_SUITE_DAILY", status: "RUNNING", message: p.siteUrl } });
     const notes: string[] = [];
@@ -91,7 +93,7 @@ export async function runSeoSuiteDaily(opts: { now?: Date; clientId?: string } =
     // 4) scheduled audit
     try {
       const last = await db.seoAudit.findFirst({ where: { propertyId: p.id }, orderBy: { runAt: "desc" }, select: { runAt: true } });
-      if (shouldAudit(p.auditCadence, last?.runAt ?? null, now)) {
+      if (!inDemoMode() && shouldAudit(p.auditCadence, last?.runAt ?? null, now)) {
         const res = await runAuditCore(p.id);
         if (!res.allFailed) out.audits++;
         notes.push(`audit ${res.allFailed ? "gagal" : "ok"}`);
@@ -110,7 +112,7 @@ export async function runSeoSuiteDaily(opts: { now?: Date; clientId?: string } =
         error: errors.length ? errors.join(" | ").slice(0, 900) : null,
       },
     });
-  }
+  });
 
   // housekeeping: research cache older than 30 days is never reused
   await db.keywordResearch.deleteMany({ where: { fetchedAt: { lt: addDays(date, -30) } } });

@@ -1,5 +1,6 @@
 import "server-only";
 import { ProviderError, type ProviderErrorCode } from "@/lib/action-result";
+import { inDemoMode } from "@/lib/demo-mode";
 
 /**
  * PageSpeed Insights v5 client (plain fetch, no SDK).
@@ -53,7 +54,7 @@ type RawPsiResponse = {
 };
 
 export function isPagespeedConfigured(): boolean {
-  return Boolean(process.env.PAGESPEED_API_KEY);
+  return !inDemoMode() && Boolean(process.env.PAGESPEED_API_KEY);
 }
 
 function codeForStatus(status: number): ProviderErrorCode {

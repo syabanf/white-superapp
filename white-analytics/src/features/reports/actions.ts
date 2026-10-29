@@ -1,5 +1,6 @@
 "use server";
 
+import { withClientMode } from "@/lib/client-mode";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -26,7 +27,7 @@ function parseRange(rangeFrom: string, rangeTo: string) {
  * Generate (or regenerate) the strategic insight for a module + range and cache it
  * in AiInsight. Accepts the client slug so RBAC runs through requireClientAccess.
  */
-export async function generateInsight(
+async function generateInsightInner(
   slug: string,
   module: InsightModule,
   rangeFrom: string,
@@ -75,7 +76,7 @@ const createReportSchema = z.object({
 export type CreateReportState = ActionResult<{ id: string }> | null;
 
 /** Create a report from the builder form; on success redirects to the history tab. */
-export async function createReport(slug: string, _prev: CreateReportState, formData: FormData): Promise<CreateReportState> {
+async function createReportInner(slug: string, _prev: CreateReportState, formData: FormData): Promise<CreateReportState> {
   const { client } = await requireClientAccess(slug);
 
   const parsed = createReportSchema.safeParse({
@@ -158,4 +159,14 @@ export async function deleteReport(slug: string, reportId: string): Promise<Acti
   await db.report.delete({ where: { id: reportId } });
   revalidatePath(`/clients/${slug}/reports`);
   return ok({ id: reportId });
+}
+
+// ── Mode demo per klien: klien isDemo selalu memakai adapter mock ──
+
+export async function generateInsight(...args: Parameters<typeof generateInsightInner>): ReturnType<typeof generateInsightInner> {
+  return withClientMode({ slug: args[0] }, () => generateInsightInner(...args));
+}
+
+export async function createReport(...args: Parameters<typeof createReportInner>): ReturnType<typeof createReportInner> {
+  return withClientMode({ slug: args[0] }, () => createReportInner(...args));
 }

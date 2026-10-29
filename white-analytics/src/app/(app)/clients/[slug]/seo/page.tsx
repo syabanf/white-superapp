@@ -30,6 +30,7 @@ import {
 import { PositionDistributionCard, DeviceCountryCards } from "@/features/seo/components/breakdown-cards";
 import { TopQueriesCard, TopPagesCard } from "@/features/seo/components/top-tables";
 import { SeoDrillSheet } from "@/features/seo/components/seo-drill";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -37,7 +38,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/seo">):
   return { title: `${client.name} · ${t.seo.title}` };
 }
 
-export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/seo">) {
+async function SeoOverviewPageInner(props: PageProps<"/clients/[slug]/seo">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -163,4 +164,10 @@ export default async function SeoOverviewPage(props: PageProps<"/clients/[slug]/
       </div>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoOverviewPage(props: Parameters<typeof SeoOverviewPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoOverviewPageInner(props));
 }

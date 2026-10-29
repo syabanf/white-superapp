@@ -12,6 +12,7 @@ import { contentContext, getAsset, listFolders, loadContent } from "@/features/c
 import { c } from "@/features/content/strings";
 import { formatDateTime } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/assets/[assetId]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -19,7 +20,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
   return { title: `${client.name} · ${t.nav.contentAssets}` };
 }
 
-export default async function AssetDetailPage(props: PageProps<"/clients/[slug]/content/assets/[assetId]">) {
+async function AssetDetailPageInner(props: PageProps<"/clients/[slug]/content/assets/[assetId]">) {
   const { slug, assetId } = await props.params;
   const { client, canWrite, names } = await contentContext(slug);
   const back = { href: `/clients/${slug}/content/assets`, label: t.nav.contentAssets };
@@ -122,4 +123,10 @@ export default async function AssetDetailPage(props: PageProps<"/clients/[slug]/
       </DetailLayout>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function AssetDetailPage(props: Parameters<typeof AssetDetailPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => AssetDetailPageInner(props));
 }

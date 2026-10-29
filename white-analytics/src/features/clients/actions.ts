@@ -116,6 +116,18 @@ export async function deleteClientAction(clientId: string): Promise<ActionResult
   return ok(undefined);
 }
 
+/** Settings → Mode data: tandai klien sebagai demo (selalu mock) atau nyata (ADMIN only). */
+export async function setClientDemoAction(clientId: string, isDemo: boolean): Promise<ActionResult<void>> {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") return fail(t.errors.UNAUTHORIZED, "UNAUTHORIZED");
+  const client = await db.client.findUnique({ where: { id: clientId }, select: { slug: true } });
+  if (!client) return fail(t.errors.NOT_FOUND, "NOT_FOUND");
+  await db.client.update({ where: { id: clientId }, data: { isDemo: Boolean(isDemo) } });
+  revalidatePath("/");
+  revalidateClientPaths(client.slug);
+  return ok(undefined);
+}
+
 // ── Members ──────────────────────────────────────────────────
 
 const memberSchema = z.object({

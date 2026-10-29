@@ -20,6 +20,7 @@ import { isPublisherConfigured } from "@/lib/providers/social-publisher";
 import { requireClientAccess, requireUser } from "@/lib/rbac";
 import { formatDateTime } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/publish/posts/[id]">): Promise<Metadata> {
   const { slug, id } = await props.params;
@@ -28,7 +29,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/publish
   return { title: `${client.name} · ${post?.title || t.nav.posts}` };
 }
 
-export default async function PostDetailPage(props: PageProps<"/clients/[slug]/publish/posts/[id]">) {
+async function PostDetailPageInner(props: PageProps<"/clients/[slug]/publish/posts/[id]">) {
   const [{ slug, id }, sp] = await Promise.all([props.params, props.searchParams]);
   const [{ client, role }, user] = await Promise.all([requireClientAccess(slug), requireUser()]);
   const post = await getPostDetail(client.id, id);
@@ -185,4 +186,10 @@ export default async function PostDetailPage(props: PageProps<"/clients/[slug]/p
       </div>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function PostDetailPage(props: Parameters<typeof PostDetailPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => PostDetailPageInner(props));
 }

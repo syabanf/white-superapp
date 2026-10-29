@@ -107,6 +107,7 @@ export default async function PortfolioPage(props: PageProps<"/">) {
     name: client.name,
     slug: client.slug,
     industry: client.industry,
+    isDemo: client.isDemo,
     logoUrl: client.logoUrl,
     currency: client.currency,
     followers: social.followers,

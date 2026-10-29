@@ -22,6 +22,7 @@ import { RankDrillSheet } from "@/features/seo-suite/components/rank-drill";
 import { BUCKET_LABELS, filterRankRows, parseRankBucket, parseRankChange } from "@/features/seo-suite/lib";
 import { FilterChips } from "@/features/seo/components/filter-chips";
 import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/rank">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -29,7 +30,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/ran
   return { title: `${client.name} · ${t.nav.rank}` };
 }
 
-export default async function SeoRankPage(props: PageProps<"/clients/[slug]/seo/rank">) {
+async function SeoRankPageInner(props: PageProps<"/clients/[slug]/seo/rank">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -113,4 +114,10 @@ export default async function SeoRankPage(props: PageProps<"/clients/[slug]/seo/
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoRankPage(props: Parameters<typeof SeoRankPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoRankPageInner(props));
 }

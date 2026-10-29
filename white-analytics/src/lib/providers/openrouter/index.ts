@@ -1,13 +1,14 @@
 import { mockInsightProvider } from "./mock";
 import { realInsightProvider } from "./real";
 import type { GenerateInsightInput, InsightProvider } from "./types";
+import { inDemoMode } from "@/lib/demo-mode";
 
 export * from "./types";
 export { generateMockInsight } from "./mock";
 
 /** True when a real OpenRouter key is available. */
 export function isOpenRouterConfigured(): boolean {
-  return Boolean(process.env.OPENROUTER_API_KEY);
+  return !inDemoMode() && Boolean(process.env.OPENROUTER_API_KEY);
 }
 
 /** Picks the real adapter when configured, otherwise the deterministic mock. */

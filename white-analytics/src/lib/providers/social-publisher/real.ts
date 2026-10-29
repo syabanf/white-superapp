@@ -1,17 +1,19 @@
 /**
- * Real publisher — Meta Graph API v21.0 with plain `fetch`.
+ * Real publisher — Meta Graph API (version in meta-graph/version.ts) with plain `fetch`.
  *
  * Instagram: create container(s) → `media_publish` (carousel via `children`,
- * video containers polled on `status_code`). Facebook Page: `/feed` for
- * text/link, `/photos` for one image, `/videos` for video. First comment via
- * `/{id}/comments`. TikTok throws PERMISSION until the Content Posting API
- * is approved. Graph errors are normalised through `mapMetaError`.
+ * video containers polled on `status_code`) with the connection's user token.
+ * Facebook Page: the user token is swapped for a Page Access Token first, then
+ * `/feed` for text/link, `/photos` for one image, `/videos` for video. First
+ * comment via `/{id}/comments`. TikTok throws PERMISSION until the Content
+ * Posting API is approved. Graph errors are normalised through `mapMetaError`.
  */
 import { ProviderError } from "@/lib/action-result";
-import { mapMetaError } from "@/lib/providers/meta-graph/real";
+import { getPageAccessToken, mapMetaError } from "@/lib/providers/meta-graph/real";
+import { META_GRAPH_BASE } from "@/lib/providers/meta-graph/version";
 import type { PublishInput, PublishMedia, PublishResult, SocialPublisher } from "./types";
 
-const GRAPH_BASE = "https://graph.facebook.com/v21.0";
+const GRAPH_BASE = META_GRAPH_BASE;
 const VIDEO_POLL_MS = 3000;
 const VIDEO_POLL_MAX = 40; // ~2 minutes
 
@@ -87,7 +89,8 @@ async function publishInstagram(input: PublishInput): Promise<PublishResult> {
 }
 
 async function publishFacebook(input: PublishInput): Promise<PublishResult> {
-  const { accessToken: token, accountExternalId: pageId } = input;
+  const { accountExternalId: pageId } = input;
+  const token = await getPageAccessToken(input.accessToken, pageId);
   const video = input.media.find((m) => m.kind === "VIDEO");
   const images = input.media.filter((m) => m.kind === "IMAGE");
   let postId: string;

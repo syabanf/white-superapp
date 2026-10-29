@@ -18,6 +18,7 @@ import { getRange } from "@/lib/range-params";
 import { formatCompact, formatCurrency, formatDateRange } from "@/lib/format";
 import { pickQuery } from "@/lib/drill-query";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -25,7 +26,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]">): Pro
   return { title: `${client.name} · ${t.nav.overview}` };
 }
 
-export default async function ClientOverviewPage(props: PageProps<"/clients/[slug]">) {
+async function ClientOverviewPageInner(props: PageProps<"/clients/[slug]">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -136,4 +137,10 @@ export default async function ClientOverviewPage(props: PageProps<"/clients/[slu
       </div>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ClientOverviewPage(props: Parameters<typeof ClientOverviewPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ClientOverviewPageInner(props));
 }

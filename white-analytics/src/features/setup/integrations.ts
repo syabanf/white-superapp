@@ -54,6 +54,7 @@ export type MetaPermission = {
 export const META_PERMISSIONS: MetaPermission[] = [
   { name: "pages_show_list", unlocks: "social", required: true },
   { name: "pages_read_engagement", unlocks: "social", required: true },
+  { name: "read_insights", unlocks: "social", required: true },
   { name: "instagram_basic", unlocks: "social", required: true },
   { name: "instagram_manage_insights", unlocks: "social", required: true },
   { name: "business_management", unlocks: "ads", required: true },

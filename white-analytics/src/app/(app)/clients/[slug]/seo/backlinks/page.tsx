@@ -20,6 +20,7 @@ import { BacklinkDrillSheet } from "@/features/seo-suite/components/backlink-dri
 import { FilterChips } from "@/features/seo/components/filter-chips";
 import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
 import type { BacklinkView } from "@/lib/metrics/seo-suite";
+import { withClientMode } from "@/lib/client-mode";
 
 const BACKLINK_VIEWS: BacklinkView[] = ["all", "new", "lost", "toxic"];
 
@@ -29,7 +30,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/bac
   return { title: `${client.name} · ${t.nav.backlinks}` };
 }
 
-export default async function SeoBacklinksPage(props: PageProps<"/clients/[slug]/seo/backlinks">) {
+async function SeoBacklinksPageInner(props: PageProps<"/clients/[slug]/seo/backlinks">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client } = await requireClientAccess(slug);
   const { range, compare } = getRange(sp);
@@ -113,4 +114,10 @@ export default async function SeoBacklinksPage(props: PageProps<"/clients/[slug]
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoBacklinksPage(props: Parameters<typeof SeoBacklinksPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoBacklinksPageInner(props));
 }

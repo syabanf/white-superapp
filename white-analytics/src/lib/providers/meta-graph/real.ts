@@ -1,10 +1,15 @@
 /**
- * Meta Graph API v21.0 — implementasi nyata dengan `fetch` polos (tanpa SDK).
+ * Meta Graph API (versi di ./version.ts) — implementasi nyata dengan `fetch` polos (tanpa SDK).
  * Field mengikuti design doc §7 Social. Error dinormalisasi ke `ProviderError`:
  *   190 → TOKEN_EXPIRED · 4/17/32/613 → RATE_LIMIT · 10/200–299 → PERMISSION · 100 → NOT_FOUND.
+ *
+ * Token: fungsi menerima User Token koneksi. Endpoint Instagram memakainya
+ * langsung; endpoint Page Facebook menukarnya dulu ke Page Access Token.
+ * Metrik mengikuti v26: `impressions` & `profile_views` IG sudah dihapus Meta
+ * (diganti `views`, hanya total_value), reach Page = `page_total_media_view_unique`.
  */
 import { ProviderError } from "@/lib/action-result";
-import { toISODate } from "@/lib/dates";
+import { addDays, eachDay, parseISODate, toISODate } from "@/lib/dates";
 import type {
   FbPage,
   FbPageDailyInsight,
@@ -17,8 +22,9 @@ import type {
   IgDailyInsight,
   MetaGraphProvider,
 } from "./types";
+import { META_GRAPH_BASE } from "./version";
 
-const GRAPH_BASE = "https://graph.facebook.com/v21.0";
+const GRAPH_BASE = META_GRAPH_BASE;
 
 type GraphErrorBody = { error?: { message?: string; type?: string; code?: number; error_subcode?: number } };
 
@@ -49,6 +55,41 @@ async function graphGet<T>(path: string, token: string, params: Record<string, s
   const body = (await res.json().catch(() => null)) as (T & GraphErrorBody) | null;
   if (!res.ok || body == null || body.error) throw mapMetaError(res.status, body);
   return body;
+}
+
+// ── Page Access Token ─────────────────────────────────────────
+const PAGE_TOKEN_TTL_MS = 10 * 60_000;
+const pageTokens = new Map<string, { token: string; at: number }>();
+
+/**
+ * Tukar User Token ke Page Access Token (`GET /{page-id}?fields=access_token`).
+ * Insight Page, daftar post Page, dan posting ke Page menolak User Token.
+ * Disimpan di memori 10 menit saja, tidak pernah ke database.
+ */
+export async function getPageAccessToken(userToken: string, pageId: string): Promise<string> {
+  const key = `${pageId}:${userToken.slice(-16)}`;
+  const hit = pageTokens.get(key);
+  if (hit && Date.now() - hit.at < PAGE_TOKEN_TTL_MS) return hit.token;
+  const r = await graphGet<{ access_token?: string }>(pageId, userToken, { fields: "access_token" });
+  if (!r.access_token) {
+    throw new ProviderError("meta", "PERMISSION", "Token Page tidak tersedia. Pastikan akun yang login adalah admin Page ini.");
+  }
+  pageTokens.set(key, { token: r.access_token, at: Date.now() });
+  return r.access_token;
+}
+
+/** Jalankan `fn` untuk tiap item, maksimal `limit` sekaligus (hormati rate limit Graph). */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i]!);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
 }
 
 // ── response shapes (subset yang kita pakai) ─────────────────
@@ -104,15 +145,19 @@ function mapMedia(m: RawMedia): IgMedia {
   };
 }
 
-/** metric → (date → value). `end_time` Graph menandai akhir jendela 24 jam. */
+/**
+ * metric → (date → value). `end_time` Graph menandai AKHIR jendela 24 jam,
+ * jadi nilai itu milik hari sebelumnya.
+ */
 function parseInsights(res: InsightsResponse): Map<string, Map<string, number>> {
   const out = new Map<string, Map<string, number>>();
   for (const series of res.data ?? []) {
     const name = series.name ?? "";
     const byDate = new Map<string, number>();
     for (const v of series.values ?? []) {
-      const date = (v.end_time ?? "").slice(0, 10);
-      if (!date) continue;
+      const end = parseISODate((v.end_time ?? "").slice(0, 10));
+      if (!end) continue;
+      const date = toISODate(addDays(end, -1));
       byDate.set(date, typeof v.value === "number" ? v.value : 0);
     }
     out.set(name, byDate);
@@ -138,21 +183,33 @@ export const realMetaGraph: MetaGraphProvider = {
   },
 
   async getInstagramInsights(token, igUserId, since, until): Promise<IgDailyInsight[]> {
+    // reach: satu-satunya metrik akun yang masih punya deret harian (time_series).
     const res = await graphGet<InsightsResponse>(`${igUserId}/insights`, token, {
-      metric: "reach,impressions,profile_views,follower_count",
+      metric: "reach",
       period: "day",
+      metric_type: "time_series",
       since: toISODate(since),
-      until: toISODate(until),
+      until: toISODate(addDays(until, 1)),
     });
-    const m = parseInsights(res);
-    const dates = new Set<string>();
-    for (const byDate of m.values()) for (const d of byDate.keys()) dates.add(d);
-    return [...dates].sort().map((date) => ({
-      date,
-      reach: m.get("reach")?.get(date) ?? 0,
-      impressions: m.get("impressions")?.get(date) ?? 0,
-      profileViews: m.get("profile_views")?.get(date) ?? 0,
-      followerCount: m.get("follower_count")?.get(date) ?? 0,
+    const reach = parseInsights(res).get("reach") ?? new Map<string, number>();
+    // views (pengganti impressions) hanya total_value → satu panggilan per hari.
+    const days = eachDay({ from: since, to: until });
+    const views = await mapLimit(days, 5, async (d) => {
+      const r = await graphGet<{ data?: { total_value?: { value?: number } }[] }>(`${igUserId}/insights`, token, {
+        metric: "views",
+        period: "day",
+        metric_type: "total_value",
+        since: toISODate(d),
+        until: toISODate(addDays(d, 1)),
+      }).catch(() => null); // `views` masih "in development" di Meta: jangan gagalkan seluruh sinkron
+      return r?.data?.[0]?.total_value?.value ?? null;
+    });
+    return days.map((d, i) => ({
+      date: toISODate(d),
+      reach: reach.get(toISODate(d)) ?? 0,
+      impressions: views[i] ?? 0,
+      profileViews: null,
+      followerCount: null,
     }));
   },
 
@@ -161,7 +218,18 @@ export const realMetaGraph: MetaGraphProvider = {
       fields: MEDIA_FIELDS,
       limit: String(limit),
     });
-    return (res.data ?? []).map(mapMedia);
+    const media = (res.data ?? []).map(mapMedia);
+    // Insight per post (FEED & REELS). Gagal di satu post tidak menggagalkan yang lain.
+    return mapLimit(media, 5, async (m) => {
+      type MediaInsights = { data?: { name?: string; values?: { value?: number }[]; total_value?: { value?: number } }[] };
+      const r = await graphGet<MediaInsights>(`${m.id}/insights`, token, { metric: "views,reach,saved,shares" }).catch(() => null);
+      if (!r) return m;
+      const get = (name: string) => {
+        const s = r.data?.find((x) => x.name === name);
+        return s?.total_value?.value ?? s?.values?.[0]?.value;
+      };
+      return { ...m, views: get("views"), reach: get("reach"), saved: get("saved"), shares: get("shares") };
+    });
   },
 
   async discoverBusiness(token, igUserId, username): Promise<IgBusinessDiscovery> {
@@ -189,7 +257,7 @@ export const realMetaGraph: MetaGraphProvider = {
   async getFacebookPage(token, pageId): Promise<FbPage> {
     const r = await graphGet<{ id: string; name?: string; username?: string; fan_count?: number; followers_count?: number }>(
       pageId,
-      token,
+      await getPageAccessToken(token, pageId),
       { fields: "id,name,username,fan_count,followers_count" },
     );
     return {
@@ -202,18 +270,19 @@ export const realMetaGraph: MetaGraphProvider = {
   },
 
   async getPageInsights(token, pageId, since, until): Promise<FbPageDailyInsight[]> {
-    const res = await graphGet<InsightsResponse>(`${pageId}/insights`, token, {
-      metric: "page_impressions_unique,page_post_engagements",
+    // page_impressions_unique dihapus Meta (Jun 2025) → page_total_media_view_unique.
+    const res = await graphGet<InsightsResponse>(`${pageId}/insights`, await getPageAccessToken(token, pageId), {
+      metric: "page_total_media_view_unique,page_post_engagements",
       period: "day",
       since: toISODate(since),
-      until: toISODate(until),
+      until: toISODate(addDays(until, 1)),
     });
     const m = parseInsights(res);
     const dates = new Set<string>();
     for (const byDate of m.values()) for (const d of byDate.keys()) dates.add(d);
     return [...dates].sort().map((date) => ({
       date,
-      impressionsUnique: m.get("page_impressions_unique")?.get(date) ?? 0,
+      impressionsUnique: m.get("page_total_media_view_unique")?.get(date) ?? 0,
       postEngagements: m.get("page_post_engagements")?.get(date) ?? 0,
     }));
   },
@@ -228,7 +297,7 @@ export const realMetaGraph: MetaGraphProvider = {
       reactions?: { summary?: { total_count?: number } };
       comments?: { summary?: { total_count?: number } };
     };
-    const res = await graphGet<{ data?: RawPost[] }>(`${pageId}/posts`, token, {
+    const res = await graphGet<{ data?: RawPost[] }>(`${pageId}/posts`, await getPageAccessToken(token, pageId), {
       fields: "id,message,created_time,permalink_url,shares,reactions.summary(true),comments.summary(true)",
       limit: String(limit),
     });

@@ -15,6 +15,7 @@ import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
 import { formatDateRange } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/social/competitors">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -22,7 +23,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/social/
   return { title: `${client.name} · ${t.nav.competitors}` };
 }
 
-export default async function CompetitorsPage(props: PageProps<"/clients/[slug]/social/competitors">) {
+async function CompetitorsPageInner(props: PageProps<"/clients/[slug]/social/competitors">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -80,4 +81,10 @@ export default async function CompetitorsPage(props: PageProps<"/clients/[slug]/
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function CompetitorsPage(props: Parameters<typeof CompetitorsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => CompetitorsPageInner(props));
 }

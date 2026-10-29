@@ -137,6 +137,8 @@ model Client {
   industry     String?
   currency     String      @default("IDR")
   timezone     String      @default("Asia/Jakarta")
+  /// Klien contoh: selalu memakai data demo (mock), walau kredensial integrasi asli terpasang.
+  isDemo       Boolean     @default(false)
   // Public share dashboard
   shareEnabled Boolean     @default(false)
   sharePinHash String?

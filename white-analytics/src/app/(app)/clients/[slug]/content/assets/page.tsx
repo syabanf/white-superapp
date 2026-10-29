@@ -8,6 +8,7 @@ import { isAssetKind } from "@/features/content/lib";
 import { contentContext, listFolders, loadContent, searchAssets } from "@/features/content/queries";
 import { c } from "@/features/content/strings";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/assets">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -17,7 +18,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function ContentAssetsPage(props: PageProps<"/clients/[slug]/content/assets">) {
+async function ContentAssetsPageInner(props: PageProps<"/clients/[slug]/content/assets">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canWrite } = await contentContext(slug);
   const rawKind = one(sp.kind);
@@ -51,4 +52,10 @@ export default async function ContentAssetsPage(props: PageProps<"/clients/[slug
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentAssetsPage(props: Parameters<typeof ContentAssetsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentAssetsPageInner(props));
 }

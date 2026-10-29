@@ -4,6 +4,8 @@ import { getConnectionToken } from "@/lib/connections";
 import { isProviderError } from "@/lib/action-result";
 import { clientAudience, notify } from "@/lib/notify";
 import { isPublisherConfigured, mockPublisher, socialPublisher, type PublishInput } from "@/lib/providers/social-publisher";
+import { isDemoConnectionId } from "@/lib/providers/meta-oauth";
+import { runInDemoMode } from "@/lib/demo-mode";
 import { buildUtmUrl, captionFor, isPlatform, MAX_PUBLISH_ATTEMPTS, parseUtm, resolvePostOutcome, type Platform } from "@/features/publishing/lib";
 import { p } from "@/features/publishing/strings";
 import { t } from "@/i18n/id";
@@ -34,7 +36,13 @@ const CLAIMABLE = ["APPROVED", "SCHEDULED", "FAILED"] as const;
  * The post becomes PUBLISHED when all targets published, FAILED when any target
  * exhausted its attempts (or the run is manual), else SCHEDULED for the next run.
  */
+/** Klien demo dipublikasikan lewat publisher mock walau kredensial Meta asli terpasang. */
 export async function publishPost(postId: string, opts: PublishPostOptions = {}): Promise<PublishPostResult | null> {
+  const owner = await db.contentPost.findUnique({ where: { id: postId }, select: { client: { select: { isDemo: true } } } });
+  return runInDemoMode(owner?.client.isDemo === true, () => publishPostInner(postId, opts));
+}
+
+async function publishPostInner(postId: string, opts: PublishPostOptions): Promise<PublishPostResult | null> {
   const now = opts.now ?? new Date();
   if (!opts.claimed) {
     const claim = await db.contentPost.updateMany({
@@ -48,7 +56,7 @@ export async function publishPost(postId: string, opts: PublishPostOptions = {})
     where: { id: postId },
     include: {
       client: { select: { id: true, slug: true } },
-      targets: { include: { account: { include: { connection: { select: { accessTokenEnc: true } } } } } },
+      targets: { include: { account: { include: { connection: { select: { accountId: true } } } } } },
       media: { orderBy: { order: "asc" }, include: { asset: { select: { url: true, kind: true } } } },
     },
   });
@@ -67,16 +75,27 @@ export async function publishPost(postId: string, opts: PublishPostOptions = {})
     await db.postTarget.updateMany({ where: { id: { in: pending.map((tg) => tg.id) } }, data: { status: "PUBLISHING" } });
   }
 
+  // Klien "nyata" = kredensial app Meta ada DAN klien punya koneksi Meta hasil login asli.
+  // Klien demo (tanpa koneksi, atau hanya koneksi simulasi) tetap memakai publisher mock.
+  const realClient =
+    isPublisherConfigured() &&
+    (await db.connection.count({ where: { clientId: post.client.id, provider: "META", NOT: { accountId: { startsWith: "demo-" } } } })) > 0;
+  let simulated = false;
+
   for (const tg of pending) {
     const platform: Platform = isPlatform(tg.account.platform) ? tg.account.platform : "INSTAGRAM";
     let text = captionFor(post.body, tg.bodyOverride);
     if (link && !text.includes(link)) text = text.trim() ? `${text.trim()}\n\n${link}` : link;
-    // Real publisher only with app credentials AND a usable (non-expired) connection token;
-    // an expired Meta token surfaces as TOKEN_EXPIRED on the target instead of a silent mock publish.
-    const useReal = isPublisherConfigured() && Boolean(tg.account.connectionId);
+    const conn = tg.account.connection;
+    const linked = Boolean(conn && !isDemoConnectionId(conn.accountId));
+    // Klien nyata tidak pernah dipublikasikan lewat mock: akun yang belum tertaut gagal dengan
+    // pesan jelas, TikTok ditolak real publisher, token kedaluwarsa jadi TOKEN_EXPIRED.
+    const useReal = realClient || (isPublisherConfigured() && linked);
     const publisher = useReal ? socialPublisher : mockPublisher;
+    if (!useReal) simulated = true;
     try {
-      const resolved = useReal ? await getConnectionToken(tg.account.connectionId) : null;
+      if (useReal && platform !== "TIKTOK" && !linked) throw new Error(p.accountNotLinked);
+      const resolved = useReal && linked ? await getConnectionToken(tg.account.connectionId) : null;
       const input: PublishInput = {
         platform,
         accessToken: resolved?.token ?? "",
@@ -116,7 +135,7 @@ export async function publishPost(postId: string, opts: PublishPostOptions = {})
       postId: post.id,
       userId: opts.userId ?? null,
       type: status === "PUBLISHED" ? "PUBLISHED" : status === "FAILED" ? "PUBLISH_FAILED" : "PUBLISH_RETRY",
-      meta: { published, failed, errors, manual: Boolean(opts.manual), mock: !isPublisherConfigured() },
+      meta: { published, failed, errors, manual: Boolean(opts.manual), mock: simulated },
     },
   });
   if (opts.syncJob !== false) {

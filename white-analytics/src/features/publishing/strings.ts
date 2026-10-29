@@ -231,6 +231,7 @@ export const p = {
   } as Record<string, string>,
   system: "Sistem",
   simulated: "simulasi",
+  accountNotLinked: "Akun ini belum tertaut ke koneksi Meta klien. Hubungkan ulang Meta di Pengaturan Klien lalu coba lagi.",
   editing: "Mode ubah",
   backToDetail: "Kembali ke detail",
   overrideBadge: "caption khusus",

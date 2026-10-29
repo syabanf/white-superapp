@@ -9,9 +9,10 @@ import { apifySerpRanks } from "@/lib/providers/apify/serp";
 import type { SeoDataProvider } from "./types";
 import { mockSeoData } from "./mock";
 import { realSeoData } from "./real";
+import { inDemoMode } from "@/lib/demo-mode";
 
 export function isDataForSeoConfigured(): boolean {
-  return Boolean(process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD);
+  return !inDemoMode() && Boolean(process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD);
 }
 
 /** Mock everywhere except live SERP positions from Apify Google Search Scraper. */

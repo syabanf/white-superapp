@@ -5,6 +5,7 @@
 import type { MetaMarketingAdapter } from "./types";
 import { mockMetaMarketing } from "./mock";
 import { realMetaMarketing } from "./real";
+import { inDemoMode } from "@/lib/demo-mode";
 
 export type { InsightsQuery, MetaAd, MetaAdSet, MetaCampaign, MetaInsightRow, MetaMarketingAdapter } from "./types";
 export { mockMetaMarketing } from "./mock";
@@ -12,7 +13,7 @@ export { realMetaMarketing } from "./real";
 
 /** Kredensial app Meta tersedia di env? */
 export function isMetaConfigured(): boolean {
-  return Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
+  return !inDemoMode() && Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
 }
 
 /** Adapter aktif untuk satu koneksi (token sudah didekripsi oleh pemanggil). */

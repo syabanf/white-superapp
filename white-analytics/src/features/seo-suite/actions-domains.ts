@@ -1,5 +1,6 @@
 "use server";
 
+import { withClientMode } from "@/lib/client-mode";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -15,7 +16,7 @@ const propSchema = z.object({ clientId: z.string().min(1), propertyId: z.string(
 
 // ── Backlink ──────────────────────────────────────────────────
 
-export async function refreshBacklinks(input: z.infer<typeof propSchema>): Promise<ActionResult<{ added: number; lost: number }>> {
+async function refreshBacklinksInner(input: z.infer<typeof propSchema>): Promise<ActionResult<{ added: number; lost: number }>> {
   const parsed = propSchema.safeParse(input);
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const g = await guardProperty(parsed.data.clientId, parsed.data.propertyId);
@@ -37,7 +38,7 @@ export async function refreshBacklinks(input: z.infer<typeof propSchema>): Promi
 
 const addSchema = propSchema.extend({ domain: z.string().min(1).max(253) });
 
-export async function addCompetitorDomain(input: z.infer<typeof addSchema>): Promise<ActionResult<{ id: string; domain: string }>> {
+async function addCompetitorDomainInner(input: z.infer<typeof addSchema>): Promise<ActionResult<{ id: string; domain: string }>> {
   const parsed = addSchema.safeParse(input);
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const domain = normalizeDomain(parsed.data.domain);
@@ -81,7 +82,7 @@ export async function removeCompetitorDomain(input: z.infer<typeof removeSchema>
   return ok(undefined);
 }
 
-export async function refreshDomains(input: z.infer<typeof propSchema>): Promise<ActionResult<{ domains: number }>> {
+async function refreshDomainsInner(input: z.infer<typeof propSchema>): Promise<ActionResult<{ domains: number }>> {
   const parsed = propSchema.safeParse(input);
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const g = await guardProperty(parsed.data.clientId, parsed.data.propertyId);
@@ -97,4 +98,18 @@ export async function refreshDomains(input: z.infer<typeof propSchema>): Promise
     await finishJob(job.data, { ok: false, error: errorMessage(e) });
     return fail(errorMessage(e), errorCode(e));
   }
+}
+
+// ── Mode demo per klien: klien isDemo selalu memakai adapter mock ──
+
+export async function refreshBacklinks(...args: Parameters<typeof refreshBacklinksInner>): ReturnType<typeof refreshBacklinksInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => refreshBacklinksInner(...args));
+}
+
+export async function addCompetitorDomain(...args: Parameters<typeof addCompetitorDomainInner>): ReturnType<typeof addCompetitorDomainInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => addCompetitorDomainInner(...args));
+}
+
+export async function refreshDomains(...args: Parameters<typeof refreshDomainsInner>): ReturnType<typeof refreshDomainsInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => refreshDomainsInner(...args));
 }

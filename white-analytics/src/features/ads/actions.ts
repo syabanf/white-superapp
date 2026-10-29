@@ -1,5 +1,6 @@
 "use server";
 
+import { withClientMode } from "@/lib/client-mode";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -87,7 +88,7 @@ export async function importAdsCsv(clientId: string, formData: FormData): Promis
  * Sinkronisasi mock: menyentuh lastSyncedAt + mencatat SyncJob ADS_INSIGHTS.
  * (Sinkronisasi nyata membutuhkan Connection Meta — lihat lib/providers/meta-marketing.)
  */
-export async function syncAds(clientId: string): Promise<ActionResult<{ lastSyncedAt: string }>> {
+async function syncAdsInner(clientId: string): Promise<ActionResult<{ lastSyncedAt: string }>> {
   const parsedId = z.string().min(1).safeParse(clientId);
   if (!parsedId.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const client = await requireClientManage(parsedId.data);
@@ -136,4 +137,10 @@ export async function syncAds(clientId: string): Promise<ActionResult<{ lastSync
       .catch(() => undefined);
     return fail(t.errors.UNKNOWN);
   }
+}
+
+// ── Mode demo per klien: klien isDemo selalu memakai adapter mock ──
+
+export async function syncAds(...args: Parameters<typeof syncAdsInner>): ReturnType<typeof syncAdsInner> {
+  return withClientMode({ id: args[0] }, () => syncAdsInner(...args));
 }

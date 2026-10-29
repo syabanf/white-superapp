@@ -9,6 +9,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { isApifyConfigured } from "@/lib/providers/apify";
+import { runInDemoMode } from "@/lib/demo-mode";
 import { PLATFORMS } from "@/features/social/lib";
 import { syncSocialMeta, syncSocialPublic } from "@/features/social/sync";
 import { syncSeoForClient } from "@/features/seo/sync";
@@ -22,11 +23,12 @@ async function mockJob(clientId: string, kind: string) {
 }
 
 export async function runDailySync(opts: { clientId?: string } = {}): Promise<{ clients: number; summary: DailySyncSummary }> {
-  const clients = await db.client.findMany({ where: opts.clientId ? { id: opts.clientId } : undefined, select: { id: true, slug: true } });
+  const clients = await db.client.findMany({ where: opts.clientId ? { id: opts.clientId } : undefined, select: { id: true, slug: true, isDemo: true } });
   const summary: DailySyncSummary = [];
-  const apify = isApifyConfigured();
 
-  for (const client of clients) {
+  // Klien demo dijalankan dalam mode demo: semua adapter jatuh ke mock.
+  for (const client of clients) await runInDemoMode(client.isDemo, async () => {
+    const apify = isApifyConfigured();
     // ── Social ──
     try {
       let updated = 0;
@@ -80,6 +82,6 @@ export async function runDailySync(opts: { clientId?: string } = {}): Promise<{ 
     } catch (e) {
       summary.push({ client: client.slug, kind: "ADS_INSIGHTS", status: "FAILED", mode: "real", message: e instanceof Error ? e.message : String(e) });
     }
-  }
+  });
   return { clients: clients.length, summary };
 }
