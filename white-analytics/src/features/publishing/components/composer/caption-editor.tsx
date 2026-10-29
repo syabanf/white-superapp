@@ -9,6 +9,8 @@ import { countHashtags, PLATFORM_LIMITS, type Platform } from "@/features/publis
 import { p } from "@/features/publishing/strings";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { CaptionAiDialog } from "@/features/brand/components/caption-ai-dialog";
+import { composeBody, splitBody } from "@/features/brand/lib";
 
 function Counter({ platform, text }: { platform: Platform; text: string }) {
   const lim = PLATFORM_LIMITS[platform];
@@ -35,7 +37,10 @@ export function CaptionEditor({
   overrides,
   onOverride,
   disabled,
+  aiSlug,
 }: {
+  /** client slug; when set, an "AI" button offers on-brand rewrites of the master caption */
+  aiSlug?: string;
   body: string;
   onBody: (v: string) => void;
   /** platforms of the selected targets (unique) */
@@ -46,6 +51,16 @@ export function CaptionEditor({
 }) {
   return (
     <div className="space-y-3">
+      {aiSlug && !disabled ? (
+        <div className="flex justify-end">
+          <CaptionAiDialog
+            slug={aiSlug}
+            platform={platforms[0] ?? "INSTAGRAM"}
+            read={() => ({ hook: "", ...splitBody(body) })}
+            onApply={(v) => onBody(composeBody(v))}
+          />
+        </div>
+      ) : null}
       <Textarea
         value={body}
         onChange={(e) => onBody(e.target.value)}

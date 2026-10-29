@@ -185,7 +185,7 @@ export function Composer({ clientId, slug, timezone, today, accounts, library: i
             </Label>
             <Input id="post-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={p.titlePlaceholder} disabled={disabled} className="h-9" maxLength={160} />
           </div>
-          <CaptionEditor body={body} onBody={setBody} platforms={platforms} overrides={overrides} onOverride={(pl, v) => setOverrides((o) => ({ ...o, [pl]: v }))} disabled={disabled} />
+          <CaptionEditor aiSlug={slug} body={body} onBody={setBody} platforms={platforms} overrides={overrides} onOverride={(pl, v) => setOverrides((o) => ({ ...o, [pl]: v }))} disabled={disabled} />
           {fieldErrors("body")}
         </Block></div>
 

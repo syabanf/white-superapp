@@ -20,6 +20,7 @@ import { contentContext, getReport, listReports, loadContent } from "@/features/
 import { c, cd } from "@/features/content/strings";
 import { formatCompact, formatDateTime, formatDecimal, formatNumber } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/reports/[reportId]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -29,7 +30,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
 
 const card = "rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)";
 
-export default async function ContentReportPage(props: PageProps<"/clients/[slug]/content/reports/[reportId]">) {
+async function ContentReportPageInner(props: PageProps<"/clients/[slug]/content/reports/[reportId]">) {
   const { slug, reportId } = await props.params;
   const { client, canWrite, names } = await contentContext(slug);
   const back = { href: `/clients/${slug}/content/reports`, label: t.nav.contentReports };
@@ -159,4 +160,10 @@ export default async function ContentReportPage(props: PageProps<"/clients/[slug
       </Section>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentReportPage(props: Parameters<typeof ContentReportPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentReportPageInner(props));
 }

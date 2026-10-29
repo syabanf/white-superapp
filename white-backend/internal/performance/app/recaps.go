@@ -689,7 +689,7 @@ func (r *Recaps) RunMonthly(ctx context.Context, now time.Time) (int, error) {
 			continue
 		}
 		made++
-		r.notify(ctx, Notice{UserIDs: ppl.userIDs(e.ID), Type: NotifMonthlyRecap, Href: hrefRecaps + "/monthly/" + rec.ID,
+		r.notify(ctx, Notice{UserIDs: ppl.userIDs(e.ID), Type: NotifMonthlyRecap, Href: hrefRecaps + "?recap=" + rec.ID,
 			Title: "Rekap kerja " + prev.Label() + " siap", Body: "Lihat ringkasan dan saran perbaikan bulan lalu."})
 	}
 	for id, d := range ppl.depts {
@@ -703,7 +703,7 @@ func (r *Recaps) RunMonthly(ctx context.Context, now time.Time) (int, error) {
 		}
 		made++
 		if d.HeadEmployeeID != nil {
-			r.notify(ctx, Notice{UserIDs: ppl.userIDs(*d.HeadEmployeeID), Type: NotifMonthlyRecap, Href: hrefRecaps + "/monthly/" + rec.ID,
+			r.notify(ctx, Notice{UserIDs: ppl.userIDs(*d.HeadEmployeeID), Type: NotifMonthlyRecap, Href: hrefRecaps + "?recap=" + rec.ID,
 				Title: "Rekap departemen " + d.Name + " " + prev.Label() + " siap", Body: "Saatnya retrospektif bulanan bersama tim."})
 		}
 	}

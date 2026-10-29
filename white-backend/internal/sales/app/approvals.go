@@ -74,7 +74,7 @@ func (q *Quotes) notifyApprovers(ctx context.Context, pa *pendingApproval) {
 	}
 	title := fmt.Sprintf("Approval diskon %s%% - %s", domain.FormatNumber(req.DiscountPercent, 2), req.QuoteNumber)
 	body := fmt.Sprintf("%s · %s · total %s (tingkat %d)", req.ClientName, req.DealTitle, req.Amount.Rupiah(), pa.level)
-	q.notify(ctx, Notification{UserIDs: recipients, Type: NotifApproval, Title: title, Body: body, Href: "/erp/sales/approvals?request=" + req.ID})
+	q.notify(ctx, Notification{UserIDs: recipients, Type: NotifApproval, Title: title, Body: body, Href: "/erp/sales/quotations/" + req.SubjectID})
 }
 
 func (q *Quotes) ListApprovalRules(ctx context.Context) ([]domain.ApprovalRule, error) {
@@ -241,7 +241,7 @@ func (q *Quotes) Decide(ctx context.Context, actor Actor, id, decision, comment 
 		if c := domain.JSTrim(comment); c != "" {
 			body = c
 		}
-		q.notify(ctx, Notification{UserIDs: []string{*requester}, Type: NotifApproval, Title: title, Body: body, Href: "/erp/sales/pipeline?deal=" + dealID})
+		q.notify(ctx, Notification{UserIDs: []string{*requester}, Type: NotifApproval, Title: title, Body: body, Href: "/erp/sales/pipeline/" + dealID})
 	}
 	q.auto.Emit(ctx, Event{Type: "quotation.status_changed", SubjectType: "quotation", SubjectID: subjectID, Actor: actor.ref(), Payload: map[string]any{"approval": res.Status, "decision": decision}})
 	return &res, nil

@@ -1,5 +1,6 @@
 "use server";
 
+import { withClientMode } from "@/lib/client-mode";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -67,7 +68,7 @@ async function insertTracked(property: { id: string; siteUrl: string; locationCo
 }
 
 /** From the research table: "Lacak" on selected ideas (metrics already known). */
-export async function trackKeywords(input: z.infer<typeof trackSchema>): Promise<ActionResult<{ added: number }>> {
+async function trackKeywordsInner(input: z.infer<typeof trackSchema>): Promise<ActionResult<{ added: number }>> {
   const parsed = trackSchema.safeParse(input);
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const g = await guardProperty(parsed.data.clientId, parsed.data.propertyId, { manage: true });
@@ -90,7 +91,7 @@ const addSchema = z.object({
 });
 
 /** Bulk textarea → enrich with provider metrics → tracked keywords. */
-export async function addTrackedKeywords(input: z.infer<typeof addSchema>): Promise<ActionResult<{ added: number }>> {
+async function addTrackedKeywordsInner(input: z.infer<typeof addSchema>): Promise<ActionResult<{ added: number }>> {
   const parsed = addSchema.safeParse(input);
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const keywords = parseKeywordLines(parsed.data.text, 100);
@@ -150,7 +151,7 @@ export async function updateKeywordTags(input: z.infer<typeof tagsSchema>): Prom
 const refreshSchema = z.object({ clientId: z.string().min(1), propertyId: z.string().min(1) });
 
 /** "Perbarui sekarang": re-check every tracked keyword (10-minute cooldown per client). */
-export async function refreshRanks(input: z.infer<typeof refreshSchema>): Promise<ActionResult<{ updated: number }>> {
+async function refreshRanksInner(input: z.infer<typeof refreshSchema>): Promise<ActionResult<{ updated: number }>> {
   const parsed = refreshSchema.safeParse(input);
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const g = await guardProperty(parsed.data.clientId, parsed.data.propertyId);
@@ -166,4 +167,18 @@ export async function refreshRanks(input: z.infer<typeof refreshSchema>): Promis
     await finishJob(job.data, { ok: false, error: errorMessage(e) });
     return fail(errorMessage(e), errorCode(e));
   }
+}
+
+// ── Mode demo per klien: klien isDemo selalu memakai adapter mock ──
+
+export async function trackKeywords(...args: Parameters<typeof trackKeywordsInner>): ReturnType<typeof trackKeywordsInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => trackKeywordsInner(...args));
+}
+
+export async function addTrackedKeywords(...args: Parameters<typeof addTrackedKeywordsInner>): ReturnType<typeof addTrackedKeywordsInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => addTrackedKeywordsInner(...args));
+}
+
+export async function refreshRanks(...args: Parameters<typeof refreshRanksInner>): ReturnType<typeof refreshRanksInner> {
+  return withClientMode({ id: args[0]?.clientId ?? "" }, () => refreshRanksInner(...args));
 }

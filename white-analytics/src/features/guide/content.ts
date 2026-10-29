@@ -175,6 +175,30 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         kind: "p",
         text: "Belum menghubungkan akun? Gunakan “Impor CSV” dengan berkas ekspor dari Meta Ads Manager. Kolom dikenali otomatis (Inggris maupun Indonesia), dan mengimpor berkas yang sama dua kali tidak akan menggandakan data.",
       },
+      {
+        kind: "defs",
+        items: [
+          { term: "Peringatan otomatis", text: "Tiap hari hari terakhir dibandingkan dengan 7 hari sebelumnya per kampanye: CPR naik, CTR turun, ROAS turun, belanja melonjak atau berhenti, dan frekuensi di atas 3. Peringatan level waspada dan kritis juga dikirim ke lonceng notifikasi. Butuh volume minimum supaya angka kecil tidak memicu alarm palsu." },
+          { term: "Analisa AI mingguan", text: "Ringkasan strategis Meta Ads 7 hari terakhir dibuat otomatis paling sering sekali seminggu, lalu tersimpan di tab Analisa pada menu Laporan." },
+          { term: "Campaign Builder", text: "Menu Meta Ads → Campaign Builder. Isi objektif dan anggaran, biarkan AI mengusulkan audiens, penempatan, dan 3 variasi materi berdasarkan Brand Kit, lalu tandai siap dan kirim. Selama aplikasi belum punya izin ads_management dari Meta, pengiriman berupa simulasi: tidak ada yang dibuat di Meta dan tidak ada biaya." },
+        ],
+      },
+    ],
+  },
+  {
+    id: "konten-ai",
+    title: "Brand Kit & Studio Desain AI",
+    summary: "Memori brand untuk semua fitur AI, konsep desain, dan gambar.",
+    blocks: [
+      {
+        kind: "steps",
+        items: [
+          { title: "Isi Brand Kit", text: "Menu Konten → Brand Kit. Warna, font, logo, tone of voice, audiens, do & don't, kata kunci, hashtag, dan contoh caption. Semua fitur AI (desain, caption, campaign) memakai data ini sebagai acuan." },
+          { title: "Buat desain dengan AI", text: "Menu Konten → Studio Desain AI. Tulis brief dan pilih format. AI menyusun layout (judul, subjudul, CTA, komposisi, palet) sebagai brief untuk desainer, lalu membuat gambar on-brand. Simpan ke Pustaka Media untuk dipakai di komposer." },
+          { title: "Tulis ulang caption", text: "Tombol AI di editor caption (papan konten dan komposer) memberi 3 variasi sesuai tone brand. Pilih “Pakai”, lalu simpan seperti biasa." },
+        ],
+      },
+      { kind: "note", tone: "info", text: "Tanpa kunci OpenRouter, atau untuk klien demo, hasil dibuat secara lokal dari template brand. Gambar AI sungguhan membutuhkan kunci OpenRouter." },
     ],
   },
   {
@@ -188,6 +212,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           { title: "Buat laporan PDF", text: "Menu Laporan → tab “Buat laporan”. Pilih modul, periode mengikuti filter global, lalu unduh. Riwayat laporan tersimpan di tab sebelahnya." },
           { title: "Ringkasan strategis", text: "Analisa naratif berbasis angka periode terpilih. Bisa disertakan ke dalam PDF." },
           { title: "Tautan klien", text: "Tab “Link klien” → aktifkan, salin URL. Tambahkan PIN 6 digit bila perlu. Klien hanya bisa melihat; tidak ada tombol ubah dan tidak ada data akun lain." },
+          { title: "Laporan otomatis", text: "Tab Riwayat → Laporan otomatis. Atur jadwal mingguan (tiap Senin, untuk minggu lalu) atau bulanan (tiap tanggal 1, untuk bulan lalu). Laporan dan ringkasan AI dibuat sendiri, lalu tim mendapat notifikasi. “Jalankan sekarang” membuat laporan periode terakhir saat itu juga." },
         ],
       },
     ],
@@ -251,6 +276,7 @@ export function guideSectionForPath(pathname: string): string {
   if (pathname === "/clients/new") return "mulai";
   if (pathname.startsWith("/setup")) return "integrasi";
   if (pathname.includes("/publish")) return "publikasi";
+  if (/\/content\/(brand|studio)(\/|$)/.test(pathname)) return "konten-ai";
   if (pathname.includes("/social")) return "social";
   if (/\/seo\/(research|rank|backlinks|competitors)(\/|$)/.test(pathname)) return "seo-suite";
   if (pathname.includes("/seo")) return "seo";

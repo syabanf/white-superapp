@@ -7,9 +7,10 @@ import { lazyProvider } from "@/lib/providers/lazy";
 import type { SocialPublisher } from "./types";
 import { mockPublisher } from "./mock";
 import { realPublisher } from "./real";
+import { inDemoMode } from "@/lib/demo-mode";
 
 export function isPublisherConfigured(): boolean {
-  return Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
+  return !inDemoMode() && Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET);
 }
 
 export const socialPublisher: SocialPublisher = lazyProvider(() => (isPublisherConfigured() ? realPublisher : mockPublisher));

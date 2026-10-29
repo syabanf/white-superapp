@@ -1,14 +1,15 @@
 "use server";
 
+import { withClientMode } from "@/lib/client-mode";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { fail, isProviderError, ok, type ActionResult } from "@/lib/action-result";
-import { parseISODate, previousRange } from "@/lib/dates";
+import { parseISODate } from "@/lib/dates";
 import { getSessionUser, requireClientAccess } from "@/lib/rbac";
-import { generateInsight as providerGenerate, type InsightLanguage } from "@/lib/providers/openrouter";
-import { buildInsightPayload, toRangeInfo } from "@/features/reports/insights";
+import type { InsightLanguage } from "@/lib/providers/openrouter";
+import { createReportCore, generateInsightCore } from "@/features/reports/create-core";
 import type { InsightModule } from "@/features/reports/queries";
 import { t } from "@/i18n/id";
 import { rs } from "@/features/reports/strings";
@@ -26,7 +27,7 @@ function parseRange(rangeFrom: string, rangeTo: string) {
  * Generate (or regenerate) the strategic insight for a module + range and cache it
  * in AiInsight. Accepts the client slug so RBAC runs through requireClientAccess.
  */
-export async function generateInsight(
+async function generateInsightInner(
   slug: string,
   module: InsightModule,
   rangeFrom: string,
@@ -38,20 +39,9 @@ export async function generateInsight(
   const range = parseRange(rangeFrom, rangeTo);
   if (!range) return fail(rs.builder.invalidRange, "VALIDATION");
   const lang: InsightLanguage = language === "en" ? "en" : "id";
-  const previous = previousRange(range);
 
   try {
-    const data = await buildInsightPayload(client.id, module, range, previous);
-    const { content, model } = await providerGenerate({
-      module,
-      language: lang,
-      clientName: client.name,
-      range: toRangeInfo(range, previous),
-      data,
-    });
-    await db.aiInsight.create({
-      data: { clientId: client.id, module, dateFrom: range.from, dateTo: range.to, language: lang, model, content },
-    });
+    const { content } = await generateInsightCore({ clientId: client.id, clientName: client.name, module, range, language: lang });
     revalidatePath(`/clients/${slug}`);
     revalidatePath(`/clients/${slug}/reports`);
     return ok({ content });
@@ -75,7 +65,7 @@ const createReportSchema = z.object({
 export type CreateReportState = ActionResult<{ id: string }> | null;
 
 /** Create a report from the builder form; on success redirects to the history tab. */
-export async function createReport(slug: string, _prev: CreateReportState, formData: FormData): Promise<CreateReportState> {
+async function createReportInner(slug: string, _prev: CreateReportState, formData: FormData): Promise<CreateReportState> {
   const { client } = await requireClientAccess(slug);
 
   const parsed = createReportSchema.safeParse({
@@ -95,52 +85,24 @@ export async function createReport(slug: string, _prev: CreateReportState, formD
   const input = parsed.data;
   const range = parseRange(input.from, input.to);
   if (!range) return fail(rs.builder.invalidRange, "VALIDATION");
-  const previous = previousRange(range);
-
-  let aiSummary: string | null = null;
-  if (input.includeAi) {
-    try {
-      const data = await buildInsightPayload(client.id, "OVERVIEW", range, previous, input.modules);
-      const { content, model } = await providerGenerate({
-        module: "OVERVIEW",
-        language: input.language,
-        clientName: client.name,
-        range: toRangeInfo(range, previous),
-        data,
-      });
-      aiSummary = content;
-      // Cache so the Overview page and insight tab pick it up too.
-      await db.aiInsight.create({
-        data: { clientId: client.id, module: "OVERVIEW", dateFrom: range.from, dateTo: range.to, language: input.language, model, content },
-      });
-    } catch (e) {
-      if (isProviderError(e)) return fail(t.errors[e.code] ?? t.errors.UNKNOWN, e.code);
-      console.error("createReport insight failed", e);
-      return fail(t.errors.UNKNOWN);
-    }
-  }
 
   let reportId: string;
   try {
-    // createdById is a nullable FK — verify the session user still exists (sessions
-    // can outlive a re-seeded database) so the insert never trips the constraint.
     const session = await getSessionUser();
-    const creator = session ? await db.user.findUnique({ where: { id: session.id }, select: { id: true } }) : null;
-    const report = await db.report.create({
-      data: {
-        clientId: client.id,
-        title: input.title,
-        dateFrom: range.from,
-        dateTo: range.to,
-        compare: input.compare,
-        modules: input.modules,
-        language: input.language,
-        aiSummary,
-        createdById: creator?.id ?? null,
-      },
+    const report = await createReportCore({
+      clientId: client.id,
+      clientName: client.name,
+      title: input.title,
+      range,
+      modules: input.modules,
+      compare: input.compare,
+      includeAi: input.includeAi,
+      language: input.language,
+      createdById: session?.id ?? null,
     });
     reportId = report.id;
   } catch (e) {
+    if (isProviderError(e)) return fail(t.errors[e.code] ?? t.errors.UNKNOWN, e.code);
     console.error("createReport failed", e);
     return fail(t.errors.UNKNOWN);
   }
@@ -158,4 +120,14 @@ export async function deleteReport(slug: string, reportId: string): Promise<Acti
   await db.report.delete({ where: { id: reportId } });
   revalidatePath(`/clients/${slug}/reports`);
   return ok({ id: reportId });
+}
+
+// ── Mode demo per klien: klien isDemo selalu memakai adapter mock ──
+
+export async function generateInsight(...args: Parameters<typeof generateInsightInner>): ReturnType<typeof generateInsightInner> {
+  return withClientMode({ slug: args[0] }, () => generateInsightInner(...args));
+}
+
+export async function createReport(...args: Parameters<typeof createReportInner>): ReturnType<typeof createReportInner> {
+  return withClientMode({ slug: args[0] }, () => createReportInner(...args));
 }

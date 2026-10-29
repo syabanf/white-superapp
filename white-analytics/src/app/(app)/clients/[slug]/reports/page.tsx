@@ -13,12 +13,15 @@ import { ShareSummaryCard } from "@/features/reports/components/share-summary-ca
 import { getOverviewAds, getOverviewSeo, getOverviewSocial } from "@/features/overview/queries";
 import { getReportSections } from "@/features/reports/sections";
 import { getLatestInsight, listReports, type InsightModule } from "@/features/reports/queries";
+import { ScheduleManager } from "@/features/ads-automation/components/schedule-manager";
+import { listSchedules } from "@/features/ads-automation/queries";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
 import { toISODate } from "@/lib/dates";
 import { formatCompact, formatCurrency, formatDateRange, formatNumber, formatPercent } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { rs } from "@/features/reports/strings";
+import { withClientMode } from "@/lib/client-mode";
 
 const TABS = ["builder", "history", "insight", "share"] as const;
 type TabKey = (typeof TABS)[number];
@@ -33,7 +36,7 @@ function monthTitle(d: Date): string {
   return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric", timeZone: "UTC" }).format(d);
 }
 
-export default async function ReportsPage(props: PageProps<"/clients/[slug]/reports">) {
+async function ReportsPageInner(props: PageProps<"/clients/[slug]/reports">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -286,7 +289,7 @@ async function HistoryTab({
   clientId: string;
   canManage: boolean;
 }) {
-  const reports = await listReports(clientId);
+  const [reports, schedules] = await Promise.all([listReports(clientId), listSchedules(clientId)]);
   const rows: ReportRow[] = reports.map((r) => ({
     id: r.id,
     title: r.title,
@@ -299,9 +302,12 @@ async function HistoryTab({
     createdAt: r.createdAt.toISOString(),
   }));
   return (
-    <Section title={t.reports.history}>
-      <ReportHistoryTable slug={slug} rows={rows} canManage={canManage} />
-    </Section>
+    <>
+      <ScheduleManager slug={slug} canManage={canManage} schedules={schedules} />
+      <Section title={t.reports.history}>
+        <ReportHistoryTable slug={slug} rows={rows} canManage={canManage} />
+      </Section>
+    </>
   );
 }
 
@@ -362,4 +368,10 @@ async function InsightTab({
       </div>
     </Section>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ReportsPage(props: Parameters<typeof ReportsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ReportsPageInner(props));
 }

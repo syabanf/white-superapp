@@ -23,6 +23,7 @@ import { getRange } from "@/lib/range-params";
 import { formatCompact, formatDateRange, formatNumber, formatPercent } from "@/lib/format";
 import { parseISODate, toISODate } from "@/lib/dates";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -32,7 +33,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
 
 const TAB_VIEWS = { ringkasan: SummaryTab, produksi: ProductionTab, kalender: CalendarTab, performa: PerformanceTab, aset: AssetsTab } satisfies Record<DashTab, unknown>;
 
-export default async function ContentOverviewPage(props: PageProps<"/clients/[slug]/content">) {
+async function ContentOverviewPageInner(props: PageProps<"/clients/[slug]/content">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canWrite, people, names } = await contentContext(slug);
   const base = `/clients/${slug}/content`;
@@ -155,4 +156,10 @@ export default async function ContentOverviewPage(props: PageProps<"/clients/[sl
       ) : null}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentOverviewPage(props: Parameters<typeof ContentOverviewPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentOverviewPageInner(props));
 }

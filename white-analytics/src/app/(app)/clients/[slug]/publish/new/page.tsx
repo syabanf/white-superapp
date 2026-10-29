@@ -8,6 +8,7 @@ import { p } from "@/features/publishing/strings";
 import { isPublisherConfigured } from "@/lib/providers/social-publisher";
 import { requireClientAccess } from "@/lib/rbac";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/publish/new">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -15,7 +16,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/publish
   return { title: `${client.name} · ${t.nav.compose}` };
 }
 
-export default async function PublishNewPage(props: PageProps<"/clients/[slug]/publish/new">) {
+async function PublishNewPageInner(props: PageProps<"/clients/[slug]/publish/new">) {
   const { slug } = await props.params;
   const { client, role } = await requireClientAccess(slug);
   const [accounts, library, bestTimes] = await Promise.all([getOwnAccounts(client.id), listMedia(client.id), getBestTimes(client.id, client.timezone)]);
@@ -37,4 +38,10 @@ export default async function PublishNewPage(props: PageProps<"/clients/[slug]/p
       />
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function PublishNewPage(props: Parameters<typeof PublishNewPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => PublishNewPageInner(props));
 }

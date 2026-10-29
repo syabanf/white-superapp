@@ -52,7 +52,7 @@ func (j *Jobs) QuotationExpiryReminders(ctx context.Context) (int, error) {
 			continue
 		}
 		if q.OwnerUserID != "" {
-			j.notify(ctx, Notification{UserIDs: []string{q.OwnerUserID}, Type: NotifQuoteExpiry, Title: "Quotation " + q.QuoteNumber + " segera berakhir", Body: q.ClientName + " · berlaku s.d. " + domain.FormatDateLong(*q.ValidUntil), Href: "/erp/sales/pipeline?deal=" + q.DealID})
+			j.notify(ctx, Notification{UserIDs: []string{q.OwnerUserID}, Type: NotifQuoteExpiry, Title: "Quotation " + q.QuoteNumber + " segera berakhir", Body: q.ClientName + " · berlaku s.d. " + domain.FormatDateLong(*q.ValidUntil), Href: "/erp/sales/pipeline/" + q.DealID})
 		}
 		if err := j.Store.MarkQuotationReminded(ctx, q.ID, now); err != nil {
 			return sent, err

@@ -2,9 +2,10 @@ import { type NextRequest } from "next/server";
 import { appBaseUrl, checkClientManage, META_NONCE_COOKIE, nonceCookieOptions, redirectTo } from "@/app/api/connections/_lib/access";
 import { buildMetaAuthUrl, metaConfigured } from "@/lib/providers/meta-oauth";
 import { randomNonce, signOAuthState } from "@/lib/providers/oauth-state";
+import { withClientMode } from "@/lib/client-mode";
 
 /** GET /api/connections/meta/start?client=<slug> — kick off the Meta OAuth dialog. */
-export async function GET(req: NextRequest) {
+async function start(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("client") ?? "";
   const access = await checkClientManage(slug);
   if (access === "unauthenticated") return redirectTo(req, "/login");
@@ -25,4 +26,9 @@ export async function GET(req: NextRequest) {
   const res = redirectTo(req, authUrl);
   res.cookies.set(META_NONCE_COOKIE, nonce, nonceCookieOptions());
   return res;
+}
+
+/** Klien demo tidak pernah diarahkan ke OAuth asli: jatuh ke koneksi simulasi. */
+export async function GET(req: NextRequest) {
+  return withClientMode({ slug: req.nextUrl.searchParams.get("client") ?? "" }, () => start(req));
 }

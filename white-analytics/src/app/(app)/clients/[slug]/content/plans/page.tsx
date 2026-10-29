@@ -9,6 +9,7 @@ import { contentContext, listPlans, loadContent } from "@/features/content/queri
 import { c } from "@/features/content/strings";
 import { todayIn } from "@/features/publishing/time";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/plans">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -16,7 +17,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
   return { title: `${client.name} · ${t.nav.contentPlans}` };
 }
 
-export default async function ContentPlansPage(props: PageProps<"/clients/[slug]/content/plans">) {
+async function ContentPlansPageInner(props: PageProps<"/clients/[slug]/content/plans">) {
   const { slug } = await props.params;
   const { client, canWrite } = await contentContext(slug);
   const res = await loadContent(() => listPlans(client.id));
@@ -37,4 +38,10 @@ export default async function ContentPlansPage(props: PageProps<"/clients/[slug]
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentPlansPage(props: Parameters<typeof ContentPlansPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentPlansPageInner(props));
 }

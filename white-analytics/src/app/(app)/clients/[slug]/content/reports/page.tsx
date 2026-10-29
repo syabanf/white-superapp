@@ -9,6 +9,7 @@ import { contentContext, listReports, loadContent } from "@/features/content/que
 import { c } from "@/features/content/strings";
 import { todayIn } from "@/features/publishing/time";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/reports">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -16,7 +17,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
   return { title: `${client.name} · ${t.nav.contentReports}` };
 }
 
-export default async function ContentReportsPage(props: PageProps<"/clients/[slug]/content/reports">) {
+async function ContentReportsPageInner(props: PageProps<"/clients/[slug]/content/reports">) {
   const { slug } = await props.params;
   const { client, canWrite } = await contentContext(slug);
   const res = await loadContent(() => listReports(client.id));
@@ -35,4 +36,10 @@ export default async function ContentReportsPage(props: PageProps<"/clients/[slu
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentReportsPage(props: Parameters<typeof ContentReportsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentReportsPageInner(props));
 }

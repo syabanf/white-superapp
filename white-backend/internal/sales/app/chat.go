@@ -660,7 +660,7 @@ func (c *Chat) notifyHandoff(ctx context.Context, conv *domain.Conversation, s d
 	}
 	labels := map[string]string{domain.HandoffAskedHuman: "minta bicara dengan tim", domain.HandoffComplaint: "komplain", domain.HandoffLowConfidence: "bot kurang yakin"}
 	who := firstNonEmpty(deref(conv.DisplayName), deref(conv.Phone), deref(conv.Email), "Pengunjung")
-	c.notify(ctx, Notification{UserIDs: dedupe(recipients), Type: NotifChatHandoff, Title: "Chat perlu dibalas: " + who + " (" + labels[reason] + ")", Body: domain.SliceUTF16(last, 300), Href: "/erp/sales/inbox?conversation=" + conv.ID})
+	c.notify(ctx, Notification{UserIDs: dedupe(recipients), Type: NotifChatHandoff, Title: "Chat perlu dibalas: " + who + " (" + labels[reason] + ")", Body: domain.SliceUTF16(last, 300), Href: "/erp/sales/chatbot?c=" + conv.ID})
 }
 
 func dedupe(ids []string) []string {
@@ -779,7 +779,7 @@ func (c *Chat) FlagSLABreaches(ctx context.Context) (int, error) {
 		if conv.AssignedUserID != nil {
 			to = append(to, *conv.AssignedUserID)
 		}
-		c.notify(ctx, Notification{UserIDs: dedupe(to), Type: NotifChatHandoff, Title: "SLA terlewati: " + firstNonEmpty(deref(conv.DisplayName), deref(conv.Phone), "Pengunjung"), Body: "Belum dibalas lebih dari 30 menit.", Href: "/erp/sales/inbox?conversation=" + conv.ID})
+		c.notify(ctx, Notification{UserIDs: dedupe(to), Type: NotifChatHandoff, Title: "SLA terlewati: " + firstNonEmpty(deref(conv.DisplayName), deref(conv.Phone), "Pengunjung"), Body: "Belum dibalas lebih dari 30 menit.", Href: "/erp/sales/chatbot?c=" + conv.ID})
 	}
 	return len(convs), nil
 }

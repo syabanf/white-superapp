@@ -7,6 +7,7 @@ import Link from "next/link";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { ArrowUpRight, CircleAlert, Clock, Megaphone, Search, Share2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,8 @@ export type PortfolioCardData = {
   name: string;
   slug: string;
   industry: string | null;
+  /** Klien contoh: selalu data demo. */
+  isDemo: boolean;
   logoUrl: string | null;
   currency: string;
   followers: number;
@@ -158,7 +161,10 @@ function ClientCard({ data }: { data: PortfolioCardData }) {
             <span className="line-clamp-2 text-[15px] leading-snug font-semibold tracking-[-0.015em] group-hover:underline">
               {data.name}
             </span>
-            <span className="block truncate text-xs text-muted-foreground">{data.industry ?? "–"}</span>
+            <span className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+              {data.isDemo ? <Badge variant="outline" className="h-4 px-1.5 text-[10px]">{tc.settings.demoBadge}</Badge> : null}
+              <span className="truncate">{data.industry ?? "–"}</span>
+            </span>
           </span>
         </Link>
         {data.health != null ? (

@@ -50,7 +50,7 @@ describe("meta app review", () => {
     const ready = parseMetaReview({ permissions: { instagram_content_publish: "APPROVED", pages_manage_posts: "APPROVED" }, appLive: true });
     expect(reviewProgress(ready).publishReady).toBe(true);
     expect(reviewProgress({ ...ready, appLive: false }).publishReady).toBe(false);
-    expect(reviewProgress(ready).total).toBe(8);
+    expect(reviewProgress(ready).total).toBe(9);
   });
 });
 

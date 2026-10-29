@@ -1,5 +1,6 @@
 import "server-only";
 import { fetchApifyUsage } from "@/lib/providers/apify/client";
+import { META_GRAPH_BASE } from "@/lib/providers/meta-graph/version";
 
 /**
  * Credential checks for the setup wizard — one cheap call per provider that
@@ -29,7 +30,7 @@ function errMessage(e: unknown): string {
 export async function verifyMetaApp(appId: string, appSecret: string): Promise<VerifyResult> {
   try {
     const q = new URLSearchParams({ client_id: appId, client_secret: appSecret, grant_type: "client_credentials" });
-    const { status, json } = await get(`https://graph.facebook.com/v21.0/oauth/access_token?${q}`);
+    const { status, json } = await get(`${META_GRAPH_BASE}/oauth/access_token?${q}`);
     if (status === 200 && json && typeof json === "object" && "access_token" in json) {
       return { ok: true, message: "Kredensial aplikasi Meta valid." };
     }

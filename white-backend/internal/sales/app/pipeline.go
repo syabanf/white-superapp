@@ -664,8 +664,19 @@ func (p *Pipeline) SendDueReminders(ctx context.Context) (int, error) {
 		if a.DueAt != nil {
 			body = "Tenggat " + a.DueAt.In(domain.Jakarta).Format("02/01/2006 15:04") + " WIB"
 		}
-		p.notify(ctx, Notification{UserIDs: []string{*a.OwnerUserID}, Type: NotifTaskReminder, Title: "Pengingat: " + a.Title, Body: body, Href: "/erp/sales/tasks?task=" + a.ID})
+		p.notify(ctx, Notification{UserIDs: []string{*a.OwnerUserID}, Type: NotifTaskReminder, Title: "Pengingat: " + a.Title, Body: body, Href: activityLink(a)})
 		sent++
 	}
 	return sent, nil
+}
+
+// activityLink opens the deal or lead a task belongs to (tasks have no page of their own).
+func activityLink(a domain.Activity) string {
+	if a.DealID != nil && *a.DealID != "" {
+		return "/erp/sales/pipeline/" + *a.DealID
+	}
+	if a.LeadID != nil && *a.LeadID != "" {
+		return "/erp/sales/leads/" + *a.LeadID
+	}
+	return "/erp/sales"
 }

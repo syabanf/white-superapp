@@ -8,8 +8,9 @@ import { apifyPublicSocial } from "./social-real";
 import { mockPublicSocial } from "./social-mock";
 import type { PublicSocialProvider } from "./types";
 
+import { isApifyConfigured } from "./config";
 export { isApifyConfigured, getApifyActors } from "./config";
 export { apifySerpRanks } from "./serp";
 export { fetchApifyUsage } from "./client";
-export const publicSocial: PublicSocialProvider = lazyProvider(() => (process.env.APIFY_TOKEN ? apifyPublicSocial : mockPublicSocial));
+export const publicSocial: PublicSocialProvider = lazyProvider(() => (isApifyConfigured() ? apifyPublicSocial : mockPublicSocial));
 export type * from "./types";

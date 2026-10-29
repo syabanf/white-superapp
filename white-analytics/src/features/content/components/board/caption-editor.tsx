@@ -13,6 +13,8 @@ import { parseHashtags } from "@/features/content/lib";
 import { c } from "@/features/content/strings";
 import type { CaptionRevision, Item } from "@/features/content/types";
 import { formatRelative } from "@/lib/format";
+import { CaptionAiDialog } from "@/features/brand/components/caption-ai-dialog";
+import { formatHashtags } from "@/features/brand/lib";
 import { Field } from "../fields";
 
 /** Caption, hook and hashtags. Each save is a new revision; older versions can be loaded back into the editor. */
@@ -57,6 +59,21 @@ export function CaptionEditor({
   return (
     <div className="page-stack">
       <form onSubmit={save} className="space-y-4 rounded-[1.5rem] bg-card p-(--card-pad) shadow-(--card-shadow)">
+        {editable ? (
+          <div className="flex justify-end">
+            <CaptionAiDialog
+              slug={slug}
+              platform={item.platform}
+              read={() => ({ hook, caption, hashtags: parseHashtags(tags) })}
+              onApply={(v) => {
+                setHook(v.hook);
+                setCaption(v.caption);
+                setTags(formatHashtags(v.hashtags));
+              }}
+              disabled={pending}
+            />
+          </div>
+        ) : null}
         <Field id="cap-hook" label={c.hook}>
           <Input id="cap-hook" value={hook} onChange={(e) => setHook(e.target.value)} disabled={!editable} />
         </Field>

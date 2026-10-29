@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { decrypt, encrypt } from "@/lib/crypto";
 import { ProviderError } from "@/lib/action-result";
 import { googleConfigured, refreshGoogleAccessToken } from "@/lib/providers/google-oauth";
-import { metaConfigured } from "@/lib/providers/meta-oauth";
+import { isDemoConnectionId, metaConfigured } from "@/lib/providers/meta-oauth";
 
 /**
  * Access-token resolution for sync jobs.
@@ -21,9 +21,11 @@ export async function getConnectionToken(connectionId: string | null | undefined
   if (!connectionId) return null;
   const c = await db.connection.findUnique({
     where: { id: connectionId },
-    select: { id: true, provider: true, accessTokenEnc: true, refreshTokenEnc: true, expiresAt: true },
+    select: { id: true, provider: true, accountId: true, accessTokenEnc: true, refreshTokenEnc: true, expiresAt: true },
   });
   if (!c) return null;
+  // Koneksi simulasi mode demo tidak punya token asli, tetap pakai data demo.
+  if (isDemoConnectionId(c.accountId)) return null;
   const configured = c.provider === "GOOGLE" ? googleConfigured() : metaConfigured();
   if (!configured) return null;
 

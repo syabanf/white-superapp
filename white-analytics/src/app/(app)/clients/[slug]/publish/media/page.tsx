@@ -6,6 +6,7 @@ import { p } from "@/features/publishing/strings";
 import { requireClientAccess } from "@/lib/rbac";
 import { formatNumber } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/publish/media">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -13,7 +14,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/publish
   return { title: `${client.name} · ${t.nav.media}` };
 }
 
-export default async function PublishMediaPage(props: PageProps<"/clients/[slug]/publish/media">) {
+async function PublishMediaPageInner(props: PageProps<"/clients/[slug]/publish/media">) {
   const { slug } = await props.params;
   const { client, role } = await requireClientAccess(slug);
   const assets = await listMedia(client.id);
@@ -29,4 +30,10 @@ export default async function PublishMediaPage(props: PageProps<"/clients/[slug]
       <MediaLibrary clientId={client.id} assets={assets} role={role} />
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function PublishMediaPage(props: Parameters<typeof PublishMediaPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => PublishMediaPageInner(props));
 }

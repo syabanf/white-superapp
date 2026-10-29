@@ -1,0 +1,83 @@
+/**
+ * Brand Kit + caption AI UI strings (Bahasa Indonesia). Nav labels are added
+ * later in src/i18n/id.ts by the coordinator; everything else lives here.
+ */
+export const b = {
+  eyebrow: "Konten",
+  title: "Brand Kit",
+  description: "Memori brand untuk semua fitur AI",
+  pageHint:
+    "Brand Kit dipakai sebagai memori brand oleh Design Studio, tulis ulang caption, dan saran kampanye. Semakin lengkap, semakin sesuai hasilnya.",
+
+  emptyTitle: "Brand Kit belum diisi",
+  emptyDesc: "Fitur AI tetap jalan dengan warna dan gaya netral bawaan. Isi Brand Kit agar hasilnya sesuai brand klien.",
+  readOnly: "Hanya manajer dan admin yang bisa mengubah Brand Kit.",
+  lastUpdated: "Diperbarui",
+
+  sectionVisual: "Identitas visual",
+  sectionVisualHint: "Warna dan font dipakai untuk palet desain dan catatan layout untuk desainer.",
+  sectionVoice: "Suara brand",
+  sectionVoiceHint: "Tone, audiens, dan aturan tulis dipakai saat AI menulis atau menulis ulang caption.",
+  sectionLibrary: "Kata kunci & contoh",
+  sectionLibraryHint: "Kata kunci, hashtag, dan contoh caption yang dianggap paling mewakili brand.",
+
+  primaryColor: "Warna utama",
+  secondaryColor: "Warna kedua",
+  accentColors: "Warna aksen",
+  addAccent: "Tambah aksen",
+  removeAccent: "Hapus warna aksen",
+  invalidHex: "Format warna harus hex, contoh #2b2265",
+  headingFont: "Font judul",
+  bodyFont: "Font teks",
+  fontPlaceholder: "Contoh: Poppins",
+  logoUrl: "URL logo",
+  logoUrlHint: "Tautan https ke file logo (PNG/SVG).",
+  logoPreviewFail: "Logo tidak bisa dimuat",
+  visualStyle: "Gaya visual",
+  visualStylePlaceholder: "Contoh: foto produk terang, banyak ruang kosong, nuansa hangat",
+
+  toneOfVoice: "Tone of voice",
+  tonePlaceholder: "Contoh: santai, hangat, pakai sapaan kamu, tidak lebay",
+  audience: "Target audiens",
+  audiencePlaceholder: "Contoh: pekerja muda 22–35 tahun di Jabodetabek",
+  doList: "Lakukan",
+  dontList: "Hindari",
+  listHint: "Satu poin per baris.",
+  keywords: "Kata kunci",
+  keywordsHint: "Pisahkan dengan koma atau baris baru.",
+  hashtags: "Hashtag brand",
+  hashtagsHint: "Pisahkan dengan spasi, # boleh ditulis atau tidak.",
+  sampleCaptions: "Contoh caption",
+  sampleCaptionsHint: "Pisahkan tiap caption dengan baris berisi ---",
+  notes: "Catatan lain",
+
+  save: "Simpan Brand Kit",
+  saved: "Brand Kit tersimpan",
+
+  previewTitle: "Pratinjau brand",
+  palette: "Palet",
+  fonts: "Font",
+  tone: "Tone",
+  defaultFont: "Font bawaan",
+  noTone: "Belum diatur",
+  contrast: "Kontras teks di warna utama",
+  contrastGood: "Baik",
+  contrastLarge: "Hanya judul besar",
+  contrastPoor: "Kurang",
+  contrastHint: (ratio: string) => `Rasio kontras ${ratio}:1. Minimal 4,5:1 untuk teks biasa dan 3:1 untuk judul besar.`,
+
+  // Caption AI
+  aiButton: "AI",
+  aiTitle: "Tulis ulang dengan AI",
+  aiHint: "AI menulis 3 variasi berdasarkan caption sekarang dan Brand Kit klien. Pilih satu untuk mengisi editor, lalu simpan seperti biasa.",
+  instruction: "Instruksi (opsional)",
+  instructionPlaceholder: "Contoh: lebih singkat, tambahkan ajakan ke link di bio",
+  platform: "Platform",
+  generate: "Buat variasi",
+  regenerate: "Buat lagi",
+  use: "Pakai",
+  applied: "Variasi dimasukkan ke editor. Jangan lupa simpan.",
+  emptyInput: "Tulis caption atau hook dulu sebelum meminta AI.",
+  noVariants: "AI tidak mengembalikan variasi.",
+  demoNote: "Mode demo: variasi dibuat lokal tanpa AI.",
+} as const;

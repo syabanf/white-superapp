@@ -17,7 +17,8 @@ export const maxDuration = 300;
  * deferred and goes first tomorrow.
  *
  * With `?client=<id>` it does the work for one client: source sync (Social,
- * GSC/GA4, Ads) and the SEO suite job (ranks, backlinks, domains, scheduled audits).
+ * GSC/GA4, Ads), the ads automation (anomaly alerts, weekly ADS insight, due
+ * report schedules) and the SEO suite job (ranks, backlinks, domains, scheduled audits).
  * Due posts are published by the separate 5-minute cron `/api/cron/publish`.
  */
 const CONCURRENCY = 4;
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
 
   const clientId = url.searchParams.get("client");
   if (clientId) {
-    const sync = await attempt(() => runDailySync({ clientId }));
+    const sync = await attempt(() => runDailySync({ clientId, now: startedAt }));
     const seoSuite = await attempt(() => runSeoSuiteDaily({ now: startedAt, clientId }));
     return Response.json({ ok: true, client: clientId, sync, seoSuite });
   }

@@ -18,10 +18,12 @@ export type IgDailyInsight = {
   /** YYYY-MM-DD */
   date: string;
   reach: number;
+  /** Mode nyata: metrik `views` (pengganti impressions yang dihapus Meta April 2025). */
   impressions: number;
-  profileViews: number;
-  /** net new followers hari itu (metric `follower_count`) */
-  followerCount: number;
+  /** `profile_views` sudah tidak tersedia di API Meta: null di mode nyata, angka di mock. */
+  profileViews: number | null;
+  /** net new followers hari itu; tidak lagi didokumentasikan Meta, null di mode nyata. */
+  followerCount: number | null;
 };
 
 export type IgMediaType = "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
@@ -69,6 +71,7 @@ export type FbPage = {
 export type FbPageDailyInsight = {
   /** YYYY-MM-DD */
   date: string;
+  /** Jangkauan unik Page (`page_total_media_view_unique`, dulu `page_impressions_unique`). */
   impressionsUnique: number;
   postEngagements: number;
 };

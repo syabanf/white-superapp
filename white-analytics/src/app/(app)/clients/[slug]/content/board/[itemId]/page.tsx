@@ -17,6 +17,7 @@ import { contentContext, getItem, getPlan, listSizePresets, loadContent } from "
 import { c } from "@/features/content/strings";
 import { formatDateTime } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/board/[itemId]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -24,7 +25,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
   return { title: `${client.name} · ${c.itemEyebrow}` };
 }
 
-export default async function ContentItemPage(props: PageProps<"/clients/[slug]/content/board/[itemId]">) {
+async function ContentItemPageInner(props: PageProps<"/clients/[slug]/content/board/[itemId]">) {
   const { slug, itemId } = await props.params;
   const { client, canWrite, people, names } = await contentContext(slug);
   const base = `/clients/${slug}/content`;
@@ -185,4 +186,10 @@ export default async function ContentItemPage(props: PageProps<"/clients/[slug]/
       </DetailLayout>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentItemPage(props: Parameters<typeof ContentItemPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentItemPageInner(props));
 }

@@ -119,6 +119,7 @@ async function main() {
         websiteUrl: c.websiteUrl,
         currency: "IDR",
         timezone: "Asia/Jakarta",
+        isDemo: true,
         shareEnabled: true,
         sharePinHash: ci === 0 ? await hash("123456", 10) : null,
         shareModules: ["SOCIAL", "SEO", "ADS"],

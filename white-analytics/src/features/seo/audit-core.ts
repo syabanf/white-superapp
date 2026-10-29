@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { isProviderError } from "@/lib/action-result";
 import { runPagespeed, type PsiResult } from "@/lib/providers/pagespeed";
 import { crawlSite } from "@/lib/providers/crawler";
+import { inDemoMode } from "@/lib/demo-mode";
 import type { Prisma } from "@/generated/prisma/client";
 import { s } from "./strings";
 
@@ -40,6 +41,10 @@ export type AuditCoreResult = {
 export async function runAuditCore(propertyId: string, url?: string): Promise<AuditCoreResult> {
   const property = await db.seoProperty.findUniqueOrThrow({ where: { id: propertyId }, include: { client: { select: { slug: true } } } });
   const target = auditTarget(property.siteUrl, url);
+  // Klien demo: jangan sentuh website asli (tombol dan cron sama-sama lewat sini).
+  if (inDemoMode()) {
+    return { slug: property.client.slug, target, allFailed: true, parts: [], errorParts: [s.auditDemo], audits: 0, pagesCrawled: 0, issues: 0 };
+  }
 
   const [job, crawlRecord] = await Promise.all([
     db.syncJob.create({ data: { clientId: property.clientId, kind: "SEO_AUDIT", status: "RUNNING", message: target } }),

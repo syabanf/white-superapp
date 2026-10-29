@@ -48,6 +48,7 @@ export const s = {
 
   // ── Audit situs ────────────────────────────────────────────
   auditThrottled: "Audit terakhir dijalankan kurang dari 10 menit lalu. Coba lagi beberapa menit.",
+  auditDemo: "Klien demo tidak menjalankan audit sungguhan (PageSpeed dan crawler mengakses website asli). Hasil audit yang tampil adalah data demo.",
   auditNoProperty: "Properti SEO tidak ditemukan.",
   auditUnauthorized: "Anda tidak punya akses ke klien ini.",
   auditDone: "Audit selesai",

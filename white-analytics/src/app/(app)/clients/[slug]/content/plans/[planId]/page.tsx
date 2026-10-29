@@ -12,6 +12,7 @@ import { c } from "@/features/content/strings";
 import { monthLabel, todayIn } from "@/features/publishing/time";
 import { formatDateTime } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/plans/[planId]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -19,7 +20,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
   return { title: `${client.name} · ${t.nav.contentPlans}` };
 }
 
-export default async function PlanDetailPage(props: PageProps<"/clients/[slug]/content/plans/[planId]">) {
+async function PlanDetailPageInner(props: PageProps<"/clients/[slug]/content/plans/[planId]">) {
   const { slug, planId } = await props.params;
   const { client, role, canWrite, userId, people, names } = await contentContext(slug);
   const back = { href: `/clients/${slug}/content/plans`, label: t.nav.contentPlans };
@@ -100,4 +101,10 @@ export default async function PlanDetailPage(props: PageProps<"/clients/[slug]/c
       </DetailLayout>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function PlanDetailPage(props: Parameters<typeof PlanDetailPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => PlanDetailPageInner(props));
 }

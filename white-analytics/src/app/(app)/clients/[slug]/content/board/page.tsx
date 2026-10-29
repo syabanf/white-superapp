@@ -7,6 +7,7 @@ import { hasBoardFilters, matchItem, parseBoardFilters } from "@/features/conten
 import { c } from "@/features/content/strings";
 import { todayIn } from "@/features/publishing/time";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/board">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -16,7 +17,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function ContentBoardPage(props: PageProps<"/clients/[slug]/content/board">) {
+async function ContentBoardPageInner(props: PageProps<"/clients/[slug]/content/board">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canWrite, people } = await contentContext(slug);
   const assigneeId = one(sp.assignee);
@@ -61,4 +62,10 @@ export default async function ContentBoardPage(props: PageProps<"/clients/[slug]
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentBoardPage(props: Parameters<typeof ContentBoardPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentBoardPageInner(props));
 }

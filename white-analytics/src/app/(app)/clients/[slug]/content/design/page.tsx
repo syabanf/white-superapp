@@ -9,6 +9,7 @@ import { contentContext, listDesignTasks, loadContent } from "@/features/content
 import { c } from "@/features/content/strings";
 import { todayIn } from "@/features/publishing/time";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/content/design">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -18,7 +19,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/content
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function ContentDesignPage(props: PageProps<"/clients/[slug]/content/design">) {
+async function ContentDesignPageInner(props: PageProps<"/clients/[slug]/content/design">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, people } = await contentContext(slug);
   const rawStatus = one(sp.status);
@@ -39,4 +40,10 @@ export default async function ContentDesignPage(props: PageProps<"/clients/[slug
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function ContentDesignPage(props: Parameters<typeof ContentDesignPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => ContentDesignPageInner(props));
 }

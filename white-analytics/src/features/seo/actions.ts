@@ -1,5 +1,6 @@
 "use server";
 
+import { inDemoMode, withClientMode } from "@/lib/client-mode";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -37,7 +38,7 @@ export type RunAuditResult = { message: string; audits: number; pagesCrawled: nu
  * Run a real site audit: PageSpeed Insights (mobile + desktop) and the internal
  * cheerio crawler, concurrently, within a ~60s wall-clock budget.
  */
-export async function runAudit(clientId: string, propertyId: string, url?: string): Promise<ActionResult<RunAuditResult>> {
+async function runAuditInner(clientId: string, propertyId: string, url?: string): Promise<ActionResult<RunAuditResult>> {
   const parsed = inputSchema.safeParse({ clientId, propertyId, url });
   if (!parsed.success) return fail(t.errors.VALIDATION, "VALIDATION");
   const g = await guard(parsed.data.clientId, parsed.data.propertyId);
@@ -49,6 +50,7 @@ export async function runAudit(clientId: string, propertyId: string, url?: strin
     return fail(s.auditThrottled);
   }
 
+  if (inDemoMode()) return fail(s.auditDemo);
   const res = await runAuditCore(property.id, parsed.data.url);
 
   const slug = property.client.slug;
@@ -86,7 +88,7 @@ export async function setAuditCadence(input: z.infer<typeof cadenceSchema>): Pro
 
 
 /** "Sinkronkan" on the SEO overview: real GSC/GA4 pull when the property has a Google connection, otherwise a no-op demo log. */
-export async function syncSeo(clientId: string): Promise<ActionResult<{ mode: "real" | "demo"; daily: number; ga4: number }>> {
+async function syncSeoInner(clientId: string): Promise<ActionResult<{ mode: "real" | "demo"; daily: number; ga4: number }>> {
   const user = await getSessionUser();
   if (!user) return fail(t.errors.UNAUTHORIZED, "UNAUTHORIZED");
   const parsed = z.string().min(1).safeParse(clientId);
@@ -104,4 +106,14 @@ export async function syncSeo(clientId: string): Promise<ActionResult<{ mode: "r
   if (!first) return fail(s.auditNoProperty, "NOT_FOUND");
   if (first.error) return fail(first.error);
   return ok({ mode: first.mode, daily: r.results.reduce((a, x) => a + x.daily, 0), ga4: r.results.reduce((a, x) => a + x.ga4, 0) });
+}
+
+// ── Mode demo per klien: klien isDemo selalu memakai adapter mock ──
+
+export async function runAudit(...args: Parameters<typeof runAuditInner>): ReturnType<typeof runAuditInner> {
+  return withClientMode({ id: args[0] }, () => runAuditInner(...args));
+}
+
+export async function syncSeo(...args: Parameters<typeof syncSeoInner>): ReturnType<typeof syncSeoInner> {
+  return withClientMode({ id: args[0] }, () => syncSeoInner(...args));
 }

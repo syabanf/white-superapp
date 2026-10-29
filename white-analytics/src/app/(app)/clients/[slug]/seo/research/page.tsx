@@ -14,6 +14,7 @@ import { getCompetitorDomains, getKeywordGap, getResearch, getSuiteProperty, get
 import { ResearchForm } from "@/features/seo-suite/components/research-form";
 import { ResearchResults } from "@/features/seo-suite/components/research-results";
 import { KeywordGapSection } from "@/features/seo-suite/components/keyword-gap";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/research">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -23,7 +24,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/seo/res
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function SeoResearchPage(props: PageProps<"/clients/[slug]/seo/research">) {
+async function SeoResearchPageInner(props: PageProps<"/clients/[slug]/seo/research">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const basePath = `/clients/${slug}/seo/research`;
@@ -85,4 +86,10 @@ export default async function SeoResearchPage(props: PageProps<"/clients/[slug]/
       </Section>
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SeoResearchPage(props: Parameters<typeof SeoResearchPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SeoResearchPageInner(props));
 }

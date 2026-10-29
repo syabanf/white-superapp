@@ -35,6 +35,7 @@ import {
 import type { Delta } from "@/lib/metrics";
 import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/social">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -42,7 +43,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/social"
   return { title: `${client.name} · ${t.nav.social}` };
 }
 
-export default async function SocialPage(props: PageProps<"/clients/[slug]/social">) {
+async function SocialPageInner(props: PageProps<"/clients/[slug]/social">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -176,3 +177,8 @@ export default async function SocialPage(props: PageProps<"/clients/[slug]/socia
   );
 }
 
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function SocialPage(props: Parameters<typeof SocialPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => SocialPageInner(props));
+}

@@ -18,6 +18,8 @@ import { AdsDrillSheet } from "@/features/ads/components/ads-drill";
 import { DrillBreadcrumb } from "@/features/erp/shared/drill";
 import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
 import { getAdsDashboard } from "@/features/ads/queries";
+import { AlertsPanel } from "@/features/ads-automation/components/alerts-panel";
+import { getAlertsPanel } from "@/features/ads-automation/queries";
 import { resultTypeLabel, s } from "@/features/ads/strings";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
@@ -30,6 +32,8 @@ import {
   formatRelative,
 } from "@/lib/format";
 import { t } from "@/i18n/id";
+import { withClientMode } from "@/lib/client-mode";
+import { c as campaignStrings } from "@/features/campaigns/strings";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/ads">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -37,7 +41,7 @@ export async function generateMetadata(props: PageProps<"/clients/[slug]/ads">):
   return { title: `${client.name} · ${t.ads.title}` };
 }
 
-export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
+async function AdsPageInner(props: PageProps<"/clients/[slug]/ads">) {
   const [{ slug }, sp] = await Promise.all([props.params, props.searchParams]);
   const { client, canManage } = await requireClientAccess(slug);
   const { range, previous, compare } = getRange(sp);
@@ -49,7 +53,10 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
   const cheapestHref = section("breakdown", { sort: "cpr" });
   const sort = sp.sort === "cpr" ? "cpr" : "spend";
 
-  const data = await getAdsDashboard(client.id, range, previous, campaignParam);
+  const [data, alerts] = await Promise.all([
+    getAdsDashboard(client.id, range, previous, campaignParam),
+    getAlertsPanel(client.id),
+  ]);
   const { kpis, deltas } = data;
   const activeCampaign = data.campaignOptions.find((c) => c.id === campaignParam);
 
@@ -67,6 +74,7 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
             <>
               <CsvImportDialog clientId={client.id} />
               <SyncButton clientId={client.id} />
+              <Button asChild size="sm"><Link href={`${base}/ads/campaigns`}><Megaphone /> {campaignStrings.openBuilder}</Link></Button>
             </>
           ) : undefined
         }
@@ -98,6 +106,7 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
               ]}
             />
           ) : null}
+          <AlertsPanel slug={slug} canManage={canManage} data={alerts} />
           {/* Baris filter (satu baris, di bawah header, di atas KPI) */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CampaignFilter options={data.campaignOptions} />
@@ -233,4 +242,10 @@ export default async function AdsPage(props: PageProps<"/clients/[slug]/ads">) {
       )}
     </>
   );
+}
+
+/** Klien demo dirender dalam mode demo: adapter mock + DemoBanner walau kredensial asli terpasang. */
+export default async function AdsPage(props: Parameters<typeof AdsPageInner>[0]) {
+  const { slug } = await props.params;
+  return withClientMode({ slug }, () => AdsPageInner(props));
 }
