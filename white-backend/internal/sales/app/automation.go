@@ -515,13 +515,20 @@ func subjectLink(object, id string, rec map[string]any) string {
 	case "lead":
 		return "/erp/sales/leads/" + id
 	case "deal":
-		return "/erp/sales/pipeline?deal=" + id
+		return "/erp/sales/pipeline/" + id
 	case "account":
-		return "/erp/sales/accounts/" + id
+		return "/erp/sales/leads/accounts/" + id
 	case "task":
-		return "/erp/sales/tasks?task=" + id
+		// Tasks have no page of their own: open the deal or lead they belong to.
+		if d := domain.ValueString(rec["deal_id"]); d != "" {
+			return "/erp/sales/pipeline/" + d
+		}
+		if l := domain.ValueString(rec["lead_id"]); l != "" {
+			return "/erp/sales/leads/" + l
+		}
+		return "/erp/sales"
 	case "quotation":
-		return "/erp/sales/pipeline?deal=" + domain.ValueString(rec["deal_id"])
+		return "/erp/sales/pipeline/" + domain.ValueString(rec["deal_id"])
 	}
 	return "/erp/sales"
 }

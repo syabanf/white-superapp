@@ -191,7 +191,7 @@ func (au *Automations) reviewDeadlines(ctx context.Context, now time.Time) error
 			continue
 		}
 		if rv.SelfAssessment == nil && au.claim(ctx, reminderKindReview, rv.ID, today) {
-			au.notify(ctx, Notice{UserIDs: ppl.userIDs(e.ID), Type: NotifReviewDeadline, Href: hrefReviews + "/" + rv.ID,
+			au.notify(ctx, Notice{UserIDs: ppl.userIDs(e.ID), Type: NotifReviewDeadline, Href: hrefReviews,
 				Title: "Self assessment " + rv.CycleName + " belum diisi", Body: "Isi self assessment review " + rv.CycleName + " (" + when + ")."})
 		}
 		if rv.RatedItems < rv.TotalItems || rv.ReviewerSignDate == nil {

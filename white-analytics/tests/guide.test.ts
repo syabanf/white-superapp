@@ -50,6 +50,9 @@ describe("in-app guide", () => {
     expect(guideSectionForPath("/clients/x/seo/rank")).toBe("seo-suite");
     expect(guideSectionForPath("/clients/x/publish/posts/abc")).toBe("publikasi");
     expect(guideSectionForPath("/clients/x/seo/research")).toBe("seo-suite");
+    expect(guideSectionForPath("/clients/x/content/brand")).toBe("konten-ai");
+    expect(guideSectionForPath("/clients/x/content/studio")).toBe("konten-ai");
+    expect(guideSectionForPath("/clients/x/ads/campaigns/new")).toBe("ads");
     expect(guideSectionForPath("/clients/x/ads")).toBe("ads");
     expect(guideSectionForPath("/clients/x/reports")).toBe("laporan");
     expect(guideSectionForPath("/clients/new")).toBe("mulai");

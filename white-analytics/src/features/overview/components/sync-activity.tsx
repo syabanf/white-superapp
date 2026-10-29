@@ -15,6 +15,9 @@ const KIND_LABEL: Record<string, string> = {
   SEO_SUITE_DOMAINS: "Domain kompetitor",
   ADS_INSIGHTS: "Meta Ads",
   ADS_CSV_IMPORT: "Impor CSV Ads",
+  ADS_ANOMALY: "Deteksi anomali iklan",
+  ADS_AUTO_INSIGHT: "Analisa AI iklan mingguan",
+  REPORT_SCHEDULE: "Laporan terjadwal",
   PUBLISH: "Publikasi terjadwal",
 };
 

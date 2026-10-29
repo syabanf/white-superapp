@@ -160,6 +160,11 @@ model Client {
   contentPosts    ContentPost[]
   keywordResearch KeywordResearch[]
   notifications   Notification[]
+  brandKit        BrandKit?
+  designDrafts    DesignDraft[]
+  adAlerts        AdAlert[]
+  reportSchedules ReportSchedule[]
+  campaignDrafts  CampaignDraft[]
 
   @@index([createdById])
 }
@@ -929,4 +934,147 @@ model AppSetting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// Brand memory & AI design assistant (Content)
+// ─────────────────────────────────────────────────────────────
+
+/// Per-client brand guideline used as memory by every AI feature
+/// (design layouts, image prompts, caption rewrites, campaign copy).
+model BrandKit {
+  id             String   @id @default(cuid())
+  clientId       String   @unique
+  primaryColor   String   @default("#2b2265")
+  secondaryColor String   @default("#fbeaf2")
+  accentColors   String[] @default([])
+  headingFont    String   @default("")
+  bodyFont       String   @default("")
+  logoUrl        String?
+  toneOfVoice    String   @default("")
+  audience       String   @default("")
+  doList         String[] @default([])
+  dontList       String[] @default([])
+  keywords       String[] @default([])
+  hashtags       String[] @default([])
+  sampleCaptions String[] @default([])
+  visualStyle    String   @default("")
+  notes          String   @default("")
+  updatedById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+/// One AI design request: layout suggestion + generated image (data URL for
+/// mocks, stored media URL for real images once saved to the library).
+model DesignDraft {
+  id           String   @id @default(cuid())
+  clientId     String
+  title        String
+  brief        String
+  format       String // FEED_SQUARE | FEED_PORTRAIT | STORY | REEL_COVER | CAROUSEL
+  layout       Json // { headline, subline, cta, palette[], composition, elements[] }
+  imagePrompt  String   @default("")
+  imageUrl     String?
+  mediaAssetId String?
+  model        String
+  createdById  String?
+  createdAt    DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Ads automation: anomaly alerts, scheduled reports, campaign builder
+// ─────────────────────────────────────────────────────────────
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+/// Rule-based anomaly found by the daily job (one row per rule+entity+day).
+model AdAlert {
+  id         String        @id @default(cuid())
+  clientId   String
+  campaignId String        @default("")
+  rule       String // CPR_SPIKE | CTR_DROP | ROAS_DROP | SPEND_SPIKE | SPEND_STALL | FATIGUE
+  severity   AlertSeverity
+  date       DateTime      @db.Date
+  metric     String
+  current    Float
+  baseline   Float
+  message    String
+  resolvedAt DateTime?
+  createdAt  DateTime      @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, rule, campaignId, date])
+  @@index([clientId, date])
+}
+
+enum ReportCadence {
+  WEEKLY
+  MONTHLY
+}
+
+/// Recurring report: the daily cron creates a Report (+ AI insight) when due
+/// and notifies the client audience.
+model ReportSchedule {
+  id          String        @id @default(cuid())
+  clientId    String
+  name        String
+  cadence     ReportCadence
+  modules     ModuleKey[]   @default([SOCIAL, SEO, ADS])
+  withInsight Boolean       @default(true)
+  enabled     Boolean       @default(true)
+  lastRunAt   DateTime?
+  nextRunAt   DateTime
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([enabled, nextRunAt])
+}
+
+enum CampaignDraftStatus {
+  DRAFT
+  READY
+  SUBMITTED
+}
+
+/// Campaign built in the app. Submitting creates it on Meta (PAUSED) when the
+/// app has ads_management; otherwise it is a simulation.
+model CampaignDraft {
+  id          String              @id @default(cuid())
+  clientId    String
+  adAccountId String?
+  name        String
+  objective   String // OUTCOME_AWARENESS | OUTCOME_TRAFFIC | OUTCOME_ENGAGEMENT | OUTCOME_LEADS | OUTCOME_SALES
+  dailyBudget Float
+  startDate   DateTime            @db.Date
+  endDate     DateTime?           @db.Date
+  audience    Json // { locations[], ageMin, ageMax, genders, interests[] }
+  placements  String[]            @default([])
+  creatives   Json // [{ headline, primaryText, cta, mediaUrl? }]
+  aiNotes     String              @default("")
+  status      CampaignDraftStatus @default(DRAFT)
+  externalId  String?
+  simulated   Boolean             @default(false)
+  submittedAt DateTime?
+  createdById String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
 }

@@ -4,6 +4,8 @@
  *  - Social: Meta Insights (own accounts with a connection) → Apify public data → mock log
  *  - SEO:    GSC/GA4 via Google connection → mock log
  *  - Ads:    Marketing API via Meta connection → mock log
+ *  - Then the automation steps (features/ads-automation): Meta Ads anomaly
+ *    alerts, the weekly auto ADS insight, and due recurring report schedules.
  * Failures are captured per client so one broken token never stops the run.
  */
 import "server-only";
@@ -14,6 +16,9 @@ import { PLATFORMS } from "@/features/social/lib";
 import { syncSocialMeta, syncSocialPublic } from "@/features/social/sync";
 import { syncSeoForClient } from "@/features/seo/sync";
 import { syncAdsForClient } from "@/features/ads/sync";
+import { detectAdAnomalies } from "@/features/ads-automation/detect";
+import { ensureWeeklyAdsInsight } from "@/features/ads-automation/insight";
+import { runDueReportSchedules } from "@/features/ads-automation/schedules";
 
 export type DailySyncSummary = { client: string; kind: string; status: "SUCCESS" | "FAILED"; mode: "real" | "demo"; message: string }[];
 
@@ -22,7 +27,8 @@ async function mockJob(clientId: string, kind: string) {
   await db.syncJob.create({ data: { clientId, kind, status: "SUCCESS", startedAt: now, finishedAt: now, message: "mock" } });
 }
 
-export async function runDailySync(opts: { clientId?: string } = {}): Promise<{ clients: number; summary: DailySyncSummary }> {
+export async function runDailySync(opts: { clientId?: string; now?: Date } = {}): Promise<{ clients: number; summary: DailySyncSummary }> {
+  const now = opts.now ?? new Date();
   const clients = await db.client.findMany({ where: opts.clientId ? { id: opts.clientId } : undefined, select: { id: true, slug: true, isDemo: true } });
   const summary: DailySyncSummary = [];
 
@@ -81,6 +87,33 @@ export async function runDailySync(opts: { clientId?: string } = {}): Promise<{ 
       summary.push({ client: client.slug, kind: "ADS_INSIGHTS", status: failed ? "FAILED" : "SUCCESS", mode: r.real > 0 ? "real" : "demo", message: failed?.error ?? (r.real > 0 ? `${r.real}/${r.accounts} akun` : "mock") });
     } catch (e) {
       summary.push({ client: client.slug, kind: "ADS_INSIGHTS", status: "FAILED", mode: "real", message: e instanceof Error ? e.message : String(e) });
+    }
+
+    // ── Ads automation: anomaly alerts (after the ads data is fresh) ──
+    const mode = client.isDemo ? "demo" : "real";
+    const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+    try {
+      const r = await detectAdAnomalies({ clientId: client.id, now });
+      if (r.anchor) summary.push({ client: client.slug, kind: "ADS_ANOMALY", status: "SUCCESS", mode, message: `${r.anchor} · ${r.found} anomali, ${r.created} baru` });
+    } catch (e) {
+      summary.push({ client: client.slug, kind: "ADS_ANOMALY", status: "FAILED", mode, message: errMsg(e) });
+    }
+
+    // ── Weekly auto ADS insight (at most once per 7 days) ──
+    try {
+      const r = await ensureWeeklyAdsInsight({ clientId: client.id, now });
+      if (r.generated) summary.push({ client: client.slug, kind: "ADS_AUTO_INSIGHT", status: "SUCCESS", mode: r.model === "mock" ? "demo" : "real", message: r.model ?? "" });
+    } catch (e) {
+      summary.push({ client: client.slug, kind: "ADS_AUTO_INSIGHT", status: "FAILED", mode, message: errMsg(e) });
+    }
+
+    // ── Recurring reports due today ──
+    try {
+      const r = await runDueReportSchedules(now, client.id);
+      if (r.due > 0)
+        summary.push({ client: client.slug, kind: "REPORT_SCHEDULE", status: r.failed > 0 && r.created === 0 ? "FAILED" : "SUCCESS", mode, message: r.errors[0] ?? `${r.created} laporan` });
+    } catch (e) {
+      summary.push({ client: client.slug, kind: "REPORT_SCHEDULE", status: "FAILED", mode, message: errMsg(e) });
     }
   });
   return { clients: clients.length, summary };

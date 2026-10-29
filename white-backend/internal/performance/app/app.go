@@ -115,13 +115,13 @@ const (
 
 // Links the notices open (Next.js routes of the ERP workspace).
 const (
-	hrefTasks        = "/erp/tasks"
+	hrefTasks        = "/erp/me/tasks"
 	hrefReviews      = "/erp/performance/reviews"
 	hrefFeedback     = "/erp/performance/feedback"
-	hrefLogbook      = "/erp/logbook"
+	hrefLogbook      = "/erp/performance/logbook"
 	hrefKPI          = "/erp/performance/kpi"
-	hrefRecaps       = "/erp/recaps"
-	hrefImprovements = "/erp/improvements"
+	hrefRecaps       = "/erp/performance/recaps"
+	hrefImprovements = "/erp/performance/improvements"
 )
 
 // ─── Actor ───────────────────────────────────────────────────

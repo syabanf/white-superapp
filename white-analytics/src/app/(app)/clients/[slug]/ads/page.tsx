@@ -18,6 +18,8 @@ import { AdsDrillSheet } from "@/features/ads/components/ads-drill";
 import { DrillBreadcrumb } from "@/features/erp/shared/drill";
 import { PERIOD_KEYS, pickQuery, withQuery } from "@/lib/drill-query";
 import { getAdsDashboard } from "@/features/ads/queries";
+import { AlertsPanel } from "@/features/ads-automation/components/alerts-panel";
+import { getAlertsPanel } from "@/features/ads-automation/queries";
 import { resultTypeLabel, s } from "@/features/ads/strings";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
@@ -31,6 +33,7 @@ import {
 } from "@/lib/format";
 import { t } from "@/i18n/id";
 import { withClientMode } from "@/lib/client-mode";
+import { c as campaignStrings } from "@/features/campaigns/strings";
 
 export async function generateMetadata(props: PageProps<"/clients/[slug]/ads">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -50,7 +53,10 @@ async function AdsPageInner(props: PageProps<"/clients/[slug]/ads">) {
   const cheapestHref = section("breakdown", { sort: "cpr" });
   const sort = sp.sort === "cpr" ? "cpr" : "spend";
 
-  const data = await getAdsDashboard(client.id, range, previous, campaignParam);
+  const [data, alerts] = await Promise.all([
+    getAdsDashboard(client.id, range, previous, campaignParam),
+    getAlertsPanel(client.id),
+  ]);
   const { kpis, deltas } = data;
   const activeCampaign = data.campaignOptions.find((c) => c.id === campaignParam);
 
@@ -68,6 +74,7 @@ async function AdsPageInner(props: PageProps<"/clients/[slug]/ads">) {
             <>
               <CsvImportDialog clientId={client.id} />
               <SyncButton clientId={client.id} />
+              <Button asChild size="sm"><Link href={`${base}/ads/campaigns`}><Megaphone /> {campaignStrings.openBuilder}</Link></Button>
             </>
           ) : undefined
         }
@@ -99,6 +106,7 @@ async function AdsPageInner(props: PageProps<"/clients/[slug]/ads">) {
               ]}
             />
           ) : null}
+          <AlertsPanel slug={slug} canManage={canManage} data={alerts} />
           {/* Baris filter (satu baris, di bawah header, di atas KPI) */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CampaignFilter options={data.campaignOptions} />

@@ -37,6 +37,8 @@ import {
   Share2,
   ShieldCheck,
   Users,
+  Sparkles,
+  SwatchBook,
   type LucideIcon,
 } from "lucide-react";
 import { t } from "@/i18n/id";
@@ -249,9 +251,19 @@ export function clientNav(slug: string): NavItem[] {
         { label: t.nav.contentDesign, href: `${base}/content/design`, icon: Palette },
         { label: t.nav.contentAssets, href: `${base}/content/assets`, icon: FolderOpen },
         { label: t.nav.contentReports, href: `${base}/content/reports`, icon: FileText },
+        { label: t.nav.contentBrand, href: `${base}/content/brand`, icon: SwatchBook },
+        { label: t.nav.contentStudio, href: `${base}/content/studio`, icon: Sparkles },
       ],
     },
-    { label: t.nav.ads, href: `${base}/ads`, icon: Megaphone },
+    {
+      label: t.nav.ads,
+      href: `${base}/ads`,
+      icon: Megaphone,
+      children: [
+        { label: t.nav.adsDashboard, href: `${base}/ads`, icon: LayoutDashboard },
+        { label: t.nav.adsCampaigns, href: `${base}/ads/campaigns`, icon: Rocket },
+      ],
+    },
     { label: t.nav.reports, href: `${base}/reports`, icon: FileText },
     { label: t.nav.settings, href: `${base}/settings`, icon: Settings },
   ];

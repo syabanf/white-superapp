@@ -209,7 +209,7 @@ func (b *Billing) IssueInvoice(ctx context.Context, actor Actor, id string) (*do
 		return nil, err
 	}
 	if deal, err := b.Store.GetDeal(ctx, inv.DealID); err == nil && deal != nil && deal.OwnerUserID != nil {
-		b.notify(ctx, Notification{UserIDs: []string{*deal.OwnerUserID}, Type: NotifInvoice, Title: "Invoice " + inv.InvoiceNumber + " diterbitkan", Body: inv.Label + " · " + inv.Amount.Rupiah(), Href: "/erp/sales/pipeline?deal=" + inv.DealID})
+		b.notify(ctx, Notification{UserIDs: []string{*deal.OwnerUserID}, Type: NotifInvoice, Title: "Invoice " + inv.InvoiceNumber + " diterbitkan", Body: inv.Label + " · " + inv.Amount.Rupiah(), Href: "/erp/sales/pipeline/" + inv.DealID})
 	}
 	return b.Store.GetInvoice(ctx, id)
 }

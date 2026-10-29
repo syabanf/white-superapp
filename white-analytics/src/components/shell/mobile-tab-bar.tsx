@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { t } from "@/i18n/id";
 
 /** Pages with their own sticky bottom action bar: the tab bar steps aside there. */
-const HAS_OWN_BOTTOM_BAR = /^\/(setup|clients\/new)(\/|$)|\/publish\/(new|posts\/[^/]+)(\/|$)/;
+const HAS_OWN_BOTTOM_BAR = /^\/(setup|clients\/new)(\/|$)|\/publish\/(new|posts\/[^/]+)(\/|$)|\/ads\/campaigns\/[^/]+(\/|$)/;
 const PRIMARY_SLOTS = 4;
 
 /**

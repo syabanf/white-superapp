@@ -13,6 +13,8 @@ import { ShareSummaryCard } from "@/features/reports/components/share-summary-ca
 import { getOverviewAds, getOverviewSeo, getOverviewSocial } from "@/features/overview/queries";
 import { getReportSections } from "@/features/reports/sections";
 import { getLatestInsight, listReports, type InsightModule } from "@/features/reports/queries";
+import { ScheduleManager } from "@/features/ads-automation/components/schedule-manager";
+import { listSchedules } from "@/features/ads-automation/queries";
 import { requireClientAccess } from "@/lib/rbac";
 import { getRange } from "@/lib/range-params";
 import { toISODate } from "@/lib/dates";
@@ -287,7 +289,7 @@ async function HistoryTab({
   clientId: string;
   canManage: boolean;
 }) {
-  const reports = await listReports(clientId);
+  const [reports, schedules] = await Promise.all([listReports(clientId), listSchedules(clientId)]);
   const rows: ReportRow[] = reports.map((r) => ({
     id: r.id,
     title: r.title,
@@ -300,9 +302,12 @@ async function HistoryTab({
     createdAt: r.createdAt.toISOString(),
   }));
   return (
-    <Section title={t.reports.history}>
-      <ReportHistoryTable slug={slug} rows={rows} canManage={canManage} />
-    </Section>
+    <>
+      <ScheduleManager slug={slug} canManage={canManage} schedules={schedules} />
+      <Section title={t.reports.history}>
+        <ReportHistoryTable slug={slug} rows={rows} canManage={canManage} />
+      </Section>
+    </>
   );
 }
 
