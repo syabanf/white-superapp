@@ -1,0 +1,6 @@
+# Caddy fetches and renews the TLS certificate for API_DOMAIN on its own.
+# Point the domain's A record at this host before the first start.
+{$API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy gateway:8080
+}

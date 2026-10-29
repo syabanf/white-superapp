@@ -1,0 +1,109 @@
+name: Backend deploy
+
+# Tests the Go backend, builds one image per service into GHCR, then (when the
+# DEPLOY_HOST variable is set) ships the compose files to the server and runs deploy.sh.
+on:
+  push:
+    branches: [main]
+    paths: ["white-backend/**", ".github/workflows/backend-deploy.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: backend-deploy
+  cancel-in-progress: false
+
+env:
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/mixist
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: white-backend
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: white_backend_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci -d white_backend_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      WHITE_TEST_DATABASE_URL: postgresql://ci:ci@localhost:5432/white_backend_test
+      AUTH_SECRET: ci-only-secret
+      ENCRYPTION_KEY: ci-only-encryption-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: white-backend/go.mod
+          cache-dependency-path: white-backend/go.sum
+      - run: go vet ./...
+      - run: go test -p 1 ./... -count=1
+
+  images:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: true
+      matrix:
+        service: [gateway, identity, integrations, analytics, publishing, seosuite, reports, content, finance, hr, recruitment, sales, performance, scheduler]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: white-backend
+          file: white-backend/deploy/Dockerfile
+          build-args: SERVICE=${{ matrix.service }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.service }}:latest
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.service }}:${{ github.sha }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,scope=${{ matrix.service }},mode=max
+
+  deploy:
+    needs: images
+    if: vars.DEPLOY_HOST != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      HOST: ${{ vars.DEPLOY_HOST }}
+      SSH_USER: ${{ vars.DEPLOY_USER || 'deploy' }}
+      DIR: ${{ vars.DEPLOY_PATH || '/opt/mixist-backend' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+      - name: Copy compose files
+        run: |
+          ssh "$SSH_USER@$HOST" "mkdir -p $DIR"
+          scp white-backend/deploy/docker-compose.prod.yml white-backend/deploy/Caddyfile \
+              white-backend/deploy/deploy.sh white-backend/deploy/.env.prod.example "$SSH_USER@$HOST:$DIR/"
+      - name: Pull and restart
+        run: ssh "$SSH_USER@$HOST" "chmod +x $DIR/deploy.sh && TAG=${{ github.sha }} $DIR/deploy.sh"

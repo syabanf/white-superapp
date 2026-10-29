@@ -184,6 +184,7 @@ services:
   gateway:
     <<: *service
     build: {context: .., dockerfile: deploy/Dockerfile, args: {SERVICE: gateway}}
+    command: ["worker"]
     environment:
       <<: *env
       HTTP_ADDR: ":8080"

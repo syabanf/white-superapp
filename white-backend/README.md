@@ -62,6 +62,10 @@ for s in hr finance recruitment sales performance content; do go run ./cmd/$s se
 
 Rencana dan keputusan ERP ada di [docs/ERP_PLAN.md](docs/ERP_PLAN.md).
 
+## Deploy produksi
+
+Image dibangun GitHub Actions ke GHCR lalu dijalankan di satu server Docker dengan Caddy. Langkah lengkap ada di [deploy/README.md](deploy/README.md).
+
 ## Migrasi dari database Prisma
 
 Migrasi `00002_import_prisma.sql` di tiap service menyalin baris dari tabel Prisma di skema `public` ke skema service, bila tabel itu ada. Id dipertahankan, jadi referensi antar service tetap valid. Jalankan sekali pada database yang sama dengan Next.js:
