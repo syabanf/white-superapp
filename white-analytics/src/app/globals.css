@@ -424,7 +424,8 @@
 
   /* ── Motion ───────────────────────────────────────────────
      One vocabulary: `lift` for surfaces you can click into,
-     `nudge` for directional affordances, `page-enter` for arrival.
+     `nudge` for directional affordances, `page-motion` for arrival
+     (`page-enter` only dims the page while it loads).
      Motion runs for everyone — see the note at the end of this file. */
 
   /* Clickable surface: hairline warms to brand, card floats a touch */
@@ -458,28 +459,65 @@
     transform: translateX(-2px);
   }
 
-  /* Page arrival: sections rise in with a light stagger */
-  .page-enter > * {
-    animation: enter-up var(--dur-slow) var(--ease-out) both;
+  /* Page arrival, replayed on every page and tab switch (PageMotion): sections
+     rise out of a soft blur one after another, cards inside a grid follow in
+     turn, and the page title wipes in from the left. */
+  .page-motion > * {
+    animation: enter-up 520ms var(--ease-out) both;
+    animation-delay: var(--enter-delay, 0ms);
   }
-  .page-enter > *:nth-child(2) {
-    animation-delay: 45ms;
+  .page-motion > :nth-child(2) {
+    --enter-delay: 60ms;
   }
-  .page-enter > *:nth-child(3) {
-    animation-delay: 90ms;
+  .page-motion > :nth-child(3) {
+    --enter-delay: 120ms;
   }
-  .page-enter > *:nth-child(n + 4) {
-    animation-delay: 130ms;
+  .page-motion > :nth-child(4) {
+    --enter-delay: 180ms;
+  }
+  .page-motion > :nth-child(n + 5) {
+    --enter-delay: 230ms;
+  }
+  /* Cards in a grid start after their section, one step apart */
+  .page-motion > .grid > *,
+  .page-motion > * > .grid > * {
+    animation: enter-up 520ms var(--ease-out) both;
+    animation-delay: calc(var(--enter-delay, 0ms) + var(--grid-step, 0ms));
+  }
+  :is(.page-motion > .grid, .page-motion > * > .grid) > :nth-child(2) {
+    --grid-step: 50ms;
+  }
+  :is(.page-motion > .grid, .page-motion > * > .grid) > :nth-child(3) {
+    --grid-step: 100ms;
+  }
+  :is(.page-motion > .grid, .page-motion > * > .grid) > :nth-child(4) {
+    --grid-step: 150ms;
+  }
+  :is(.page-motion > .grid, .page-motion > * > .grid) > :nth-child(n + 5) {
+    --grid-step: 200ms;
+  }
+  .page-motion h1 {
+    animation: title-wipe 640ms var(--ease-out) both;
   }
 
   @keyframes enter-up {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(14px);
+      filter: blur(6px);
     }
     to {
       opacity: 1;
       transform: none;
+      filter: none;
+    }
+  }
+  @keyframes title-wipe {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
     }
   }
 

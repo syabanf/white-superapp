@@ -10,6 +10,20 @@ import (
 	"time"
 )
 
+const deactivateIndicator = `-- name: DeactivateIndicator :exec
+UPDATE performance.kpi_indicators SET is_active = false, updated_by = $2, updated_at = now() WHERE id = $1
+`
+
+type DeactivateIndicatorParams struct {
+	ID        string
+	UpdatedBy *string
+}
+
+func (q *Queries) DeactivateIndicator(ctx context.Context, arg DeactivateIndicatorParams) error {
+	_, err := q.db.Exec(ctx, deactivateIndicator, arg.ID, arg.UpdatedBy)
+	return err
+}
+
 const deleteDepartmentWeights = `-- name: DeleteDepartmentWeights :exec
 DELETE FROM performance.kpi_department_indicators WHERE department_id = $1
 `
@@ -25,6 +39,24 @@ DELETE FROM performance.kpi_targets WHERE id = $1
 
 func (q *Queries) DeleteTarget(ctx context.Context, id string) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteTarget, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteUnusedIndicator = `-- name: DeleteUnusedIndicator :execrows
+DELETE FROM performance.kpi_indicators k
+WHERE k.id = $1::text
+  AND NOT EXISTS (SELECT 1 FROM performance.kpi_snapshots s WHERE s.indicator_id = k.id)
+  AND NOT EXISTS (SELECT 1 FROM performance.department_task_kpi_contributions c WHERE c.indicator_id = k.id)
+  AND NOT EXISTS (SELECT 1 FROM performance.department_tasks t WHERE t.kpi_indicator_id = k.id)
+`
+
+// Skips an indicator with history that the delete would cascade away
+// (snapshots, task contributions) or unlink (department tasks).
+func (q *Queries) DeleteUnusedIndicator(ctx context.Context, id string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUnusedIndicator, id)
 	if err != nil {
 		return 0, err
 	}
@@ -770,6 +802,37 @@ func (q *Queries) TaskCounts(ctx context.Context, arg TaskCountsParams) ([]TaskC
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateTarget = `-- name: UpdateTarget :execrows
+UPDATE performance.kpi_targets SET indicator_id = $2, period_year = $3, period_month = $4, department_id = $5, employee_id = $6, target = $7
+WHERE id = $1
+`
+
+type UpdateTargetParams struct {
+	ID           string
+	IndicatorID  string
+	PeriodYear   *int32
+	PeriodMonth  *int32
+	DepartmentID *string
+	EmployeeID   *string
+	Target       float64
+}
+
+func (q *Queries) UpdateTarget(ctx context.Context, arg UpdateTargetParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateTarget,
+		arg.ID,
+		arg.IndicatorID,
+		arg.PeriodYear,
+		arg.PeriodMonth,
+		arg.DepartmentID,
+		arg.EmployeeID,
+		arg.Target,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const upsertDraftScorecard = `-- name: UpsertDraftScorecard :execrows

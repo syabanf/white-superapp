@@ -13,30 +13,56 @@ import (
 
 	"github.com/go-pdf/fpdf"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/domain"
+	"github.com/syabanf/white-superapp/white-backend/pkg/config"
 )
 
-// Renderer implements app.Renderer.
-type Renderer struct{}
+// Company is the letterhead identity printed on every document.
+type Company struct {
+	LegalName, Address, Email, Phone string
+	// NPWP is the tax id; the line is left out when empty.
+	NPWP string
+}
 
-func New() Renderer { return Renderer{} }
-
-// Letterhead details printed on every document.
+// Letterhead defaults; CompanyFromEnv overrides all but the brand.
 const (
 	brandName    = "Mixist"
 	brandTagline = "Digital Marketing Agency"
 	legalName    = "PT Mixist Digital Kreatif"
 	brandAddress = "Jl. Senopati No. 8, Kebayoran Baru, Jakarta Selatan 12190"
-	brandContact = "hello@mixist.id  ·  +62 21 5000 8800  ·  mixist.id"
+	brandEmail   = "hello@mixist.id"
+	brandPhone   = "+62 21 5000 8800"
 )
+
+// CompanyFromEnv reads COMPANY_LEGAL_NAME, COMPANY_ADDRESS, COMPANY_EMAIL,
+// COMPANY_PHONE and COMPANY_NPWP over the defaults above.
+func CompanyFromEnv() Company {
+	return Company{
+		LegalName: config.Env("COMPANY_LEGAL_NAME", legalName),
+		Address:   config.Env("COMPANY_ADDRESS", brandAddress),
+		Email:     config.Env("COMPANY_EMAIL", brandEmail),
+		Phone:     config.Env("COMPANY_PHONE", brandPhone),
+		NPWP:      config.Env("COMPANY_NPWP", ""),
+	}
+}
+
+// Renderer implements app.Renderer.
+type Renderer struct {
+	Company Company
+}
+
+// New builds a renderer with the company read from the environment.
+func New() Renderer { return Renderer{Company: CompanyFromEnv()} }
 
 type rgb struct{ r, g, b int }
 
 var (
-	ink    = rgb{0x11, 0x11, 0x11}
-	muted  = rgb{0x6b, 0x6b, 0x70}
-	faint  = rgb{0xe5, 0xe5, 0xea}
-	panel  = rgb{0xf5, 0xf5, 0xf7}
-	accent = rgb{0x00, 0x28, 0x1a}
+	ink     = rgb{0x11, 0x11, 0x11}
+	muted   = rgb{0x6b, 0x6b, 0x70}
+	faint   = rgb{0xe5, 0xe5, 0xea}
+	border  = rgb{0xd2, 0xd2, 0xda}
+	tint    = rgb{0xf7, 0xf2, 0xf6}
+	magenta = rgb{0xa0, 0x1d, 0x63}
+	navy    = rgb{0x2b, 0x22, 0x65}
 )
 
 const (
@@ -55,9 +81,9 @@ func safe(s string) string {
 		switch {
 		case r == '−':
 			b.WriteByte('-')
-		case r == ' ' || r == ' ' || r == ' ':
+		case r == '\u202f' || r == '\u2009' || r == '\u00a0':
 			b.WriteByte(' ')
-		case r == ' ' || r == ' ':
+		case r == '\u2028' || r == '\u2029':
 			b.WriteByte('\n')
 		case r <= 0xff || strings.ContainsRune(winAnsiExtra, r):
 			b.WriteRune(r)
@@ -69,14 +95,15 @@ func safe(s string) string {
 type doc struct {
 	f  *fpdf.Fpdf
 	tr func(string) string
+	co Company
 }
 
-func newDoc(footer func(d *doc)) *doc {
+func newDoc(co Company, footer func(d *doc)) *doc {
 	f := fpdf.New("P", "pt", "A4", "")
 	f.SetMargins(margin, margin, margin)
 	f.SetAutoPageBreak(true, 64)
 	f.AliasNbPages("{nb}")
-	d := &doc{f: f, tr: f.UnicodeTranslatorFromDescriptor("")}
+	d := &doc{f: f, tr: f.UnicodeTranslatorFromDescriptor(""), co: co}
 	f.SetFooterFunc(func() {
 		if footer != nil {
 			footer(d)
@@ -97,64 +124,147 @@ func (d *doc) font(style string, size float64) { d.f.SetFont("Helvetica", style,
 
 func (d *doc) color(c rgb) { d.f.SetTextColor(c.r, c.g, c.b) }
 
+func (d *doc) fill(c rgb) { d.f.SetFillColor(c.r, c.g, c.b) }
+
+func (d *doc) stroke(c rgb) { d.f.SetDrawColor(c.r, c.g, c.b) }
+
+// letterhead: brand mark and name on the left; legal name, address,
+// contact and NPWP right-aligned on the right; a two-tone rule below.
 func (d *doc) letterhead() {
-	f := d.f
-	d.font("B", 24)
-	d.color(accent)
-	f.SetXY(margin, margin)
-	f.CellFormat(200, 26, brandName, "", 0, "L", false, 0, "")
+	f, co := d.f, d.co
+	top := margin
+	d.fill(magenta)
+	f.RoundedRect(margin, top, 30, 30, 6, "1234", "F")
+	d.font("B", 18)
+	f.SetTextColor(255, 255, 255)
+	f.SetXY(margin, top)
+	f.CellFormat(30, 30, "M", "", 0, "C", false, 0, "")
+	d.font("B", 22)
+	d.color(magenta)
+	f.SetXY(margin+38, top)
+	f.CellFormat(150, 20, brandName, "", 0, "L", false, 0, "")
 	d.font("", 8)
-	d.color(muted)
-	f.SetXY(margin, margin+26)
-	f.CellFormat(200, 10, d.t(brandTagline), "", 0, "L", false, 0, "")
-	right := []string{legalName, brandAddress, brandContact}
-	for i, line := range right {
-		style := ""
-		if i == 0 {
-			style = "B"
-		}
-		d.font(style, 8)
-		d.color(ink)
-		f.SetXY(margin, margin+4+float64(i)*11)
-		f.CellFormat(contentW, 11, d.t(line), "", 0, "R", false, 0, "")
-	}
-	f.SetDrawColor(accent.r, accent.g, accent.b)
-	f.SetLineWidth(1.2)
-	f.Line(margin, margin+44, pageW-margin, margin+44)
-	f.SetLineWidth(0.5)
-	f.SetY(margin + 58)
-}
+	d.color(navy)
+	f.SetXY(margin+38, top+20)
+	f.CellFormat(150, 10, d.t(brandTagline), "", 0, "L", false, 0, "")
 
-func (d *doc) title(text, number string) {
-	d.font("B", 15)
-	d.color(ink)
-	d.f.CellFormat(contentW, 18, d.t(text), "", 1, "L", false, 0, "")
-	d.font("", 9)
-	d.color(muted)
-	d.f.CellFormat(contentW, 12, d.t(number), "", 1, "L", false, 0, "")
-	d.f.Ln(8)
-}
-
-// grid draws label/value pairs in two columns on a light panel.
-func (d *doc) grid(pairs [][2]string) {
-	f := d.f
-	rows := (len(pairs) + 1) / 2
-	y := f.GetY()
-	f.SetFillColor(panel.r, panel.g, panel.b)
-	f.Rect(margin, y, contentW, float64(rows)*30+8, "F")
-	for i, p := range pairs {
-		col, row := i%2, i/2
-		x := margin + 10 + float64(col)*(contentW/2)
-		f.SetXY(x, y+6+float64(row)*30)
+	const rightW = 280.0
+	x, y := pageW-margin-rightW, top
+	d.font("B", 12)
+	d.color(navy)
+	f.SetXY(x, y)
+	f.CellFormat(rightW, 15, d.t(co.LegalName), "", 0, "R", false, 0, "")
+	y += 16
+	if co.Address != "" {
 		d.font("", 7.5)
 		d.color(muted)
-		f.CellFormat(contentW/2-20, 10, d.t(strings.ToUpper(p[0])), "", 2, "L", false, 0, "")
-		f.SetX(x)
-		d.font("B", 9.5)
-		d.color(ink)
-		f.CellFormat(contentW/2-20, 13, d.t(p[1]), "", 0, "L", false, 0, "")
+		for _, ln := range f.SplitText(d.t(co.Address), rightW) {
+			f.SetXY(x, y)
+			f.CellFormat(rightW, 10, ln, "", 0, "R", false, 0, "")
+			y += 10
+		}
 	}
-	f.SetY(y + float64(rows)*30 + 18)
+	if co.Email != "" || co.Phone != "" {
+		d.contactLine(y)
+		y += 11
+	}
+	if co.NPWP != "" {
+		d.font("", 7.5)
+		d.color(muted)
+		f.SetXY(x, y)
+		f.CellFormat(rightW, 10, d.t("NPWP: "+co.NPWP), "", 0, "R", false, 0, "")
+		y += 11
+	}
+	rule := max(y, top+34) + 8
+	f.SetLineWidth(1.5)
+	d.stroke(magenta)
+	f.Line(margin, rule, margin+contentW*0.3, rule)
+	d.stroke(navy)
+	f.Line(margin+contentW*0.3, rule, pageW-margin, rule)
+	f.SetLineWidth(0.5)
+	f.SetY(rule + 14)
+}
+
+// contactLine prints "email · phone" right-aligned, the email in magenta.
+func (d *doc) contactLine(y float64) {
+	type part struct {
+		text string
+		c    rgb
+	}
+	var parts []part
+	if d.co.Email != "" {
+		parts = append(parts, part{d.t(d.co.Email), magenta})
+	}
+	if d.co.Phone != "" {
+		if len(parts) > 0 {
+			parts = append(parts, part{d.t("  ·  "), muted})
+		}
+		parts = append(parts, part{d.t(d.co.Phone), muted})
+	}
+	d.font("", 7.5)
+	total := 0.0
+	for _, p := range parts {
+		total += d.f.GetStringWidth(p.text)
+	}
+	d.f.SetXY(pageW-margin-total, y)
+	for _, p := range parts {
+		d.color(p.c)
+		d.f.CellFormat(d.f.GetStringWidth(p.text), 10, p.text, "", 0, "L", false, 0, "")
+	}
+}
+
+// titleBand is a full-width light panel with the centred document title
+// and its number.
+func (d *doc) titleBand(title, number string) {
+	f := d.f
+	y := f.GetY()
+	d.fill(tint)
+	f.Rect(margin, y, contentW, 48, "F")
+	d.font("B", 16)
+	d.color(navy)
+	f.SetXY(margin, y+8)
+	f.CellFormat(contentW, 18, d.t(title), "", 0, "C", false, 0, "")
+	d.font("", 9)
+	d.color(ink)
+	f.SetXY(margin, y+28)
+	f.CellFormat(contentW, 12, d.t("Nomor : "+number), "", 0, "C", false, 0, "")
+	f.SetY(y + 48 + 12)
+}
+
+// infoBox draws a bordered two-column box of "LABEL : value" rows. Empty
+// values print "-"; values wrap within their column.
+func (d *doc) infoBox(left, right [][2]string) {
+	f := d.f
+	const pad, labelW, colonW, lineH = 10.0, 84.0, 10.0, 11.0
+	colW := contentW / 2
+	valueW := colW - 2*pad - labelW - colonW
+	column := func(x, y float64, rows [][2]string) float64 {
+		for _, r := range rows {
+			d.font("", 8.5)
+			lines := f.SplitText(d.t(firstNonEmpty(r[1], "-")), valueW)
+			d.font("I", 7)
+			d.color(muted)
+			f.SetXY(x, y)
+			f.CellFormat(labelW, lineH, d.t(strings.ToUpper(r[0])), "", 0, "L", false, 0, "")
+			f.CellFormat(colonW, lineH, ":", "", 0, "L", false, 0, "")
+			d.font("", 8.5)
+			d.color(ink)
+			for i, ln := range lines {
+				f.SetXY(x+labelW+colonW, y+float64(i)*lineH)
+				f.CellFormat(valueW, lineH, ln, "", 0, "L", false, 0, "")
+			}
+			y += float64(max(1, len(lines)))*lineH + 4
+		}
+		return y
+	}
+	top := f.GetY()
+	bottom := max(column(margin+pad, top+pad, left), column(margin+colW+pad, top+pad, right)) + pad - 4
+	d.stroke(border)
+	f.SetLineWidth(0.6)
+	f.Rect(margin, top, contentW, bottom-top, "D")
+	f.Line(margin+colW, top, margin+colW, bottom)
+	f.SetLineWidth(0.5)
+	f.SetY(bottom + 14)
 }
 
 type column struct {
@@ -167,7 +277,7 @@ type column struct {
 func (d *doc) table(cols []column, rows [][]string) {
 	f := d.f
 	header := func() {
-		f.SetFillColor(accent.r, accent.g, accent.b)
+		d.fill(navy)
 		f.SetTextColor(255, 255, 255)
 		d.font("B", 8)
 		for _, c := range cols {
@@ -208,29 +318,38 @@ func (d *doc) table(cols []column, rows [][]string) {
 			}
 			x += c.width
 		}
-		f.SetDrawColor(faint.r, faint.g, faint.b)
+		d.stroke(faint)
 		f.Line(margin, y+height, pageW-margin, y+height)
 		f.SetY(y + height)
 	}
 	f.Ln(6)
 }
 
-// totals draws right-aligned label/value rows; the last row is bold.
+// totals draws right-aligned label/value rows; the last row is bold navy
+// under a rule.
 func (d *doc) totals(rows [][2]string) {
 	f := d.f
-	for i, r := range rows {
-		bold := ""
-		size := 9.0
-		if i == len(rows)-1 {
-			bold, size = "B", 11
-		}
-		d.font(bold, size)
-		d.color(ink)
-		f.SetX(margin + contentW - 260)
-		f.CellFormat(140, 16, d.t(r[0]), "", 0, "R", false, 0, "")
-		f.CellFormat(120, 16, d.t(r[1]), "", 1, "R", false, 0, "")
+	const labelW, valueW = 140.0, 120.0
+	x := pageW - margin - labelW - valueW
+	if f.GetY()+float64(len(rows))*16+10 > 770 {
+		f.AddPage()
+		f.SetY(margin)
 	}
-	f.Ln(6)
+	for i, r := range rows {
+		style, size, c := "", 9.0, ink
+		if i == len(rows)-1 {
+			style, size, c = "B", 11, navy
+			d.stroke(navy)
+			f.Line(x, f.GetY()+2, pageW-margin, f.GetY()+2)
+			f.Ln(4)
+		}
+		d.font(style, size)
+		d.color(c)
+		f.SetX(x)
+		f.CellFormat(labelW, 16, d.t(r[0]), "", 0, "R", false, 0, "")
+		f.CellFormat(valueW, 16, d.t(r[1]), "", 1, "R", false, 0, "")
+	}
+	f.Ln(8)
 }
 
 func (d *doc) section(title string) {
@@ -239,7 +358,7 @@ func (d *doc) section(title string) {
 		d.f.SetY(margin)
 	}
 	d.font("B", 10)
-	d.color(accent)
+	d.color(magenta)
 	d.f.CellFormat(contentW, 16, d.t(title), "", 1, "L", false, 0, "")
 	d.color(ink)
 }
@@ -266,19 +385,36 @@ func dateID(t *time.Time) string {
 	return domain.FormatDateID(*t)
 }
 
-// QuotationPDF is quotationPDF: letterhead, info grid, item table, totals,
-// payment terms, notes and the signature block.
-func (Renderer) QuotationPDF(q domain.Quotation, deal domain.Deal) ([]byte, error) {
-	d := newDoc(nil)
-	d.title("PENAWARAN HARGA", q.QuoteNumber+"  ·  Versi "+fmt.Sprint(q.Version))
-	d.grid([][2]string{
-		{"Kepada", q.ClientName},
-		{"Tanggal", domain.FormatDateID(q.CreatedAt.In(domain.Jakarta))},
-		{"Up.", firstNonEmpty(deal.PicName, "-")},
-		{"Berlaku s.d.", dateID(q.ValidUntil)},
-		{"Proyek", deal.Title},
-		{"Status", strings.ToUpper(q.Status)},
-	})
+// issuedID is the WIB issue day: sent, else created.
+func issuedID(sent *time.Time, created time.Time) string {
+	return domain.FormatDateID(firstTime(sent, created).In(domain.Jakarta))
+}
+
+// partyRows are the client-side rows shared by quotations and invoices.
+func partyRows(program, client string, deal domain.Deal) [][2]string {
+	return [][2]string{
+		{"Program name", program},
+		{"Client", client},
+		{"PIC", deal.PicName},
+		{"Telp / HP", deal.PicPhone},
+		{"Email", deal.PicEmail},
+	}
+}
+
+// QuotationPDF is quotationPDF: letterhead, title band, info box, item
+// table, totals, notes with payment terms and the signature block.
+func (r Renderer) QuotationPDF(q domain.Quotation, deal domain.Deal, ownerName string) ([]byte, error) {
+	d := newDoc(r.Company, nil)
+	d.titleBand("QUOTATION", q.QuoteNumber)
+	right := [][2]string{
+		{"Tanggal", issuedID(q.SentAt, q.CreatedAt)},
+		{"Berlaku sampai", dateID(q.ValidUntil)},
+		{"Versi", fmt.Sprint(q.Version)},
+	}
+	if ownerName != "" {
+		right = append(right, [2]string{"Account", ownerName})
+	}
+	d.infoBox(partyRows(deal.Title, firstNonEmpty(q.ClientName, deal.ClientName()), deal), right)
 	cols := []column{{"No", 26, "C"}, {"Layanan dan ruang lingkup", 249, "L"}, {"Qty", 70, "R"}, {"Harga", 83, "R"}, {"Jumlah", 83.28, "R"}}
 	rows := make([][]string, len(q.Items))
 	for i, it := range q.Items {
@@ -296,10 +432,19 @@ func (Renderer) QuotationPDF(q domain.Quotation, deal domain.Deal) ([]byte, erro
 	if q.UsePpn {
 		tot = append(tot, [2]string{"PPN " + domain.FormatNumber(q.PpnPercent, 2) + "%", q.PpnNominal.Rupiah()})
 	}
-	tot = append(tot, [2]string{"TOTAL", q.Total.Rupiah()})
+	tot = append(tot, [2]string{"Total", q.Total.Rupiah()})
 	d.totals(tot)
+	notes := ""
+	if q.Notes != nil {
+		notes = strings.TrimSpace(*q.Notes)
+	}
+	if len(q.Terms) > 0 || notes != "" {
+		d.section("Catatan")
+	}
 	if len(q.Terms) > 0 {
-		d.section("Termin Pembayaran")
+		d.font("B", 8.5)
+		d.color(navy)
+		d.f.CellFormat(contentW, 13, d.t("Termin pembayaran"), "", 1, "L", false, 0, "")
 		percents := make([]float64, len(q.Terms))
 		for i, t := range q.Terms {
 			percents[i] = t.Percent
@@ -311,11 +456,10 @@ func (Renderer) QuotationPDF(q domain.Quotation, deal domain.Deal) ([]byte, erro
 		}
 		d.table([]column{{"Termin", 220, "L"}, {"Persen", 70, "R"}, {"Jatuh tempo", 110, "L"}, {"Nominal", 111.28, "R"}}, trows)
 	}
-	if q.Notes != nil && strings.TrimSpace(*q.Notes) != "" {
-		d.section("Catatan")
-		d.paragraph(*q.Notes, 8.5)
+	if notes != "" {
+		d.paragraph(notes, 8.5)
 	}
-	d.signature("Hormat kami,", legalName)
+	d.signature("Hormat kami,", d.co.LegalName)
 	return d.bytes()
 }
 
@@ -334,23 +478,28 @@ func (d *doc) signature(greeting, name string) {
 }
 
 // InvoicePDF renders a submitted or issued invoice.
-func (Renderer) InvoicePDF(inv domain.Invoice, deal domain.Deal) ([]byte, error) {
-	d := newDoc(nil)
-	d.title("INVOICE", inv.InvoiceNumber)
-	status := map[string]string{"diajukan": "Diajukan", "terkirim": "Terbit", "batal": "Batal"}[inv.Status]
-	d.grid([][2]string{
-		{"Ditagihkan kepada", inv.ClientName},
-		{"Tanggal", domain.FormatDateID(firstTime(inv.SentAt, inv.CreatedAt).In(domain.Jakarta))},
-		{"Up.", firstNonEmpty(deal.PicName, "-")},
+func (r Renderer) InvoicePDF(inv domain.Invoice, deal domain.Deal, quoteNumber string) ([]byte, error) {
+	d := newDoc(r.Company, nil)
+	d.titleBand("INVOICE", inv.InvoiceNumber)
+	right := [][2]string{
+		{"Tanggal terbit", issuedID(inv.SentAt, inv.CreatedAt)},
 		{"Jatuh tempo", dateID(inv.DueDate)},
-		{"Proyek", inv.DealTitle},
-		{"Status", status},
-	})
+	}
+	if quoteNumber != "" {
+		right = append(right, [2]string{"Referensi", quoteNumber})
+	}
+	status := map[string]string{"diajukan": "Diajukan", "terkirim": "Terbit", "batal": "Batal"}[inv.Status]
+	right = append(right, [2]string{"Termin", inv.Label}, [2]string{"Status", status})
+	d.infoBox(partyRows(firstNonEmpty(inv.DealTitle, deal.Title), firstNonEmpty(inv.ClientName, deal.ClientName()), deal), right)
 	d.table([]column{{"Keterangan", 380, "L"}, {"Jumlah", 131.28, "R"}}, [][]string{{inv.Label, inv.Amount.Rupiah()}})
-	d.totals([][2]string{{"Sudah dibayar", inv.PaidTotal.Rupiah()}, {"TOTAL TAGIHAN", inv.Amount.Rupiah()}})
-	d.section("Pembayaran")
-	d.paragraph("Transfer ke rekening "+legalName+", Bank BCA 123-456-7890. Cantumkan nomor invoice pada berita transfer.", 8.5)
-	d.signature("Hormat kami,", legalName)
+	d.totals([][2]string{
+		{"Jumlah tagihan", inv.Amount.Rupiah()},
+		{"Terbayar", inv.PaidTotal.Rupiah()},
+		{"Sisa", (inv.Amount - inv.PaidTotal).Rupiah()},
+	})
+	d.section("Catatan")
+	d.paragraph("Transfer ke rekening "+d.co.LegalName+", Bank BCA 123-456-7890. Cantumkan nomor invoice pada berita transfer.", 8.5)
+	d.signature("Hormat kami,", d.co.LegalName)
 	return d.bytes()
 }
 
@@ -372,7 +521,7 @@ func firstNonEmpty(vals ...string) string {
 
 // ContractPDF lays out the markdown-lite body, the signature block (with
 // the client's drawn signature once signed) and an audit footer.
-func (Renderer) ContractPDF(c domain.Contract) ([]byte, error) {
+func (r Renderer) ContractPDF(c domain.Contract) ([]byte, error) {
 	sum := sha256.Sum256([]byte(c.Body))
 	digest := hex.EncodeToString(sum[:])[:16]
 	footer := func(d *doc) {
@@ -385,7 +534,7 @@ func (Renderer) ContractPDF(c domain.Contract) ([]byte, error) {
 		}
 		d.f.CellFormat(contentW, 9, d.t(text), "", 0, "L", false, 0, "")
 	}
-	d := newDoc(footer)
+	d := newDoc(r.Company, footer)
 	d.font("B", 14)
 	d.color(ink)
 	d.f.MultiCell(contentW, 18, d.t(strings.ToUpper(c.Title)), "", "C", false)
@@ -424,7 +573,7 @@ func (d *doc) markdown(body string) {
 			f.Ln(4)
 			d.font("B", size)
 			if b.Level == 1 {
-				d.color(accent)
+				d.color(navy)
 			}
 			f.MultiCell(contentW, size*1.4, d.t(domain.PlainText(b.Text)), "", "L", false)
 			f.Ln(2)
@@ -461,7 +610,7 @@ func (d *doc) markdown(body string) {
 			}
 			d.table(cols, body)
 		case domain.BlockRule:
-			f.SetDrawColor(faint.r, faint.g, faint.b)
+			d.stroke(faint)
 			f.Line(margin, f.GetY()+4, pageW-margin, f.GetY()+4)
 			f.Ln(10)
 		}
@@ -511,7 +660,7 @@ func (d *doc) contractSignatures(c domain.Contract) {
 	f.CellFormat(colW, 12, d.t("PIHAK KEDUA"), "", 1, "L", false, 0, "")
 	d.font("", 9)
 	f.SetX(margin)
-	f.CellFormat(colW, 12, d.t(legalName), "", 0, "L", false, 0, "")
+	f.CellFormat(colW, 12, d.t(d.co.LegalName), "", 0, "L", false, 0, "")
 	f.CellFormat(colW, 12, d.t(c.ClientName), "", 1, "L", false, 0, "")
 	sigY := f.GetY() + 6
 	if len(c.SignaturePNG) > 0 {
@@ -524,7 +673,7 @@ func (d *doc) contractSignatures(c domain.Contract) {
 		}
 	}
 	f.SetY(sigY + 64)
-	f.SetDrawColor(ink.r, ink.g, ink.b)
+	d.stroke(ink)
 	f.Line(margin, f.GetY(), margin+colW-30, f.GetY())
 	f.Line(margin+colW, f.GetY(), pageW-margin-10, f.GetY())
 	f.Ln(4)

@@ -159,6 +159,10 @@ export async function saveIndicatorAction(input: IndicatorInput) {
   return send<Indicator>("/kpi/indicators", "POST", p.data);
 }
 
+export async function deleteIndicatorAction(indicatorId: string) {
+  return send<MessageResponse>(`/kpi/indicators/${enc(indicatorId)}`, "DELETE");
+}
+
 const weightsSchema = z.array(z.object({ indicatorId: id, weight: z.number().min(0.01).max(100) })).max(60);
 
 export async function saveDepartmentConfigAction(departmentId: string, items: { indicatorId: string; weight: number }[]) {
@@ -176,12 +180,18 @@ const targetSchema = z.object({
   target: z.number({ message: sp.kpi.targetInvalid }).min(0, sp.kpi.targetInvalid),
 });
 
-type TargetInput = z.input<typeof targetSchema>;
+export type TargetInput = z.input<typeof targetSchema>;
 
 export async function createTargetAction(input: TargetInput) {
   const p = parse(targetSchema, input);
   if ("error" in p) return p.error;
   return send<KpiTarget>("/kpi/targets", "POST", p.data);
+}
+
+export async function updateTargetAction(targetId: string, input: TargetInput) {
+  const p = parse(targetSchema, input);
+  if ("error" in p) return p.error;
+  return send<KpiTarget>(`/kpi/targets/${enc(targetId)}`, "PATCH", p.data);
 }
 
 export async function deleteTargetAction(targetId: string) {

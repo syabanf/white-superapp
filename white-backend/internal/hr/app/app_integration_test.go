@@ -420,6 +420,134 @@ func TestOvertimeRequestAndAssignment(t *testing.T) {
 	e.must(err)
 }
 
+func TestOvertimeHRUpdateAndDelete(t *testing.T) {
+	e := setup(t)
+	e.org()
+	ayu := e.actor("user-ayu", authn.PermSelfService)
+	budi := e.actor("user-budi", authn.PermSelfService)
+	hrw := e.actor("user-wulan", authn.PermSelfService, authn.PermHRWrite, authn.PermHRRead)
+	ot, err := e.ot.Create(e.ctx, ayu, app.OvertimeInput{Date: "2026-10-20", StartTime: "18:00", EndTime: "20:30", Reason: "Revisi"})
+	e.must(err)
+	_, err = e.ot.Update(e.ctx, ayu, ot.ID, app.OvertimeInput{Date: "2026-10-20", StartTime: "19:00", EndTime: "21:00"})
+	wantCode(t, err, apperr.Unauthorized)
+	ot, err = e.ot.Update(e.ctx, hrw, ot.ID, app.OvertimeInput{Date: "2026-10-19", StartTime: "19:00", EndTime: "23:30", Reason: "Revisi klien"})
+	e.must(err)
+	if ot.Date != "2026-10-19" || ot.Hours != 4.5 || ot.Source != "employee" || ot.Status != "pending" || ot.Reason != "Revisi klien" {
+		t.Fatalf("updated %+v", ot)
+	}
+	_, err = e.ot.Update(e.ctx, hrw, ot.ID, app.OvertimeInput{Date: "2026-10-19", StartTime: "10:00", EndTime: "23:30"})
+	wantCode(t, err, apperr.Validation) // over 12 hours
+
+	other, err := e.ot.Create(e.ctx, ayu, app.OvertimeInput{Date: "2026-10-20", StartTime: "18:00", EndTime: "19:00"})
+	e.must(err)
+	_, err = e.ot.Update(e.ctx, hrw, other.ID, app.OvertimeInput{Date: "2026-10-19", StartTime: "18:00", EndTime: "19:00"})
+	wantCode(t, err, apperr.Conflict) // one active entry per day
+
+	_, err = e.ot.Decide(e.ctx, budi, ot.ID, "approve", "")
+	e.must(err)
+	_, err = e.ot.Update(e.ctx, hrw, ot.ID, app.OvertimeInput{Date: "2026-10-19", StartTime: "19:00", EndTime: "20:00"})
+	wantCode(t, err, apperr.Conflict)
+	wantCode(t, e.ot.Delete(e.ctx, hrw, ot.ID), apperr.Conflict) // approved hours feed payroll
+
+	_, err = e.ot.Decide(e.ctx, ayu, other.ID, "cancel", "")
+	e.must(err)
+	wantCode(t, e.ot.Delete(e.ctx, ayu, other.ID), apperr.Unauthorized)
+	e.must(e.ot.Delete(e.ctx, hrw, other.ID))
+	wantCode(t, e.ot.Delete(e.ctx, hrw, other.ID), apperr.NotFound)
+}
+
+func TestAttendanceManualRecords(t *testing.T) {
+	e := setup(t)
+	o := e.org()
+	hrw := e.actor("user-wulan", authn.PermSelfService, authn.PermHRWrite, authn.PermHRRead)
+	in := app.RecordInput{EmployeeID: o.budi, Date: "2026-10-20", ClockIn: "09:40", ClockOut: "18:30", Notes: "Lupa absen"}
+	_, err := e.att.CreateRecord(e.ctx, e.actor("user-ayu", authn.PermSelfService), in)
+	wantCode(t, err, apperr.Unauthorized)
+
+	// Tuesday on the 09:00 shift: 40 minutes late, 8h50 minus the break,
+	// half an hour past 18:00.
+	r, err := e.att.CreateRecord(e.ctx, hrw, in)
+	e.must(err)
+	if r.Status != "late" || !r.IsLate || r.LateMinutes != 40 || r.WorkHours != 7.83 || r.OvertimeHours != 0.5 ||
+		r.ShiftName != "Reguler" || r.Notes != "Lupa absen" || hris.NowWIB(*r.ClockIn).Format("15:04") != "09:40" {
+		t.Fatalf("manual record %+v", r)
+	}
+	_, err = e.att.CreateRecord(e.ctx, hrw, in)
+	wantCode(t, err, apperr.Conflict)
+	_, err = e.att.CreateRecord(e.ctx, hrw, app.RecordInput{EmployeeID: o.ayu, Date: "2026-10-22", ClockIn: "09:00"})
+	wantCode(t, err, apperr.Validation) // future date
+	_, err = e.att.CreateRecord(e.ctx, hrw, app.RecordInput{EmployeeID: o.ayu, Date: "2026-10-19"})
+	wantCode(t, err, apperr.Validation) // clock-in required unless absent
+	_, err = e.att.CreateRecord(e.ctx, hrw, app.RecordInput{EmployeeID: o.ayu, Date: "2026-10-19", ClockIn: "09:00", Status: "sick"})
+	wantCode(t, err, apperr.Validation)
+	absent, err := e.att.CreateRecord(e.ctx, hrw, app.RecordInput{EmployeeID: o.ayu, Date: "2026-10-19", Status: "absent"})
+	e.must(err)
+	if absent.Status != "absent" || absent.ClockIn != nil || absent.WorkHours != 0 {
+		t.Fatalf("absent %+v", absent)
+	}
+
+	// Corrected to an on-time start and a clock-out past midnight.
+	r, err = e.att.UpdateRecord(e.ctx, hrw, r.ID, app.RecordInput{ClockIn: "08:55", ClockOut: "02:00", Notes: "Koreksi"})
+	e.must(err)
+	if r.Status != "present" || r.IsLate || r.LateMinutes != 0 || r.WorkHours != 16.08 || r.OvertimeHours != 8 ||
+		r.Date != "2026-10-20" || r.EmployeeID != o.budi || r.Notes != "Koreksi" {
+		t.Fatalf("corrected %+v", r)
+	}
+	r, err = e.att.UpdateRecord(e.ctx, hrw, r.ID, app.RecordInput{ClockIn: "09:30", Status: "remote"})
+	e.must(err)
+	if r.Status != "remote" || !r.IsLate || r.ClockOut != nil || r.WorkHours != 0 || r.OvertimeHours != 0 {
+		t.Fatalf("explicit status %+v", r)
+	}
+	_, err = e.att.UpdateRecord(e.ctx, hrw, r.ID, app.RecordInput{ClockOut: "17:00"})
+	wantCode(t, err, apperr.Validation)
+
+	wantCode(t, e.att.DeleteRecord(e.ctx, e.actor("user-budi", authn.PermSelfService), r.ID), apperr.Unauthorized)
+	e.must(e.att.DeleteRecord(e.ctx, hrw, r.ID))
+	wantCode(t, e.att.DeleteRecord(e.ctx, hrw, r.ID), apperr.NotFound)
+	_, err = e.att.UpdateRecord(e.ctx, hrw, r.ID, in)
+	wantCode(t, err, apperr.NotFound)
+}
+
+func TestLoanCancelPendingOnly(t *testing.T) {
+	e := setup(t)
+	o := e.org()
+	ayu := e.actor("user-ayu", authn.PermSelfService)
+	payrollAdmin := e.actor("user-wulan", authn.PermPayroll, authn.PermHRApprove, authn.PermSelfService)
+	for _, id := range []string{o.ayu, o.budi} {
+		_, err := e.payroll.CreateSalary(e.ctx, payrollAdmin, app.SalaryInput{EmployeeID: id, BaseSalary: "10000000", PTKPStatus: "TK/0", EffectiveDate: "2024-01-15"})
+		e.must(err)
+	}
+	loan, err := e.loans.Create(e.ctx, ayu, app.LoanInput{LoanType: "kasbon", Principal: "1000000", Tenor: 2})
+	e.must(err)
+	_, err = e.loans.Cancel(e.ctx, e.actor("user-budi", authn.PermSelfService), loan.ID)
+	wantCode(t, err, apperr.NotFound) // someone else's loan
+	loan, err = e.loans.Cancel(e.ctx, ayu, loan.ID)
+	e.must(err)
+	if loan.Status != "cancelled" || loan.IsActive {
+		t.Fatalf("cancelled %+v", loan)
+	}
+	_, err = e.loans.Cancel(e.ctx, ayu, loan.ID)
+	wantCode(t, err, apperr.Conflict)
+
+	// The cancelled loan no longer takes the one active slot.
+	next, err := e.loans.Create(e.ctx, ayu, app.LoanInput{LoanType: "kasbon", Principal: "1000000", Tenor: 2})
+	e.must(err)
+	_, err = e.loans.Decide(e.ctx, payrollAdmin, next.ID, true, "")
+	e.must(err)
+	_, err = e.loans.Cancel(e.ctx, ayu, next.ID)
+	wantCode(t, err, apperr.Conflict)
+	_, err = e.loans.Cancel(e.ctx, payrollAdmin, next.ID)
+	wantCode(t, err, apperr.Conflict) // approved loans are repaid through payroll
+
+	forBudi, err := e.loans.Create(e.ctx, payrollAdmin, app.LoanInput{EmployeeID: o.budi, LoanType: "loan", Principal: "2000000", Tenor: 4})
+	e.must(err)
+	forBudi, err = e.loans.Cancel(e.ctx, payrollAdmin, forBudi.ID)
+	e.must(err)
+	if forBudi.Status != "cancelled" {
+		t.Fatalf("hr cancel %+v", forBudi)
+	}
+}
+
 // ─── contracts ───────────────────────────────────────────────
 
 func TestContractLifecycle(t *testing.T) {

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { sumHours, timeWib, toQuery, weekdayDate } from "./format";
+import { hhmmWib, sumHours, timeWib, toQuery, weekdayDate } from "./format";
 import { monthParam, todayWib } from "./perms";
 
 describe("hr format helpers", () => {
   it("shows times in WIB", () => {
     expect(timeWib("2026-10-23T02:02:00Z")).toBe("09.02");
     expect(timeWib(null)).toBe("–");
+    expect(hhmmWib("2026-10-23T17:30:00Z")).toBe("00:30");
+    expect(hhmmWib(null)).toBe("");
   });
   it("labels a day with its weekday", () => {
     expect(weekdayDate("2026-10-26")).toMatch(/^Sen/);

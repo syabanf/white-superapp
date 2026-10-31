@@ -109,6 +109,19 @@ func (q *Queries) ApproveRun(ctx context.Context, arg ApproveRunParams) (int64, 
 	return result.RowsAffected(), nil
 }
 
+const cancelLoan = `-- name: CancelLoan :execrows
+UPDATE hr.loans SET status = 'cancelled', is_active = false, updated_at = now()
+WHERE id = $1 AND status = 'pending'
+`
+
+func (q *Queries) CancelLoan(ctx context.Context, id string) (int64, error) {
+	result, err := q.db.Exec(ctx, cancelLoan, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const countOpenLoans = `-- name: CountOpenLoans :one
 SELECT count(*) FROM hr.loans
 WHERE employee_id = $1 AND is_active

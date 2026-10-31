@@ -14,6 +14,7 @@ import { QuotationActions } from "@/features/erp/sales/components/quotations";
 import { SalesBadge } from "@/features/erp/sales/components/ui";
 import { salesCaps } from "@/features/erp/sales/lib";
 import {
+  getDocumentParty,
   getQuotation,
   listCatalog,
   listQuotations,
@@ -35,10 +36,11 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
   if (!res.data) return <ErpError message={res.error?.message} />;
   const q = res.data;
   const editable = caps.write && q.status === "draft";
-  const [catalog, retainer, siblings] = await Promise.all([
+  const [catalog, retainer, siblings, party] = await Promise.all([
     editable ? load(() => listCatalog()) : null,
     editable ? load(listRetainerDiscounts) : null,
     load(() => listQuotations({ dealId: q.dealId, limit: 100 })),
+    load(() => getDocumentParty(q.dealId)),
   ]);
   const versions = (siblings.data ?? [])
     .filter((x) => x.quoteNumber === q.quoteNumber)
@@ -87,6 +89,7 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
         <QuotationEditor
           quotation={q}
           dealId={q.dealId}
+          party={party.data}
           catalog={catalog?.data ?? []}
           retainerRules={retainer?.data ?? []}
         />
@@ -95,7 +98,7 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
           {caps.write && q.status !== "draft" ? (
             <p className="text-xs text-muted-foreground">{s.readOnly}</p>
           ) : null}
-          <QuotationView q={q} />
+          <QuotationView q={q} party={party.data} />
         </>
       )}
     </>

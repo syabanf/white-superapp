@@ -20,6 +20,7 @@ import type { AttendanceRecord, Leave, LeaveBalance, LeaveType, Loan, Overtime, 
 import { formatDate } from "@/lib/format";
 import {
   cancelMyLeaveAction,
+  cancelMyLoanAction,
   createMyLeaveAction,
   createMyLoanAction,
   createMyOvertimeAction,
@@ -149,7 +150,7 @@ export function MyOvertimeTable({ rows }: { rows: Overtime[] }) {
 export function MyLoansTable({ loans }: { loans: Loan[] }) {
   return (
     <ErpDataTable
-      columns={loanColumns({ showEmployee: false, canDecide: false })}
+      columns={loanColumns({ showEmployee: false, canDecide: false, onCancel: cancelMyLoanAction })}
       data={loans}
       getRowId={(r) => r.id}
       toolbar={

@@ -4,6 +4,7 @@ import { th } from "./strings";
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, th.invalidDate);
 const optDay = z.union([z.literal(""), day]).default("");
 const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, th.shifts.timeInvalid);
+const optHhmm = z.union([z.literal(""), hhmm]).default("");
 const money = z.string().regex(/^\d+(\.\d{1,2})?$/, th.required);
 const text = (max = 200) => z.string().trim().max(max).default("");
 
@@ -57,6 +58,22 @@ export const overtimeSchema = z
     reason: z.string().trim().min(1, th.required).max(1000),
   })
   .refine((v) => v.endTime !== v.startTime, { path: ["endTime"], message: th.overtime.timeOrder });
+
+export const attendanceRecordSchema = z
+  .object({
+    employeeId: text(64),
+    date: day,
+    clockIn: optHhmm,
+    clockOut: optHhmm,
+    status: text(20),
+    notes: text(1000),
+  })
+  .refine((v) => v.clockIn !== "" || v.status === "absent", {
+    path: ["clockIn"],
+    message: th.attendance.clockInRequired,
+  })
+  .refine((v) => v.clockOut === "" || v.clockIn !== "", { path: ["clockOut"], message: th.attendance.clockOutNeedsIn })
+  .refine((v) => v.clockOut === "" || v.clockOut !== v.clockIn, { path: ["clockOut"], message: th.overtime.timeOrder });
 
 export const contractSchema = z
   .object({

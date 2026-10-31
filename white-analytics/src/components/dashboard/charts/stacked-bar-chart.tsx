@@ -199,7 +199,6 @@ export function StackedBarChart({
                   maxBarSize={24}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 2 : 0}
-                  isAnimationActive={false}
                   onClick={
                     onSelect
                       ? (_entry, idx) => {

@@ -343,3 +343,19 @@ func (h *payrollServer) DecideLoan(ctx context.Context, req *hrv1.DecideLoanRequ
 	}
 	return loanPB(*l, true), nil
 }
+
+func (s *Services) cancelLoan(ctx context.Context, a app.Actor, id string) (*hrv1.Loan, error) {
+	l, err := s.Loans.Cancel(ctx, a, id)
+	if err != nil {
+		return nil, err
+	}
+	return loanPB(*l, true), nil
+}
+
+func (h *payrollServer) CancelLoan(ctx context.Context, req *hrv1.LoanRequest) (*hrv1.Loan, error) {
+	a, err := h.s.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return h.s.cancelLoan(ctx, a, req.LoanId)
+}

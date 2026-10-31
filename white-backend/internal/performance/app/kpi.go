@@ -89,6 +89,37 @@ func (k *KPI) SaveIndicator(ctx context.Context, in IndicatorInput) (*domain.Ind
 	return k.Store.GetIndicator(ctx, ind.ID)
 }
 
+// DeleteIndicator removes an indicator nobody has used yet. One with
+// snapshots, task contributions or linked tasks is deactivated instead, so
+// past scorecards keep their detail rows; the message says which happened.
+func (k *KPI) DeleteIndicator(ctx context.Context, id string) (string, error) {
+	a, err := k.actor(ctx)
+	if err != nil {
+		return "", err
+	}
+	if err := requireHRWrite(a); err != nil {
+		return "", err
+	}
+	cur, err := k.Store.GetIndicator(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	if cur == nil {
+		return "", apperr.New(apperr.NotFound, msgIndicatorGone)
+	}
+	deleted, err := k.Store.DeleteUnusedIndicator(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	if deleted {
+		return "Indikator " + cur.Name + " dihapus", nil
+	}
+	if err := k.Store.DeactivateIndicator(ctx, id, a.by()); err != nil {
+		return "", err
+	}
+	return "Indikator " + cur.Name + " sudah punya riwayat KPI, jadi dinonaktifkan agar scorecard lama tetap utuh", nil
+}
+
 // KPIConfig is GET /kpi-config: departments, active indicators, weights.
 type KPIConfig struct {
 	Departments []domain.Department
@@ -198,6 +229,34 @@ func (k *KPI) ListTargets(ctx context.Context) ([]domain.KPITarget, error) {
 const targetRequired = "indicator_id dan target (angka ≥ 0) wajib"
 
 func (k *KPI) CreateTarget(ctx context.Context, t domain.KPITarget) (*domain.KPITarget, error) {
+	a, err := k.validTarget(ctx, &t)
+	if err != nil {
+		return nil, err
+	}
+	t.ID = newID()
+	if err := k.Store.InsertTarget(ctx, t, a.UserID); err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
+func (k *KPI) UpdateTarget(ctx context.Context, t domain.KPITarget) (*domain.KPITarget, error) {
+	if _, err := k.validTarget(ctx, &t); err != nil {
+		return nil, err
+	}
+	found, err := k.Store.UpdateTarget(ctx, t)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, apperr.New(apperr.NotFound, "Target tidak ditemukan")
+	}
+	return &t, nil
+}
+
+// validTarget checks the caller and the fields shared by create and update,
+// trimming the scope ids in place.
+func (k *KPI) validTarget(ctx context.Context, t *domain.KPITarget) (*Actor, error) {
 	a, err := k.actor(ctx)
 	if err != nil {
 		return nil, err
@@ -222,11 +281,7 @@ func (k *KPI) CreateTarget(ctx context.Context, t domain.KPITarget) (*domain.KPI
 	if ind == nil {
 		return nil, apperr.New(apperr.Validation, "Indikator/department/karyawan tidak ditemukan")
 	}
-	t.ID = newID()
-	if err := k.Store.InsertTarget(ctx, t, a.UserID); err != nil {
-		return nil, err
-	}
-	return &t, nil
+	return a, nil
 }
 
 func (k *KPI) DeleteTarget(ctx context.Context, id string) error {

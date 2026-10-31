@@ -927,6 +927,9 @@ service BillingService {
   rpc ListInvoices(ListInvoicesRequest) returns (ListInvoicesResponse) {
     option (google.api.http) = {get: "/v1/sales/invoices"};
   }
+  rpc GetInvoice(IdRequest) returns (Invoice) {
+    option (google.api.http) = {get: "/v1/sales/invoices/{id}"};
+  }
   // Sales submits an invoice (status diajukan) for a quotation term or a
   // free amount.
   rpc SubmitInvoice(SubmitInvoiceRequest) returns (Invoice) {

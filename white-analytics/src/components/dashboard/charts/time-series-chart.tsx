@@ -204,7 +204,6 @@ export function TimeSeriesChart({
                 strokeDasharray="5 5"
                 dot={false}
                 activeDot={ringDot(MUTED_SERIES)}
-                isAnimationActive={false}
                 connectNulls
               />
             ) : null}
@@ -222,7 +221,6 @@ export function TimeSeriesChart({
                     dot={false}
                     activeDot={ringDot(s.color)}
                     stackId={stacked && s.type === "area" ? "a" : undefined}
-                    isAnimationActive={false}
                     connectNulls={s.type === "line"}
                   />
                 );
@@ -238,7 +236,6 @@ export function TimeSeriesChart({
                     radius={isTop ? BAR_RADIUS : 0}
                     maxBarSize={24}
                     barSize={barSize}
-                    isAnimationActive={false}
                     stroke="var(--card)"
                     strokeWidth={stacked ? 2 : 0}
                   >
@@ -259,7 +256,6 @@ export function TimeSeriesChart({
                   strokeWidth={2.5}
                   dot={false}
                   activeDot={ringDot(s.color)}
-                  isAnimationActive={false}
                   connectNulls
                 />
               );

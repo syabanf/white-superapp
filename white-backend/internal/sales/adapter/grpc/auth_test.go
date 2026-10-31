@@ -35,6 +35,12 @@ func TestPermissionGates(t *testing.T) {
 		t.Fatalf("targets need sales.approve: %v", err)
 	}
 	outsider := authn.WithPrincipal(ctx, authn.Principal{UserID: "u", Role: authn.RoleMember})
+	if _, err := (&billingServer{}).GetInvoice(ctx, &salesv1.IdRequest{Id: "i"}); !apperr.Is(err, apperr.Unauthenticated) {
+		t.Fatalf("get invoice anonymous: %v", err)
+	}
+	if _, err := (&billingServer{}).GetInvoice(outsider, &salesv1.IdRequest{Id: "i"}); !apperr.Is(err, apperr.Unauthorized) {
+		t.Fatalf("get invoice needs sales.read or finance.read: %v", err)
+	}
 	if _, err := (&insightServer{}).GetDashboardSummary(outsider, &salesv1.DashboardRequest{}); !apperr.Is(err, apperr.Unauthorized) {
 		t.Fatalf("dashboard needs sales.read: %v", err)
 	}

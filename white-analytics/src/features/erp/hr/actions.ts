@@ -8,6 +8,7 @@ import { runGateway, zodFieldErrors } from "@/features/erp/shared/action";
 import {
   additionSchema,
   announcementSchema,
+  attendanceRecordSchema,
   contractSchema,
   departmentSchema,
   employeeSchema,
@@ -152,6 +153,19 @@ export async function validateAttendanceAction(id: string, status: string, notes
   return send<AttendanceRecord>(`${H}/attendance/${id}:validate`, "POST", { status, notes: notes.trim() });
 }
 
+export async function saveAttendanceRecordAction(id: string | null, input: z.input<typeof attendanceRecordSchema>) {
+  const v = validate(attendanceRecordSchema, input);
+  if (v.error) return v.error;
+  if (!id && !v.data.employeeId) return fail(th.checkForm, "VALIDATION", { employeeId: [th.required] });
+  return id
+    ? send<AttendanceRecord>(`${H}/attendance/${id}`, "PUT", v.data)
+    : send<AttendanceRecord>(`${H}/attendance`, "POST", v.data);
+}
+
+export async function deleteAttendanceRecordAction(id: string) {
+  return send(`${H}/attendance/${id}`, "DELETE");
+}
+
 // Leave
 
 export async function createLeaveAction(input: z.input<typeof leaveSchema>) {
@@ -190,6 +204,16 @@ export async function createOvertimeAction(input: z.input<typeof overtimeSchema>
   const v = validate(overtimeSchema, input);
   if (v.error) return v.error;
   return send<Overtime>(`${H}/overtime`, "POST", v.data);
+}
+
+export async function updateOvertimeAction(id: string, input: z.input<typeof overtimeSchema>) {
+  const v = validate(overtimeSchema, input);
+  if (v.error) return v.error;
+  return send<Overtime>(`${H}/overtime/${id}`, "PUT", v.data);
+}
+
+export async function deleteOvertimeAction(id: string) {
+  return send(`${H}/overtime/${id}`, "DELETE");
 }
 
 export async function decideOvertimeAction(id: string, action: "approve" | "reject" | "cancel", rejectionReason = "") {
@@ -330,4 +354,8 @@ export async function createLoanAction(input: z.input<typeof loanSchema>) {
 export async function decideLoanAction(id: string, approve: boolean, rejectionReason = "") {
   if (!approve && !rejectionReason.trim()) return fail(th.rejectReasonRequired, "VALIDATION");
   return send<Loan>(`${H}/loans/${id}:decide`, "POST", { approve, rejectionReason: rejectionReason.trim() });
+}
+
+export async function cancelLoanAction(id: string) {
+  return send<Loan>(`${H}/loans/${id}:cancel`, "POST", {});
 }

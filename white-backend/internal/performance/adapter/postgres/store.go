@@ -153,6 +153,15 @@ func (s *Store) UpsertIndicator(ctx context.Context, in domain.Indicator) error 
 		Unit: in.Unit, Direction: in.Direction, SourceKind: in.SourceKind, DefaultTarget: in.DefaultTarget, IsActive: in.IsActive, CreatedBy: in.UpdatedBy}))
 }
 
+func (s *Store) DeleteUnusedIndicator(ctx context.Context, id string) (bool, error) {
+	n, err := s.q.DeleteUnusedIndicator(ctx, id)
+	return n > 0, err
+}
+
+func (s *Store) DeactivateIndicator(ctx context.Context, id string, by *string) error {
+	return s.q.DeactivateIndicator(ctx, sqlc.DeactivateIndicatorParams{ID: id, UpdatedBy: by})
+}
+
 func (s *Store) ListDepartmentWeights(ctx context.Context) ([]domain.DepartmentWeight, error) {
 	rows, err := s.q.ListDepartmentWeights(ctx)
 	return each(rows, err, func(r sqlc.ListDepartmentWeightsRow) domain.DepartmentWeight {
@@ -183,6 +192,12 @@ func (s *Store) ListTargets(ctx context.Context) ([]domain.KPITarget, error) {
 func (s *Store) InsertTarget(ctx context.Context, t domain.KPITarget, by string) error {
 	return wrap(s.q.InsertTarget(ctx, sqlc.InsertTargetParams{ID: t.ID, IndicatorID: t.IndicatorID, PeriodYear: i32p(t.PeriodYear),
 		PeriodMonth: i32p(t.PeriodMonth), DepartmentID: t.DepartmentID, EmployeeID: t.EmployeeID, Target: t.Target, CreatedBy: &by}))
+}
+
+func (s *Store) UpdateTarget(ctx context.Context, t domain.KPITarget) (bool, error) {
+	n, err := s.q.UpdateTarget(ctx, sqlc.UpdateTargetParams{ID: t.ID, IndicatorID: t.IndicatorID, PeriodYear: i32p(t.PeriodYear),
+		PeriodMonth: i32p(t.PeriodMonth), DepartmentID: t.DepartmentID, EmployeeID: t.EmployeeID, Target: t.Target})
+	return n > 0, wrap(err)
 }
 
 func (s *Store) DeleteTarget(ctx context.Context, id string) (bool, error) {

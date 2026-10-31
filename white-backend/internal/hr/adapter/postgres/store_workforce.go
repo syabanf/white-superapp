@@ -229,7 +229,22 @@ func (s *Store) InsertAttendance(ctx context.Context, a domain.Attendance, actor
 	return wrap(s.q.InsertAttendance(ctx, sqlc.InsertAttendanceParams{ID: a.ID, EmployeeID: a.EmployeeID, Date: parseDay(a.Date),
 		ClockIn: a.ClockIn, ClockInLocation: encodeLocation(a.ClockInLocation), ClockInPhotoKey: a.ClockInPhotoKey,
 		Status: sqlc.HrAttendanceStatus(a.Status), IsLate: a.IsLate, LateMinutes: i32(a.LateMinutes), ShiftID: a.ShiftID,
-		ScheduledStart: a.ScheduledStart, ScheduledEnd: a.ScheduledEnd, BreakMinutes: i32(a.BreakMinutes), Notes: a.Notes, CreatedBy: actor}))
+		ScheduledStart: a.ScheduledStart, ScheduledEnd: a.ScheduledEnd, BreakMinutes: i32(a.BreakMinutes), Notes: a.Notes, CreatedBy: actor,
+		ClockOut: a.ClockOut, WorkHours: money(a.WorkHours), OvertimeHours: money(a.OvertimeHours)}))
+}
+
+// UpdateAttendance rewrites the times, status and derived columns of a row.
+func (s *Store) UpdateAttendance(ctx context.Context, a domain.Attendance) (bool, error) {
+	n, err := s.q.UpdateAttendance(ctx, sqlc.UpdateAttendanceParams{ID: a.ID, ClockIn: a.ClockIn, ClockOut: a.ClockOut,
+		Status: sqlc.HrAttendanceStatus(a.Status), IsLate: a.IsLate, LateMinutes: i32(a.LateMinutes), WorkHours: money(a.WorkHours),
+		OvertimeHours: money(a.OvertimeHours), ShiftID: a.ShiftID, ScheduledStart: a.ScheduledStart, ScheduledEnd: a.ScheduledEnd,
+		BreakMinutes: i32(a.BreakMinutes), Notes: a.Notes})
+	return n > 0, err
+}
+
+func (s *Store) DeleteAttendance(ctx context.Context, id string) (bool, error) {
+	n, err := s.q.DeleteAttendance(ctx, id)
+	return n > 0, err
 }
 
 // InsertAttendanceRecord stores a complete row (seed and back-fill); an
@@ -427,6 +442,19 @@ func (s *Store) InsertOvertime(ctx context.Context, o domain.Overtime, actor *st
 	return wrap(s.q.InsertOvertime(ctx, sqlc.InsertOvertimeParams{ID: o.ID, EmployeeID: o.EmployeeID, Date: parseDay(o.Date),
 		StartTime: o.StartTime, EndTime: o.EndTime, Hours: money(o.Hours), Source: o.Source, Status: o.Status, Reason: o.Reason,
 		RequestedBy: o.RequestedBy, DecidedBy: o.DecidedBy, DecidedAt: o.DecidedAt, CreatedBy: actor, CreatedAt: instantPtr(o.CreatedAt)}))
+}
+
+// UpdateOvertime changes a pending entry; false when it is no longer pending.
+func (s *Store) UpdateOvertime(ctx context.Context, o domain.Overtime) (bool, error) {
+	n, err := s.q.UpdateOvertime(ctx, sqlc.UpdateOvertimeParams{ID: o.ID, Date: parseDay(o.Date), StartTime: o.StartTime,
+		EndTime: o.EndTime, Hours: money(o.Hours), Reason: o.Reason})
+	return n > 0, wrap(err)
+}
+
+// DeleteOvertime removes an entry unless it is approved.
+func (s *Store) DeleteOvertime(ctx context.Context, id string) (bool, error) {
+	n, err := s.q.DeleteOvertime(ctx, id)
+	return n > 0, err
 }
 
 func (s *Store) DecideOvertime(ctx context.Context, id, status string, decidedBy *string, rejection string) (bool, error) {

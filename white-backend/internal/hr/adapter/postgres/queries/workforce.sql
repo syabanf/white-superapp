@@ -112,8 +112,18 @@ SELECT id FROM hr.attendance WHERE employee_id = $1 AND date = $2;
 
 -- name: InsertAttendance :exec
 INSERT INTO hr.attendance (id, employee_id, date, clock_in, clock_in_location, clock_in_photo_key, status, is_late,
-    late_minutes, shift_id, scheduled_start, scheduled_end, break_minutes, notes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);
+    late_minutes, shift_id, scheduled_start, scheduled_end, break_minutes, notes, created_by, clock_out, work_hours,
+    overtime_hours)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18);
+
+-- name: UpdateAttendance :execrows
+UPDATE hr.attendance SET clock_in = $2, clock_out = $3, status = $4, is_late = $5, late_minutes = $6, work_hours = $7,
+    overtime_hours = $8, shift_id = $9, scheduled_start = $10, scheduled_end = $11, break_minutes = $12, notes = $13,
+    updated_at = now()
+WHERE id = $1;
+
+-- name: DeleteAttendance :execrows
+DELETE FROM hr.attendance WHERE id = $1;
 
 -- name: InsertAttendanceRow :exec
 INSERT INTO hr.attendance (id, employee_id, date, clock_in, clock_out, status, is_late, late_minutes, work_hours,
@@ -271,6 +281,14 @@ INSERT INTO hr.overtime_requests (id, employee_id, date, start_time, end_time, h
 VALUES (sqlc.arg(id), sqlc.arg(employee_id), sqlc.arg(date), sqlc.arg(start_time)::text::time, sqlc.arg(end_time)::text::time,
         sqlc.arg(hours), sqlc.arg(source), sqlc.arg(status), sqlc.arg(reason), sqlc.narg(requested_by),
         sqlc.narg(decided_by), sqlc.narg(decided_at), sqlc.narg(created_by), COALESCE(sqlc.narg(created_at)::timestamptz, now()));
+
+-- name: UpdateOvertime :execrows
+UPDATE hr.overtime_requests SET date = sqlc.arg(date), start_time = sqlc.arg(start_time)::text::time,
+    end_time = sqlc.arg(end_time)::text::time, hours = sqlc.arg(hours), reason = sqlc.arg(reason), updated_at = now()
+WHERE id = sqlc.arg(id) AND status = 'pending';
+
+-- name: DeleteOvertime :execrows
+DELETE FROM hr.overtime_requests WHERE id = $1 AND status <> 'approved';
 
 -- name: DecideOvertime :execrows
 UPDATE hr.overtime_requests SET status = $2, decided_by = $3, decided_at = now(), rejection_reason = $4, updated_at = now()

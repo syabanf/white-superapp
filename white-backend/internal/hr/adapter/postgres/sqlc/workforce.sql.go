@@ -259,12 +259,36 @@ func (q *Queries) DecideOvertime(ctx context.Context, arg DecideOvertimeParams) 
 	return result.RowsAffected(), nil
 }
 
+const deleteAttendance = `-- name: DeleteAttendance :execrows
+DELETE FROM hr.attendance WHERE id = $1
+`
+
+func (q *Queries) DeleteAttendance(ctx context.Context, id string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteAttendance, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteHoliday = `-- name: DeleteHoliday :execrows
 DELETE FROM hr.public_holidays WHERE id = $1
 `
 
 func (q *Queries) DeleteHoliday(ctx context.Context, id string) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteHoliday, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteOvertime = `-- name: DeleteOvertime :execrows
+DELETE FROM hr.overtime_requests WHERE id = $1 AND status <> 'approved'
+`
+
+func (q *Queries) DeleteOvertime(ctx context.Context, id string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteOvertime, id)
 	if err != nil {
 		return 0, err
 	}
@@ -537,8 +561,9 @@ func (q *Queries) GetShift(ctx context.Context, id string) (GetShiftRow, error) 
 
 const insertAttendance = `-- name: InsertAttendance :exec
 INSERT INTO hr.attendance (id, employee_id, date, clock_in, clock_in_location, clock_in_photo_key, status, is_late,
-    late_minutes, shift_id, scheduled_start, scheduled_end, break_minutes, notes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+    late_minutes, shift_id, scheduled_start, scheduled_end, break_minutes, notes, created_by, clock_out, work_hours,
+    overtime_hours)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 `
 
 type InsertAttendanceParams struct {
@@ -557,6 +582,9 @@ type InsertAttendanceParams struct {
 	BreakMinutes    int32
 	Notes           string
 	CreatedBy       *string
+	ClockOut        *time.Time
+	WorkHours       string
+	OvertimeHours   string
 }
 
 func (q *Queries) InsertAttendance(ctx context.Context, arg InsertAttendanceParams) error {
@@ -576,6 +604,9 @@ func (q *Queries) InsertAttendance(ctx context.Context, arg InsertAttendancePara
 		arg.BreakMinutes,
 		arg.Notes,
 		arg.CreatedBy,
+		arg.ClockOut,
+		arg.WorkHours,
+		arg.OvertimeHours,
 	)
 	return err
 }
@@ -1484,6 +1515,51 @@ func (q *Queries) ShiftInUse(ctx context.Context, id string) (bool, error) {
 	return used, err
 }
 
+const updateAttendance = `-- name: UpdateAttendance :execrows
+UPDATE hr.attendance SET clock_in = $2, clock_out = $3, status = $4, is_late = $5, late_minutes = $6, work_hours = $7,
+    overtime_hours = $8, shift_id = $9, scheduled_start = $10, scheduled_end = $11, break_minutes = $12, notes = $13,
+    updated_at = now()
+WHERE id = $1
+`
+
+type UpdateAttendanceParams struct {
+	ID             string
+	ClockIn        *time.Time
+	ClockOut       *time.Time
+	Status         HrAttendanceStatus
+	IsLate         bool
+	LateMinutes    int32
+	WorkHours      string
+	OvertimeHours  string
+	ShiftID        *string
+	ScheduledStart *time.Time
+	ScheduledEnd   *time.Time
+	BreakMinutes   int32
+	Notes          string
+}
+
+func (q *Queries) UpdateAttendance(ctx context.Context, arg UpdateAttendanceParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateAttendance,
+		arg.ID,
+		arg.ClockIn,
+		arg.ClockOut,
+		arg.Status,
+		arg.IsLate,
+		arg.LateMinutes,
+		arg.WorkHours,
+		arg.OvertimeHours,
+		arg.ShiftID,
+		arg.ScheduledStart,
+		arg.ScheduledEnd,
+		arg.BreakMinutes,
+		arg.Notes,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateHoliday = `-- name: UpdateHoliday :one
 UPDATE hr.public_holidays SET holiday_date = $2, name = $3, type = $4, deducts_leave = $5, status = $6, note = $7,
     updated_by = $8, updated_at = now()
@@ -1528,6 +1604,36 @@ func (q *Queries) UpdateHoliday(ctx context.Context, arg UpdateHolidayParams) (H
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const updateOvertime = `-- name: UpdateOvertime :execrows
+UPDATE hr.overtime_requests SET date = $1, start_time = $2::text::time,
+    end_time = $3::text::time, hours = $4, reason = $5, updated_at = now()
+WHERE id = $6 AND status = 'pending'
+`
+
+type UpdateOvertimeParams struct {
+	Date      time.Time
+	StartTime string
+	EndTime   string
+	Hours     string
+	Reason    string
+	ID        string
+}
+
+func (q *Queries) UpdateOvertime(ctx context.Context, arg UpdateOvertimeParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateOvertime,
+		arg.Date,
+		arg.StartTime,
+		arg.EndTime,
+		arg.Hours,
+		arg.Reason,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateShift = `-- name: UpdateShift :execrows

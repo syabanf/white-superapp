@@ -16,14 +16,30 @@ import { MoneyInput } from "@/features/erp/shared/money-input";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
-import { createLoanAction, decideLoanAction } from "../actions";
+import { cancelLoanAction, createLoanAction, decideLoanAction } from "../actions";
 import { kinds, monthLabel, th } from "../strings";
 import type { Loan } from "../types";
-import { DecisionButtons, EmployeePicker, Fld, FormDialog, FormFooter, SimpleSelect, useFieldErrors, type EmployeeOption } from "./ui";
+import {
+  ConfirmAction,
+  DecisionButtons,
+  EmployeePicker,
+  Fld,
+  FormDialog,
+  FormFooter,
+  SimpleSelect,
+  useFieldErrors,
+  type EmployeeOption,
+} from "./ui";
 
 const n = th.loans;
 
-export function loanColumns(opts: { showEmployee: boolean; canDecide: boolean }): ColumnDef<Loan, unknown>[] {
+export function loanColumns(opts: {
+  showEmployee: boolean;
+  canDecide: boolean;
+  /** Cancels a pending loan; approved loans are repaid through payroll. */
+  onCancel?: (id: string) => Promise<ActionResult<unknown>>;
+}): ColumnDef<Loan, unknown>[] {
+  const { onCancel } = opts;
   const cols: ColumnDef<Loan, unknown>[] = [
     {
       accessorKey: "loanType",
@@ -73,6 +89,20 @@ export function loanColumns(opts: { showEmployee: boolean; canDecide: boolean })
               onReject={(reason) => decideLoanAction(row.original.id, false, reason)}
             />
           ) : null}
+          {onCancel && row.original.status === "pending" ? (
+            <ConfirmAction
+              title={n.cancelTitle}
+              description={n.cancelBody}
+              confirmLabel={n.cancel}
+              success={n.cancelled}
+              action={() => onCancel(row.original.id)}
+              trigger={
+                <Button size="xs" variant="ghost">
+                  {n.cancel}
+                </Button>
+              }
+            />
+          ) : null}
           <LoanDetailDialog loan={row.original} />
         </div>
       ),
@@ -106,7 +136,11 @@ export function LoansTable({
 }) {
   return (
     <ErpDataTable
-      columns={loanColumns({ showEmployee: true, canDecide })}
+      columns={loanColumns({
+        showEmployee: true,
+        canDecide,
+        onCancel: canWrite || canDecide ? cancelLoanAction : undefined,
+      })}
       data={loans}
       getRowId={(r) => r.id}
       toolbar={

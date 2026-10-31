@@ -105,7 +105,7 @@ export function MonthlyChart({
               content={<TooltipBox seriesMap={seriesMap} labelFormatter={(l) => monthLabel(String(l))} />}
               isAnimationActive={false}
             />
-            {previous ? <Line dataKey="__prev" type="monotone" stroke={MUTED_SERIES} strokeWidth={2} strokeDasharray="4 3" dot={false} isAnimationActive={false} /> : null}
+            {previous ? <Line dataKey="__prev" type="monotone" stroke={MUTED_SERIES} strokeWidth={2} strokeDasharray="4 3" dot={false} /> : null}
             {resolved.map((s) =>
               s.type === "bar" ? (
                 <Bar
@@ -117,7 +117,6 @@ export function MonthlyChart({
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
-                  isAnimationActive={false}
                 />
               ) : (
                 <Line
@@ -128,7 +127,6 @@ export function MonthlyChart({
                   strokeWidth={2}
                   dot={{ r: 3, strokeWidth: 0, fill: s.color }}
                   activeDot={ringDot(s.color)}
-                  isAnimationActive={false}
                 />
               ),
             )}
@@ -325,7 +323,6 @@ export function Donut({ items, format = formatNumber, centerLabel }: { items: Do
               paddingAngle={2}
               stroke="var(--card)"
               strokeWidth={2}
-              isAnimationActive={false}
               onClick={(d: { payload?: DonutItem }) => d.payload?.href && router.push(d.payload.href)}
             >
               {items.map((it) => (
@@ -460,7 +457,7 @@ export function ColumnChart({
               content={<TooltipBox seriesMap={{ value: { key: "value", label: seriesLabel, color: slotColor(0), format } }} />}
               isAnimationActive={false}
             />
-            <Bar dataKey="value" radius={BAR_RADIUS} maxBarSize={48} isAnimationActive={false} onClick={(d: { payload?: ColumnItem }) => pick(d.payload)}>
+            <Bar dataKey="value" radius={BAR_RADIUS} maxBarSize={48} onClick={(d: { payload?: ColumnItem }) => pick(d.payload)}>
               {items.map((it) => (
                 <Cell key={it.key} fill={barFill(it.color ?? slotColor(0))} className={it.href || onSelect ? "cursor-pointer" : undefined} />
               ))}

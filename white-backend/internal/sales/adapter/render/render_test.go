@@ -25,15 +25,49 @@ func quote() domain.Quotation {
 		Terms: []domain.QuotationTerm{{Label: "DP", Percent: 50}, {Label: "Pelunasan", Percent: 50}}}
 }
 
+func invoice() domain.Invoice {
+	due := time.Date(2026, 11, 15, 0, 0, 0, 0, time.UTC)
+	return domain.Invoice{InvoiceNumber: "INV-2610-0001", Label: "DP", Amount: domain.MustMoney("5272500"), PaidTotal: domain.MustMoney("1000000"), DueDate: &due,
+		ClientName: "PT Maju", DealTitle: "SEO PT Maju", Status: "terkirim", Audit: domain.Audit{CreatedAt: time.Now()}}
+}
+
 func TestQuotationAndInvoicePDF(t *testing.T) {
-	r := New()
-	pdf, err := r.QuotationPDF(quote(), domain.Deal{Title: "SEO PT Maju", PicName: "Andi"})
-	if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF-")) {
-		t.Fatalf("quotation pdf: %v", err)
+	deal := domain.Deal{Title: "SEO PT Maju", PicName: "Andi", PicPhone: "0812 3456 7890", PicEmail: "andi@majujaya.co.id"}
+	cases := map[string]Company{
+		"defaults": CompanyFromEnv(),
+		"npwp":     {LegalName: legalName, Address: brandAddress, Email: brandEmail, Phone: brandPhone, NPWP: "01.234.567.8-901.000"},
+		"no npwp, long address": {LegalName: legalName, Email: brandEmail,
+			Address: "Gedung Mixist Tower Lantai 12, Jl. Jenderal Sudirman Kav. 52-53, Senayan, Kebayoran Baru, Jakarta Selatan, DKI Jakarta 12190"},
+		"bare": {LegalName: legalName},
 	}
-	pdf, err = r.InvoicePDF(domain.Invoice{InvoiceNumber: "INV-2610-0001", Label: "DP", Amount: domain.MustMoney("5272500"), ClientName: "PT Maju", Status: "terkirim"}, domain.Deal{})
-	if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF-")) {
-		t.Fatalf("invoice pdf: %v", err)
+	for name, co := range cases {
+		t.Run(name, func(t *testing.T) {
+			r := Renderer{Company: co}
+			pdf, err := r.QuotationPDF(quote(), deal, "Sari Sales")
+			if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF-")) {
+				t.Fatalf("quotation pdf: %v", err)
+			}
+			pdf, err = r.InvoicePDF(invoice(), deal, "QT-2610-0001")
+			if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF-")) {
+				t.Fatalf("invoice pdf: %v", err)
+			}
+		})
+	}
+	// Unknown owner and no source quotation leave their rows out.
+	if _, err := New().QuotationPDF(quote(), domain.Deal{}, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := New().InvoicePDF(domain.Invoice{InvoiceNumber: "INV-2610-0002", Status: "diajukan"}, domain.Deal{}, ""); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCompanyFromEnv(t *testing.T) {
+	t.Setenv("COMPANY_LEGAL_NAME", "PT Lain")
+	t.Setenv("COMPANY_NPWP", "")
+	co := CompanyFromEnv()
+	if co.LegalName != "PT Lain" || co.Address != brandAddress || co.NPWP != "" {
+		t.Fatalf("company %+v", co)
 	}
 }
 

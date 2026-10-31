@@ -16,11 +16,16 @@ type KPIStore interface {
 	GetIndicator(ctx context.Context, id string) (*Indicator, error)
 	GetIndicatorByCode(ctx context.Context, code string) (*Indicator, error)
 	UpsertIndicator(ctx context.Context, in Indicator) error
+	// DeleteUnusedIndicator deletes an indicator without KPI history and
+	// reports false when history kept it.
+	DeleteUnusedIndicator(ctx context.Context, id string) (bool, error)
+	DeactivateIndicator(ctx context.Context, id string, by *string) error
 	ListDepartmentWeights(ctx context.Context) ([]DepartmentWeight, error)
 	DeleteDepartmentWeights(ctx context.Context, departmentID string) error
 	InsertDepartmentWeight(ctx context.Context, w DepartmentWeight) error
 	ListTargets(ctx context.Context) ([]KPITarget, error)
 	InsertTarget(ctx context.Context, t KPITarget, by string) error
+	UpdateTarget(ctx context.Context, t KPITarget) (bool, error)
 	DeleteTarget(ctx context.Context, id string) (bool, error)
 	UpsertSnapshot(ctx context.Context, s Snapshot) error
 	ListSnapshots(ctx context.Context, employeeID string, p Period) ([]Snapshot, error)

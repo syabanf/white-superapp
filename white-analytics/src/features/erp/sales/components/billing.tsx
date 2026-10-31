@@ -30,7 +30,7 @@ import { ActionButton, ConfirmAction, type FieldErrors, Fld, FormDialog, FormFoo
 const s = ss.invoices;
 
 /** Issue (finance) and cancel buttons plus the PDF link for one invoice. */
-function InvoiceRowActions({ inv, caps }: { inv: Invoice; caps: SalesCaps }) {
+export function InvoiceActions({ inv, caps }: { inv: Invoice; caps: SalesCaps }) {
   return (
     <div className="flex justify-end gap-1">
       <DownloadButton href={`/api/erp/api/sales/invoices/${inv.id}/pdf`} fileName={`${inv.invoiceNumber}.pdf`} size="xs" variant="ghost">
@@ -66,7 +66,9 @@ export function InvoicesTable({ invoices, caps, showDeal = true }: { invoices: I
       header: s.number,
       cell: ({ row }) => (
         <div className="min-w-0">
-          <div className="font-medium tabular">{row.original.invoiceNumber}</div>
+          <Link href={`/erp/sales/invoices/${row.original.id}`} className="font-medium tabular underline-offset-4 hover:underline">
+            {row.original.invoiceNumber}
+          </Link>
           <div className="truncate text-xs text-muted-foreground">{row.original.label}</div>
         </div>
       ),
@@ -97,7 +99,7 @@ export function InvoicesTable({ invoices, caps, showDeal = true }: { invoices: I
         </span>
       ),
     },
-    { id: "actions", header: "", enableSorting: false, cell: ({ row }) => <InvoiceRowActions inv={row.original} caps={caps} /> },
+    { id: "actions", header: "", enableSorting: false, cell: ({ row }) => <InvoiceActions inv={row.original} caps={caps} /> },
   ];
   return (
     <ErpDataTable

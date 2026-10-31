@@ -173,6 +173,32 @@ func (l *Loans) Decide(ctx context.Context, a Actor, id string, approve bool, re
 	return l.d.Store.GetLoan(ctx, id)
 }
 
+// Cancel withdraws a pending loan: hr.payroll or hr.approve for any loan,
+// self.service for one's own. An approved loan is repaid through payroll
+// and cannot be cancelled.
+func (l *Loans) Cancel(ctx context.Context, a Actor, id string) (*domain.Loan, error) {
+	if !canManageLoans(a) {
+		if _, err := self(a); err != nil {
+			return nil, err
+		}
+	}
+	loan, err := l.Get(ctx, a, id)
+	if err != nil {
+		return nil, err
+	}
+	if loan.Status != "pending" {
+		return nil, conflict("Hanya pinjaman berstatus pending yang bisa dibatalkan.")
+	}
+	ok, err := l.d.Store.CancelLoan(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, conflict("Pinjaman sudah diproses oleh orang lain.")
+	}
+	return l.d.Store.GetLoan(ctx, id)
+}
+
 // ScheduleRow is one planned installment.
 type ScheduleRow struct {
 	No, Month, Year        int

@@ -4,7 +4,6 @@ import * as React from "react";
 import { Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,10 +15,13 @@ import { cn } from "@/lib/utils";
 import { createQuotationAction, updateQuotationAction } from "../actions";
 import { sumsTo100 } from "../lib";
 import { TIER, ss } from "../strings";
-import type { CatalogItem, Quotation, QuotationInput, RetainerDiscount } from "../types";
+import type { CatalogItem, DocumentParty, Quotation, QuotationInput, RetainerDiscount } from "../types";
+import { quotationRows } from "./quotation-view";
+import { DocSection, DocTotals, SalesDocument } from "./sales-document";
 import { Fld, SimpleSelect } from "./ui";
 
 const s = ss.quotations;
+const d = ss.doc;
 
 type Item = QuotationInput["items"][number] & { key: string };
 type Term = QuotationInput["terms"][number] & { key: string };
@@ -39,7 +41,12 @@ function initial(q: Quotation | null): { items: Item[]; terms: Term[] } {
       qty: it.qty,
       unitPrice: it.unitPrice,
     })),
-    terms: q.terms.map((t) => ({ key: t.id || uid(), label: t.label, percent: t.percent, dueDate: t.dueDate })),
+    terms: q.terms.map((t) => ({
+      key: t.id || uid(),
+      label: t.label,
+      percent: t.percent,
+      dueDate: t.dueDate,
+    })),
   };
 }
 
@@ -56,11 +63,13 @@ function retainerDiscountFor(months: number, rules: RetainerDiscount[]): number 
 export function QuotationEditor({
   quotation,
   dealId,
+  party,
   catalog,
   retainerRules,
 }: {
   quotation: Quotation | null;
   dealId: string;
+  party: DocumentParty | null;
   catalog: CatalogItem[];
   retainerRules: RetainerDiscount[];
 }) {
@@ -87,8 +96,10 @@ export function QuotationEditor({
     .reduce((m, it) => Math.max(m, Number(it.qty) || 0), 0);
   const suggested = retainerDiscountFor(retainerMonths, retainerRules);
 
-  const patchItem = (key: string, p: Partial<Item>) => setItems((list) => list.map((it) => (it.key === key ? { ...it, ...p } : it)));
-  const patchTerm = (key: string, p: Partial<Term>) => setTerms((list) => list.map((t) => (t.key === key ? { ...t, ...p } : t)));
+  const patchItem = (key: string, p: Partial<Item>) =>
+    setItems((list) => list.map((it) => (it.key === key ? { ...it, ...p } : it)));
+  const patchTerm = (key: string, p: Partial<Term>) =>
+    setTerms((list) => list.map((t) => (t.key === key ? { ...t, ...p } : t)));
 
   const addCatalog = (id: string, tier: string) => {
     const c = catalogById[id];
@@ -130,145 +141,200 @@ export function QuotationEditor({
       })),
       terms: terms.map((t) => ({ label: t.label, percent: Number(t.percent) || 0, dueDate: t.dueDate })),
     };
-    void run(() => (quotation ? updateQuotationAction(quotation.id, input) : createQuotationAction(dealId, input)), {
-      success: ss.saved,
-      onOk: (q) => {
-        if (!quotation) router.push(`/erp/sales/quotations/${q.id}`);
+    void run(
+      () => (quotation ? updateQuotationAction(quotation.id, input) : createQuotationAction(dealId, input)),
+      {
+        success: ss.saved,
+        onOk: (q) => {
+          if (!quotation) router.push(`/erp/sales/quotations/${q.id}`);
+        },
+        onFail: (r) => setError(r.error),
       },
-      onFail: (r) => setError(r.error),
-    });
+    );
   };
 
+  const rows = quotationRows(party, quotation);
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="gap-0 py-0">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-(--card-pad) py-3">
-          <h2 className="text-[15px] font-semibold">{s.items}</h2>
-          <div className="flex flex-wrap gap-2">
+    <SalesDocument
+      title={d.quotation}
+      number={quotation?.quoteNumber ?? d.numberPending}
+      left={rows.left}
+      right={rows.right}
+    >
+      <DocSection
+        title={s.items}
+        actions={
+          <>
             <CatalogAdder catalog={catalog} onAdd={addCatalog} />
             <Button
               size="sm"
               variant="outline"
               onClick={() =>
-                setItems((l) => [...l, { key: uid(), itemType: "bebas", catalogId: "", description: "", scope: "", unit: "paket", qty: 1, unitPrice: "" }])
+                setItems((l) => [
+                  ...l,
+                  {
+                    key: uid(),
+                    itemType: "bebas",
+                    catalogId: "",
+                    description: "",
+                    scope: "",
+                    unit: "paket",
+                    qty: 1,
+                    unitPrice: "",
+                  },
+                ])
               }
             >
               <Plus className="size-3.5" /> {s.addFree}
             </Button>
-          </div>
-        </div>
-        {items.length === 0 ? <p className="px-(--card-pad) py-6 text-sm text-muted-foreground">{s.noItems}</p> : null}
-        <ul className="divide-y">
-          {items.map((it) => (
-            <li key={it.key} className="grid gap-3 px-(--card-pad) py-4 md:grid-cols-12">
-              <div className="flex flex-col gap-2 md:col-span-6">
-                <Input
-                  aria-label={s.description}
-                  placeholder={s.description}
-                  value={it.description}
-                  onChange={(e) => patchItem(it.key, { description: e.target.value })}
-                />
-                <Textarea
-                  aria-label={s.scope}
-                  placeholder={s.scope}
-                  rows={2}
-                  value={it.scope}
-                  onChange={(e) => patchItem(it.key, { scope: e.target.value })}
-                  className="text-xs"
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-2 md:col-span-5 md:grid-cols-[70px_80px_minmax(0,1fr)]">
-                <Fld label={s.qty}>
+          </>
+        }
+      >
+        <div className="rounded-2xl border">
+          {items.length === 0 ? <p className="px-4 py-6 text-sm text-muted-foreground">{s.noItems}</p> : null}
+          <ul className="divide-y">
+            {items.map((it) => (
+              <li key={it.key} className="grid gap-3 px-4 py-4 md:grid-cols-12">
+                <div className="flex flex-col gap-2 md:col-span-6">
                   <Input
-                    type="number"
-                    min={0}
-                    step="any"
-                    value={it.qty}
-                    onChange={(e) => patchItem(it.key, { qty: Number(e.target.value) })}
-                    className="tabular"
+                    aria-label={s.description}
+                    placeholder={s.description}
+                    value={it.description}
+                    onChange={(e) => patchItem(it.key, { description: e.target.value })}
                   />
-                </Fld>
-                <Fld label={s.unit}>
-                  <Input value={it.unit} onChange={(e) => patchItem(it.key, { unit: e.target.value })} />
-                </Fld>
-                <Fld label={s.price}>
-                  <MoneyInput value={it.unitPrice} onChange={(v) => patchItem(it.key, { unitPrice: v })} />
-                </Fld>
-                <p className="col-span-3 text-right text-xs text-muted-foreground">
-                  {s.lineTotal}{" "}
-                  <span className="font-medium text-foreground tabular">
-                    {formatRupiah((Number(it.qty) || 0) * parseMoney(it.unitPrice))}
-                  </span>
-                </p>
-              </div>
-              <div className="flex justify-end md:col-span-1">
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label={ss.delete}
-                  onClick={() => setItems((l) => l.filter((x) => x.key !== it.key))}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      <div className="grid gap-(--gap) lg:grid-cols-2">
-        <Card className="gap-4 p-(--card-pad)">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold">{s.termsTitle}</h2>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setTerms((l) => [...l, { key: uid(), label: `Termin ${l.length + 1}`, percent: 0, dueDate: "" }])}
-            >
-              <Plus className="size-3.5" /> {s.addTerm}
-            </Button>
-          </div>
-          <ul className="flex flex-col gap-2">
-            {terms.map((t) => (
-              <li key={t.key} className="grid grid-cols-[minmax(0,1fr)_72px_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_72px_150px_auto]">
-                <Input aria-label={s.termLabel} value={t.label} onChange={(e) => patchTerm(t.key, { label: e.target.value })} />
-                <Input
-                  aria-label={s.termPercent}
-                  type="number"
-                  min={0}
-                  max={100}
-                  step="any"
-                  value={t.percent}
-                  onChange={(e) => patchTerm(t.key, { percent: Number(e.target.value) })}
-                  className="tabular"
-                />
-                <div className="col-span-2 min-w-0 sm:col-span-1">
-                  <DatePicker value={t.dueDate} onChange={(v) => patchTerm(t.key, { dueDate: v })} placeholder={s.termDue} clearable />
+                  <Textarea
+                    aria-label={s.scope}
+                    placeholder={s.scope}
+                    rows={2}
+                    value={it.scope}
+                    onChange={(e) => patchItem(it.key, { scope: e.target.value })}
+                    className="text-xs"
+                  />
                 </div>
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label={ss.delete}
-                  onClick={() => setTerms((l) => l.filter((x) => x.key !== t.key))}
-                  disabled={terms.length === 1}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
+                <div className="grid grid-cols-3 gap-2 md:col-span-5 md:grid-cols-[70px_80px_minmax(0,1fr)]">
+                  <Fld label={s.qty}>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="any"
+                      value={it.qty}
+                      onChange={(e) => patchItem(it.key, { qty: Number(e.target.value) })}
+                      className="tabular"
+                    />
+                  </Fld>
+                  <Fld label={s.unit}>
+                    <Input value={it.unit} onChange={(e) => patchItem(it.key, { unit: e.target.value })} />
+                  </Fld>
+                  <Fld label={s.price}>
+                    <MoneyInput value={it.unitPrice} onChange={(v) => patchItem(it.key, { unitPrice: v })} />
+                  </Fld>
+                  <p className="col-span-3 text-right text-xs text-muted-foreground">
+                    {s.lineTotal}{" "}
+                    <span className="font-medium text-foreground tabular">
+                      {formatRupiah((Number(it.qty) || 0) * parseMoney(it.unitPrice))}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex justify-end md:col-span-1">
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label={ss.delete}
+                    onClick={() => setItems((l) => l.filter((x) => x.key !== it.key))}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
-          <p className={cn("text-xs tabular", sumsTo100(terms.map((t) => t.percent)) ? "text-muted-foreground" : "text-destructive")}>
-            {s.termsTotal(Math.round(termsTotal * 100) / 100)}
-          </p>
-          <Fld label={s.validUntil}>
-            <DatePicker value={validUntil} onChange={setValidUntil} clearable />
-          </Fld>
-          <Fld label={s.notes}>
-            <Textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </Fld>
-        </Card>
+        </div>
+      </DocSection>
 
-        <Card className="gap-3 p-(--card-pad)">
+      <div className="grid gap-(--gap) lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+        <div className="flex flex-col gap-6">
+          <DocSection title={d.specialNotes}>
+            <Textarea
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={d.specialNotesPlaceholder}
+              aria-label={d.specialNotes}
+            />
+          </DocSection>
+          <DocSection
+            title={s.termsTitle}
+            actions={
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setTerms((l) => [
+                    ...l,
+                    { key: uid(), label: `Termin ${l.length + 1}`, percent: 0, dueDate: "" },
+                  ])
+                }
+              >
+                <Plus className="size-3.5" /> {s.addTerm}
+              </Button>
+            }
+          >
+            <ul className="flex flex-col gap-2">
+              {terms.map((t) => (
+                <li
+                  key={t.key}
+                  className="grid grid-cols-[minmax(0,1fr)_72px_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_72px_150px_auto]"
+                >
+                  <Input
+                    aria-label={s.termLabel}
+                    value={t.label}
+                    onChange={(e) => patchTerm(t.key, { label: e.target.value })}
+                  />
+                  <Input
+                    aria-label={s.termPercent}
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="any"
+                    value={t.percent}
+                    onChange={(e) => patchTerm(t.key, { percent: Number(e.target.value) })}
+                    className="tabular"
+                  />
+                  <div className="col-span-2 min-w-0 sm:col-span-1">
+                    <DatePicker
+                      value={t.dueDate}
+                      onChange={(v) => patchTerm(t.key, { dueDate: v })}
+                      placeholder={s.termDue}
+                      clearable
+                    />
+                  </div>
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label={ss.delete}
+                    onClick={() => setTerms((l) => l.filter((x) => x.key !== t.key))}
+                    disabled={terms.length === 1}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <p
+              className={cn(
+                "text-xs tabular",
+                sumsTo100(terms.map((t) => t.percent)) ? "text-muted-foreground" : "text-destructive",
+              )}
+            >
+              {s.termsTotal(Math.round(termsTotal * 100) / 100)}
+            </p>
+            <Fld label={s.validUntil}>
+              <DatePicker value={validUntil} onChange={setValidUntil} clearable />
+            </Fld>
+          </DocSection>
+        </div>
+
+        <DocTotals>
           <Row label={s.subtotal} value={formatRupiah(subtotal)} />
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="q-discount" className="text-sm">
@@ -320,22 +386,44 @@ export function QuotationEditor({
             {pending ? <Loader2 className="size-4 animate-spin" /> : null}
             {ss.save}
           </Button>
-        </Card>
+        </DocTotals>
       </div>
-    </div>
+    </SalesDocument>
   );
 }
 
-function Row({ label, value, muted, strong }: { label: string; value: string; muted?: boolean; strong?: boolean }) {
+function Row({
+  label,
+  value,
+  muted,
+  strong,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+  strong?: boolean;
+}) {
   return (
-    <div className={cn("flex items-center justify-between gap-3 text-sm", muted && "text-muted-foreground", strong && "text-base font-semibold")}>
+    <div
+      className={cn(
+        "flex items-center justify-between gap-3 text-sm",
+        muted && "text-muted-foreground",
+        strong && "text-base font-semibold",
+      )}
+    >
       <span>{label}</span>
       <span className="tabular">{value}</span>
     </div>
   );
 }
 
-function CatalogAdder({ catalog, onAdd }: { catalog: CatalogItem[]; onAdd: (id: string, tier: string) => void }) {
+function CatalogAdder({
+  catalog,
+  onAdd,
+}: {
+  catalog: CatalogItem[];
+  onAdd: (id: string, tier: string) => void;
+}) {
   const [id, setId] = React.useState("");
   const [tier, setTier] = React.useState("standard");
   const item = catalog.find((c) => c.id === id);
@@ -346,7 +434,9 @@ function CatalogAdder({ catalog, onAdd }: { catalog: CatalogItem[]; onAdd: (id: 
         value={id}
         onChange={setId}
         placeholder={s.addCatalog}
-        options={catalog.filter((c) => c.isActive).map((c) => ({ value: c.id, label: `${c.name} · ${formatRupiah(c.defaultPrice)}` }))}
+        options={catalog
+          .filter((c) => c.isActive)
+          .map((c) => ({ value: c.id, label: `${c.name} · ${formatRupiah(c.defaultPrice)}` }))}
         className="w-64"
       />
       {item?.tiers.length ? (
@@ -354,7 +444,10 @@ function CatalogAdder({ catalog, onAdd }: { catalog: CatalogItem[]; onAdd: (id: 
           size="sm"
           value={tier}
           onChange={setTier}
-          options={item.tiers.map((t) => ({ value: t.tier, label: `${TIER[t.tier] ?? t.tier} · ${formatRupiah(t.price)}` }))}
+          options={item.tiers.map((t) => ({
+            value: t.tier,
+            label: `${TIER[t.tier] ?? t.tier} · ${formatRupiah(t.price)}`,
+          }))}
           className="w-48"
         />
       ) : null}

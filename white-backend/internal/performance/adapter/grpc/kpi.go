@@ -70,6 +70,14 @@ func (s *kpiServer) SaveIndicator(ctx context.Context, req *pb.Indicator) (*pb.I
 	return indicatorPB(*ind), nil
 }
 
+func (s *kpiServer) DeleteIndicator(ctx context.Context, req *pb.IdRequest) (*pb.MessageResponse, error) {
+	text, err := s.svc.KPI.DeleteIndicator(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return msg(text), nil
+}
+
 func (s *kpiServer) GetKpiConfig(ctx context.Context, _ *emptypb.Empty) (*pb.KpiConfig, error) {
 	cfg, err := s.svc.KPI.Config(ctx)
 	if err != nil {
@@ -119,9 +127,21 @@ func (s *kpiServer) ListTargets(ctx context.Context, _ *emptypb.Empty) (*pb.List
 	return out, nil
 }
 
+func targetFromPB(req *pb.KpiTarget) domain.KPITarget {
+	return domain.KPITarget{ID: req.Id, IndicatorID: req.IndicatorId, PeriodYear: intPtr(req.PeriodYear),
+		PeriodMonth: intPtr(req.PeriodMonth), DepartmentID: req.DepartmentId, EmployeeID: req.EmployeeId, Target: req.Target}
+}
+
 func (s *kpiServer) CreateTarget(ctx context.Context, req *pb.KpiTarget) (*pb.KpiTarget, error) {
-	t, err := s.svc.KPI.CreateTarget(ctx, domain.KPITarget{IndicatorID: req.IndicatorId, PeriodYear: intPtr(req.PeriodYear),
-		PeriodMonth: intPtr(req.PeriodMonth), DepartmentID: req.DepartmentId, EmployeeID: req.EmployeeId, Target: req.Target})
+	t, err := s.svc.KPI.CreateTarget(ctx, targetFromPB(req))
+	if err != nil {
+		return nil, err
+	}
+	return targetPB(*t), nil
+}
+
+func (s *kpiServer) UpdateTarget(ctx context.Context, req *pb.KpiTarget) (*pb.KpiTarget, error) {
+	t, err := s.svc.KPI.UpdateTarget(ctx, targetFromPB(req))
 	if err != nil {
 		return nil, err
 	}

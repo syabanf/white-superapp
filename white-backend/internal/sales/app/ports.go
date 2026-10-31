@@ -113,8 +113,10 @@ type Files interface {
 
 // Renderer turns documents into bytes.
 type Renderer interface {
-	QuotationPDF(q domain.Quotation, d domain.Deal) ([]byte, error)
-	InvoicePDF(i domain.Invoice, d domain.Deal) ([]byte, error)
+	// ownerName is the deal owner's display name ("" when unknown).
+	QuotationPDF(q domain.Quotation, d domain.Deal, ownerName string) ([]byte, error)
+	// quoteNumber is the source quotation's number ("" when none).
+	InvoicePDF(i domain.Invoice, d domain.Deal, quoteNumber string) ([]byte, error)
 	ContractPDF(c domain.Contract) ([]byte, error)
 	PitchDeck(title string, slides []domain.Slide) ([]byte, error)
 }

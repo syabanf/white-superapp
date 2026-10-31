@@ -150,6 +150,17 @@ export type TermProgress = {
   status: string;
 };
 
+/** Who a quotation or invoice is addressed to, as printed in its info block. */
+export type DocumentParty = {
+  deal: Deal;
+  payments: Payment[];
+  pic: string;
+  phone: string;
+  email: string;
+  city: string;
+  owner: string;
+};
+
 export type DealDetail = {
   deal: Deal;
   members: DealMember[];

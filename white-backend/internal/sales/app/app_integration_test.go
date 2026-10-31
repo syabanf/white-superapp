@@ -267,6 +267,14 @@ func TestQuotationContractOnboardingFlow(t *testing.T) {
 	if pay.InvoiceID != first.ID || pay.Amount != first.Amount.String() {
 		t.Fatalf("payment event %+v", pay)
 	}
+	if got := must(e.svc.Billing.GetInvoice(ctx, first.ID)); got.InvoiceNumber != first.InvoiceNumber || got.PaidTotal != first.Amount {
+		t.Fatalf("get invoice %+v", got)
+	}
+	_, err = e.svc.Billing.GetInvoice(ctx, "missing")
+	code(t, err, apperr.NotFound)
+	if _, data, err := e.svc.Billing.RenderInvoicePDF(ctx, first.ID); err != nil || !bytes.HasPrefix(data, []byte("%PDF")) {
+		t.Fatal("invoice pdf", err)
+	}
 	_, err = e.svc.Billing.CancelInvoice(ctx, adminActor, first.ID, "salah")
 	code(t, err, apperr.Conflict)
 	detail := must(e.svc.Pipeline.GetDeal(ctx, deal.ID))

@@ -1213,6 +1213,117 @@ func local_request_AttendanceService_ExportAttendance_0(ctx context.Context, mar
 	return msg, metadata, err
 }
 
+func request_AttendanceService_CreateAttendanceRecord_0(ctx context.Context, marshaler runtime.Marshaler, client AttendanceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AttendanceRecordInput
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.CreateAttendanceRecord(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_AttendanceService_CreateAttendanceRecord_0(ctx context.Context, marshaler runtime.Marshaler, server AttendanceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AttendanceRecordInput
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.CreateAttendanceRecord(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_AttendanceService_UpdateAttendanceRecord_0(ctx context.Context, marshaler runtime.Marshaler, client AttendanceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateAttendanceRecordRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Input); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["attendance_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "attendance_id")
+	}
+	protoReq.AttendanceId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "attendance_id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.UpdateAttendanceRecord(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_AttendanceService_UpdateAttendanceRecord_0(ctx context.Context, marshaler runtime.Marshaler, server AttendanceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateAttendanceRecordRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Input); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["attendance_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "attendance_id")
+	}
+	protoReq.AttendanceId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "attendance_id", err)
+	}
+	msg, err := server.UpdateAttendanceRecord(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_AttendanceService_DeleteAttendanceRecord_0(ctx context.Context, marshaler runtime.Marshaler, client AttendanceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AttendanceRecordRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["attendance_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "attendance_id")
+	}
+	protoReq.AttendanceId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "attendance_id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.DeleteAttendanceRecord(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_AttendanceService_DeleteAttendanceRecord_0(ctx context.Context, marshaler runtime.Marshaler, server AttendanceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AttendanceRecordRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["attendance_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "attendance_id")
+	}
+	protoReq.AttendanceId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "attendance_id", err)
+	}
+	msg, err := server.DeleteAttendanceRecord(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 var filter_ScheduleService_ListShifts_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_ScheduleService_ListShifts_0(ctx context.Context, marshaler runtime.Marshaler, client ScheduleServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -2073,6 +2184,90 @@ func local_request_OvertimeService_DecideOvertime_0(ctx context.Context, marshal
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "overtime_id", err)
 	}
 	msg, err := server.DecideOvertime(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_OvertimeService_UpdateOvertime_0(ctx context.Context, marshaler runtime.Marshaler, client OvertimeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateOvertimeRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Input); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["overtime_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "overtime_id")
+	}
+	protoReq.OvertimeId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "overtime_id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.UpdateOvertime(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_OvertimeService_UpdateOvertime_0(ctx context.Context, marshaler runtime.Marshaler, server OvertimeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateOvertimeRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Input); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["overtime_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "overtime_id")
+	}
+	protoReq.OvertimeId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "overtime_id", err)
+	}
+	msg, err := server.UpdateOvertime(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_OvertimeService_DeleteOvertime_0(ctx context.Context, marshaler runtime.Marshaler, client OvertimeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq OvertimeRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["overtime_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "overtime_id")
+	}
+	protoReq.OvertimeId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "overtime_id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.DeleteOvertime(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_OvertimeService_DeleteOvertime_0(ctx context.Context, marshaler runtime.Marshaler, server OvertimeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq OvertimeRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["overtime_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "overtime_id")
+	}
+	protoReq.OvertimeId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "overtime_id", err)
+	}
+	msg, err := server.DeleteOvertime(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -3658,6 +3853,51 @@ func local_request_PayrollService_DecideLoan_0(ctx context.Context, marshaler ru
 	return msg, metadata, err
 }
 
+func request_PayrollService_CancelLoan_0(ctx context.Context, marshaler runtime.Marshaler, client PayrollServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq LoanRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["loan_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "loan_id")
+	}
+	protoReq.LoanId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "loan_id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.CancelLoan(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PayrollService_CancelLoan_0(ctx context.Context, marshaler runtime.Marshaler, server PayrollServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq LoanRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["loan_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "loan_id")
+	}
+	protoReq.LoanId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "loan_id", err)
+	}
+	msg, err := server.CancelLoan(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 func request_SelfServiceService_GetMyProfile_0(ctx context.Context, marshaler runtime.Marshaler, client SelfServiceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq emptypb.Empty
@@ -4115,6 +4355,51 @@ func local_request_SelfServiceService_CreateMyLoan_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.CreateMyLoan(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_SelfServiceService_CancelMyLoan_0(ctx context.Context, marshaler runtime.Marshaler, client SelfServiceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq LoanRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["loan_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "loan_id")
+	}
+	protoReq.LoanId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "loan_id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.CancelMyLoan(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_SelfServiceService_CancelMyLoan_0(ctx context.Context, marshaler runtime.Marshaler, server SelfServiceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq LoanRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["loan_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "loan_id")
+	}
+	protoReq.LoanId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "loan_id", err)
+	}
+	msg, err := server.CancelMyLoan(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -5094,6 +5379,66 @@ func RegisterAttendanceServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		}
 		forward_AttendanceService_ExportAttendance_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_AttendanceService_CreateAttendanceRecord_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.hr.v1.AttendanceService/CreateAttendanceRecord", runtime.WithHTTPPathPattern("/v1/hr/attendance"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AttendanceService_CreateAttendanceRecord_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AttendanceService_CreateAttendanceRecord_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_AttendanceService_UpdateAttendanceRecord_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.hr.v1.AttendanceService/UpdateAttendanceRecord", runtime.WithHTTPPathPattern("/v1/hr/attendance/{attendance_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AttendanceService_UpdateAttendanceRecord_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AttendanceService_UpdateAttendanceRecord_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodDelete, pattern_AttendanceService_DeleteAttendanceRecord_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.hr.v1.AttendanceService/DeleteAttendanceRecord", runtime.WithHTTPPathPattern("/v1/hr/attendance/{attendance_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AttendanceService_DeleteAttendanceRecord_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AttendanceService_DeleteAttendanceRecord_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 
 	return nil
 }
@@ -5583,6 +5928,46 @@ func RegisterOvertimeServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 		forward_OvertimeService_DecideOvertime_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_OvertimeService_UpdateOvertime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.hr.v1.OvertimeService/UpdateOvertime", runtime.WithHTTPPathPattern("/v1/hr/overtime/{overtime_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_OvertimeService_UpdateOvertime_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_OvertimeService_UpdateOvertime_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodDelete, pattern_OvertimeService_DeleteOvertime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.hr.v1.OvertimeService/DeleteOvertime", runtime.WithHTTPPathPattern("/v1/hr/overtime/{overtime_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_OvertimeService_DeleteOvertime_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_OvertimeService_DeleteOvertime_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -6464,6 +6849,26 @@ func RegisterPayrollServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 		forward_PayrollService_DecideLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_PayrollService_CancelLoan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.hr.v1.PayrollService/CancelLoan", runtime.WithHTTPPathPattern("/v1/hr/loans/{loan_id}:cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PayrollService_CancelLoan_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PayrollService_CancelLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 
 	return nil
 }
@@ -6753,6 +7158,26 @@ func RegisterSelfServiceServiceHandlerServer(ctx context.Context, mux *runtime.S
 			return
 		}
 		forward_SelfServiceService_CreateMyLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_SelfServiceService_CancelMyLoan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.hr.v1.SelfServiceService/CancelMyLoan", runtime.WithHTTPPathPattern("/v1/hr/me/loans/{loan_id}:cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_SelfServiceService_CancelMyLoan_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_SelfServiceService_CancelMyLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodGet, pattern_SelfServiceService_ListMyPayslips_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -7669,27 +8094,84 @@ func RegisterAttendanceServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		}
 		forward_AttendanceService_ExportAttendance_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_AttendanceService_CreateAttendanceRecord_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.hr.v1.AttendanceService/CreateAttendanceRecord", runtime.WithHTTPPathPattern("/v1/hr/attendance"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AttendanceService_CreateAttendanceRecord_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AttendanceService_CreateAttendanceRecord_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_AttendanceService_UpdateAttendanceRecord_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.hr.v1.AttendanceService/UpdateAttendanceRecord", runtime.WithHTTPPathPattern("/v1/hr/attendance/{attendance_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AttendanceService_UpdateAttendanceRecord_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AttendanceService_UpdateAttendanceRecord_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodDelete, pattern_AttendanceService_DeleteAttendanceRecord_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.hr.v1.AttendanceService/DeleteAttendanceRecord", runtime.WithHTTPPathPattern("/v1/hr/attendance/{attendance_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AttendanceService_DeleteAttendanceRecord_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_AttendanceService_DeleteAttendanceRecord_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
 var (
-	pattern_AttendanceService_ClockIn_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "attendance"}, "clockIn"))
-	pattern_AttendanceService_ClockOut_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "attendance", "attendance_id"}, "clockOut"))
-	pattern_AttendanceService_ListAttendance_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "attendance"}, ""))
-	pattern_AttendanceService_GetDailyRoster_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "hr", "attendance", "roster"}, ""))
-	pattern_AttendanceService_ValidateAttendance_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "attendance", "attendance_id"}, "validate"))
-	pattern_AttendanceService_GetAttendancePhoto_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "hr", "attendance", "attendance_id", "photo"}, ""))
-	pattern_AttendanceService_ExportAttendance_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "attendance"}, "export"))
+	pattern_AttendanceService_ClockIn_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "attendance"}, "clockIn"))
+	pattern_AttendanceService_ClockOut_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "attendance", "attendance_id"}, "clockOut"))
+	pattern_AttendanceService_ListAttendance_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "attendance"}, ""))
+	pattern_AttendanceService_GetDailyRoster_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "hr", "attendance", "roster"}, ""))
+	pattern_AttendanceService_ValidateAttendance_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "attendance", "attendance_id"}, "validate"))
+	pattern_AttendanceService_GetAttendancePhoto_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "hr", "attendance", "attendance_id", "photo"}, ""))
+	pattern_AttendanceService_ExportAttendance_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "attendance"}, "export"))
+	pattern_AttendanceService_CreateAttendanceRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "attendance"}, ""))
+	pattern_AttendanceService_UpdateAttendanceRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "attendance", "attendance_id"}, ""))
+	pattern_AttendanceService_DeleteAttendanceRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "attendance", "attendance_id"}, ""))
 )
 
 var (
-	forward_AttendanceService_ClockIn_0            = runtime.ForwardResponseMessage
-	forward_AttendanceService_ClockOut_0           = runtime.ForwardResponseMessage
-	forward_AttendanceService_ListAttendance_0     = runtime.ForwardResponseMessage
-	forward_AttendanceService_GetDailyRoster_0     = runtime.ForwardResponseMessage
-	forward_AttendanceService_ValidateAttendance_0 = runtime.ForwardResponseMessage
-	forward_AttendanceService_GetAttendancePhoto_0 = runtime.ForwardResponseMessage
-	forward_AttendanceService_ExportAttendance_0   = runtime.ForwardResponseMessage
+	forward_AttendanceService_ClockIn_0                = runtime.ForwardResponseMessage
+	forward_AttendanceService_ClockOut_0               = runtime.ForwardResponseMessage
+	forward_AttendanceService_ListAttendance_0         = runtime.ForwardResponseMessage
+	forward_AttendanceService_GetDailyRoster_0         = runtime.ForwardResponseMessage
+	forward_AttendanceService_ValidateAttendance_0     = runtime.ForwardResponseMessage
+	forward_AttendanceService_GetAttendancePhoto_0     = runtime.ForwardResponseMessage
+	forward_AttendanceService_ExportAttendance_0       = runtime.ForwardResponseMessage
+	forward_AttendanceService_CreateAttendanceRecord_0 = runtime.ForwardResponseMessage
+	forward_AttendanceService_UpdateAttendanceRecord_0 = runtime.ForwardResponseMessage
+	forward_AttendanceService_DeleteAttendanceRecord_0 = runtime.ForwardResponseMessage
 )
 
 // RegisterScheduleServiceHandlerFromEndpoint is same as RegisterScheduleServiceHandler but
@@ -8249,6 +8731,40 @@ func RegisterOvertimeServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 		forward_OvertimeService_DecideOvertime_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPut, pattern_OvertimeService_UpdateOvertime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.hr.v1.OvertimeService/UpdateOvertime", runtime.WithHTTPPathPattern("/v1/hr/overtime/{overtime_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_OvertimeService_UpdateOvertime_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_OvertimeService_UpdateOvertime_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodDelete, pattern_OvertimeService_DeleteOvertime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.hr.v1.OvertimeService/DeleteOvertime", runtime.WithHTTPPathPattern("/v1/hr/overtime/{overtime_id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_OvertimeService_DeleteOvertime_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_OvertimeService_DeleteOvertime_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -8256,12 +8772,16 @@ var (
 	pattern_OvertimeService_ListOvertime_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "overtime"}, ""))
 	pattern_OvertimeService_CreateOvertime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "overtime"}, ""))
 	pattern_OvertimeService_DecideOvertime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "overtime", "overtime_id"}, "decide"))
+	pattern_OvertimeService_UpdateOvertime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "overtime", "overtime_id"}, ""))
+	pattern_OvertimeService_DeleteOvertime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "overtime", "overtime_id"}, ""))
 )
 
 var (
 	forward_OvertimeService_ListOvertime_0   = runtime.ForwardResponseMessage
 	forward_OvertimeService_CreateOvertime_0 = runtime.ForwardResponseMessage
 	forward_OvertimeService_DecideOvertime_0 = runtime.ForwardResponseMessage
+	forward_OvertimeService_UpdateOvertime_0 = runtime.ForwardResponseMessage
+	forward_OvertimeService_DeleteOvertime_0 = runtime.ForwardResponseMessage
 )
 
 // RegisterContractServiceHandlerFromEndpoint is same as RegisterContractServiceHandler but
@@ -9189,6 +9709,23 @@ func RegisterPayrollServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 		forward_PayrollService_DecideLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_PayrollService_CancelLoan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.hr.v1.PayrollService/CancelLoan", runtime.WithHTTPPathPattern("/v1/hr/loans/{loan_id}:cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PayrollService_CancelLoan_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PayrollService_CancelLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -9215,6 +9752,7 @@ var (
 	pattern_PayrollService_GetLoan_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "loans", "loan_id"}, ""))
 	pattern_PayrollService_CreateLoan_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "hr", "loans"}, ""))
 	pattern_PayrollService_DecideLoan_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "loans", "loan_id"}, "decide"))
+	pattern_PayrollService_CancelLoan_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "hr", "loans", "loan_id"}, "cancel"))
 )
 
 var (
@@ -9240,6 +9778,7 @@ var (
 	forward_PayrollService_GetLoan_0               = runtime.ForwardResponseMessage
 	forward_PayrollService_CreateLoan_0            = runtime.ForwardResponseMessage
 	forward_PayrollService_DecideLoan_0            = runtime.ForwardResponseMessage
+	forward_PayrollService_CancelLoan_0            = runtime.ForwardResponseMessage
 )
 
 // RegisterSelfServiceServiceHandlerFromEndpoint is same as RegisterSelfServiceServiceHandler but
@@ -9516,6 +10055,23 @@ func RegisterSelfServiceServiceHandlerClient(ctx context.Context, mux *runtime.S
 		}
 		forward_SelfServiceService_CreateMyLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_SelfServiceService_CancelMyLoan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.hr.v1.SelfServiceService/CancelMyLoan", runtime.WithHTTPPathPattern("/v1/hr/me/loans/{loan_id}:cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_SelfServiceService_CancelMyLoan_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_SelfServiceService_CancelMyLoan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_SelfServiceService_ListMyPayslips_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -9653,6 +10209,7 @@ var (
 	pattern_SelfServiceService_DecideMyOvertime_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "hr", "me", "overtime", "overtime_id"}, "decide"))
 	pattern_SelfServiceService_ListMyLoans_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "hr", "me", "loans"}, ""))
 	pattern_SelfServiceService_CreateMyLoan_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "hr", "me", "loans"}, ""))
+	pattern_SelfServiceService_CancelMyLoan_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "hr", "me", "loans", "loan_id"}, "cancel"))
 	pattern_SelfServiceService_ListMyPayslips_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "hr", "me", "payslips"}, ""))
 	pattern_SelfServiceService_GetMyPayslipPdf_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "hr", "me", "payslips", "payslip_id", "pdf"}, ""))
 	pattern_SelfServiceService_GetMyTeamSchedule_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "hr", "me", "team-schedule"}, ""))
@@ -9677,6 +10234,7 @@ var (
 	forward_SelfServiceService_DecideMyOvertime_0    = runtime.ForwardResponseMessage
 	forward_SelfServiceService_ListMyLoans_0         = runtime.ForwardResponseMessage
 	forward_SelfServiceService_CreateMyLoan_0        = runtime.ForwardResponseMessage
+	forward_SelfServiceService_CancelMyLoan_0        = runtime.ForwardResponseMessage
 	forward_SelfServiceService_ListMyPayslips_0      = runtime.ForwardResponseMessage
 	forward_SelfServiceService_GetMyPayslipPdf_0     = runtime.ForwardResponseMessage
 	forward_SelfServiceService_GetMyTeamSchedule_0   = runtime.ForwardResponseMessage

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Sparkline } from "@/components/dashboard/sparkline";
+import { CountUp } from "@/components/motion/count-up";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
 import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/dashboard/info-hint";
@@ -101,7 +102,7 @@ export function KpiTile({
               aria-label={`${label}: ${value}. Buka rincian`}
               title={value}
             >
-              {value}
+              <CountUp value={value} />
             </Link>
           ) : (
             <span
@@ -112,7 +113,7 @@ export function KpiTile({
               )}
               title={value}
             >
-              {value}
+              <CountUp value={value} />
             </span>
           )}
           {spark && spark.length > 1 ? (

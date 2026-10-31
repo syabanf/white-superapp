@@ -160,7 +160,6 @@ export function WaterfallChart({
               maxBarSize={48}
               stroke="var(--card)"
               strokeWidth={2}
-              isAnimationActive={false}
               cursor={select ? "pointer" : undefined}
               onClick={(_entry, idx) => {
                 const step = steps[idx];

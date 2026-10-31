@@ -82,6 +82,10 @@ export async function createMyLoanAction(input: z.input<typeof loanSchema>) {
   return send<Loan>(`${M}/loans`, { loanType, principalAmount, tenorMonths, purpose });
 }
 
+export async function cancelMyLoanAction(id: string) {
+  return send<Loan>(`${M}/loans/${id}:cancel`, {});
+}
+
 /** Opening an announcement marks it read. */
 export async function readMyAnnouncementAction(id: string) {
   const res = await runGateway(() => gatewayFetch(`${M}/announcements/${id}`));

@@ -480,6 +480,19 @@ service AttendanceService {
   rpc ExportAttendance(ExportAttendanceRequest) returns (FileBytes) {
     option (google.api.http) = {get: "/v1/hr/attendance:export"};
   }
+  // hr.write. A manual record for an employee and date; the shift snapshot,
+  // lateness, work hours and overtime are derived as clock-in/out derive them.
+  rpc CreateAttendanceRecord(AttendanceRecordInput) returns (AttendanceRecord) {
+    option (google.api.http) = {post: "/v1/hr/attendance" body: "*"};
+  }
+  // hr.write. Corrects times, status and notes; employee and date stay.
+  rpc UpdateAttendanceRecord(UpdateAttendanceRecordRequest) returns (AttendanceRecord) {
+    option (google.api.http) = {put: "/v1/hr/attendance/{attendance_id}" body: "input"};
+  }
+  // hr.write.
+  rpc DeleteAttendanceRecord(AttendanceRecordRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/attendance/{attendance_id}"};
+  }
 }
 
 message GeoLocation {
@@ -569,6 +582,9 @@ message RosterEntry {
   google.protobuf.Timestamp clock_out = 10;
   int32 late_minutes = 11;
   string leave_type = 12;
+  // The attendance row's own status and notes, for HR corrections.
+  string attendance_status = 13;
+  string attendance_notes = 14;
 }
 
 message DailyRoster {
@@ -596,6 +612,28 @@ message ExportAttendanceRequest {
   string start_date = 2;
   string end_date = 3;
   string status = 4;
+}
+
+message AttendanceRecordInput {
+  // Ignored on update.
+  string employee_id = 1;
+  string date = 2;
+  // HH:MM (WIB). Empty only when status is absent.
+  string clock_in = 3;
+  // HH:MM (WIB), optional. Before clock_in means the next day.
+  string clock_out = 4;
+  // present | late | absent | half_day | remote. Empty: derived from the shift.
+  string status = 5;
+  string notes = 6;
+}
+
+message UpdateAttendanceRecordRequest {
+  string attendance_id = 1;
+  AttendanceRecordInput input = 2;
+}
+
+message AttendanceRecordRequest {
+  string attendance_id = 1;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -925,6 +963,16 @@ service OvertimeService {
   rpc DecideOvertime(DecideOvertimeRequest) returns (Overtime) {
     option (google.api.http) = {post: "/v1/hr/overtime/{overtime_id}:decide" body: "*"};
   }
+  // hr.write, pending entries only. Date, times and reason change; the
+  // employee, source and status stay. Hours are recomputed.
+  rpc UpdateOvertime(UpdateOvertimeRequest) returns (Overtime) {
+    option (google.api.http) = {put: "/v1/hr/overtime/{overtime_id}" body: "input"};
+  }
+  // hr.write. Approved overtime feeds payroll, so only pending, rejected or
+  // cancelled entries can be deleted.
+  rpc DeleteOvertime(OvertimeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/overtime/{overtime_id}"};
+  }
 }
 
 message Overtime {
@@ -973,6 +1021,16 @@ message DecideOvertimeRequest {
   // approve | reject | cancel
   string action = 2;
   string rejection_reason = 3;
+}
+
+message UpdateOvertimeRequest {
+  string overtime_id = 1;
+  // employee_id is ignored.
+  CreateOvertimeRequest input = 2;
+}
+
+message OvertimeRequest {
+  string overtime_id = 1;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1365,6 +1423,11 @@ service PayrollService {
   rpc DecideLoan(DecideLoanRequest) returns (Loan) {
     option (google.api.http) = {post: "/v1/hr/loans/{loan_id}:decide" body: "*"};
   }
+  // Pending loans only: hr.payroll or hr.approve for any loan, the borrower
+  // for their own. Approved loans are repaid through payroll instead.
+  rpc CancelLoan(LoanRequest) returns (Loan) {
+    option (google.api.http) = {post: "/v1/hr/loans/{loan_id}:cancel" body: "*"};
+  }
 }
 
 message PayrollSettings {
@@ -1653,7 +1716,7 @@ message Loan {
   string monthly_installment = 7;
   string remaining_balance = 8;
   string paid_amount = 9;
-  // pending | approved | rejected | paid_off
+  // pending | approved | rejected | paid_off | cancelled
   string status = 10;
   bool is_active = 11;
   string purpose = 12;
@@ -1742,6 +1805,10 @@ service SelfServiceService {
   }
   rpc CreateMyLoan(CreateLoanRequest) returns (Loan) {
     option (google.api.http) = {post: "/v1/hr/me/loans" body: "*"};
+  }
+  // Own pending loan only.
+  rpc CancelMyLoan(LoanRequest) returns (Loan) {
+    option (google.api.http) = {post: "/v1/hr/me/loans/{loan_id}:cancel" body: "*"};
   }
   // Paid runs only.
   rpc ListMyPayslips(ListMyRequest) returns (ListPayslipsResponse) {

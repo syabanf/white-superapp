@@ -367,6 +367,12 @@ func (s *Store) RejectLoan(ctx context.Context, id string, by *string, reason st
 	return n > 0, err
 }
 
+// CancelLoan withdraws a pending loan; false when it is no longer pending.
+func (s *Store) CancelLoan(ctx context.Context, id string) (bool, error) {
+	n, err := s.q.CancelLoan(ctx, id)
+	return n > 0, err
+}
+
 // OpenLoans lists the employee's approved loans with a balance, oldest
 // first; lock takes row locks for the settlement transaction.
 func (s *Store) OpenLoans(ctx context.Context, employeeID string, lock bool) ([]domain.Loan, error) {

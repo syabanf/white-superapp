@@ -819,6 +819,17 @@ func (s *billingServer) ListInvoices(ctx context.Context, r *salesv1.ListInvoice
 	return &salesv1.ListInvoicesResponse{Invoices: invoicesPB(is)}, nil
 }
 
+func (s *billingServer) GetInvoice(ctx context.Context, r *salesv1.IdRequest) (*salesv1.Invoice, error) {
+	if err := salesOrFinance(ctx); err != nil {
+		return nil, err
+	}
+	inv, err := s.svc.Billing.GetInvoice(ctx, r.Id)
+	if err != nil {
+		return nil, err
+	}
+	return invoicePB(*inv), nil
+}
+
 func (s *billingServer) SubmitInvoice(ctx context.Context, r *salesv1.SubmitInvoiceRequest) (*salesv1.Invoice, error) {
 	a, err := writer(ctx)
 	if err != nil {

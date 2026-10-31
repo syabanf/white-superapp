@@ -76,6 +76,7 @@ type Store interface {
 	InsertLoan(ctx context.Context, l Loan) error
 	ApproveLoan(ctx context.Context, id string, by *string, at time.Time, month, year int) (bool, error)
 	RejectLoan(ctx context.Context, id string, by *string, reason string) (bool, error)
+	CancelLoan(ctx context.Context, id string) (bool, error)
 	OpenLoans(ctx context.Context, employeeID string, lock bool) ([]Loan, error)
 	ApplyLoanPayment(ctx context.Context, id string, paid, remaining float64) error
 	OvertimeForPeriod(ctx context.Context, employeeID, from, to string) ([]Overtime, error)
@@ -122,6 +123,8 @@ type Store interface {
 	InsertAttendance(ctx context.Context, a Attendance, actor *string) error
 	InsertAttendanceRecord(ctx context.Context, a Attendance, actor *string) error
 	ClockOut(ctx context.Context, a Attendance) (bool, error)
+	UpdateAttendance(ctx context.Context, a Attendance) (bool, error)
+	DeleteAttendance(ctx context.Context, id string) (bool, error)
 	ValidateAttendance(ctx context.Context, id, status string, validatedBy *string, notes string) (bool, error)
 	AttendanceTotals(ctx context.Context, employeeIDs []string, from, to string) (map[string]AttendanceTotals, error)
 	GetLeaveBalance(ctx context.Context, employeeID string, year int) (*LeaveBalance, error)
@@ -139,4 +142,6 @@ type Store interface {
 	GetOvertime(ctx context.Context, id string) (*Overtime, error)
 	InsertOvertime(ctx context.Context, o Overtime, actor *string) error
 	DecideOvertime(ctx context.Context, id, status string, decidedBy *string, rejection string) (bool, error)
+	UpdateOvertime(ctx context.Context, o Overtime) (bool, error)
+	DeleteOvertime(ctx context.Context, id string) (bool, error)
 }

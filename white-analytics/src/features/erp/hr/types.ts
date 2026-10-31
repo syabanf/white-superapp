@@ -192,6 +192,8 @@ export type RosterEntry = {
   clockOut: string | null;
   lateMinutes: number;
   leaveType: string;
+  attendanceStatus: string;
+  attendanceNotes: string;
 };
 
 export type DailyRoster = {

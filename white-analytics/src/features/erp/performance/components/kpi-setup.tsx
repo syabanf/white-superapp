@@ -22,13 +22,17 @@ import { ErpDataTable } from "@/features/erp/shared/data-table";
 import { ErpEmpty } from "@/features/erp/shared/states";
 import { useErpAction } from "@/features/erp/shared/client";
 import { formatNumber } from "@/lib/format";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import {
   createTargetAction,
+  deleteIndicatorAction,
   deleteTargetAction,
   saveDepartmentConfigAction,
   saveIndicatorAction,
+  updateTargetAction,
   type IndicatorInput,
+  type TargetInput,
 } from "../actions";
 import { sp } from "../strings";
 import type { Department, Indicator, KpiConfig, KpiTarget, Person } from "../types";
@@ -40,6 +44,7 @@ const k = sp.kpi;
 
 export function IndicatorsTable({ indicators, canWrite }: { indicators: Indicator[]; canWrite: boolean }) {
   const [editing, setEditing] = React.useState<Indicator | "new" | null>(null);
+  const { run } = useErpAction();
   const columns: ColumnDef<Indicator, unknown>[] = [
     {
       id: "name",
@@ -80,9 +85,23 @@ export function IndicatorsTable({ indicators, canWrite }: { indicators: Indicato
             enableSorting: false,
             meta: { align: "right" } satisfies ColMeta,
             cell: ({ row }) => (
-              <Button variant="ghost" size="icon-xs" aria-label={k.editIndicator} onClick={() => setEditing(row.original)}>
-                <Pencil />
-              </Button>
+              <span className="flex justify-end gap-1">
+                <Button variant="ghost" size="icon-xs" aria-label={k.editIndicator} onClick={() => setEditing(row.original)}>
+                  <Pencil />
+                </Button>
+                <ConfirmAction
+                  trigger={
+                    <Button variant="ghost" size="icon-xs" aria-label={k.deleteIndicator}>
+                      <Trash2 />
+                    </Button>
+                  }
+                  title={k.deleteIndicatorTitle(row.original.name)}
+                  description={k.deleteIndicatorBody}
+                  confirmLabel={sp.common.delete}
+                  destructive
+                  onConfirm={() => run(() => deleteIndicatorAction(row.original.id), { onOk: (r) => toast.success(r.message) })}
+                />
+              </span>
             ),
           } satisfies ColumnDef<Indicator, unknown>,
         ]
@@ -330,6 +349,29 @@ export function DepartmentWeights({ config, canWrite }: { config: KpiConfig; can
 
 const ALL = "__all__";
 
+type TargetForm = {
+  indicatorId: string;
+  scope: "global" | "department" | "employee";
+  scopeId: string;
+  period: "all" | "year" | "month";
+  year: string;
+  month: string;
+  target: string;
+};
+
+function blankTarget(): TargetForm {
+  const now = new Date();
+  return {
+    indicatorId: "",
+    scope: "global",
+    scopeId: "",
+    period: "all",
+    year: String(now.getFullYear()),
+    month: String(now.getMonth() + 1),
+    target: "",
+  };
+}
+
 export function TargetsPanel({
   targets,
   indicators,
@@ -344,17 +386,10 @@ export function TargetsPanel({
   canWrite: boolean;
 }) {
   const { pending, run } = useErpAction();
-  const now = new Date();
-  const [form, setForm] = React.useState({
-    indicatorId: "",
-    scope: "global" as "global" | "department" | "employee",
-    scopeId: "",
-    period: "all" as "all" | "year" | "month",
-    year: String(now.getFullYear()),
-    month: String(now.getMonth() + 1),
-    target: "",
-  });
-  const set = <K extends keyof typeof form>(key: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [key]: v }));
+  const [form, setForm] = React.useState(blankTarget);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const valueRef = React.useRef<HTMLInputElement>(null);
+  const set = <K extends keyof TargetForm>(key: K, v: TargetForm[K]) => setForm((f) => ({ ...f, [key]: v }));
   const indName = new Map(indicators.map((i) => [i.id, i]));
   const deptName = new Map(departments.map((d) => [d.id, d.name]));
   const personName = new Map(people.map((p) => [p.id, p.name]));
@@ -376,27 +411,46 @@ export function TargetsPanel({
           ? k.everyYear(sp.months[t.periodMonth - 1])
           : k.periodAll;
 
+  // Ubah loads the row into the form above; percent units show as 95, not 0.95.
+  const startEdit = (t: KpiTarget) => {
+    const shown = indName.get(t.indicatorId)?.unit === "%" ? t.target * 100 : t.target;
+    setEditingId(t.id);
+    setForm({
+      ...blankTarget(),
+      indicatorId: t.indicatorId,
+      scope: t.employeeId ? "employee" : t.departmentId ? "department" : "global",
+      scopeId: t.employeeId ?? t.departmentId ?? "",
+      period: t.periodMonth ? "month" : t.periodYear ? "year" : "all",
+      ...(t.periodYear ? { year: String(t.periodYear) } : {}),
+      ...(t.periodMonth ? { month: String(t.periodMonth) } : {}),
+      target: String(Number(shown.toFixed(6))),
+    });
+    requestAnimationFrame(() => valueRef.current?.focus());
+  };
+  const resetForm = () => {
+    setEditingId(null);
+    setForm(blankTarget());
+  };
+
   const submit = () => {
     const raw = Number(form.target.replace(",", "."));
-    run(
-      () =>
-        createTargetAction({
-          indicatorId: form.indicatorId,
-          target: Number.isFinite(raw) && form.target !== "" ? (isPercent ? raw / 100 : raw) : Number.NaN,
-          periodYear: form.period === "all" ? undefined : Number(form.year),
-          periodMonth: form.period === "month" ? Number(form.month) : undefined,
-          departmentId: form.scope === "department" && form.scopeId ? form.scopeId : undefined,
-          employeeId: form.scope === "employee" && form.scopeId ? form.scopeId : undefined,
-        }),
-      { success: k.targetSaved, onOk: () => set("target", "") },
-    );
+    const input: TargetInput = {
+      indicatorId: form.indicatorId,
+      target: Number.isFinite(raw) && form.target !== "" ? (isPercent ? raw / 100 : raw) : Number.NaN,
+      periodYear: form.period === "all" ? undefined : Number(form.year),
+      periodMonth: form.period === "month" ? Number(form.month) : undefined,
+      departmentId: form.scope === "department" && form.scopeId ? form.scopeId : undefined,
+      employeeId: form.scope === "employee" && form.scopeId ? form.scopeId : undefined,
+    };
+    if (editingId) run(() => updateTargetAction(editingId, input), { success: k.targetSaved, onOk: resetForm });
+    else run(() => createTargetAction(input), { success: k.targetSaved, onOk: () => set("target", "") });
   };
 
   return (
     <div className="flex flex-col gap-4">
       {canWrite ? (
         <Card className="gap-3 p-(--card-pad)">
-          <p className="text-sm font-semibold">{k.newTarget}</p>
+          <p className="text-sm font-semibold">{editingId ? k.editTarget : k.newTarget}</p>
           <div className="grid gap-4 md:grid-cols-3">
             <FormRow label={k.indicator}>
               <Select value={form.indicatorId || ALL} onValueChange={(v) => set("indicatorId", v === ALL ? "" : v)}>
@@ -453,7 +507,7 @@ export function TargetsPanel({
               <div className="hidden md:block" />
             )}
             <FormRow label={sp.common.period}>
-              <Select value={form.period} onValueChange={(v) => set("period", v as typeof form.period)}>
+              <Select value={form.period} onValueChange={(v) => set("period", v as TargetForm["period"])}>
                 <SelectTrigger className="w-full" aria-label={sp.common.period}>
                   <SelectValue />
                 </SelectTrigger>
@@ -491,9 +545,14 @@ export function TargetsPanel({
             )}
             <FormRow label={k.target} htmlFor="tg-value" hint={isPercent ? k.percentHint : undefined}>
               <div className="flex gap-2">
-                <Input id="tg-value" inputMode="decimal" value={form.target} onChange={(e) => set("target", e.target.value)} />
+                <Input ref={valueRef} id="tg-value" inputMode="decimal" value={form.target} onChange={(e) => set("target", e.target.value)} />
+                {editingId ? (
+                  <Button variant="outline" onClick={resetForm}>
+                    {sp.common.cancel}
+                  </Button>
+                ) : null}
                 <Button disabled={pending || !form.indicatorId || form.target === ""} onClick={submit}>
-                  {sp.common.add}
+                  {editingId ? sp.common.save : sp.common.add}
                 </Button>
               </div>
             </FormRow>
@@ -511,7 +570,7 @@ export function TargetsPanel({
                 <TableHead>{k.scope}</TableHead>
                 <TableHead>{sp.common.period}</TableHead>
                 <TableHead className="text-right">{k.target}</TableHead>
-                {canWrite ? <TableHead className="w-10" /> : null}
+                {canWrite ? <TableHead className="text-right">{sp.common.actions}</TableHead> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -527,18 +586,30 @@ export function TargetsPanel({
                     </TableCell>
                     {canWrite ? (
                       <TableCell>
-                        <ConfirmAction
-                          trigger={
-                            <Button variant="ghost" size="icon-xs" aria-label={sp.common.delete}>
-                              <Trash2 />
-                            </Button>
-                          }
-                          title={sp.common.confirmDelete}
-                          description={sp.common.confirmDeleteBody}
-                          confirmLabel={sp.common.delete}
-                          destructive
-                          onConfirm={() => run(() => deleteTargetAction(t.id), { success: k.targetDeleted })}
-                        />
+                        <span className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon-xs" aria-label={k.editTarget} onClick={() => startEdit(t)}>
+                            <Pencil />
+                          </Button>
+                          <ConfirmAction
+                            trigger={
+                              <Button variant="ghost" size="icon-xs" aria-label={sp.common.delete}>
+                                <Trash2 />
+                              </Button>
+                            }
+                            title={sp.common.confirmDelete}
+                            description={sp.common.confirmDeleteBody}
+                            confirmLabel={sp.common.delete}
+                            destructive
+                            onConfirm={() =>
+                              run(() => deleteTargetAction(t.id), {
+                                success: k.targetDeleted,
+                                onOk: () => {
+                                  if (t.id === editingId) resetForm();
+                                },
+                              })
+                            }
+                          />
+                        </span>
                       </TableCell>
                     ) : null}
                   </TableRow>

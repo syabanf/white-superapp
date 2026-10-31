@@ -165,7 +165,6 @@ export function ComboChart({
                   strokeWidth: 2,
                   dot: data.length <= 2 ? { r: 3, fill: s.color } : false,
                   activeDot: ringDot(s.color),
-                  isAnimationActive: false,
                   connectNulls: true,
                 } as const;
                 return s.type === "area" ? (
@@ -191,7 +190,6 @@ export function ComboChart({
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
-                  isAnimationActive={false}
                   onClick={onSelect ? () => (clickedSeries.current = s.key) : undefined}
                 >
                   {s.signed
@@ -256,7 +254,6 @@ export function Donut({
               paddingAngle={0}
               stroke="var(--card)"
               strokeWidth={2}
-              isAnimationActive={false}
               onClick={onSelect ? (_: unknown, i: number) => items[i] && items[i].key !== "__other" && onSelect(items[i]) : undefined}
             >
               {items.map((s) => (
@@ -468,10 +465,10 @@ export function Waterfall({
               }}
               isAnimationActive={false}
             />
-            <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" isAnimationActive={false} />
-            <Bar dataKey="total" stackId="w" fill={barFill(series[0]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} isAnimationActive={false} />
-            <Bar dataKey="minus" stackId="w" fill={barFill(series[1]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} isAnimationActive={false} />
-            <Bar dataKey="plus" stackId="w" fill={barFill(series[2]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} isAnimationActive={false} />
+            <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" />
+            <Bar dataKey="total" stackId="w" fill={barFill(series[0]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} />
+            <Bar dataKey="minus" stackId="w" fill={barFill(series[1]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} />
+            <Bar dataKey="plus" stackId="w" fill={barFill(series[2]!.color)} radius={BAR_RADIUS_ALL} maxBarSize={44} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

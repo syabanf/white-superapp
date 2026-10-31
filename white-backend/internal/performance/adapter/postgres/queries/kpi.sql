@@ -17,6 +17,18 @@ ON CONFLICT (id) DO UPDATE SET
   direction = EXCLUDED.direction, source_kind = EXCLUDED.source_kind, default_target = EXCLUDED.default_target,
   is_active = EXCLUDED.is_active, updated_by = EXCLUDED.updated_by, updated_at = now();
 
+-- name: DeleteUnusedIndicator :execrows
+-- Skips an indicator with history that the delete would cascade away
+-- (snapshots, task contributions) or unlink (department tasks).
+DELETE FROM performance.kpi_indicators k
+WHERE k.id = sqlc.arg(id)::text
+  AND NOT EXISTS (SELECT 1 FROM performance.kpi_snapshots s WHERE s.indicator_id = k.id)
+  AND NOT EXISTS (SELECT 1 FROM performance.department_task_kpi_contributions c WHERE c.indicator_id = k.id)
+  AND NOT EXISTS (SELECT 1 FROM performance.department_tasks t WHERE t.kpi_indicator_id = k.id);
+
+-- name: DeactivateIndicator :exec
+UPDATE performance.kpi_indicators SET is_active = false, updated_by = $2, updated_at = now() WHERE id = $1;
+
 -- name: ListDepartmentWeights :many
 SELECT di.department_id, di.indicator_id, i.code, di.weight, di.updated_by, di.updated_at
 FROM performance.kpi_department_indicators di
@@ -37,6 +49,10 @@ SELECT * FROM performance.kpi_targets ORDER BY created_at DESC LIMIT 500;
 -- name: InsertTarget :exec
 INSERT INTO performance.kpi_targets (id, indicator_id, period_year, period_month, department_id, employee_id, target, created_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+
+-- name: UpdateTarget :execrows
+UPDATE performance.kpi_targets SET indicator_id = $2, period_year = $3, period_month = $4, department_id = $5, employee_id = $6, target = $7
+WHERE id = $1;
 
 -- name: DeleteTarget :execrows
 DELETE FROM performance.kpi_targets WHERE id = $1;

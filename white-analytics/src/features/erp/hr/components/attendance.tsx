@@ -2,24 +2,37 @@
 
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { AlertCircle, Camera, CheckCircle2, ShieldCheck } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { FormGrid } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useErpAction } from "@/features/erp/shared/client";
 import { ErpDataTable, type ServerPage } from "@/features/erp/shared/data-table";
 import { DownloadButton } from "@/features/erp/shared/download-button";
-import { DateRangeFilter } from "@/features/erp/shared/period-picker";
+import { DatePicker, DateRangeFilter } from "@/features/erp/shared/period-picker";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { ResetFilters, SelectFilter, type FilterOption } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
-import { validateAttendanceAction } from "../actions";
-import { timeWib, toQuery } from "../format";
+import { deleteAttendanceRecordAction, saveAttendanceRecordAction, validateAttendanceAction } from "../actions";
+import { hhmmWib, timeWib, toQuery } from "../format";
 import { kinds, th } from "../strings";
 import type { AttendanceRecord, DailyRoster, RosterEntry } from "../types";
 import { PEOPLE_PARAMS, PeopleFilters } from "./list-filters";
-import { Fld, FormDialog, FormFooter, SimpleSelect, UrlDate, UrlSwitch, type EmployeeOption } from "./ui";
+import {
+  ConfirmAction,
+  EmployeePicker,
+  Fld,
+  FormDialog,
+  FormFooter,
+  SimpleSelect,
+  UrlDate,
+  UrlSwitch,
+  useFieldErrors,
+  type EmployeeOption,
+} from "./ui";
 
 const a = th.attendance;
 
@@ -84,7 +97,20 @@ function Photos({ r }: { r: AttendanceRecord }) {
 
 // Daily roster
 
-export function RosterView({ roster, today, departments }: { roster: DailyRoster; today: string; departments: FilterOption[] }) {
+export function RosterView({
+  roster,
+  today,
+  departments,
+  employees,
+  canWrite,
+}: {
+  roster: DailyRoster;
+  today: string;
+  departments: FilterOption[];
+  employees: EmployeeOption[];
+  canWrite: boolean;
+}) {
+  const [target, setTarget] = React.useState<RecordTarget | null>(null);
   const order = Object.keys(a.rosterStatuses);
   const columns: ColumnDef<RosterEntry, unknown>[] = [
     {
@@ -143,6 +169,65 @@ export function RosterView({ roster, today, departments }: { roster: DailyRoster
       cell: ({ getValue }) => (getValue<number>() ? th.minutes(getValue<number>()) : "–"),
     },
   ];
+  if (canWrite)
+    columns.push({
+      id: "actions",
+      header: "",
+      cell: ({ row }) => {
+        const r = row.original;
+        const name = r.employee.fullName;
+        if (!r.attendanceId)
+          return roster.date > today ? null : (
+            <div className="flex justify-end">
+              <Button
+                size="icon-xs"
+                variant="ghost"
+                aria-label={a.record}
+                onClick={() => setTarget({ id: null, name, values: { ...emptyRecord, employeeId: r.employee.id, date: roster.date } })}
+              >
+                <Plus />
+              </Button>
+            </div>
+          );
+        return (
+          <div className="flex justify-end gap-1">
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              aria-label={a.editRecord}
+              onClick={() =>
+                setTarget({
+                  id: r.attendanceId,
+                  name,
+                  values: {
+                    employeeId: r.employee.id,
+                    date: roster.date,
+                    clockIn: hhmmWib(r.clockIn),
+                    clockOut: hhmmWib(r.clockOut),
+                    status: DERIVED_STATUSES.includes(r.attendanceStatus) ? "" : r.attendanceStatus,
+                    notes: r.attendanceNotes,
+                  },
+                })
+              }
+            >
+              <Pencil />
+            </Button>
+            <ConfirmAction
+              title={a.deleteTitle}
+              description={a.deleteBody(name, formatDate(roster.date))}
+              confirmLabel={th.delete}
+              success={a.deletedOk}
+              action={() => deleteAttendanceRecordAction(r.attendanceId)}
+              trigger={
+                <Button size="icon-xs" variant="ghost" aria-label={th.delete}>
+                  <Trash2 />
+                </Button>
+              }
+            />
+          </div>
+        );
+      },
+    });
   const summary = order.filter((k) => roster.summary[k]);
   return (
     <div className="flex flex-col gap-3">
@@ -166,10 +251,102 @@ export function RosterView({ roster, today, departments }: { roster: DailyRoster
           <>
             <UrlDate fallback={today} />
             <SelectFilter param="dept" options={departments} allLabel={th.allDepartments} label={th.department} />
+            {canWrite ? (
+              <div className="ml-auto">
+                <Button
+                  onClick={() => setTarget({ id: null, values: { ...emptyRecord, date: roster.date > today ? today : roster.date } })}
+                >
+                  <Plus className="size-4" /> {a.record}
+                </Button>
+              </div>
+            ) : null}
           </>
         }
       />
+      <FormDialog
+        title={target?.id ? a.editRecord : a.record}
+        description={target?.name ? `${target.name} · ${formatDate(target.values.date)}` : undefined}
+        open={target !== null}
+        onOpenChange={(o) => !o && setTarget(null)}
+      >
+        {(close) => target && <RecordForm target={target} employees={employees} close={close} />}
+      </FormDialog>
     </div>
+  );
+}
+
+// Manual records (HR)
+
+type RecordValues = { employeeId: string; date: string; clockIn: string; clockOut: string; status: string; notes: string };
+/** `name` is set when the employee and date are fixed by the row. */
+type RecordTarget = { id: string | null; name?: string; values: RecordValues };
+
+const emptyRecord: RecordValues = { employeeId: "", date: "", clockIn: "", clockOut: "", status: "", notes: "" };
+/** Statuses the backend derives from the shift; editing leaves them on "auto". */
+const DERIVED_STATUSES = ["present", "late"];
+
+function RecordForm({
+  target,
+  employees,
+  close,
+}: {
+  target: RecordTarget;
+  employees: EmployeeOption[];
+  close: () => void;
+}) {
+  const [v, setV] = React.useState(target.values);
+  const { errors, onFail } = useFieldErrors();
+  const { pending, run } = useErpAction();
+  const statusOptions = Object.entries(a.statuses).map(([value, label]) => ({ value, label }));
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(() => saveAttendanceRecordAction(target.id, v), {
+          success: target.id ? a.updatedOk : a.recordedOk,
+          onOk: close,
+          onFail,
+        });
+      }}
+    >
+      <p className="text-sm text-muted-foreground">{a.recordBody}</p>
+      {target.name ? null : (
+        <FormGrid cols={2}>
+          <Fld label={th.employee} error={errors?.employeeId}>
+            <EmployeePicker
+              value={v.employeeId}
+              onChange={(employeeId) => setV({ ...v, employeeId })}
+              options={employees}
+              invalid={Boolean(errors?.employeeId)}
+            />
+          </Fld>
+          <Fld label={th.date} error={errors?.date}>
+            <DatePicker value={v.date} onChange={(date) => setV({ ...v, date })} invalid={Boolean(errors?.date)} />
+          </Fld>
+        </FormGrid>
+      )}
+      <FormGrid cols={2}>
+        <Fld label={a.clockIn} htmlFor="clockIn" error={errors?.clockIn}>
+          <Input id="clockIn" type="time" value={v.clockIn} onChange={(e) => setV({ ...v, clockIn: e.target.value })} />
+        </Fld>
+        <Fld label={a.clockOut} htmlFor="clockOut" error={errors?.clockOut}>
+          <Input id="clockOut" type="time" value={v.clockOut} onChange={(e) => setV({ ...v, clockOut: e.target.value })} />
+        </Fld>
+      </FormGrid>
+      <Fld label={th.status} error={errors?.status}>
+        <SimpleSelect
+          value={v.status}
+          onChange={(status) => setV({ ...v, status })}
+          emptyLabel={a.statusAuto}
+          options={statusOptions}
+        />
+      </Fld>
+      <Fld label={th.notes} htmlFor="notes" error={errors?.notes}>
+        <Textarea id="notes" rows={2} value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
+      </Fld>
+      <FormFooter onCancel={close} pending={pending} />
+    </form>
   );
 }
 

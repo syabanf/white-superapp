@@ -8465,6 +8465,31 @@
         "tags": [
           "AttendanceService"
         ]
+      },
+      "post": {
+        "summary": "hr.write. A manual record for an employee and date; the shift snapshot,\nlateness, work hours and overtime are derived as clock-in/out derive them.",
+        "operationId": "AttendanceService_CreateAttendanceRecord",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AttendanceRecord"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AttendanceRecordInput"
+            }
+          }
+        ],
+        "tags": [
+          "AttendanceService"
+        ]
       }
     },
     "/v1/hr/attendance/roster": {
@@ -8492,6 +8517,63 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "AttendanceService"
+        ]
+      }
+    },
+    "/v1/hr/attendance/{attendanceId}": {
+      "delete": {
+        "summary": "hr.write.",
+        "operationId": "AttendanceService_DeleteAttendanceRecord",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "attendanceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AttendanceService"
+        ]
+      },
+      "put": {
+        "summary": "hr.write. Corrects times, status and notes; employee and date stay.",
+        "operationId": "AttendanceService_UpdateAttendanceRecord",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AttendanceRecord"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "attendanceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AttendanceRecordInput"
+            }
           }
         ],
         "tags": [
@@ -10234,6 +10316,39 @@
         ]
       }
     },
+    "/v1/hr/loans/{loanId}:cancel": {
+      "post": {
+        "summary": "Pending loans only: hr.payroll or hr.approve for any loan, the borrower\nfor their own. Approved loans are repaid through payroll instead.",
+        "operationId": "PayrollService_CancelLoan",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Loan"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "loanId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PayrollServiceCancelLoanBody"
+            }
+          }
+        ],
+        "tags": [
+          "PayrollService"
+        ]
+      }
+    },
     "/v1/hr/loans/{loanId}:decide": {
       "post": {
         "operationId": "PayrollService_DecideLoan",
@@ -10672,6 +10787,39 @@
         ]
       }
     },
+    "/v1/hr/me/loans/{loanId}:cancel": {
+      "post": {
+        "summary": "Own pending loan only.",
+        "operationId": "SelfServiceService_CancelMyLoan",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Loan"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "loanId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SelfServiceServiceCancelMyLoanBody"
+            }
+          }
+        ],
+        "tags": [
+          "SelfServiceService"
+        ]
+      }
+    },
     "/v1/hr/me/overtime": {
       "get": {
         "operationId": "SelfServiceService_ListMyOvertime",
@@ -11004,6 +11152,64 @@
         "parameters": [
           {
             "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateOvertimeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OvertimeService"
+        ]
+      }
+    },
+    "/v1/hr/overtime/{overtimeId}": {
+      "delete": {
+        "summary": "hr.write. Approved overtime feeds payroll, so only pending, rejected or\ncancelled entries can be deleted.",
+        "operationId": "OvertimeService_DeleteOvertime",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "overtimeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OvertimeService"
+        ]
+      },
+      "put": {
+        "summary": "hr.write, pending entries only. Date, times and reason change; the\nemployee, source and status stay. Hours are recomputed.",
+        "operationId": "OvertimeService_UpdateOvertime",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Overtime"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "overtimeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "employee_id is ignored.",
             "in": "body",
             "required": true,
             "schema": {
@@ -13241,6 +13447,31 @@
         ]
       }
     },
+    "/v1/performance/kpi/indicators/{id}": {
+      "delete": {
+        "summary": "Removes an unused indicator; one with KPI history is deactivated instead.",
+        "operationId": "KpiService_DeleteIndicator",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whitePerformanceV1MessageResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "KpiService"
+        ]
+      }
+    },
     "/v1/performance/kpi/realtime": {
       "get": {
         "operationId": "ReviewService_RealtimeKpi",
@@ -13521,6 +13752,36 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "KpiService"
+        ]
+      },
+      "patch": {
+        "operationId": "KpiService_UpdateTarget",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1KpiTarget"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/KpiServiceUpdateTargetBody"
+            }
           }
         ],
         "tags": [
@@ -19436,6 +19697,30 @@
         ]
       }
     },
+    "/v1/sales/invoices/{id}": {
+      "get": {
+        "operationId": "BillingService_GetInvoice",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteSalesV1Invoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BillingService"
+        ]
+      }
+    },
     "/v1/sales/invoices/{id}:cancel": {
       "post": {
         "summary": "finance.write: -> batal (refused once a payment is recorded).",
@@ -21872,6 +22157,32 @@
         }
       }
     },
+    "KpiServiceUpdateTargetBody": {
+      "type": "object",
+      "properties": {
+        "indicatorId": {
+          "type": "string"
+        },
+        "periodYear": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "periodMonth": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "departmentId": {
+          "type": "string"
+        },
+        "employeeId": {
+          "type": "string"
+        },
+        "target": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
     "LeadServiceUpdateContactBody": {
       "type": "object",
       "properties": {
@@ -22335,6 +22646,9 @@
           "type": "boolean"
         }
       }
+    },
+    "PayrollServiceCancelLoanBody": {
+      "type": "object"
     },
     "PayrollServiceDecideLoanBody": {
       "type": "object",
@@ -23216,6 +23530,9 @@
       }
     },
     "SelfServiceServiceCancelMyLeaveBody": {
+      "type": "object"
+    },
+    "SelfServiceServiceCancelMyLoanBody": {
       "type": "object"
     },
     "SelfServiceServiceDecideMyOvertimeBody": {
@@ -25305,6 +25622,33 @@
         },
         "validationNotes": {
           "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AttendanceRecordInput": {
+      "type": "object",
+      "properties": {
+        "employeeId": {
+          "type": "string",
+          "description": "Ignored on update."
+        },
+        "date": {
+          "type": "string"
+        },
+        "clockIn": {
+          "type": "string",
+          "description": "HH:MM (WIB). Empty only when status is absent."
+        },
+        "clockOut": {
+          "type": "string",
+          "description": "HH:MM (WIB), optional. Before clock_in means the next day."
+        },
+        "status": {
+          "type": "string",
+          "description": "present | late | absent | half_day | remote. Empty: derived from the shift."
         },
         "notes": {
           "type": "string"
@@ -36793,7 +37137,7 @@
         },
         "status": {
           "type": "string",
-          "title": "pending | approved | rejected | paid_off"
+          "title": "pending | approved | rejected | paid_off | cancelled"
         },
         "isActive": {
           "type": "boolean"
@@ -43026,6 +43370,13 @@
           "format": "int32"
         },
         "leaveType": {
+          "type": "string"
+        },
+        "attendanceStatus": {
+          "type": "string",
+          "description": "The attendance row's own status and notes, for HR corrections."
+        },
+        "attendanceNotes": {
           "type": "string"
         }
       }

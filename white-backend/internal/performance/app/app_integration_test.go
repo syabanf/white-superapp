@@ -488,6 +488,66 @@ func TestKPISnapshotAndScorecard(t *testing.T) {
 	}
 }
 
+func TestKPIConfigCRUD(t *testing.T) {
+	f := setup(t)
+	ind, err := f.kpi.SaveIndicator(hrAdmin, app.IndicatorInput{Code: "deals_won", Name: "Deal menang", Direction: domain.HigherBetter,
+		SourceKind: domain.SourceManual, IsActive: true})
+	must(t, err)
+
+	year, month := 2026, 11
+	tgt, err := f.kpi.CreateTarget(hrAdmin, domain.KPITarget{IndicatorID: ind.ID, Target: 5})
+	must(t, err)
+	_, err = f.kpi.UpdateTarget(rani, domain.KPITarget{ID: tgt.ID, IndicatorID: ind.ID, Target: 6})
+	code(t, err, apperr.Unauthorized)
+	_, err = f.kpi.UpdateTarget(hrAdmin, domain.KPITarget{ID: tgt.ID, IndicatorID: ind.ID, Target: -1})
+	code(t, err, apperr.Validation)
+	_, err = f.kpi.UpdateTarget(hrAdmin, domain.KPITarget{ID: tgt.ID, IndicatorID: ind.ID, Target: 6, DepartmentID: sp(deptSocial), EmployeeID: sp("emp_rani")})
+	code(t, err, apperr.Validation)
+	_, err = f.kpi.UpdateTarget(hrAdmin, domain.KPITarget{ID: "missing", IndicatorID: ind.ID, Target: 6})
+	code(t, err, apperr.NotFound)
+	_, err = f.kpi.UpdateTarget(hrAdmin, domain.KPITarget{ID: tgt.ID, IndicatorID: ind.ID, Target: 8, PeriodYear: &year, PeriodMonth: &month,
+		DepartmentID: sp(" " + deptSocial + " ")})
+	must(t, err)
+	list, err := f.kpi.ListTargets(hrAdmin)
+	must(t, err)
+	if len(list) != 1 || list[0].Target != 8 || *list[0].PeriodMonth != 11 || *list[0].DepartmentID != deptSocial {
+		t.Fatalf("%+v", list)
+	}
+
+	_, err = f.kpi.DeleteIndicator(rani, ind.ID)
+	code(t, err, apperr.Unauthorized)
+	_, err = f.kpi.DeleteIndicator(hrAdmin, "missing")
+	code(t, err, apperr.NotFound)
+	text, err := f.kpi.DeleteIndicator(hrAdmin, ind.ID)
+	must(t, err)
+	if gone, _ := f.store.GetIndicator(context.Background(), ind.ID); gone != nil || !strings.HasSuffix(text, "dihapus") {
+		t.Fatalf("unused indicator kept: %q", text)
+	}
+	if list, _ = f.kpi.ListTargets(hrAdmin); len(list) != 0 {
+		t.Fatalf("targets of a deleted indicator kept: %+v", list)
+	}
+
+	// An indicator with snapshots only goes inactive, so the scorecard keeps its rows.
+	socialWeights(t, f)
+	oct := domain.Period{Year: 2026, Month: 10}
+	_, _, err = f.kpi.RunSnapshot(hrAdmin, oct)
+	must(t, err)
+	text, err = f.kpi.DeleteIndicator(hrAdmin, "ind_att_ontime")
+	must(t, err)
+	kept, err := f.store.GetIndicator(context.Background(), "ind_att_ontime")
+	must(t, err)
+	if kept == nil || kept.IsActive || !strings.Contains(text, "dinonaktifkan") {
+		t.Fatalf("%+v %q", kept, text)
+	}
+	cards, err := f.kpi.ListScorecards(rani, app.ScorecardQuery{Period: oct})
+	must(t, err)
+	detail, err := f.kpi.GetScorecard(rani, cards[0].ID)
+	must(t, err)
+	if len(detail.Snapshots) != 1 || detail.Snapshots[0].IndicatorID != "ind_att_ontime" {
+		t.Fatalf("scorecard lost history: %+v", detail.Snapshots)
+	}
+}
+
 func TestReviewCycle(t *testing.T) {
 	f := setup(t)
 	_, _, err := f.reviews.OpenCycle(hana, 2026, 3, "")

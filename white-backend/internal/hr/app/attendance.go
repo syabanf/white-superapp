@@ -25,6 +25,8 @@ const maxSelfieBytes = 2 << 20
 
 var selfieMIME = []string{"image/jpeg", "image/png", "image/webp"}
 
+const msgAttendanceNotFound = "Data absensi tidak ditemukan."
+
 var attendanceStatuses = []string{"present", "late", "absent", "half_day", "remote"}
 
 type ClockInput struct {
@@ -74,20 +76,9 @@ func (s *Attendance) ClockIn(ctx context.Context, a Actor, in ClockInput) (*doma
 	}
 	now := s.d.now()
 	att := domain.Attendance{ID: newID(), EmployeeID: employeeID, Date: date, ClockIn: &now, ClockInLocation: in.Location,
-		ClockInPhotoKey: photo, Status: "present", BreakMinutes: 60, Notes: strings.TrimSpace(in.Notes)}
-	rows, err := s.d.Store.ListScheduleRows(ctx, []string{employeeID})
-	if err != nil {
+		ClockInPhotoKey: photo, Notes: strings.TrimSpace(in.Notes)}
+	if err := s.rate(ctx, &att); err != nil {
 		return nil, err
-	}
-	if sh := ShiftOn(rows, date); sh != nil {
-		times := shiftTimes(*sh)
-		start, end := hris.ScheduledWindow(date, times)
-		late, minutes := hris.Lateness(now, date, times)
-		att.ShiftID, att.ScheduledStart, att.ScheduledEnd = &sh.ID, &start, &end
-		att.IsLate, att.LateMinutes, att.BreakMinutes = late, minutes, sh.BreakMinutes
-		if late {
-			att.Status = "late"
-		}
 	}
 	if err := s.d.Store.InsertAttendance(ctx, att, a.UserRef()); err != nil {
 		return nil, uniqueErr(err, "Sudah clock-in untuk tanggal ini.")
@@ -95,15 +86,14 @@ func (s *Attendance) ClockIn(ctx context.Context, a Actor, in ClockInput) (*doma
 	return s.d.Store.GetAttendance(ctx, att.ID)
 }
 
-// ClockOut closes the row: work hours as calculate_work_hours did, and the
-// hours past the scheduled end as realized overtime (the cap payroll uses).
+// ClockOut closes the row; settle derives work hours and overtime.
 func (s *Attendance) ClockOut(ctx context.Context, a Actor, in ClockInput) (*domain.Attendance, error) {
 	att, err := s.d.Store.GetAttendance(ctx, in.AttendanceID)
 	if err != nil {
 		return nil, err
 	}
 	if att == nil {
-		return nil, notFound("Data absensi tidak ditemukan.")
+		return nil, notFound(msgAttendanceNotFound)
 	}
 	if att.EmployeeID != a.EmployeeID || !a.Can(authn.PermSelfService) {
 		if err := require(a, authn.PermHRWrite); err != nil {
@@ -119,13 +109,7 @@ func (s *Attendance) ClockOut(ctx context.Context, a Actor, in ClockInput) (*dom
 	}
 	now := s.d.now()
 	att.ClockOut, att.ClockOutLocation, att.ClockOutPhotoKey = &now, in.Location, photo
-	if att.ClockIn != nil {
-		brk := att.BreakMinutes
-		att.WorkHours = hris.WorkHours(*att.ClockIn, now, &brk)
-	}
-	if att.ScheduledEnd != nil && now.After(*att.ScheduledEnd) {
-		att.OvertimeHours = math.Round(now.Sub(*att.ScheduledEnd).Hours()*100) / 100
-	}
+	settle(att)
 	if n := strings.TrimSpace(in.Notes); n != "" {
 		att.Notes = strings.TrimSpace(att.Notes + "\n" + n)
 	}
@@ -137,6 +121,165 @@ func (s *Attendance) ClockOut(ctx context.Context, a Actor, in ClockInput) (*dom
 		return nil, conflict("Sudah clock-out untuk absensi ini.")
 	}
 	return s.d.Store.GetAttendance(ctx, att.ID)
+}
+
+// rate snapshots the shift scheduled on att.Date onto the row and derives
+// lateness and status from the clock-in; without a shift the row is
+// present with the default 60-minute break.
+func (s *Attendance) rate(ctx context.Context, att *domain.Attendance) error {
+	rows, err := s.d.Store.ListScheduleRows(ctx, []string{att.EmployeeID})
+	if err != nil {
+		return err
+	}
+	att.ShiftID, att.ScheduledStart, att.ScheduledEnd = nil, nil, nil
+	att.Status, att.IsLate, att.LateMinutes, att.BreakMinutes = "present", false, 0, 60
+	sh := ShiftOn(rows, att.Date)
+	if sh == nil {
+		return nil
+	}
+	times := shiftTimes(*sh)
+	start, end := hris.ScheduledWindow(att.Date, times)
+	att.ShiftID, att.ScheduledStart, att.ScheduledEnd, att.BreakMinutes = &sh.ID, &start, &end, sh.BreakMinutes
+	if att.ClockIn != nil {
+		att.IsLate, att.LateMinutes = hris.Lateness(*att.ClockIn, att.Date, times)
+		if att.IsLate {
+			att.Status = "late"
+		}
+	}
+	return nil
+}
+
+// settle derives work hours as calculate_work_hours did, and the hours
+// past the scheduled end as realized overtime (the cap payroll uses).
+func settle(att *domain.Attendance) {
+	att.WorkHours, att.OvertimeHours = 0, 0
+	if att.ClockOut == nil {
+		return
+	}
+	if att.ClockIn != nil {
+		brk := att.BreakMinutes
+		att.WorkHours = hris.WorkHours(*att.ClockIn, *att.ClockOut, &brk)
+	}
+	if att.ScheduledEnd != nil && att.ClockOut.After(*att.ScheduledEnd) {
+		att.OvertimeHours = math.Round(att.ClockOut.Sub(*att.ScheduledEnd).Hours()*100) / 100
+	}
+}
+
+// ─── Manual records (HR) ─────────────────────────────────────
+
+// RecordInput is an HR-entered attendance row. Times are WIB wall clock
+// on the row's date; a clock-out before the clock-in is the next day.
+type RecordInput struct {
+	EmployeeID, Date, ClockIn, ClockOut, Status, Notes string
+}
+
+// CreateRecord stores a manual row for an employee and date (hr.write).
+func (s *Attendance) CreateRecord(ctx context.Context, a Actor, in RecordInput) (*domain.Attendance, error) {
+	if err := require(a, authn.PermHRWrite); err != nil {
+		return nil, err
+	}
+	date, err := reqDate("date", in.Date)
+	if err != nil {
+		return nil, err
+	}
+	if date > s.d.today() {
+		return nil, invalid("date", "Tanggal absensi tidak boleh melewati hari ini.")
+	}
+	emp, err := s.d.Store.GetEmployee(ctx, in.EmployeeID)
+	if err != nil {
+		return nil, err
+	}
+	if emp == nil || !emp.IsActive {
+		return nil, invalid("employeeId", "Karyawan tidak ditemukan atau sudah tidak aktif.")
+	}
+	att := domain.Attendance{ID: newID(), EmployeeID: emp.ID, Date: date}
+	if err := s.applyRecord(ctx, &att, in); err != nil {
+		return nil, err
+	}
+	if err := s.d.Store.InsertAttendance(ctx, att, a.UserRef()); err != nil {
+		return nil, uniqueErr(err, "Absensi karyawan ini di tanggal tersebut sudah ada. Ubah data yang ada.")
+	}
+	return s.d.Store.GetAttendance(ctx, att.ID)
+}
+
+// UpdateRecord corrects the times, status and notes of a row (hr.write);
+// the employee, date, selfies and validation stay.
+func (s *Attendance) UpdateRecord(ctx context.Context, a Actor, id string, in RecordInput) (*domain.Attendance, error) {
+	if err := require(a, authn.PermHRWrite); err != nil {
+		return nil, err
+	}
+	att, err := s.d.Store.GetAttendance(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if att == nil {
+		return nil, notFound(msgAttendanceNotFound)
+	}
+	if err := s.applyRecord(ctx, att, in); err != nil {
+		return nil, err
+	}
+	ok, err := s.d.Store.UpdateAttendance(ctx, *att)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, notFound(msgAttendanceNotFound)
+	}
+	return s.d.Store.GetAttendance(ctx, id)
+}
+
+// DeleteRecord removes a row (hr.write).
+func (s *Attendance) DeleteRecord(ctx context.Context, a Actor, id string) error {
+	if err := require(a, authn.PermHRWrite); err != nil {
+		return err
+	}
+	ok, err := s.d.Store.DeleteAttendance(ctx, id)
+	if err == nil && !ok {
+		return notFound(msgAttendanceNotFound)
+	}
+	return err
+}
+
+// applyRecord sets the entered times and notes, derives the rest as
+// clock-in and clock-out do, then applies an explicit status over the
+// derived one. A clock-in is required unless the status is absent.
+func (s *Attendance) applyRecord(ctx context.Context, att *domain.Attendance, in RecordInput) error {
+	status := strings.TrimSpace(in.Status)
+	if status != "" && !slices.Contains(attendanceStatuses, status) {
+		return invalid("status", "Status absensi tidak valid.")
+	}
+	switch {
+	case in.ClockIn == "" && status != "absent":
+		return invalid("clockIn", "Jam masuk wajib diisi kecuali status Alpha.")
+	case in.ClockIn != "" && !clockRe.MatchString(in.ClockIn):
+		return invalid("clockIn", "Jam masuk tidak valid (HH:MM).")
+	case in.ClockOut != "" && (in.ClockIn == "" || !clockRe.MatchString(in.ClockOut)):
+		return invalid("clockOut", "Jam pulang tidak valid (HH:MM) dan butuh jam masuk.")
+	case in.ClockOut != "" && domain.HHMM(in.ClockOut) == domain.HHMM(in.ClockIn):
+		return invalid("clockOut", "Jam pulang tidak boleh sama dengan jam masuk.")
+	}
+	att.ClockIn, att.ClockOut = nil, nil
+	if in.ClockIn != "" {
+		t := hris.AtWIB(att.Date, in.ClockIn, 0)
+		att.ClockIn = &t
+	}
+	if in.ClockOut != "" {
+		next := 0
+		if domain.HHMM(in.ClockOut) < domain.HHMM(in.ClockIn) {
+			next = 1
+		}
+		t := hris.AtWIB(att.Date, in.ClockOut, next)
+		att.ClockOut = &t
+	}
+	if err := s.rate(ctx, att); err != nil {
+		return err
+	}
+	settle(att)
+	if status != "" {
+		att.Status = status
+	}
+	att.Notes = strings.TrimSpace(in.Notes)
+	return nil
 }
 
 func (s *Attendance) saveSelfie(ctx context.Context, employeeID string, photo []byte) (*string, error) {
@@ -171,7 +314,7 @@ func (s *Attendance) Validate(ctx context.Context, a Actor, id, status, notes st
 		return nil, err
 	}
 	if att == nil {
-		return nil, notFound("Data absensi tidak ditemukan.")
+		return nil, notFound(msgAttendanceNotFound)
 	}
 	if status == "" {
 		status = att.Status
@@ -192,7 +335,7 @@ func (s *Attendance) Photo(ctx context.Context, a Actor, id, kind string) ([]byt
 		return nil, "", err
 	}
 	if att == nil {
-		return nil, "", notFound("Data absensi tidak ditemukan.")
+		return nil, "", notFound(msgAttendanceNotFound)
 	}
 	if !a.Can(authn.PermHRRead) && att.EmployeeID != a.EmployeeID {
 		return nil, "", require(a, authn.PermHRRead)

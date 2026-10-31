@@ -22,10 +22,12 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	KpiService_ListIndicators_FullMethodName           = "/white.performance.v1.KpiService/ListIndicators"
 	KpiService_SaveIndicator_FullMethodName            = "/white.performance.v1.KpiService/SaveIndicator"
+	KpiService_DeleteIndicator_FullMethodName          = "/white.performance.v1.KpiService/DeleteIndicator"
 	KpiService_GetKpiConfig_FullMethodName             = "/white.performance.v1.KpiService/GetKpiConfig"
 	KpiService_SaveDepartmentConfig_FullMethodName     = "/white.performance.v1.KpiService/SaveDepartmentConfig"
 	KpiService_ListTargets_FullMethodName              = "/white.performance.v1.KpiService/ListTargets"
 	KpiService_CreateTarget_FullMethodName             = "/white.performance.v1.KpiService/CreateTarget"
+	KpiService_UpdateTarget_FullMethodName             = "/white.performance.v1.KpiService/UpdateTarget"
 	KpiService_DeleteTarget_FullMethodName             = "/white.performance.v1.KpiService/DeleteTarget"
 	KpiService_RunSnapshot_FullMethodName              = "/white.performance.v1.KpiService/RunSnapshot"
 	KpiService_ListScorecards_FullMethodName           = "/white.performance.v1.KpiService/ListScorecards"
@@ -49,10 +51,13 @@ const (
 type KpiServiceClient interface {
 	ListIndicators(ctx context.Context, in *ListIndicatorsRequest, opts ...grpc.CallOption) (*ListIndicatorsResponse, error)
 	SaveIndicator(ctx context.Context, in *Indicator, opts ...grpc.CallOption) (*Indicator, error)
+	// Removes an unused indicator; one with KPI history is deactivated instead.
+	DeleteIndicator(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*MessageResponse, error)
 	GetKpiConfig(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*KpiConfig, error)
 	SaveDepartmentConfig(ctx context.Context, in *SaveDepartmentConfigRequest, opts ...grpc.CallOption) (*MessageResponse, error)
 	ListTargets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListTargetsResponse, error)
 	CreateTarget(ctx context.Context, in *KpiTarget, opts ...grpc.CallOption) (*KpiTarget, error)
+	UpdateTarget(ctx context.Context, in *KpiTarget, opts ...grpc.CallOption) (*KpiTarget, error)
 	DeleteTarget(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*MessageResponse, error)
 	RunSnapshot(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*SnapshotSummary, error)
 	ListScorecards(ctx context.Context, in *ListScorecardsRequest, opts ...grpc.CallOption) (*ListScorecardsResponse, error)
@@ -102,6 +107,16 @@ func (c *kpiServiceClient) SaveIndicator(ctx context.Context, in *Indicator, opt
 	return out, nil
 }
 
+func (c *kpiServiceClient) DeleteIndicator(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*MessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageResponse)
+	err := c.cc.Invoke(ctx, KpiService_DeleteIndicator_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *kpiServiceClient) GetKpiConfig(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*KpiConfig, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(KpiConfig)
@@ -136,6 +151,16 @@ func (c *kpiServiceClient) CreateTarget(ctx context.Context, in *KpiTarget, opts
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(KpiTarget)
 	err := c.cc.Invoke(ctx, KpiService_CreateTarget_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kpiServiceClient) UpdateTarget(ctx context.Context, in *KpiTarget, opts ...grpc.CallOption) (*KpiTarget, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KpiTarget)
+	err := c.cc.Invoke(ctx, KpiService_UpdateTarget_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -298,10 +323,13 @@ func (c *kpiServiceClient) GetDashboardImprovements(ctx context.Context, in *Das
 type KpiServiceServer interface {
 	ListIndicators(context.Context, *ListIndicatorsRequest) (*ListIndicatorsResponse, error)
 	SaveIndicator(context.Context, *Indicator) (*Indicator, error)
+	// Removes an unused indicator; one with KPI history is deactivated instead.
+	DeleteIndicator(context.Context, *IdRequest) (*MessageResponse, error)
 	GetKpiConfig(context.Context, *emptypb.Empty) (*KpiConfig, error)
 	SaveDepartmentConfig(context.Context, *SaveDepartmentConfigRequest) (*MessageResponse, error)
 	ListTargets(context.Context, *emptypb.Empty) (*ListTargetsResponse, error)
 	CreateTarget(context.Context, *KpiTarget) (*KpiTarget, error)
+	UpdateTarget(context.Context, *KpiTarget) (*KpiTarget, error)
 	DeleteTarget(context.Context, *IdRequest) (*MessageResponse, error)
 	RunSnapshot(context.Context, *PeriodRequest) (*SnapshotSummary, error)
 	ListScorecards(context.Context, *ListScorecardsRequest) (*ListScorecardsResponse, error)
@@ -337,6 +365,9 @@ func (UnimplementedKpiServiceServer) ListIndicators(context.Context, *ListIndica
 func (UnimplementedKpiServiceServer) SaveIndicator(context.Context, *Indicator) (*Indicator, error) {
 	return nil, status.Error(codes.Unimplemented, "method SaveIndicator not implemented")
 }
+func (UnimplementedKpiServiceServer) DeleteIndicator(context.Context, *IdRequest) (*MessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteIndicator not implemented")
+}
 func (UnimplementedKpiServiceServer) GetKpiConfig(context.Context, *emptypb.Empty) (*KpiConfig, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetKpiConfig not implemented")
 }
@@ -348,6 +379,9 @@ func (UnimplementedKpiServiceServer) ListTargets(context.Context, *emptypb.Empty
 }
 func (UnimplementedKpiServiceServer) CreateTarget(context.Context, *KpiTarget) (*KpiTarget, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateTarget not implemented")
+}
+func (UnimplementedKpiServiceServer) UpdateTarget(context.Context, *KpiTarget) (*KpiTarget, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateTarget not implemented")
 }
 func (UnimplementedKpiServiceServer) DeleteTarget(context.Context, *IdRequest) (*MessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteTarget not implemented")
@@ -451,6 +485,24 @@ func _KpiService_SaveIndicator_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KpiService_DeleteIndicator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KpiServiceServer).DeleteIndicator(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KpiService_DeleteIndicator_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KpiServiceServer).DeleteIndicator(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _KpiService_GetKpiConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -519,6 +571,24 @@ func _KpiService_CreateTarget_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KpiServiceServer).CreateTarget(ctx, req.(*KpiTarget))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KpiService_UpdateTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KpiTarget)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KpiServiceServer).UpdateTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KpiService_UpdateTarget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KpiServiceServer).UpdateTarget(ctx, req.(*KpiTarget))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -809,6 +879,10 @@ var KpiService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KpiService_SaveIndicator_Handler,
 		},
 		{
+			MethodName: "DeleteIndicator",
+			Handler:    _KpiService_DeleteIndicator_Handler,
+		},
+		{
 			MethodName: "GetKpiConfig",
 			Handler:    _KpiService_GetKpiConfig_Handler,
 		},
@@ -823,6 +897,10 @@ var KpiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTarget",
 			Handler:    _KpiService_CreateTarget_Handler,
+		},
+		{
+			MethodName: "UpdateTarget",
+			Handler:    _KpiService_UpdateTarget_Handler,
 		},
 		{
 			MethodName: "DeleteTarget",

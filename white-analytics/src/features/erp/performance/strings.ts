@@ -290,6 +290,10 @@ export const sp = {
     active: "Aktif",
     inactive: "Nonaktif",
     indicatorSaved: "Indikator tersimpan",
+    deleteIndicator: "Hapus indikator",
+    deleteIndicatorTitle: (name: string) => `Hapus indikator ${name}?`,
+    deleteIndicatorBody:
+      "Target dan bobot departemennya ikut terhapus. Indikator yang sudah punya riwayat KPI hanya dinonaktifkan agar scorecard lama tetap utuh.",
     // Config
     configHint:
       "Centang indikator yang memengaruhi KPI tiap departemen beserta bobotnya. Berlaku mulai snapshot berikutnya, scorecard final tidak berubah.",
@@ -301,6 +305,7 @@ export const sp = {
     weightOf: (name: string) => `Bobot ${name} (%)`,
     // Targets
     newTarget: "Tambah target",
+    editTarget: "Ubah target",
     pickIndicator: "Pilih indikator.",
     targetInvalid: "Isi nilai target yang valid.",
     scope: "Cakupan",

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { DeltaBadge } from "@/components/dashboard/delta-badge";
+import { CountUp } from "@/components/motion/count-up";
 import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/dashboard/info-hint";
 import { computeDelta, type Delta, type Polarity } from "@/lib/metrics";
@@ -70,7 +71,9 @@ export function StatStrip({
                 {it.hint ? <InfoHint className="ml-auto">{it.hint}</InfoHint> : null}
               </div>
               <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="text-[17px] font-bold tracking-[-0.025em] tabular">{it.value}</span>
+                <span className="text-[17px] font-bold tracking-[-0.025em] tabular">
+                  <CountUp value={it.value} />
+                </span>
                 {delta ? <DeltaBadge delta={delta} lowerIsBetter={it.lowerIsBetter} /> : null}
               </div>
               {it.caption ? (

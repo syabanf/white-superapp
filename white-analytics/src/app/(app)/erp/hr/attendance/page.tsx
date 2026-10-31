@@ -107,12 +107,19 @@ async function Body({ tab, sp, perms }: { tab: string; sp: SP; perms: ReturnType
     }
     default: {
       const today = todayWib();
-      const [res, deps] = await Promise.all([
+      const [res, deps, employees] = await Promise.all([
         load(() => getDailyRoster(sp1(sp.date) ?? today, sp1(sp.dept))),
         departmentOptions(),
+        perms.write ? load(listEmployeeOptions) : null,
       ]);
       return res.data ? (
-        <RosterView roster={res.data} today={today} departments={deps} />
+        <RosterView
+          roster={res.data}
+          today={today}
+          departments={deps}
+          employees={employees?.data ?? []}
+          canWrite={perms.write}
+        />
       ) : (
         <ErpError message={res.error.message} />
       );

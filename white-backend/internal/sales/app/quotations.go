@@ -416,11 +416,30 @@ func (q *Quotes) RenderPDF(ctx context.Context, id string) (string, []byte, erro
 	if deal == nil {
 		return "", nil, notFound(msgDealNotFound)
 	}
-	data, err := q.Renderer.QuotationPDF(*qt, *deal)
+	data, err := q.Renderer.QuotationPDF(*qt, *deal, q.ownerName(ctx, deal.OwnerUserID))
 	if err != nil {
 		return "", nil, err
 	}
 	return fileName(qt.QuoteNumber, qt.ClientName, "pdf"), data, nil
+}
+
+// ownerName resolves the deal owner for the document header; an unknown
+// owner or a directory failure yields "" and the row is left out.
+func (q *Quotes) ownerName(ctx context.Context, ownerID *string) string {
+	if ownerID == nil || q.Directory == nil {
+		return ""
+	}
+	users, err := q.Directory.ListUsers(ctx)
+	if err != nil {
+		q.warn("list users failed", "err", err)
+		return ""
+	}
+	for _, u := range users {
+		if u.ID == *ownerID {
+			return u.Name
+		}
+	}
+	return ""
 }
 
 // fileName is "{number}-{org}.{ext}" with a safe organisation slug.

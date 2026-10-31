@@ -1144,13 +1144,16 @@ var PeopleService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	AttendanceService_ClockIn_FullMethodName            = "/white.hr.v1.AttendanceService/ClockIn"
-	AttendanceService_ClockOut_FullMethodName           = "/white.hr.v1.AttendanceService/ClockOut"
-	AttendanceService_ListAttendance_FullMethodName     = "/white.hr.v1.AttendanceService/ListAttendance"
-	AttendanceService_GetDailyRoster_FullMethodName     = "/white.hr.v1.AttendanceService/GetDailyRoster"
-	AttendanceService_ValidateAttendance_FullMethodName = "/white.hr.v1.AttendanceService/ValidateAttendance"
-	AttendanceService_GetAttendancePhoto_FullMethodName = "/white.hr.v1.AttendanceService/GetAttendancePhoto"
-	AttendanceService_ExportAttendance_FullMethodName   = "/white.hr.v1.AttendanceService/ExportAttendance"
+	AttendanceService_ClockIn_FullMethodName                = "/white.hr.v1.AttendanceService/ClockIn"
+	AttendanceService_ClockOut_FullMethodName               = "/white.hr.v1.AttendanceService/ClockOut"
+	AttendanceService_ListAttendance_FullMethodName         = "/white.hr.v1.AttendanceService/ListAttendance"
+	AttendanceService_GetDailyRoster_FullMethodName         = "/white.hr.v1.AttendanceService/GetDailyRoster"
+	AttendanceService_ValidateAttendance_FullMethodName     = "/white.hr.v1.AttendanceService/ValidateAttendance"
+	AttendanceService_GetAttendancePhoto_FullMethodName     = "/white.hr.v1.AttendanceService/GetAttendancePhoto"
+	AttendanceService_ExportAttendance_FullMethodName       = "/white.hr.v1.AttendanceService/ExportAttendance"
+	AttendanceService_CreateAttendanceRecord_FullMethodName = "/white.hr.v1.AttendanceService/CreateAttendanceRecord"
+	AttendanceService_UpdateAttendanceRecord_FullMethodName = "/white.hr.v1.AttendanceService/UpdateAttendanceRecord"
+	AttendanceService_DeleteAttendanceRecord_FullMethodName = "/white.hr.v1.AttendanceService/DeleteAttendanceRecord"
 )
 
 // AttendanceServiceClient is the client API for AttendanceService service.
@@ -1171,6 +1174,13 @@ type AttendanceServiceClient interface {
 	GetAttendancePhoto(ctx context.Context, in *GetAttendancePhotoRequest, opts ...grpc.CallOption) (*FileBytes, error)
 	// hr.read. XLSX "Rekap Absensi".
 	ExportAttendance(ctx context.Context, in *ExportAttendanceRequest, opts ...grpc.CallOption) (*FileBytes, error)
+	// hr.write. A manual record for an employee and date; the shift snapshot,
+	// lateness, work hours and overtime are derived as clock-in/out derive them.
+	CreateAttendanceRecord(ctx context.Context, in *AttendanceRecordInput, opts ...grpc.CallOption) (*AttendanceRecord, error)
+	// hr.write. Corrects times, status and notes; employee and date stay.
+	UpdateAttendanceRecord(ctx context.Context, in *UpdateAttendanceRecordRequest, opts ...grpc.CallOption) (*AttendanceRecord, error)
+	// hr.write.
+	DeleteAttendanceRecord(ctx context.Context, in *AttendanceRecordRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type attendanceServiceClient struct {
@@ -1251,6 +1261,36 @@ func (c *attendanceServiceClient) ExportAttendance(ctx context.Context, in *Expo
 	return out, nil
 }
 
+func (c *attendanceServiceClient) CreateAttendanceRecord(ctx context.Context, in *AttendanceRecordInput, opts ...grpc.CallOption) (*AttendanceRecord, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AttendanceRecord)
+	err := c.cc.Invoke(ctx, AttendanceService_CreateAttendanceRecord_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *attendanceServiceClient) UpdateAttendanceRecord(ctx context.Context, in *UpdateAttendanceRecordRequest, opts ...grpc.CallOption) (*AttendanceRecord, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AttendanceRecord)
+	err := c.cc.Invoke(ctx, AttendanceService_UpdateAttendanceRecord_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *attendanceServiceClient) DeleteAttendanceRecord(ctx context.Context, in *AttendanceRecordRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AttendanceService_DeleteAttendanceRecord_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AttendanceServiceServer is the server API for AttendanceService service.
 // All implementations must embed UnimplementedAttendanceServiceServer
 // for forward compatibility.
@@ -1269,6 +1309,13 @@ type AttendanceServiceServer interface {
 	GetAttendancePhoto(context.Context, *GetAttendancePhotoRequest) (*FileBytes, error)
 	// hr.read. XLSX "Rekap Absensi".
 	ExportAttendance(context.Context, *ExportAttendanceRequest) (*FileBytes, error)
+	// hr.write. A manual record for an employee and date; the shift snapshot,
+	// lateness, work hours and overtime are derived as clock-in/out derive them.
+	CreateAttendanceRecord(context.Context, *AttendanceRecordInput) (*AttendanceRecord, error)
+	// hr.write. Corrects times, status and notes; employee and date stay.
+	UpdateAttendanceRecord(context.Context, *UpdateAttendanceRecordRequest) (*AttendanceRecord, error)
+	// hr.write.
+	DeleteAttendanceRecord(context.Context, *AttendanceRecordRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAttendanceServiceServer()
 }
 
@@ -1299,6 +1346,15 @@ func (UnimplementedAttendanceServiceServer) GetAttendancePhoto(context.Context, 
 }
 func (UnimplementedAttendanceServiceServer) ExportAttendance(context.Context, *ExportAttendanceRequest) (*FileBytes, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExportAttendance not implemented")
+}
+func (UnimplementedAttendanceServiceServer) CreateAttendanceRecord(context.Context, *AttendanceRecordInput) (*AttendanceRecord, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAttendanceRecord not implemented")
+}
+func (UnimplementedAttendanceServiceServer) UpdateAttendanceRecord(context.Context, *UpdateAttendanceRecordRequest) (*AttendanceRecord, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAttendanceRecord not implemented")
+}
+func (UnimplementedAttendanceServiceServer) DeleteAttendanceRecord(context.Context, *AttendanceRecordRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAttendanceRecord not implemented")
 }
 func (UnimplementedAttendanceServiceServer) mustEmbedUnimplementedAttendanceServiceServer() {}
 func (UnimplementedAttendanceServiceServer) testEmbeddedByValue()                           {}
@@ -1447,6 +1503,60 @@ func _AttendanceService_ExportAttendance_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AttendanceService_CreateAttendanceRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AttendanceRecordInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttendanceServiceServer).CreateAttendanceRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AttendanceService_CreateAttendanceRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttendanceServiceServer).CreateAttendanceRecord(ctx, req.(*AttendanceRecordInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AttendanceService_UpdateAttendanceRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAttendanceRecordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttendanceServiceServer).UpdateAttendanceRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AttendanceService_UpdateAttendanceRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttendanceServiceServer).UpdateAttendanceRecord(ctx, req.(*UpdateAttendanceRecordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AttendanceService_DeleteAttendanceRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AttendanceRecordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AttendanceServiceServer).DeleteAttendanceRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AttendanceService_DeleteAttendanceRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AttendanceServiceServer).DeleteAttendanceRecord(ctx, req.(*AttendanceRecordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AttendanceService_ServiceDesc is the grpc.ServiceDesc for AttendanceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1481,6 +1591,18 @@ var AttendanceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExportAttendance",
 			Handler:    _AttendanceService_ExportAttendance_Handler,
+		},
+		{
+			MethodName: "CreateAttendanceRecord",
+			Handler:    _AttendanceService_CreateAttendanceRecord_Handler,
+		},
+		{
+			MethodName: "UpdateAttendanceRecord",
+			Handler:    _AttendanceService_UpdateAttendanceRecord_Handler,
+		},
+		{
+			MethodName: "DeleteAttendanceRecord",
+			Handler:    _AttendanceService_DeleteAttendanceRecord_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2403,6 +2525,8 @@ const (
 	OvertimeService_ListOvertime_FullMethodName   = "/white.hr.v1.OvertimeService/ListOvertime"
 	OvertimeService_CreateOvertime_FullMethodName = "/white.hr.v1.OvertimeService/CreateOvertime"
 	OvertimeService_DecideOvertime_FullMethodName = "/white.hr.v1.OvertimeService/DecideOvertime"
+	OvertimeService_UpdateOvertime_FullMethodName = "/white.hr.v1.OvertimeService/UpdateOvertime"
+	OvertimeService_DeleteOvertime_FullMethodName = "/white.hr.v1.OvertimeService/DeleteOvertime"
 )
 
 // OvertimeServiceClient is the client API for OvertimeService service.
@@ -2415,6 +2539,12 @@ type OvertimeServiceClient interface {
 	// another employee (source company, confirmed by that employee).
 	CreateOvertime(ctx context.Context, in *CreateOvertimeRequest, opts ...grpc.CallOption) (*Overtime, error)
 	DecideOvertime(ctx context.Context, in *DecideOvertimeRequest, opts ...grpc.CallOption) (*Overtime, error)
+	// hr.write, pending entries only. Date, times and reason change; the
+	// employee, source and status stay. Hours are recomputed.
+	UpdateOvertime(ctx context.Context, in *UpdateOvertimeRequest, opts ...grpc.CallOption) (*Overtime, error)
+	// hr.write. Approved overtime feeds payroll, so only pending, rejected or
+	// cancelled entries can be deleted.
+	DeleteOvertime(ctx context.Context, in *OvertimeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type overtimeServiceClient struct {
@@ -2455,6 +2585,26 @@ func (c *overtimeServiceClient) DecideOvertime(ctx context.Context, in *DecideOv
 	return out, nil
 }
 
+func (c *overtimeServiceClient) UpdateOvertime(ctx context.Context, in *UpdateOvertimeRequest, opts ...grpc.CallOption) (*Overtime, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Overtime)
+	err := c.cc.Invoke(ctx, OvertimeService_UpdateOvertime_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *overtimeServiceClient) DeleteOvertime(ctx context.Context, in *OvertimeRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, OvertimeService_DeleteOvertime_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OvertimeServiceServer is the server API for OvertimeService service.
 // All implementations must embed UnimplementedOvertimeServiceServer
 // for forward compatibility.
@@ -2465,6 +2615,12 @@ type OvertimeServiceServer interface {
 	// another employee (source company, confirmed by that employee).
 	CreateOvertime(context.Context, *CreateOvertimeRequest) (*Overtime, error)
 	DecideOvertime(context.Context, *DecideOvertimeRequest) (*Overtime, error)
+	// hr.write, pending entries only. Date, times and reason change; the
+	// employee, source and status stay. Hours are recomputed.
+	UpdateOvertime(context.Context, *UpdateOvertimeRequest) (*Overtime, error)
+	// hr.write. Approved overtime feeds payroll, so only pending, rejected or
+	// cancelled entries can be deleted.
+	DeleteOvertime(context.Context, *OvertimeRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedOvertimeServiceServer()
 }
 
@@ -2483,6 +2639,12 @@ func (UnimplementedOvertimeServiceServer) CreateOvertime(context.Context, *Creat
 }
 func (UnimplementedOvertimeServiceServer) DecideOvertime(context.Context, *DecideOvertimeRequest) (*Overtime, error) {
 	return nil, status.Error(codes.Unimplemented, "method DecideOvertime not implemented")
+}
+func (UnimplementedOvertimeServiceServer) UpdateOvertime(context.Context, *UpdateOvertimeRequest) (*Overtime, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateOvertime not implemented")
+}
+func (UnimplementedOvertimeServiceServer) DeleteOvertime(context.Context, *OvertimeRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteOvertime not implemented")
 }
 func (UnimplementedOvertimeServiceServer) mustEmbedUnimplementedOvertimeServiceServer() {}
 func (UnimplementedOvertimeServiceServer) testEmbeddedByValue()                         {}
@@ -2559,6 +2721,42 @@ func _OvertimeService_DecideOvertime_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OvertimeService_UpdateOvertime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOvertimeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OvertimeServiceServer).UpdateOvertime(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OvertimeService_UpdateOvertime_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OvertimeServiceServer).UpdateOvertime(ctx, req.(*UpdateOvertimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OvertimeService_DeleteOvertime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OvertimeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OvertimeServiceServer).DeleteOvertime(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OvertimeService_DeleteOvertime_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OvertimeServiceServer).DeleteOvertime(ctx, req.(*OvertimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OvertimeService_ServiceDesc is the grpc.ServiceDesc for OvertimeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2577,6 +2775,14 @@ var OvertimeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DecideOvertime",
 			Handler:    _OvertimeService_DecideOvertime_Handler,
+		},
+		{
+			MethodName: "UpdateOvertime",
+			Handler:    _OvertimeService_UpdateOvertime_Handler,
+		},
+		{
+			MethodName: "DeleteOvertime",
+			Handler:    _OvertimeService_DeleteOvertime_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -3572,6 +3778,7 @@ const (
 	PayrollService_GetLoan_FullMethodName               = "/white.hr.v1.PayrollService/GetLoan"
 	PayrollService_CreateLoan_FullMethodName            = "/white.hr.v1.PayrollService/CreateLoan"
 	PayrollService_DecideLoan_FullMethodName            = "/white.hr.v1.PayrollService/DecideLoan"
+	PayrollService_CancelLoan_FullMethodName            = "/white.hr.v1.PayrollService/CancelLoan"
 )
 
 // PayrollServiceClient is the client API for PayrollService service.
@@ -3607,6 +3814,9 @@ type PayrollServiceClient interface {
 	// self.service for oneself (interest free); hr.payroll for anyone.
 	CreateLoan(ctx context.Context, in *CreateLoanRequest, opts ...grpc.CallOption) (*Loan, error)
 	DecideLoan(ctx context.Context, in *DecideLoanRequest, opts ...grpc.CallOption) (*Loan, error)
+	// Pending loans only: hr.payroll or hr.approve for any loan, the borrower
+	// for their own. Approved loans are repaid through payroll instead.
+	CancelLoan(ctx context.Context, in *LoanRequest, opts ...grpc.CallOption) (*Loan, error)
 }
 
 type payrollServiceClient struct {
@@ -3837,6 +4047,16 @@ func (c *payrollServiceClient) DecideLoan(ctx context.Context, in *DecideLoanReq
 	return out, nil
 }
 
+func (c *payrollServiceClient) CancelLoan(ctx context.Context, in *LoanRequest, opts ...grpc.CallOption) (*Loan, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Loan)
+	err := c.cc.Invoke(ctx, PayrollService_CancelLoan_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PayrollServiceServer is the server API for PayrollService service.
 // All implementations must embed UnimplementedPayrollServiceServer
 // for forward compatibility.
@@ -3870,6 +4090,9 @@ type PayrollServiceServer interface {
 	// self.service for oneself (interest free); hr.payroll for anyone.
 	CreateLoan(context.Context, *CreateLoanRequest) (*Loan, error)
 	DecideLoan(context.Context, *DecideLoanRequest) (*Loan, error)
+	// Pending loans only: hr.payroll or hr.approve for any loan, the borrower
+	// for their own. Approved loans are repaid through payroll instead.
+	CancelLoan(context.Context, *LoanRequest) (*Loan, error)
 	mustEmbedUnimplementedPayrollServiceServer()
 }
 
@@ -3945,6 +4168,9 @@ func (UnimplementedPayrollServiceServer) CreateLoan(context.Context, *CreateLoan
 }
 func (UnimplementedPayrollServiceServer) DecideLoan(context.Context, *DecideLoanRequest) (*Loan, error) {
 	return nil, status.Error(codes.Unimplemented, "method DecideLoan not implemented")
+}
+func (UnimplementedPayrollServiceServer) CancelLoan(context.Context, *LoanRequest) (*Loan, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelLoan not implemented")
 }
 func (UnimplementedPayrollServiceServer) mustEmbedUnimplementedPayrollServiceServer() {}
 func (UnimplementedPayrollServiceServer) testEmbeddedByValue()                        {}
@@ -4363,6 +4589,24 @@ func _PayrollService_DecideLoan_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PayrollService_CancelLoan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PayrollServiceServer).CancelLoan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PayrollService_CancelLoan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PayrollServiceServer).CancelLoan(ctx, req.(*LoanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PayrollService_ServiceDesc is the grpc.ServiceDesc for PayrollService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4458,6 +4702,10 @@ var PayrollService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DecideLoan",
 			Handler:    _PayrollService_DecideLoan_Handler,
 		},
+		{
+			MethodName: "CancelLoan",
+			Handler:    _PayrollService_CancelLoan_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "white/hr/v1/hr.proto",
@@ -4478,6 +4726,7 @@ const (
 	SelfServiceService_DecideMyOvertime_FullMethodName    = "/white.hr.v1.SelfServiceService/DecideMyOvertime"
 	SelfServiceService_ListMyLoans_FullMethodName         = "/white.hr.v1.SelfServiceService/ListMyLoans"
 	SelfServiceService_CreateMyLoan_FullMethodName        = "/white.hr.v1.SelfServiceService/CreateMyLoan"
+	SelfServiceService_CancelMyLoan_FullMethodName        = "/white.hr.v1.SelfServiceService/CancelMyLoan"
 	SelfServiceService_ListMyPayslips_FullMethodName      = "/white.hr.v1.SelfServiceService/ListMyPayslips"
 	SelfServiceService_GetMyPayslipPdf_FullMethodName     = "/white.hr.v1.SelfServiceService/GetMyPayslipPdf"
 	SelfServiceService_GetMyTeamSchedule_FullMethodName   = "/white.hr.v1.SelfServiceService/GetMyTeamSchedule"
@@ -4506,6 +4755,8 @@ type SelfServiceServiceClient interface {
 	DecideMyOvertime(ctx context.Context, in *DecideOvertimeRequest, opts ...grpc.CallOption) (*Overtime, error)
 	ListMyLoans(ctx context.Context, in *ListMyRequest, opts ...grpc.CallOption) (*ListLoansResponse, error)
 	CreateMyLoan(ctx context.Context, in *CreateLoanRequest, opts ...grpc.CallOption) (*Loan, error)
+	// Own pending loan only.
+	CancelMyLoan(ctx context.Context, in *LoanRequest, opts ...grpc.CallOption) (*Loan, error)
 	// Paid runs only.
 	ListMyPayslips(ctx context.Context, in *ListMyRequest, opts ...grpc.CallOption) (*ListPayslipsResponse, error)
 	GetMyPayslipPdf(ctx context.Context, in *PayslipRequest, opts ...grpc.CallOption) (*FileBytes, error)
@@ -4667,6 +4918,16 @@ func (c *selfServiceServiceClient) CreateMyLoan(ctx context.Context, in *CreateL
 	return out, nil
 }
 
+func (c *selfServiceServiceClient) CancelMyLoan(ctx context.Context, in *LoanRequest, opts ...grpc.CallOption) (*Loan, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Loan)
+	err := c.cc.Invoke(ctx, SelfServiceService_CancelMyLoan_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *selfServiceServiceClient) ListMyPayslips(ctx context.Context, in *ListMyRequest, opts ...grpc.CallOption) (*ListPayslipsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPayslipsResponse)
@@ -4756,6 +5017,8 @@ type SelfServiceServiceServer interface {
 	DecideMyOvertime(context.Context, *DecideOvertimeRequest) (*Overtime, error)
 	ListMyLoans(context.Context, *ListMyRequest) (*ListLoansResponse, error)
 	CreateMyLoan(context.Context, *CreateLoanRequest) (*Loan, error)
+	// Own pending loan only.
+	CancelMyLoan(context.Context, *LoanRequest) (*Loan, error)
 	// Paid runs only.
 	ListMyPayslips(context.Context, *ListMyRequest) (*ListPayslipsResponse, error)
 	GetMyPayslipPdf(context.Context, *PayslipRequest) (*FileBytes, error)
@@ -4818,6 +5081,9 @@ func (UnimplementedSelfServiceServiceServer) ListMyLoans(context.Context, *ListM
 }
 func (UnimplementedSelfServiceServiceServer) CreateMyLoan(context.Context, *CreateLoanRequest) (*Loan, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateMyLoan not implemented")
+}
+func (UnimplementedSelfServiceServiceServer) CancelMyLoan(context.Context, *LoanRequest) (*Loan, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelMyLoan not implemented")
 }
 func (UnimplementedSelfServiceServiceServer) ListMyPayslips(context.Context, *ListMyRequest) (*ListPayslipsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyPayslips not implemented")
@@ -5113,6 +5379,24 @@ func _SelfServiceService_CreateMyLoan_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SelfServiceService_CancelMyLoan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SelfServiceServiceServer).CancelMyLoan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SelfServiceService_CancelMyLoan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SelfServiceServiceServer).CancelMyLoan(ctx, req.(*LoanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SelfServiceService_ListMyPayslips_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListMyRequest)
 	if err := dec(in); err != nil {
@@ -5301,6 +5585,10 @@ var SelfServiceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateMyLoan",
 			Handler:    _SelfServiceService_CreateMyLoan_Handler,
+		},
+		{
+			MethodName: "CancelMyLoan",
+			Handler:    _SelfServiceService_CancelMyLoan_Handler,
 		},
 		{
 			MethodName: "ListMyPayslips",

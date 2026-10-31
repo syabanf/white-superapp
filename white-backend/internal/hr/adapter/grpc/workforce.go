@@ -90,6 +90,7 @@ func (h *attendanceServer) GetDailyRoster(ctx context.Context, req *hrv1.GetDail
 		}
 		if at := e.Attendance; at != nil {
 			entry.AttendanceId, entry.ClockIn, entry.ClockOut, entry.LateMinutes = at.ID, tsPtr(at.ClockIn), tsPtr(at.ClockOut), int32(at.LateMinutes)
+			entry.AttendanceStatus, entry.AttendanceNotes = at.Status, at.Notes
 		}
 		out.Entries = append(out.Entries, entry)
 	}
@@ -130,6 +131,43 @@ func (h *attendanceServer) ExportAttendance(ctx context.Context, req *hrv1.Expor
 		return nil, err
 	}
 	return file(name, xlsxType, data), nil
+}
+
+func recordInput(in *hrv1.AttendanceRecordInput) app.RecordInput {
+	return app.RecordInput{EmployeeID: in.GetEmployeeId(), Date: in.GetDate(), ClockIn: in.GetClockIn(), ClockOut: in.GetClockOut(),
+		Status: in.GetStatus(), Notes: in.GetNotes()}
+}
+
+func (h *attendanceServer) CreateAttendanceRecord(ctx context.Context, req *hrv1.AttendanceRecordInput) (*hrv1.AttendanceRecord, error) {
+	a, err := h.s.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	r, err := h.s.Attendance.CreateRecord(ctx, a, recordInput(req))
+	if err != nil {
+		return nil, err
+	}
+	return attendancePB(*r), nil
+}
+
+func (h *attendanceServer) UpdateAttendanceRecord(ctx context.Context, req *hrv1.UpdateAttendanceRecordRequest) (*hrv1.AttendanceRecord, error) {
+	a, err := h.s.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	r, err := h.s.Attendance.UpdateRecord(ctx, a, req.AttendanceId, recordInput(req.Input))
+	if err != nil {
+		return nil, err
+	}
+	return attendancePB(*r), nil
+}
+
+func (h *attendanceServer) DeleteAttendanceRecord(ctx context.Context, req *hrv1.AttendanceRecordRequest) (*emptypb.Empty, error) {
+	a, err := h.s.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return empty, h.s.Attendance.DeleteRecord(ctx, a, req.AttendanceId)
 }
 
 // ─── ScheduleService ─────────────────────────────────────────
@@ -482,8 +520,13 @@ func (h *overtimeServer) ListOvertime(ctx context.Context, req *hrv1.ListOvertim
 	return overtimeList(rows), nil
 }
 
+func overtimeInput(req *hrv1.CreateOvertimeRequest) app.OvertimeInput {
+	return app.OvertimeInput{EmployeeID: req.GetEmployeeId(), Date: req.GetDate(), StartTime: req.GetStartTime(), EndTime: req.GetEndTime(),
+		Reason: req.GetReason()}
+}
+
 func (s *Services) createOvertime(ctx context.Context, a app.Actor, req *hrv1.CreateOvertimeRequest) (*hrv1.Overtime, error) {
-	o, err := s.Overtime.Create(ctx, a, app.OvertimeInput{EmployeeID: req.EmployeeId, Date: req.Date, StartTime: req.StartTime, EndTime: req.EndTime, Reason: req.Reason})
+	o, err := s.Overtime.Create(ctx, a, overtimeInput(req))
 	if err != nil {
 		return nil, err
 	}
@@ -512,4 +555,24 @@ func (h *overtimeServer) DecideOvertime(ctx context.Context, req *hrv1.DecideOve
 		return nil, err
 	}
 	return h.s.decideOvertime(ctx, a, req)
+}
+
+func (h *overtimeServer) UpdateOvertime(ctx context.Context, req *hrv1.UpdateOvertimeRequest) (*hrv1.Overtime, error) {
+	a, err := h.s.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	o, err := h.s.Overtime.Update(ctx, a, req.OvertimeId, overtimeInput(req.Input))
+	if err != nil {
+		return nil, err
+	}
+	return overtimePB(*o), nil
+}
+
+func (h *overtimeServer) DeleteOvertime(ctx context.Context, req *hrv1.OvertimeRequest) (*emptypb.Empty, error) {
+	a, err := h.s.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return empty, h.s.Overtime.Delete(ctx, a, req.OvertimeId)
 }

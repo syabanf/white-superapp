@@ -35,6 +35,11 @@ func (b *Billing) ListInvoices(ctx context.Context, f domain.InvoiceFilter) ([]d
 	return b.Store.ListInvoices(ctx, f)
 }
 
+// GetInvoice returns one invoice with its paid total, or NotFound.
+func (b *Billing) GetInvoice(ctx context.Context, id string) (*domain.Invoice, error) {
+	return b.load(ctx, id)
+}
+
 type InvoiceInput struct {
 	DealID, QuotationID, TermID, Label, Amount, DueDate string
 }
@@ -286,7 +291,15 @@ func (b *Billing) RenderInvoicePDF(ctx context.Context, id string) (string, []by
 	if deal == nil {
 		return "", nil, notFound(msgDealNotFound)
 	}
-	data, err := b.Renderer.InvoicePDF(*inv, *deal)
+	quoteNumber := ""
+	if inv.QuotationID != nil {
+		if qt, err := b.Store.GetQuotation(ctx, *inv.QuotationID); err != nil {
+			return "", nil, err
+		} else if qt != nil {
+			quoteNumber = qt.QuoteNumber
+		}
+	}
+	data, err := b.Renderer.InvoicePDF(*inv, *deal, quoteNumber)
 	if err != nil {
 		return "", nil, err
 	}

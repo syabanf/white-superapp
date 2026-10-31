@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import type { ActionResult } from "@/lib/action-result";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,20 @@ import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { ResetFilters, SelectFilter, type FilterOption } from "@/features/erp/shared/url-filters";
 import { PEOPLE_PARAMS, PeopleFilters } from "./list-filters";
 import { formatDate } from "@/lib/format";
-import { createOvertimeAction, decideOvertimeAction } from "../actions";
+import { createOvertimeAction, decideOvertimeAction, deleteOvertimeAction, updateOvertimeAction } from "../actions";
 import { sumHours } from "../format";
 import { kinds, th } from "../strings";
 import type { Overtime } from "../types";
-import { DecisionButtons, EmployeePicker, Fld, FormDialog, FormFooter, useFieldErrors, type EmployeeOption } from "./ui";
+import {
+  ConfirmAction,
+  DecisionButtons,
+  EmployeePicker,
+  Fld,
+  FormDialog,
+  FormFooter,
+  useFieldErrors,
+  type EmployeeOption,
+} from "./ui";
 
 const o = th.overtime;
 
@@ -80,14 +89,61 @@ export function overtimeColumns(opts: {
   return cols;
 }
 
-/** HR / manager decision on a pending employee request; HR may cancel a company assignment. */
-function OvertimeDecision({ row, canDecide }: { row: Overtime; canDecide: boolean }) {
-  if (!canDecide || row.status !== "pending" || row.source !== "employee") return null;
+/**
+ * HR / manager decision on a pending employee request, plus HR edit
+ * (pending only) and delete (anything not approved, since approved hours
+ * feed payroll).
+ */
+function OvertimeActions({ row, canDecide, canWrite }: { row: Overtime; canDecide: boolean; canWrite: boolean }) {
+  const pending = row.status === "pending";
   return (
-    <DecisionButtons
-      onApprove={() => decideOvertimeAction(row.id, "approve")}
-      onReject={(reason) => decideOvertimeAction(row.id, "reject", reason)}
-    />
+    <div className="flex items-center justify-end gap-1">
+      {canDecide && pending && row.source === "employee" ? (
+        <DecisionButtons
+          onApprove={() => decideOvertimeAction(row.id, "approve")}
+          onReject={(reason) => decideOvertimeAction(row.id, "reject", reason)}
+        />
+      ) : null}
+      {canWrite && pending ? (
+        <FormDialog
+          title={o.edit}
+          description={`${row.employee.fullName} · ${o.sources[row.source] ?? row.source}`}
+          trigger={
+            <Button size="icon-xs" variant="ghost" aria-label={o.edit}>
+              <Pencil />
+            </Button>
+          }
+        >
+          {(close) => (
+            <OvertimeForm
+              initial={{
+                employeeId: row.employee.id,
+                date: row.date,
+                startTime: row.startTime,
+                endTime: row.endTime,
+                reason: row.reason,
+              }}
+              success={o.updated}
+              submit={(v) => updateOvertimeAction(row.id, v)}
+              close={close}
+            />
+          )}
+        </FormDialog>
+      ) : null}
+      {canWrite && row.status !== "approved" ? (
+        <ConfirmAction
+          title={o.deleteTitle}
+          confirmLabel={th.delete}
+          success={o.deletedOk}
+          action={() => deleteOvertimeAction(row.id)}
+          trigger={
+            <Button size="icon-xs" variant="ghost" aria-label={th.delete}>
+              <Trash2 />
+            </Button>
+          }
+        />
+      ) : null}
+    </div>
   );
 }
 
@@ -110,7 +166,9 @@ export function OvertimeTable({
 }) {
   const columns = overtimeColumns({
     showEmployee: true,
-    actions: (r) => <OvertimeDecision row={r} canDecide={canDecide || Boolean(approvals)} />,
+    actions: (r) => (
+      <OvertimeActions row={r} canDecide={canDecide || Boolean(approvals)} canWrite={canWrite && !approvals} />
+    ),
   });
   return (
     <div className="flex flex-col gap-2">
@@ -161,14 +219,18 @@ type OvertimeInput = { employeeId: string; date: string; startTime: string; endT
 
 export function OvertimeForm({
   employees,
+  initial = { employeeId: "", date: "", startTime: "18:00", endTime: "20:00", reason: "" },
+  success = o.created,
   submit,
   close,
 }: {
   employees?: EmployeeOption[];
+  initial?: OvertimeInput;
+  success?: string;
   submit: (v: OvertimeInput) => Promise<ActionResult<unknown>>;
   close: () => void;
 }) {
-  const [v, setV] = React.useState<OvertimeInput>({ employeeId: "", date: "", startTime: "18:00", endTime: "20:00", reason: "" });
+  const [v, setV] = React.useState(initial);
   const { errors, onFail } = useFieldErrors();
   const { pending, run } = useErpAction();
   return (
@@ -176,7 +238,7 @@ export function OvertimeForm({
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        void run(() => submit(v), { success: o.created, onOk: close, onFail });
+        void run(() => submit(v), { success, onOk: close, onFail });
       }}
     >
       {employees ? (

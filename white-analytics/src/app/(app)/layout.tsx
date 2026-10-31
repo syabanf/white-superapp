@@ -8,6 +8,7 @@ import { getNotificationFeed } from "@/features/notifications/queries";
 import { WorkspaceScope } from "@/components/shell/workspace-scope";
 import { gatewaySession } from "@/lib/erp/gateway";
 import type { ErpAccess } from "@/components/shell/nav-config";
+import { PageMotion } from "@/components/motion/page-motion";
 
 /** ERP permissions from the gateway token; the role alone when the backend is down. */
 async function loadErpAccess(role: string): Promise<ErpAccess> {
@@ -47,7 +48,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           {/* The page container: every page shares its edges, gap and top spacing (LAYOUT.md).
               pb-28 on phones clears the floating tab bar. */}
           <div className="page-enter page-container page-stack flex-1 pt-2 pb-28 md:pb-8 lg:pb-10">
-            {children}
+            <PageMotion>{children}</PageMotion>
           </div>
           <MobileTabBar clients={switcherClients} user={shellUser} erpAccess={erpAccess} />
         </SidebarInset>

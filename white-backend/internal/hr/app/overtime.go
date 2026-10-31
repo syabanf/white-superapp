@@ -68,12 +68,9 @@ func (o *Overtime) Create(ctx context.Context, a Actor, in OvertimeInput) (*doma
 	if err != nil {
 		return nil, err
 	}
-	date, err := reqDate("date", in.Date)
-	if err != nil {
+	ot := domain.Overtime{ID: newID(), EmployeeID: target, Status: "pending", RequestedBy: a.EmployeeRef(), Source: "employee"}
+	if err := setSlot(&ot, in); err != nil {
 		return nil, err
-	}
-	if !clockRe.MatchString(in.StartTime) || !clockRe.MatchString(in.EndTime) {
-		return nil, invalid("startTime", "Jam lembur tidak valid (HH:MM).")
 	}
 	emp, err := o.d.Store.GetEmployee(ctx, target)
 	if err != nil {
@@ -82,31 +79,98 @@ func (o *Overtime) Create(ctx context.Context, a Actor, in OvertimeInput) (*doma
 	if emp == nil || !emp.IsActive {
 		return nil, notFound("Karyawan tidak ditemukan/nonaktif.")
 	}
-	start, end := domain.HHMM(in.StartTime), domain.HHMM(in.EndTime)
-	if start == end {
-		return nil, invalid("endTime", "Jam mulai dan selesai tidak boleh sama.")
-	}
-	hours := hris.OvertimeHoursFromTimes(start, end)
-	if hours > 12 {
-		return nil, invalid("endTime", "Durasi lembur maksimal 12 jam.")
-	}
-	source := "employee"
 	if target != a.EmployeeID {
-		source = "company"
+		ot.Source = "company"
 	}
-	ot := domain.Overtime{ID: newID(), EmployeeID: target, Date: date, StartTime: start, EndTime: end, Hours: hours,
-		Source: source, Status: "pending", Reason: strings.TrimSpace(in.Reason), RequestedBy: a.EmployeeRef()}
 	if err := o.d.Store.InsertOvertime(ctx, ot, a.UserRef()); err != nil {
 		return nil, uniqueErr(err, overtimeDuplicate)
 	}
-	if source == "employee" && emp.ManagerID != nil {
+	slot := ot.Date + " " + ot.StartTime + "-" + ot.EndTime
+	if ot.Source == "employee" && emp.ManagerID != nil {
 		notifyEmployee(ctx, o.d, *emp.ManagerID, NotifyInput{Type: "HR_OVERTIME_REQUESTED", Title: "Pengajuan lembur: " + emp.FullName,
-			Body: date + " " + start + "-" + end, Href: "/erp/hr/overtime"})
-	} else if source == "company" {
-		notifyEmployee(ctx, o.d, target, NotifyInput{Type: "HR_OVERTIME_ASSIGNED", Title: "Penugasan lembur " + date,
-			Body: start + "-" + end + ". Mohon konfirmasi.", Href: "/erp/me/overtime"})
+			Body: slot, Href: "/erp/hr/overtime"})
+	} else if ot.Source == "company" {
+		notifyEmployee(ctx, o.d, target, NotifyInput{Type: "HR_OVERTIME_ASSIGNED", Title: "Penugasan lembur " + ot.Date,
+			Body: ot.StartTime + "-" + ot.EndTime + ". Mohon konfirmasi.", Href: "/erp/me/overtime"})
 	}
 	return o.d.Store.GetOvertime(ctx, ot.ID)
+}
+
+// setSlot validates the date and HH:MM times and sets them, the hours
+// (overnight wrap, at most 12) and the reason on ot.
+func setSlot(ot *domain.Overtime, in OvertimeInput) error {
+	date, err := reqDate("date", in.Date)
+	if err != nil {
+		return err
+	}
+	if !clockRe.MatchString(in.StartTime) || !clockRe.MatchString(in.EndTime) {
+		return invalid("startTime", "Jam lembur tidak valid (HH:MM).")
+	}
+	start, end := domain.HHMM(in.StartTime), domain.HHMM(in.EndTime)
+	if start == end {
+		return invalid("endTime", "Jam mulai dan selesai tidak boleh sama.")
+	}
+	hours := hris.OvertimeHoursFromTimes(start, end)
+	if hours > 12 {
+		return invalid("endTime", "Durasi lembur maksimal 12 jam.")
+	}
+	ot.Date, ot.StartTime, ot.EndTime, ot.Hours, ot.Reason = date, start, end, hours, strings.TrimSpace(in.Reason)
+	return nil
+}
+
+const msgOvertimeNotFound = "Pengajuan lembur tidak ditemukan."
+
+// Update edits a pending entry (hr.write). A decided entry is history and
+// an approved one already counts toward payroll, so only pending entries
+// change; the employee, source and status stay.
+func (o *Overtime) Update(ctx context.Context, a Actor, id string, in OvertimeInput) (*domain.Overtime, error) {
+	if err := require(a, authn.PermHRWrite); err != nil {
+		return nil, err
+	}
+	ot, err := o.d.Store.GetOvertime(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if ot == nil {
+		return nil, notFound(msgOvertimeNotFound)
+	}
+	if ot.Status != "pending" {
+		return nil, conflict("Hanya lembur berstatus pending yang bisa diubah.")
+	}
+	if err := setSlot(ot, in); err != nil {
+		return nil, err
+	}
+	ok, err := o.d.Store.UpdateOvertime(ctx, *ot)
+	if err != nil {
+		return nil, uniqueErr(err, overtimeDuplicate)
+	}
+	if !ok {
+		return nil, conflict("Pengajuan sudah diproses oleh orang lain.")
+	}
+	return o.d.Store.GetOvertime(ctx, id)
+}
+
+// Delete removes an entry (hr.write) unless it is approved: approved hours
+// are paid through payroll and must stay on record.
+func (o *Overtime) Delete(ctx context.Context, a Actor, id string) error {
+	if err := require(a, authn.PermHRWrite); err != nil {
+		return err
+	}
+	ot, err := o.d.Store.GetOvertime(ctx, id)
+	if err != nil {
+		return err
+	}
+	if ot == nil {
+		return notFound(msgOvertimeNotFound)
+	}
+	if ot.Status == "approved" {
+		return conflict("Lembur yang sudah disetujui tidak bisa dihapus karena masuk penggajian.")
+	}
+	ok, err := o.d.Store.DeleteOvertime(ctx, id)
+	if err == nil && !ok {
+		return conflict("Pengajuan sudah diproses oleh orang lain.")
+	}
+	return err
 }
 
 var (
@@ -124,7 +188,7 @@ func (o *Overtime) Decide(ctx context.Context, a Actor, id, action, reason strin
 		return nil, err
 	}
 	if ot == nil {
-		return nil, notFound("Pengajuan lembur tidak ditemukan.")
+		return nil, notFound(msgOvertimeNotFound)
 	}
 	if ot.Status != "pending" {
 		return nil, conflict("Pengajuan sudah " + ot.Status + ".")

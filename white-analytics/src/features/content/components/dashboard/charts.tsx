@@ -145,7 +145,6 @@ export function PeriodChart({
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 2 : 0}
-                  isAnimationActive={false}
                   onClick={(_e, idx) => {
                     segmentHit.current = true;
                     setTimeout(() => (segmentHit.current = false), 0);
@@ -153,11 +152,11 @@ export function PeriodChart({
                   }}
                 />
               ) : (
-                <Area key={s.key} type="monotone" dataKey={s.key} stroke={s.color} fill={washLines ? areaFill(s.color) : "none"} strokeWidth={2.5} dot={data.length < 16 ? { r: 3, strokeWidth: 0, fill: s.color } : false} activeDot={ringDot(s.color)} isAnimationActive={false} connectNulls />
+                <Area key={s.key} type="monotone" dataKey={s.key} stroke={s.color} fill={washLines ? areaFill(s.color) : "none"} strokeWidth={2.5} dot={data.length < 16 ? { r: 3, strokeWidth: 0, fill: s.color } : false} activeDot={ringDot(s.color)} connectNulls />
               ),
             )}
             {previousKey ? (
-              <Line type="monotone" dataKey={previousKey} stroke={MUTED_SERIES} strokeWidth={2} strokeDasharray="4 3" dot={false} isAnimationActive={false} connectNulls />
+              <Line type="monotone" dataKey={previousKey} stroke={MUTED_SERIES} strokeWidth={2} strokeDasharray="4 3" dot={false} connectNulls />
             ) : null}
           </ComposedChart>
         </ResponsiveContainer>
@@ -218,7 +217,6 @@ export function CategoryBars({
             fill={barFill(color)}
             radius={BAR_RADIUS}
             maxBarSize={44}
-            isAnimationActive={false}
             label={{ position: "top", fill: "var(--muted-foreground)", fontSize: 11 }}
           />
         </BarChart>
@@ -279,7 +277,6 @@ export function GroupedBars({
                 fill={barFill(s.color)}
                 radius={BAR_RADIUS}
                 maxBarSize={28}
-                isAnimationActive={false}
                 onClick={(_e, idx) => {
                   if (!onSelect || !data[idx]) return;
                   segmentHit.current = true;
@@ -333,8 +330,8 @@ export function WaterfallChart({
           <XAxis dataKey="label" tickLine={false} axisLine={false} tick={AXIS_TICK} tickMargin={8} interval={0} />
           <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} width={32} allowDecimals={false} />
           <Tooltip cursor={BAR_CURSOR} content={<TooltipBox seriesMap={map} />} isAnimationActive={false} />
-          <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" isAnimationActive={false} />
-          <Bar dataKey="value" stackId="w" radius={BAR_RADIUS_ALL} maxBarSize={48} isAnimationActive={false}>
+          <Bar dataKey="base" stackId="w" fill="transparent" tooltipType="none" />
+          <Bar dataKey="value" stackId="w" radius={BAR_RADIUS_ALL} maxBarSize={48}>
             <LabelList dataKey="text" position="top" fill="var(--muted-foreground)" fontSize={11} />
             {data.map((d) => (
               <Cell key={d.label} fill={barFill(d.kind === "total" ? slotColor(0) : "var(--negative)")} />
@@ -463,7 +460,6 @@ export function PostScatter({
                 fill={slotColor(i)}
                 stroke="var(--card)"
                 strokeWidth={2}
-                isAnimationActive={false}
                 className="cursor-pointer"
                 onClick={(e: { payload?: ScatterPoint }) => go(e?.payload?.href)}
               />

@@ -46,7 +46,9 @@ type ShiftTimes struct {
 	LateToleranceMinutes int
 }
 
-func wibDateTime(dateISO, clock string, addDays int) time.Time {
+// AtWIB is the instant of the WIB wall clock ("HH:MM[:SS]") on dateISO
+// plus addDays.
+func AtWIB(dateISO, clock string, addDays int) time.Time {
 	base, _ := time.Parse(DateLayout, dateISO)
 	parts := strings.Split(clock, ":")
 	num := func(i int) int {
@@ -67,7 +69,7 @@ func ScheduledWindow(dateISO string, s ShiftTimes) (start, end time.Time) {
 	if s.IsOvernight {
 		add = 1
 	}
-	return wibDateTime(dateISO, s.StartTime, 0), wibDateTime(dateISO, s.EndTime, add)
+	return AtWIB(dateISO, s.StartTime, 0), AtWIB(dateISO, s.EndTime, add)
 }
 
 // Roster statuses, in summary order.

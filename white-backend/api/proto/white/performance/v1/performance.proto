@@ -67,6 +67,10 @@ service KpiService {
   rpc SaveIndicator(Indicator) returns (Indicator) {
     option (google.api.http) = {post: "/v1/performance/kpi/indicators" body: "*"};
   }
+  // Removes an unused indicator; one with KPI history is deactivated instead.
+  rpc DeleteIndicator(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/kpi/indicators/{id}"};
+  }
   rpc GetKpiConfig(google.protobuf.Empty) returns (KpiConfig) {
     option (google.api.http) = {get: "/v1/performance/kpi/config"};
   }
@@ -78,6 +82,9 @@ service KpiService {
   }
   rpc CreateTarget(KpiTarget) returns (KpiTarget) {
     option (google.api.http) = {post: "/v1/performance/kpi/targets" body: "*"};
+  }
+  rpc UpdateTarget(KpiTarget) returns (KpiTarget) {
+    option (google.api.http) = {patch: "/v1/performance/kpi/targets/{id}" body: "*"};
   }
   rpc DeleteTarget(IdRequest) returns (MessageResponse) {
     option (google.api.http) = {delete: "/v1/performance/kpi/targets/{id}"};

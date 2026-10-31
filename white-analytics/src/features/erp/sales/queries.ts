@@ -16,6 +16,7 @@ import type {
   Conversation,
   CustomField,
   DealDetail,
+  DocumentParty,
   Forecast,
   FormSubmission,
   Invoice,
@@ -88,6 +89,24 @@ export const listDeals = (p: {
   pageSize?: number;
 }) => get<ListDealsResponse>(`/deals${qs(p)}`);
 export const getDeal = (id: string) => get<DealDetail>(`/deals/${id}`);
+
+/** Deal plus its lead's PIC contact and owner name, for document headers. */
+export async function getDocumentParty(dealId: string): Promise<DocumentParty> {
+  const { deal, payments } = await getDeal(dealId);
+  const [lead, owners] = await Promise.all([
+    deal.leadId ? getLead(deal.leadId).then((r) => r.lead).catch(() => null) : null,
+    listOwners().catch(() => []),
+  ]);
+  return {
+    deal,
+    payments,
+    pic: lead?.picName || deal.picName,
+    phone: lead?.picPhone ?? "",
+    email: lead?.picEmail ?? "",
+    city: lead?.city ?? "",
+    owner: owners.find((o) => o.id === deal.ownerUserId)?.name ?? "",
+  };
+}
 export const listActivities = async (p: {
   leadId?: string;
   dealId?: string;
@@ -117,6 +136,7 @@ export const listInvoices = async (
   p: { dealId?: string; status?: string; dateFrom?: string; dateTo?: string; limit?: number } = {},
 ) =>
   (await get<{ invoices: Invoice[] }>(`/invoices${qs(p)}`)).invoices;
+export const getInvoice = (id: string) => get<Invoice>(`/invoices/${id}`);
 export const listTargets = (month?: string) => get<ListTargetsResponse>(`/targets${qs({ month })}`);
 export const getForecast = (month?: string) => get<Forecast>(`/forecast${qs({ month })}`);
 

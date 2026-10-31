@@ -223,6 +223,15 @@ func (h *selfServer) CreateMyLoan(ctx context.Context, req *hrv1.CreateLoanReque
 	return h.s.createLoan(ctx, selfOnly(a), req)
 }
 
+// CancelMyLoan scopes to the caller's own loans.
+func (h *selfServer) CancelMyLoan(ctx context.Context, req *hrv1.LoanRequest) (*hrv1.Loan, error) {
+	a, _, err := h.me(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return h.s.cancelLoan(ctx, selfOnly(a), req.LoanId)
+}
+
 func (h *selfServer) ListMyPayslips(ctx context.Context, req *hrv1.ListMyRequest) (*hrv1.ListPayslipsResponse, error) {
 	a, id, err := h.me(ctx)
 	if err != nil {

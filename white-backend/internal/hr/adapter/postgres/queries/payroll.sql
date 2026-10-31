@@ -196,6 +196,10 @@ UPDATE hr.loans SET status = 'rejected', rejected_by = $2, rejected_at = now(), 
     updated_at = now()
 WHERE id = $1 AND status = 'pending';
 
+-- name: CancelLoan :execrows
+UPDATE hr.loans SET status = 'cancelled', is_active = false, updated_at = now()
+WHERE id = $1 AND status = 'pending';
+
 -- name: OpenLoans :many
 SELECT * FROM hr.loans
 WHERE employee_id = $1 AND status = 'approved' AND is_active AND remaining_balance > 0

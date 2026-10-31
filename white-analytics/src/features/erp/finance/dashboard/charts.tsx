@@ -162,7 +162,6 @@ export function MonthlyChart({
                   maxBarSize={stacked ? 28 : 18}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
-                  isAnimationActive={false}
                 />
               ) : (
                 <Area
@@ -175,7 +174,6 @@ export function MonthlyChart({
                   activeDot={ringDot(s.color)}
                   type="monotone"
                   connectNulls
-                  isAnimationActive={false}
                 />
               ),
             )}
@@ -191,7 +189,6 @@ export function MonthlyChart({
                   dot={false}
                   type="monotone"
                   connectNulls
-                  isAnimationActive={false}
                 />
               ))}
           </ComposedChart>

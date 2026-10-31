@@ -2227,6 +2227,7 @@ var QuotationService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	BillingService_ListInvoices_FullMethodName            = "/white.sales.v1.BillingService/ListInvoices"
+	BillingService_GetInvoice_FullMethodName              = "/white.sales.v1.BillingService/GetInvoice"
 	BillingService_SubmitInvoice_FullMethodName           = "/white.sales.v1.BillingService/SubmitInvoice"
 	BillingService_SubmitInvoicesFromTerms_FullMethodName = "/white.sales.v1.BillingService/SubmitInvoicesFromTerms"
 	BillingService_IssueInvoice_FullMethodName            = "/white.sales.v1.BillingService/IssueInvoice"
@@ -2242,6 +2243,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BillingServiceClient interface {
 	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
+	GetInvoice(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*Invoice, error)
 	// Sales submits an invoice (status diajukan) for a quotation term or a
 	// free amount.
 	SubmitInvoice(ctx context.Context, in *SubmitInvoiceRequest, opts ...grpc.CallOption) (*Invoice, error)
@@ -2271,6 +2273,16 @@ func (c *billingServiceClient) ListInvoices(ctx context.Context, in *ListInvoice
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListInvoicesResponse)
 	err := c.cc.Invoke(ctx, BillingService_ListInvoices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) GetInvoice(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*Invoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Invoice)
+	err := c.cc.Invoke(ctx, BillingService_GetInvoice_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2362,6 +2374,7 @@ func (c *billingServiceClient) DeletePayment(ctx context.Context, in *IdRequest,
 // for forward compatibility.
 type BillingServiceServer interface {
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
+	GetInvoice(context.Context, *IdRequest) (*Invoice, error)
 	// Sales submits an invoice (status diajukan) for a quotation term or a
 	// free amount.
 	SubmitInvoice(context.Context, *SubmitInvoiceRequest) (*Invoice, error)
@@ -2389,6 +2402,9 @@ type UnimplementedBillingServiceServer struct{}
 
 func (UnimplementedBillingServiceServer) ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListInvoices not implemented")
+}
+func (UnimplementedBillingServiceServer) GetInvoice(context.Context, *IdRequest) (*Invoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInvoice not implemented")
 }
 func (UnimplementedBillingServiceServer) SubmitInvoice(context.Context, *SubmitInvoiceRequest) (*Invoice, error) {
 	return nil, status.Error(codes.Unimplemented, "method SubmitInvoice not implemented")
@@ -2449,6 +2465,24 @@ func _BillingService_ListInvoices_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BillingServiceServer).ListInvoices(ctx, req.(*ListInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_GetInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).GetInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_GetInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).GetInvoice(ctx, req.(*IdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2607,6 +2641,10 @@ var BillingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListInvoices",
 			Handler:    _BillingService_ListInvoices_Handler,
+		},
+		{
+			MethodName: "GetInvoice",
+			Handler:    _BillingService_GetInvoice_Handler,
 		},
 		{
 			MethodName: "SubmitInvoice",

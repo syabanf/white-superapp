@@ -133,7 +133,6 @@ export function TrendChart({
                   maxBarSize={28}
                   stroke="var(--card)"
                   strokeWidth={stacked ? 1 : 0}
-                  isAnimationActive={false}
                 />
               ) : (
                 <Area
@@ -147,7 +146,6 @@ export function TrendChart({
                   dot={data.length < 16 ? { r: 3, strokeWidth: 0, fill: s.color } : false}
                   activeDot={ringDot(s.color)}
                   connectNulls
-                  isAnimationActive={false}
                 />
               ),
             )}
