@@ -205,7 +205,7 @@ export function visibleErpNav(access: ErpAccess | null) {
 export const generalNav: NavItem[] = [
   { label: t.nav.portfolio, href: "/", icon: LayoutDashboard, exact: true },
   { label: t.nav.clients, href: "/clients", icon: Briefcase, exact: true },
-  { label: t.nav.guide, href: "/panduan", icon: BookOpen, exact: true },
+  { label: t.nav.guide, href: "/panduan", icon: BookOpen },
 ];
 
 export function clientNav(slug: string): NavItem[] {

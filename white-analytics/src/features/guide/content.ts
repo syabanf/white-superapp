@@ -22,6 +22,8 @@ export type GuideSection = {
 
 import { SEO_SUITE_GUIDE } from "@/features/seo-suite/guide";
 import { PUBLISHING_GUIDE } from "@/features/publishing/guide";
+import { CONTENT_GUIDE } from "@/features/content/guide";
+import { ERP_GUIDE_SECTIONS, erpGuideSectionForPath } from "@/features/erp/guide";
 
 export const GUIDE_SECTIONS: GuideSection[] = [
   {
@@ -243,6 +245,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     ],
   },
   PUBLISHING_GUIDE,
+  CONTENT_GUIDE,
   SEO_SUITE_GUIDE,
   {
     id: "integrasi",
@@ -271,12 +274,27 @@ export const GUIDE_SECTIONS: GuideSection[] = [
 
 export const GUIDE_IDS = GUIDE_SECTIONS.map((s) => s.id);
 
+/** The two tutorials: Digital Marketing at /panduan, ERP at /panduan/erp. */
+export type GuideTrack = "marketing" | "erp";
+
+export const GUIDE_TRACKS: Record<GuideTrack, { href: string; sections: GuideSection[] }> = {
+  marketing: { href: "/panduan", sections: GUIDE_SECTIONS },
+  erp: { href: "/panduan/erp", sections: ERP_GUIDE_SECTIONS },
+};
+
+/** ERP pages, and the ERP tutorial itself, use the ERP track. */
+export function guideTrackForPath(pathname: string): GuideTrack {
+  return /^\/(erp|panduan\/erp)(\/|$)/.test(pathname) ? "erp" : "marketing";
+}
+
 /** Which guide section is most useful for the page currently open. */
 export function guideSectionForPath(pathname: string): string {
+  if (guideTrackForPath(pathname) === "erp") return erpGuideSectionForPath(pathname);
   if (pathname === "/clients/new") return "mulai";
   if (pathname.startsWith("/setup")) return "integrasi";
   if (pathname.includes("/publish")) return "publikasi";
   if (/\/content\/(brand|studio)(\/|$)/.test(pathname)) return "konten-ai";
+  if (pathname.includes("/content")) return "konten";
   if (pathname.includes("/social")) return "social";
   if (/\/seo\/(research|rank|backlinks|competitors)(\/|$)/.test(pathname)) return "seo-suite";
   if (pathname.includes("/seo")) return "seo";
@@ -288,5 +306,11 @@ export function guideSectionForPath(pathname: string): string {
 }
 
 export function getGuideSection(id: string): GuideSection | undefined {
-  return GUIDE_SECTIONS.find((s) => s.id === id);
+  return [...GUIDE_SECTIONS, ...ERP_GUIDE_SECTIONS].find((s) => s.id === id);
+}
+
+/** Anchor of a section inside the full tutorial it belongs to. */
+export function guideHref(id: string): string {
+  const track = ERP_GUIDE_SECTIONS.some((s) => s.id === id) ? "erp" : "marketing";
+  return `${GUIDE_TRACKS[track].href}#${id}`;
 }

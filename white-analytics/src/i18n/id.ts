@@ -179,9 +179,6 @@ export const t = {
     offlineTitle: "Layanan ERP belum terhubung",
     unauthorized: "Anda belum punya izin untuk modul itu. Minta admin menambahkannya di Manajemen User.",
     noModules: "Akun Anda belum punya izin modul ERP. Minta admin menambahkannya di Manajemen User.",
-    comingTitle: "Halaman sedang disiapkan",
-    comingBody: "Modul ini sedang dipindahkan dari NüHabit. Backend-nya sudah disiapkan; tampilannya menyusul.",
-    backHome: "Kembali ke Beranda ERP",
     modules: {
       finance: "Jurnal, kas & bank, hutang-piutang, laporan keuangan, analisa, dan reimburse.",
       hr: "Data karyawan, absensi, cuti, lembur, kontrak, payroll, dan rekrutmen.",

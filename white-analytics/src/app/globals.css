@@ -573,3 +573,10 @@
 :where([data-slot="dialog-content"], [data-slot="sheet-content"], [data-slot="alert-dialog-content"]) :where(.grid, form) > * {
   min-width: 0;
 }
+
+/* Tutorial video subtitles: dark plate so the text reads over bright dashboards. */
+video::cue {
+  background: rgb(17 17 27 / 0.85);
+  color: #fff;
+  font-family: var(--font-sans, system-ui), sans-serif;
+}

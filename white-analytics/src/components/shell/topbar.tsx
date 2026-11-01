@@ -13,7 +13,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { DateRangePicker } from "@/components/shell/date-range-picker";
-import { HelpButton } from "@/components/shell/help-button";
+import { HelpButton, TutorialButton } from "@/components/shell/help-button";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import type { NotificationFeed } from "@/features/notifications/queries";
 import { activeNavHref, adminNav, clientNav, erpNav, generalNav, isActivePath, workspaceOf } from "@/components/shell/nav-config";
@@ -117,6 +117,7 @@ export function Topbar({ clients, notifications }: { clients: SwitcherClient[]; 
       <div className="ml-auto flex shrink-0 items-center gap-2">
         {usesDateRange(pathname) ? <DateRangePicker /> : null}
         <NotificationBell feed={notifications} />
+        <TutorialButton />
         <HelpButton />
       </div>
       </div>

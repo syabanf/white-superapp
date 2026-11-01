@@ -3,12 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, HelpCircle } from "lucide-react";
+import { ArrowUpRight, BookOpen, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GuideBody } from "@/features/guide/components/guide-blocks";
-import { getGuideSection, guideSectionForPath } from "@/features/guide/content";
+import { GuideVideo } from "@/features/guide/components/guide-video";
+import { GUIDE_TRACKS, getGuideSection, guideHref, guideSectionForPath, guideTrackForPath } from "@/features/guide/content";
 import { tg } from "@/features/guide/strings";
 
 /**
@@ -41,18 +42,33 @@ export function HelpButton() {
           <SheetDescription>{section.summary}</SheetDescription>
         </SheetHeader>
 
-        <div className="px-4 py-5">
+        <div className="flex flex-col gap-5 px-4 py-5">
+          <GuideVideo id={section.id} title={section.title} />
           <GuideBody section={section} />
         </div>
 
         <div className="mt-auto border-t px-4 py-4">
           <Button asChild variant="outline" className="group/nudge w-full" onClick={() => setOpen(false)}>
-            <Link href={`/panduan#${section.id}`}>
+            <Link href={guideHref(section.id)}>
               {tg.helpAll} <ArrowUpRight className="nudge size-4" />
             </Link>
           </Button>
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/** Labelled link to the full tutorial of the workspace you are in; hidden on the tutorial itself. */
+export function TutorialButton() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/panduan")) return null;
+  return (
+    <Button asChild variant="ghost" className="h-10 gap-2 rounded-2xl bg-card px-3 shadow-(--card-shadow) hover:bg-card">
+      <Link href={GUIDE_TRACKS[guideTrackForPath(pathname)].href} aria-label={tg.tutorial}>
+        <BookOpen className="size-4" />
+        <span className="hidden md:inline">{tg.tutorialShort}</span>
+      </Link>
+    </Button>
   );
 }
