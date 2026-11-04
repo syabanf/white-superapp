@@ -26,6 +26,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/recruitment/adapter/providers/openrouter"
 	"github.com/syabanf/white-superapp/white-backend/internal/recruitment/adapter/storage"
 	"github.com/syabanf/white-superapp/white-backend/internal/recruitment/app"
+	"github.com/syabanf/white-superapp/white-backend/pkg/aichat"
 	pkgapp "github.com/syabanf/white-superapp/white-backend/pkg/app"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
@@ -116,7 +117,7 @@ func Wire(d pkgapp.Deps) (*Wiring, error) {
 		Directory: hr,
 		Notifier:  identity,
 		Audience:  identity,
-		AI: openrouter.NewSource(integ.Credentials, openrouter.Options{Referer: config.Env("APP_BASE_URL", "http://localhost:3000"),
+		AI: openrouter.NewSource(integ.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "http://localhost:3000"),
 			Logger: d.Logger}),
 		Files:       storage.NewLocal(config.Env("RECRUITMENT_UPLOAD_DIR", ".uploads/recruitment")),
 		PDF:         pdf.Renderer{},

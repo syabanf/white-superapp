@@ -23,6 +23,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/xlsx"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/app"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
+	"github.com/syabanf/white-superapp/white-backend/pkg/aichat"
 	pkgapp "github.com/syabanf/white-superapp/white-backend/pkg/app"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
@@ -96,7 +97,7 @@ func wire(d pkgapp.Deps) (*wiring, error) {
 		Identity:  clients.NewIdentity(identityConn),
 		HR:        clients.NewHR(hrConn),
 		Storage:   storage.NewLocal(config.Env("FINANCE_UPLOAD_DIR", "")),
-		Insights:  openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Referer: config.Env("APP_BASE_URL", "")}),
+		Insights:  openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
 		Events:    d.Events,
 		ReadSheet: xlsx.ReadCoaSheet,
 		Clock:     clock.Real{},

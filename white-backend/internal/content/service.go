@@ -22,6 +22,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/content/adapter/providers/ai"
 	"github.com/syabanf/white-superapp/white-backend/internal/content/adapter/storage"
 	"github.com/syabanf/white-superapp/white-backend/internal/content/app"
+	"github.com/syabanf/white-superapp/white-backend/pkg/aichat"
 	pkgapp "github.com/syabanf/white-superapp/white-backend/pkg/app"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
@@ -116,7 +117,7 @@ func Wire(d pkgapp.Deps) (*Wiring, error) {
 		Identity:   w.Identity,
 		Analytics:  clients.NewAnalytics(analyticsConn),
 		Publishing: clients.NewPublishing(publishingConn),
-		AI:         ai.NewSource(w.integrations.Credentials, ai.Options{Referer: config.Env("APP_BASE_URL", "")}),
+		AI:         ai.NewSource(w.integrations.Credentials, ai.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
 		Renderer:   pdf.Renderer{},
 		Clock:      clk,
 		Logger:     d.Logger,

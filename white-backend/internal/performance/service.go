@@ -22,6 +22,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/performance/adapter/providers/openrouter"
 	"github.com/syabanf/white-superapp/white-backend/internal/performance/adapter/storage"
 	"github.com/syabanf/white-superapp/white-backend/internal/performance/app"
+	"github.com/syabanf/white-superapp/white-backend/pkg/aichat"
 	pkgapp "github.com/syabanf/white-superapp/white-backend/pkg/app"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
@@ -95,7 +96,7 @@ func Wire(d pkgapp.Deps) (*Wiring, error) {
 		Store:     postgres.NewStore(d.Pool),
 		Directory: hr,
 		Notifier:  clients.NewIdentity(conns["IDENTITY_ADDR"]),
-		AI: openrouter.NewSource(integ.Credentials, openrouter.Options{Referer: config.Env("APP_BASE_URL", "http://localhost:3000"),
+		AI: openrouter.NewSource(integ.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "http://localhost:3000"),
 			Logger: d.Logger}),
 		Files:     storage.NewLocal(config.Env("PERFORMANCE_UPLOAD_DIR", ".uploads/performance")),
 		RenderPDF: pdf.RenderMonthlyRecap,

@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/syabanf/white-superapp/white-backend/internal/integrations/domain"
+	"github.com/syabanf/white-superapp/white-backend/pkg/aichat"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
@@ -89,9 +90,15 @@ func (s *Settings) ListStatuses(ctx context.Context) (*IntegrationOverview, erro
 }
 
 // Credentials returns the effective pair for a provider (DB wins over env).
+// OLLAMA_API_KEY takes over the OpenRouter slot for text AI; see pkg/aichat.
 func (s *Settings) Credentials(ctx context.Context, key domain.IntegrationKey) (domain.ProviderCredentials, error) {
 	if !key.Valid() {
 		return domain.ProviderCredentials{}, apperr.New(apperr.Validation, "")
+	}
+	if key == domain.KeyOpenRouter {
+		if apiKey, model, ok := aichat.Ollama(); ok {
+			return domain.ProviderCredentials{Key: key, Configured: true, PublicID: model, Secret: apiKey}, nil
+		}
 	}
 	row, err := s.store.GetSetting(ctx, key)
 	if err != nil {

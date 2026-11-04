@@ -1,5 +1,7 @@
 import { ProviderError } from "@/lib/action-result";
+import { aiChatTarget, openRouterTarget, type AiChatTarget } from "@/lib/providers/ai-chat";
 import { openRouterModel } from "@/lib/providers/openrouter/real";
+import { mockAiStudio } from "./mock";
 import { mockLayout } from "./mock";
 import {
   COMPOSITIONS,
@@ -12,13 +14,12 @@ import {
 } from "./types";
 
 /**
- * OpenRouter adapter. Text tasks ask for a JSON object and validate the shape;
- * a malformed answer falls back to the deterministic layout so the user still
+ * Real adapter. Text tasks go to aiChatTarget() (Ollama or OpenRouter), ask for
+ * a JSON object and validate the shape; a malformed answer falls back to the deterministic layout so the user still
  * gets something usable. Images use an image-output model (modalities
  * ["image","text"]) and come back as a base64 data URL.
  */
 
-const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const TEXT_TIMEOUT_MS = 60_000;
 const IMAGE_TIMEOUT_MS = 120_000;
 export const DEFAULT_IMAGE_MODEL = "google/gemini-3.1-flash-image";
@@ -44,12 +45,11 @@ function brandBrief(b: BrandContext): string {
   return lines.filter(Boolean).join("\n");
 }
 
-async function post(body: unknown, timeoutMs: number): Promise<{ content?: string; images?: string[] }> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+async function post(body: unknown, timeoutMs: number, { label, url, apiKey }: AiChatTarget = aiChatTarget()): Promise<{ content?: string; images?: string[] }> {
   if (!apiKey) throw new ProviderError("openrouter", "PERMISSION", "OPENROUTER_API_KEY belum dikonfigurasi.");
   let res: Response;
   try {
-    res = await fetch(API_URL, {
+    res = await fetch(url, {
       method: "POST",
       signal: AbortSignal.timeout(timeoutMs),
       headers: {
@@ -61,12 +61,12 @@ async function post(body: unknown, timeoutMs: number): Promise<{ content?: strin
       body: JSON.stringify(body),
     });
   } catch (cause) {
-    throw new ProviderError("openrouter", "NETWORK", "Tidak dapat menghubungi OpenRouter (timeout/jaringan).", { cause });
+    throw new ProviderError("openrouter", "NETWORK", `Tidak dapat menghubungi ${label} (timeout/jaringan).`, { cause });
   }
   if (!res.ok) {
     const detail = (await res.text().catch(() => "")).slice(0, 300);
     const code = res.status === 401 ? "TOKEN_EXPIRED" : res.status === 403 ? "PERMISSION" : res.status === 429 ? "RATE_LIMIT" : res.status === 404 ? "NOT_FOUND" : "UNKNOWN";
-    throw new ProviderError("openrouter", code, `OpenRouter mengembalikan status ${res.status}. ${detail}`);
+    throw new ProviderError("openrouter", code, `${label} mengembalikan status ${res.status}. ${detail}`);
   }
   type Msg = { content?: string; images?: { image_url?: { url?: string } }[] };
   const json = (await res.json().catch(() => null)) as { choices?: { message?: Msg }[] } | null;
@@ -134,7 +134,10 @@ export const realAiStudio: AiStudioProvider = {
     };
   },
 
-  async generateImage({ brand, layout, format }) {
+  async generateImage(input) {
+    // Ollama has no image model, so without an OpenRouter key images stay template-based.
+    if (!process.env.OPENROUTER_API_KEY) return mockAiStudio.generateImage(input);
+    const { brand, layout, format } = input;
     const { width, height } = FORMAT_SIZE[format];
     const prompt = [
       layout.imagePrompt,
@@ -144,6 +147,7 @@ export const realAiStudio: AiStudioProvider = {
     const { images } = await post(
       { model: imageModel(), modalities: ["image", "text"], messages: [{ role: "user", content: prompt }] },
       IMAGE_TIMEOUT_MS,
+      openRouterTarget(imageModel()),
     );
     const url = images?.[0];
     if (!url) throw new ProviderError("openrouter", "UNKNOWN", "Model gambar tidak mengembalikan gambar.");

@@ -25,6 +25,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/adapter/storage"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/app"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/seed"
+	"github.com/syabanf/white-superapp/white-backend/pkg/aichat"
 	pkgapp "github.com/syabanf/white-superapp/white-backend/pkg/app"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
@@ -117,7 +118,7 @@ func wire(pool *pgxpool.Pool, d pkgapp.Deps) (*wiring, error) {
 		Notifier:  identity,
 		Directory: identity,
 		Clients:   identity,
-		AI:        openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Referer: config.Env("APP_BASE_URL", "")}),
+		AI:        openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
 		WhatsApp:  wagateway.New(config.Env("WA_GATEWAY_URL", ""), config.Env("WA_GATEWAY_TOKEN", ""), nil),
 		Files:     storage.NewLocal(config.Env("SALES_UPLOAD_DIR", "")),
 		Renderer:  render.New(),

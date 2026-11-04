@@ -20,6 +20,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/reports/adapter/postgres"
 	"github.com/syabanf/white-superapp/white-backend/internal/reports/adapter/providers/openrouter"
 	"github.com/syabanf/white-superapp/white-backend/internal/reports/app"
+	"github.com/syabanf/white-superapp/white-backend/pkg/aichat"
 	pkgapp "github.com/syabanf/white-superapp/white-backend/pkg/app"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
@@ -91,7 +92,7 @@ func wire(d pkgapp.Deps) (*wiring, error) {
 				Analytics:  clients.NewAnalytics(conns["ANALYTICS_ADDR"]),
 				Publishing: clients.NewPublishing(conns["PUBLISHING_ADDR"]),
 				SeoSuite:   clients.NewSeoSuite(conns["SEOSUITE_ADDR"]),
-				Insights:   openrouter.NewSource(integ.Credentials, openrouter.Options{Referer: config.Env("APP_BASE_URL", "http://localhost:3000")}),
+				Insights:   openrouter.NewSource(integ.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "http://localhost:3000")}),
 				Render:     pdf.Render,
 				Clock:      clk,
 			}),

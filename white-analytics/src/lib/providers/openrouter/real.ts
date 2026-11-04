@@ -1,8 +1,7 @@
 import { ProviderError } from "@/lib/action-result";
+import { aiChatTarget } from "@/lib/providers/ai-chat";
 import type { GenerateInsightInput, InsightModule, InsightProvider } from "./types";
 
-const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_MODEL = "anthropic/claude-sonnet-4.5";
 const TIMEOUT_MS = 90_000;
 
 const BASE_RULES = `Kamu adalah kepala strategi (senior strategist) di sebuah digital agency Indonesia yang menulis analisa performa untuk klien.
@@ -51,20 +50,20 @@ ${SECTION_CORE}
 ${SECTION_RECS}`,
 };
 
-function mapStatus(status: number, detail: string): ProviderError {
-  if (status === 401) return new ProviderError("openrouter", "TOKEN_EXPIRED", `OpenRouter menolak kredensial (401). ${detail}`);
-  if (status === 403) return new ProviderError("openrouter", "PERMISSION", `Akses OpenRouter ditolak (403). ${detail}`);
-  if (status === 429) return new ProviderError("openrouter", "RATE_LIMIT", `Batas permintaan OpenRouter tercapai (429). ${detail}`);
-  if (status === 404) return new ProviderError("openrouter", "NOT_FOUND", `Model tidak ditemukan di OpenRouter (404). ${detail}`);
-  return new ProviderError("openrouter", "UNKNOWN", `OpenRouter mengembalikan status ${status}. ${detail}`);
+function mapStatus(label: string, status: number, detail: string): ProviderError {
+  if (status === 401) return new ProviderError("openrouter", "TOKEN_EXPIRED", `${label} menolak kredensial (401). ${detail}`);
+  if (status === 403) return new ProviderError("openrouter", "PERMISSION", `Akses ${label} ditolak (403). ${detail}`);
+  if (status === 429) return new ProviderError("openrouter", "RATE_LIMIT", `Batas permintaan ${label} tercapai (429). ${detail}`);
+  if (status === 404) return new ProviderError("openrouter", "NOT_FOUND", `Model tidak ditemukan di ${label} (404). ${detail}`);
+  return new ProviderError("openrouter", "UNKNOWN", `${label} mengembalikan status ${status}. ${detail}`);
 }
 
 export function openRouterModel(): string {
-  return process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
+  return aiChatTarget().model;
 }
 
 export async function generateRealInsight(input: GenerateInsightInput): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const { label, url, apiKey, model } = aiChatTarget();
   if (!apiKey) throw new ProviderError("openrouter", "PERMISSION", "OPENROUTER_API_KEY belum dikonfigurasi.");
 
   const languageLine =
@@ -84,7 +83,7 @@ export async function generateRealInsight(input: GenerateInsightInput): Promise<
 
   let res: Response;
   try {
-    res = await fetch(API_URL, {
+    res = await fetch(url, {
       method: "POST",
       signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
@@ -94,7 +93,7 @@ export async function generateRealInsight(input: GenerateInsightInput): Promise<
         "X-Title": "Mixist",
       },
       body: JSON.stringify({
-        model: openRouterModel(),
+        model,
         max_tokens: 2500,
         temperature: 0.4,
         messages: [
@@ -104,23 +103,23 @@ export async function generateRealInsight(input: GenerateInsightInput): Promise<
       }),
     });
   } catch (cause) {
-    throw new ProviderError("openrouter", "NETWORK", "Tidak dapat menghubungi OpenRouter (timeout/jaringan).", { cause });
+    throw new ProviderError("openrouter", "NETWORK", `Tidak dapat menghubungi ${label} (timeout/jaringan).`, { cause });
   }
 
   if (!res.ok) {
     const detail = (await res.text().catch(() => "")).slice(0, 300);
-    throw mapStatus(res.status, detail);
+    throw mapStatus(label, res.status, detail);
   }
 
   let json: { choices?: { message?: { content?: string } }[]; error?: { message?: string } };
   try {
     json = (await res.json()) as typeof json;
   } catch (cause) {
-    throw new ProviderError("openrouter", "UNKNOWN", "Respons OpenRouter tidak dapat dibaca.", { cause });
+    throw new ProviderError("openrouter", "UNKNOWN", `Respons ${label} tidak dapat dibaca.`, { cause });
   }
   const content = json.choices?.[0]?.message?.content?.trim();
   if (!content) {
-    throw new ProviderError("openrouter", "UNKNOWN", json.error?.message ?? "OpenRouter tidak mengembalikan konten.");
+    throw new ProviderError("openrouter", "UNKNOWN", json.error?.message ?? `${label} tidak mengembalikan konten.`);
   }
   return content;
 }
