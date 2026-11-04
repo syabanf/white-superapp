@@ -150,6 +150,7 @@ export const t = {
     reports: "Laporan",
     settings: "Pengaturan Klien",
     guide: "Panduan",
+    showcase: "Showcase AI",
     admin: "Admin",
     users: "Manajemen User",
     setup: "Setup awal & integrasi",

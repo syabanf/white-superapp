@@ -206,6 +206,7 @@ export const generalNav: NavItem[] = [
   { label: t.nav.portfolio, href: "/", icon: LayoutDashboard, exact: true },
   { label: t.nav.clients, href: "/clients", icon: Briefcase, exact: true },
   { label: t.nav.guide, href: "/panduan", icon: BookOpen },
+  { label: t.nav.showcase, href: "/showcase", icon: Sparkles },
 ];
 
 export function clientNav(slug: string): NavItem[] {
