@@ -59,6 +59,8 @@ Yang wajib:
 | `AUTH_SECRET` | `openssl rand -base64 32` |
 | `APP_BASE_URL`, `CORS_ORIGINS` | `https://agency-system.reddie.id` |
 
+Opsional: isi `OLLAMA_API_KEY` supaya semua AI teks memakai DeepSeek lewat Ollama Cloud. Model bawaannya `deepseek-v4.1-flash`, bisa diganti lewat `OLLAMA_MODEL`. Isi variabel yang sama di Vercel. Data yang diproses AI ikut terkirim ke `ollama.com`.
+
 Saat start pertama, tiap service membuat skemanya sendiri di database itu dan identity menyalin user dari tabel `public."User"`.
 
 ### 4. GitHub

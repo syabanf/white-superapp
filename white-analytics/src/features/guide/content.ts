@@ -200,7 +200,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           { title: "Tulis ulang caption", text: "Tombol AI di editor caption (papan konten dan komposer) memberi 3 variasi sesuai tone brand. Pilih “Pakai”, lalu simpan seperti biasa." },
         ],
       },
-      { kind: "note", tone: "info", text: "Tanpa kunci OpenRouter, atau untuk klien demo, hasil dibuat secara lokal dari template brand. Gambar AI sungguhan membutuhkan kunci OpenRouter." },
+      { kind: "note", tone: "info", text: "Tanpa kunci AI, atau untuk klien demo, hasil dibuat secara lokal dari template brand. Teks AI bisa memakai OpenRouter atau Ollama, sedangkan gambar AI sungguhan membutuhkan kunci OpenRouter." },
     ],
   },
   {
@@ -263,11 +263,13 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           { term: "Google (Client ID/Secret)", text: "OAuth untuk Search Console dan GA4 per klien." },
           { term: "DataForSEO", text: "Sumber volume kata kunci, SERP harian, backlink, dan overview domain. Bayar per panggilan; gunakan estimator biaya di wizard sebelum menambah banyak kata kunci." },
           { term: "Apify", text: "Data publik lewat actor Apify: posisi SERP harian untuk rank tracker (dipakai bila DataForSEO kosong) dan followers/post publik Instagram, TikTok, Facebook untuk akun klien & kompetitor — tanpa App Review. Bayar per hasil; reach/impressions tetap butuh Meta." },
-          { term: "OpenRouter", text: "Ringkasan AI di laporan. Tanpa kunci, ringkasan memakai templat." },
+          { term: "OpenRouter", text: "Model AI untuk teks (ringkasan laporan, Campaign Builder, chatbot) dan pembuatan gambar di Studio Desain. Tanpa kunci AI sama sekali, hasil teks memakai templat." },
+          { term: "Ollama (DeepSeek)", text: "Pengganti OpenRouter untuk semua AI teks. Isi OLLAMA_API_KEY di Environment Variables Vercel dan .env server backend, lalu deploy ulang keduanya. Model bawaannya deepseek-v4.1-flash dan bisa diganti lewat OLLAMA_MODEL. Selama kunci ini terisi, Ollama menang atas kunci OpenRouter di wizard. Kosongkan untuk kembali ke OpenRouter." },
           { term: "TikTok", text: "Analitik nyata bila Apify diisi (profil & video publik); publikasi belum tersedia (butuh persetujuan Content Posting API)." },
         ],
       },
       { kind: "note", tone: "info", text: "Tanpa satu pun kredensial, seluruh aplikasi tetap bisa dipakai dengan data demo — cocok untuk onboarding tim sebelum kredensial siap." },
+      { kind: "note", tone: "warn", text: "Saat Ollama aktif, data yang diproses AI (angka laporan, memo keuangan, data kandidat, kinerja karyawan, dan chat lead) dikirim ke server ollama.com. Pastikan kebijakan datanya sudah dicek sebelum dipakai untuk data klien." },
     ],
   },
 ];
