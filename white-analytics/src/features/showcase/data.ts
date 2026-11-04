@@ -13,58 +13,64 @@ export type ChatStep = {
   effect?: string;
 };
 
-export type ChatScenario = { id: string; label: string; room: string; intro: string; steps: ChatStep[] };
+export type ChatScenario = {
+  id: string;
+  label: string;
+  room: string;
+  intro: string;
+  /** Who the viewer plays; their typed text is sent under this name. */
+  you: Pick<ChatStep, "from" | "name">;
+  /** Messages already in the room before the viewer types. */
+  opening: ChatStep[];
+  placeholder: string;
+  /** Facts and duties for the AI. Invented data, as everything else in this file. */
+  context: string;
+};
 
 export const CHAT_SCENARIOS: ChatScenario[] = [
   {
     id: "reminder",
     label: "Reminder customer",
     room: "Chat: Bu Ratna, Kopi Nusantara",
-    intro: "Invoice jatuh tempo besok. Bot mengirim pengingat, lalu mencatat jawaban customer.",
-    steps: [
-      { from: "bot", name: "Asisten Mixist", text: "Halo Bu Ratna, invoice INV-2611-0018 senilai Rp 11.988.000 jatuh tempo besok. Bukti transfer bisa dikirim di chat ini ya.", effect: "Reminder H-1 terkirim untuk INV-2611-0018" },
-      { from: "them", name: "Bu Ratna", text: "Oke, tapi baru bisa transfer hari Jumat." },
-      { from: "bot", name: "Asisten Mixist", text: "Baik, saya catat rencana transfer hari Jumat. Saya ingatkan lagi pagi itu.", effect: "Janji bayar Jumat dicatat, reminder berikutnya dijadwalkan" },
-      { from: "bot", name: "Asisten Mixist", text: "Info ke Finance: Bu Ratna janji transfer hari Jumat untuk INV-2611-0018.", effect: "Notifikasi masuk ke tim Finance" },
-    ],
+    intro: "Invoice jatuh tempo besok. Anda berperan sebagai Bu Ratna, lalu AI menjawab dan mencatat jawaban Anda.",
+    you: { from: "them", name: "Bu Ratna" },
+    opening: [{ from: "bot", name: "Asisten Mixist", text: "Halo Bu Ratna, invoice INV-2611-0018 senilai Rp 11.988.000 jatuh tempo besok. Bukti transfer bisa dikirim di chat ini ya.", effect: "Reminder H-1 terkirim untuk INV-2611-0018" }],
+    placeholder: "Contoh: Oke, tapi baru bisa transfer hari Jumat.",
+    context: "Kamu menagih invoice INV-2611-0018 senilai Rp 11.988.000 milik Bu Ratna dari Kopi Nusantara, jatuh tempo besok. Catat janji bayar beserta tanggalnya, keluhan, atau permintaan perpanjangan. Beri tahu bahwa kamu meneruskan hal penting ke tim Finance.",
   },
   {
     id: "quotation",
     label: "Edit quotation",
     room: "Chat internal: Sales dan AI",
-    intro: "Sales mengubah quotation dari chat. AI menghitung ulang dan meminta konfirmasi sebelum menyimpan.",
-    steps: [
-      { from: "me", name: "Sales", text: "Q-2611-0042 tambah Produksi Konten 4 juta, diskon tetap 10%." },
-      { from: "bot", name: "Asisten Mixist", text: "Perubahan Q-2611-0042:\nSubtotal Rp 12.000.000 jadi Rp 16.000.000\nDiskon 10% jadi Rp 1.600.000\nPPN 11% jadi Rp 1.584.000\nTotal baru Rp 15.984.000\n\nSimpan sebagai versi 2? Balas YA.", effect: "Draf perubahan dibuat, belum disimpan" },
-      { from: "me", name: "Sales", text: "YA" },
-      { from: "bot", name: "Asisten Mixist", text: "Tersimpan sebagai Q-2611-0042 v2. PDF baru siap dikirim ke klien.", effect: "Quotation v2 tersimpan, versi 1 tetap ada di riwayat" },
-    ],
+    intro: "Anda berperan sebagai Sales dan mengubah quotation lewat chat. AI menghitung ulang dan meminta konfirmasi sebelum menyimpan.",
+    you: { from: "me", name: "Sales" },
+    opening: [{ from: "bot", name: "Asisten Mixist", text: "Q-2611-0042 untuk Kopi Nusantara:\nSubtotal Rp 12.000.000\nDiskon 10% Rp 1.200.000\nPPN 11% Rp 1.188.000\nTotal Rp 11.988.000\n\nMau diubah apa?" }],
+    placeholder: "Contoh: tambah Produksi Konten 4 juta, diskon tetap 10%.",
+    context: "Kamu mengedit quotation Q-2611-0042 versi 1. Subtotal Rp 12.000.000, diskon 10%, PPN 11% dihitung dari subtotal setelah diskon, total Rp 11.988.000. Hitung ulang dengan teliti setiap ada perubahan, tampilkan subtotal, diskon, PPN, dan total, lalu minta konfirmasi. Simpan sebagai versi baru hanya setelah pengguna mengonfirmasi.",
   },
   {
     id: "notulen",
     label: "Notulen grup",
     room: "Grup: Tim Kopi Nusantara",
-    intro: "AI merangkum obrolan grup menjadi notulen, lalu membuat tugas dan reminder per orang.",
-    steps: [
+    intro: "Anda ikut di grup tim. Minta notulen atau tambahkan keputusan, lalu AI membuat tugas dan reminder per orang.",
+    you: { from: "me", name: "Anda" },
+    opening: [
       { from: "them", name: "Rangga", text: "Feed minggu depan temanya promo kopi susu ya, klien minta 6 post." },
       { from: "them", name: "Lala", text: "Aku bikin desainnya, paling lambat Kamis." },
       { from: "them", name: "Dimas", text: "Caption aku kerjakan Rabu." },
-      { from: "me", name: "Anda", text: "@Asisten notulen dong" },
-      { from: "bot", name: "Asisten Mixist", text: "Notulen:\nKeputusan: tema promo kopi susu, 6 post.\n\nTugas:\n1. Dimas: caption, Rabu\n2. Lala: 6 desain, Kamis\n\nSaya ingatkan masing-masing H-1 pukul 09.00.", effect: "Notulen tersimpan, 2 tugas dibuat, 2 reminder dijadwalkan" },
-      { from: "bot", name: "Asisten Mixist", text: "Pengingat untuk Dimas: caption promo kopi susu ditunggu besok.", effect: "Reminder H-1 terkirim ke Dimas" },
     ],
+    placeholder: "Contoh: @Asisten notulen dong",
+    context: "Kamu asisten di grup kerja. Rangkum obrolan grup menjadi keputusan dan daftar tugas per orang beserta tenggatnya hanya dari isi obrolan. Sebutkan reminder H-1 pukul 09.00 untuk tiap tugas. Kalau pengguna mengubah tugas atau tenggat, perbarui daftarnya.",
   },
   {
     id: "revisi",
     label: "Revisi klien",
     room: "Grup: Kopi Nusantara dan Mixist",
-    intro: "Revisi klien di grup langsung menjadi tugas revisi pada file desain yang tepat.",
-    steps: [
-      { from: "them", name: "Bu Ratna", text: "Feed promo yang kedua logonya kurang besar, warnanya juga terlalu gelap." },
-      { from: "bot", name: "Asisten Mixist", text: "Saya catat untuk \"Feed Promo 02\" (revisi ke-2 dari 3):\n1. Perbesar logo\n2. Cerahkan warna\n\nBenar, Bu?", effect: "Draf revisi ditautkan ke Feed Promo 02" },
-      { from: "them", name: "Bu Ratna", text: "Betul." },
-      { from: "bot", name: "Asisten Mixist", text: "Sudah diteruskan ke Lala, target selesai besok pukul 15.00.", effect: "Tugas revisi dibuat untuk Lala, kuota revisi tersisa 1" },
-    ],
+    intro: "Anda berperan sebagai Bu Ratna dan menulis revisi di grup. AI mengubahnya menjadi tugas pada file desain yang tepat.",
+    you: { from: "them", name: "Bu Ratna" },
+    opening: [{ from: "bot", name: "Asisten Mixist", text: "Selamat pagi, Bu. Feed Promo 01, 02, dan 03 sudah dikirim untuk direview. Kuota revisi Feed Promo 02 tersisa 2 dari 3." }],
+    placeholder: "Contoh: Feed promo yang kedua logonya kurang besar, warnanya terlalu gelap.",
+    context: "Kamu mencatat revisi klien untuk Feed Promo 01, 02, dan 03. Desainernya Lala. Feed Promo 02 sudah memakai 1 dari 3 kuota revisi, dua feed lain belum memakai kuota. Tautkan revisi ke file yang tepat, tulis poinnya bernomor, dan minta konfirmasi. Setelah klien mengonfirmasi, teruskan ke Lala dengan target besok pukul 15.00 dan sebutkan sisa kuota.",
   },
 ];
 

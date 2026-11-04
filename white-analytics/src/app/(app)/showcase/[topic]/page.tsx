@@ -40,7 +40,7 @@ export default async function ShowcaseTopicPage(props: PageProps<"/showcase/[top
     <>
       <PageHeader back={{ href: "/showcase", label: "Showcase AI" }} title={topic.title} description={topic.summary} />
       {/* The integration list states real status, so it is not labelled a simulation. */}
-      {id === "integrasi" ? null : <SimulationNotice live={topic.live} />}
+      {id === "integrasi" ? null : <SimulationNotice live={topic.live} ai={id === "whatsapp"} />}
       <Demo />
     </>
   );

@@ -1,15 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { CheckCheck, Play, RotateCcw } from "lucide-react";
+import { CheckCheck, Loader2, RotateCcw, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { replyToDemoChat } from "../actions";
 import { CHAT_SCENARIOS, type ChatStep } from "../data";
 import { Panel } from "./shared";
 
-function Bubble({ step }: { step: ChatStep }) {
-  const mine = step.from === "me";
+function Bubble({ step, mine }: { step: ChatStep; mine: boolean }) {
   const bot = step.from === "bot";
   return (
     <div className={cn("flex", mine && "justify-end")}>
@@ -21,14 +22,47 @@ function Bubble({ step }: { step: ChatStep }) {
   );
 }
 
-/** Scripted chat: each click reveals one message and what it records in the dashboard. */
+/** Live chat: the viewer types as one person in the room and the text AI answers that text. */
 export function WhatsappDemo() {
   const [id, setId] = React.useState(CHAT_SCENARIOS[0].id);
-  const [shown, setShown] = React.useState(1);
+  const [turns, setTurns] = React.useState<ChatStep[]>([]);
+  const [draft, setDraft] = React.useState("");
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+  const log = React.useRef<HTMLDivElement>(null);
   const scenario = CHAT_SCENARIOS.find((s) => s.id === id) ?? CHAT_SCENARIOS[0];
-  const steps = scenario.steps.slice(0, shown);
+  const steps = [...scenario.opening, ...turns];
   const effects = steps.flatMap((s) => (s.effect ? [s.effect] : []));
-  const finished = shown >= scenario.steps.length;
+
+  React.useEffect(() => {
+    log.current?.scrollTo({ top: log.current.scrollHeight });
+  }, [turns, pending]);
+
+  function reset() {
+    setTurns([]);
+    setDraft("");
+    setError(null);
+  }
+
+  function send(event: React.FormEvent) {
+    event.preventDefault();
+    const text = draft.trim();
+    if (!text || pending) return;
+    const next = [...turns, { ...scenario.you, text }];
+    setTurns(next);
+    setDraft("");
+    setError(null);
+    startTransition(async () => {
+      const res = await replyToDemoChat({ scenarioId: scenario.id, turns: next });
+      if (res.ok) {
+        setTurns([...next, { from: "bot", name: "Asisten Mixist", text: res.data.reply, effect: res.data.effect }]);
+      } else {
+        setTurns(turns);
+        setDraft(text);
+        setError(res.error);
+      }
+    });
+  }
 
   return (
     <>
@@ -36,12 +70,12 @@ export function WhatsappDemo() {
         value={id}
         onValueChange={(v) => {
           setId(v);
-          setShown(1);
+          reset();
         }}
       >
         <TabsList aria-label="Skenario" className="max-w-full overflow-x-auto">
           {CHAT_SCENARIOS.map((s) => (
-            <TabsTrigger key={s.id} value={s.id}>
+            <TabsTrigger key={s.id} value={s.id} disabled={pending}>
               {s.label}
             </TabsTrigger>
           ))}
@@ -53,35 +87,56 @@ export function WhatsappDemo() {
         <Panel
           title={scenario.room}
           action={
-            finished ? (
-              <Button size="sm" variant="outline" onClick={() => setShown(1)}>
+            turns.length ? (
+              <Button size="sm" variant="outline" disabled={pending} onClick={reset}>
                 <RotateCcw className="size-4" /> Ulangi
               </Button>
-            ) : (
-              <Button size="sm" onClick={() => setShown((n) => n + 1)}>
-                <Play className="size-4" /> Pesan berikutnya
-              </Button>
-            )
+            ) : null
           }
         >
-          <div aria-live="polite" className="flex min-h-80 flex-col gap-2.5 bg-muted/40 p-(--card-pad)">
+          <div ref={log} aria-live="polite" className="flex h-96 flex-col gap-2.5 overflow-y-auto bg-muted/40 p-(--card-pad)">
             {steps.map((s, i) => (
-              <Bubble key={i} step={s} />
+              <Bubble key={i} step={s} mine={s.name === scenario.you.name} />
             ))}
+            {pending ? (
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="size-3.5 animate-spin" /> Asisten Mixist sedang mengetik
+              </p>
+            ) : null}
           </div>
+          <form onSubmit={send} className="flex flex-col gap-2 border-t p-3">
+            {error ? (
+              <p role="alert" className="text-xs text-negative">
+                {error}
+              </p>
+            ) : null}
+            <div className="flex gap-2">
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                maxLength={2000}
+                placeholder={scenario.placeholder}
+                aria-label={`Ketik pesan sebagai ${scenario.you.name}`}
+              />
+              <Button type="submit" size="sm" disabled={pending || !draft.trim()}>
+                <Send className="size-4" /> Kirim
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Anda mengetik sebagai {scenario.you.name}.</p>
+          </form>
         </Panel>
 
         <Panel title="Tercatat di dashboard" hint="Hasil yang akan muncul otomatis setelah terhubung">
           <ul className="flex flex-col gap-3 p-(--card-pad)">
             {effects.length ? (
-              effects.map((e) => (
-                <li key={e} className="flex gap-2.5 text-sm">
+              effects.map((e, i) => (
+                <li key={i} className="flex gap-2.5 text-sm">
                   <CheckCheck className="mt-0.5 size-4 shrink-0 text-positive" />
                   <span>{e}</span>
                 </li>
               ))
             ) : (
-              <li className="text-sm text-muted-foreground">Belum ada catatan. Klik Pesan berikutnya.</li>
+              <li className="text-sm text-muted-foreground">Belum ada catatan. Kirim pesan untuk memulai.</li>
             )}
           </ul>
         </Panel>

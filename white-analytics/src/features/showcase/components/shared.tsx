@@ -3,12 +3,15 @@ import { FlaskConical } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 /** Every demo carries this, so nobody mistakes a simulation for live data. */
-export function SimulationNotice({ live }: { live: string }) {
+export function SimulationNotice({ live, ai }: { live: string; ai?: boolean }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm">
       <FlaskConical className="mt-0.5 size-4 shrink-0 text-brand" />
       <p className="min-w-0">
-        <span className="font-semibold">Simulasi dengan data contoh.</span> Tidak ada pesan yang dikirim dan tidak ada koneksi ke layanan luar.{" "}
+        <span className="font-semibold">Simulasi dengan data contoh.</span>{" "}
+        {ai
+          ? "Tidak ada pesan WhatsApp yang dikirim. Balasan dibuat AI dari teks yang Anda ketik, dan teks itu terkirim ke penyedia AI, jadi jangan ketik data klien asli."
+          : "Tidak ada pesan yang dikirim dan tidak ada koneksi ke layanan luar."}{" "}
         <span className="text-muted-foreground">{live}</span>
       </p>
     </div>
