@@ -74,7 +74,7 @@ func (s *demo) claimHistory(ctx context.Context, year *domain.FiscalYear) error 
 		}
 		if reopened {
 			if _, err := s.fiscal.ClosePeriod(ctx, p.ID); err != nil {
-				return err
+				return fmt.Errorf("tutup %s: %w", p.Name, err)
 			}
 		}
 	}

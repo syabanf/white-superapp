@@ -100,6 +100,9 @@ func Demo(ctx context.Context, d app.Deps) error {
 	if err := s.extras(ctx); err != nil {
 		return fmt.Errorf("data pelengkap: %w", err)
 	}
+	if err := s.periodEnd(ctx); err != nil {
+		return fmt.Errorf("tutup buku: %w", err)
+	}
 	return s.insight(ctx)
 }
 
