@@ -221,6 +221,8 @@ type MappingPost struct {
 	Amounts       domain.Amounts            `json:"amounts"`
 	Overrides     map[string]string         `json:"overrides,omitempty"`
 	Splits        map[string][]domain.Split `json:"splits,omitempty"`
+	// Extra adds fixed lines the mapping has no role for, such as per-tax accounts.
+	Extra []domain.Line `json:"extra,omitempty"`
 }
 
 // PostFromMapping posts an AUTO journal keyed by (event, document):
@@ -279,6 +281,7 @@ func buildAndPost(ctx context.Context, s domain.Store, in MappingPost) (domain.P
 	if reason != "" {
 		return domain.PostResult{Status: domain.PostDraft, Reason: reason}, nil
 	}
+	lines = append(lines, in.Extra...)
 	entry, err := createEntry(ctx, s, NewEntry{
 		UserID: in.UserID, EntryDate: in.EntryDate, Description: in.Description, Lines: lines, Post: true,
 		EntryType: domain.EntryAuto, SourceModule: in.Module, SourceEventCode: in.EventCode,

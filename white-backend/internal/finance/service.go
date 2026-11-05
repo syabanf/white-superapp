@@ -130,6 +130,7 @@ func register(ctx context.Context, d pkgapp.Deps, s *grpc.Server) error {
 		Banking:        app.NewBanking(w.deps),
 		Schedules:      app.NewSchedules(w.deps),
 		Documents:      app.NewDocuments(w.deps),
+		TaxSetup:       app.NewTaxSetup(w.deps),
 	})
 	return nil
 }

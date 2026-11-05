@@ -2,6 +2,9 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  ChargeType,
+  TaxCode,
+  TaxRegister,
   FinanceDocument,
   Vendor,
   BudgetEntry,
@@ -274,4 +277,16 @@ export function listDocuments(q: Q) {
 
 export function getDocument(id: string) {
   return gatewayFetch<FinanceDocument>(`${F}/documents/${id}`);
+}
+
+export async function listTaxCodes(activeOnly = false) {
+  return (await gatewayFetch<{ taxes: TaxCode[] }>(`${F}/tax-codes${qs({ activeOnly })}`)).taxes ?? [];
+}
+
+export async function listChargeTypes(activeOnly = false) {
+  return (await gatewayFetch<{ charges: ChargeType[] }>(`${F}/charge-types${qs({ activeOnly })}`)).charges ?? [];
+}
+
+export function getTaxRegister(dateFrom?: string, dateTo?: string) {
+  return gatewayFetch<TaxRegister>(`${F}/reports/tax-register${qs({ dateFrom, dateTo })}`);
 }

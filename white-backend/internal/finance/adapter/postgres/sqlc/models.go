@@ -85,41 +85,62 @@ type FinanceBudget struct {
 	UpdatedBy   *string
 }
 
+type FinanceChargeType struct {
+	ID                string
+	Code              string
+	Name              string
+	Scope             string
+	Computation       string
+	Value             domain.Money
+	Taxable           bool
+	IsDeduction       bool
+	AccountSaleID     *string
+	AccountPurchaseID *string
+	IsActive          bool
+	Notes             string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	UpdatedBy         *string
+}
+
 type FinanceDocument struct {
-	ID              string
-	Kind            string
-	Side            string
-	Number          string
-	Status          string
-	VendorID        *string
-	PartyName       string
-	PicName         string
-	Phone           string
-	Email           string
-	Address         string
-	Title           string
-	IssueDate       time.Time
-	DueDate         *time.Time
-	ExternalNumber  string
-	Notes           string
-	Items           []byte
-	DiscountPercent domain.Money
-	PpnPercent      domain.Money
-	Subtotal        domain.Money
-	DiscountAmount  domain.Money
-	TaxAmount       domain.Money
-	TotalAmount     domain.Money
-	AccountID       *string
-	SourceID        *string
-	LedgerInvoiceID *string
-	Letterhead      []byte
-	RejectReason    string
-	DecidedBy       *string
-	DecidedAt       *time.Time
-	CreatedAt       time.Time
-	CreatedBy       *string
-	UpdatedAt       time.Time
-	UpdatedBy       *string
+	ID                string
+	Kind              string
+	Side              string
+	Number            string
+	Status            string
+	VendorID          *string
+	PartyName         string
+	PicName           string
+	Phone             string
+	Email             string
+	Address           string
+	Title             string
+	IssueDate         time.Time
+	DueDate           *time.Time
+	ExternalNumber    string
+	Notes             string
+	Items             []byte
+	DiscountPercent   domain.Money
+	Subtotal          domain.Money
+	DiscountAmount    domain.Money
+	TaxAmount         domain.Money
+	TotalAmount       domain.Money
+	AccountID         *string
+	SourceID          *string
+	LedgerInvoiceID   *string
+	Letterhead        []byte
+	RejectReason      string
+	DecidedBy         *string
+	DecidedAt         *time.Time
+	CreatedAt         time.Time
+	CreatedBy         *string
+	UpdatedAt         time.Time
+	UpdatedBy         *string
+	Taxes             []byte
+	Charges           []byte
+	ChargesAmount     domain.Money
+	WithholdingAmount domain.Money
 }
 
 type FinanceDocumentSequence struct {
@@ -211,6 +232,20 @@ type FinanceInvoice struct {
 	UpdatedBy      *string
 	DeletedAt      *time.Time
 	DeletedBy      *string
+}
+
+type FinanceInvoicePosting struct {
+	ID        string
+	InvoiceID string
+	SortOrder int32
+	AccountID string
+	EntrySide string
+	Amount    domain.Money
+	Memo      string
+	TaxCode   string
+	TaxName   string
+	TaxKind   string
+	TaxBase   domain.Money
 }
 
 type FinanceJournalEntry struct {
@@ -427,6 +462,30 @@ type FinanceReimbursementReceipt struct {
 	CreatedBy   *string
 	ContentHash string
 	ImageHash   *int64
+}
+
+type FinanceTaxCode struct {
+	ID                string
+	Code              string
+	Name              string
+	Kind              string
+	Scope             string
+	Rate              domain.Money
+	BaseNumerator     int32
+	BaseDenominator   int32
+	PriceIncluded     bool
+	AccountSaleID     *string
+	AccountPurchaseID *string
+	ReportCode        string
+	ValidFrom         *time.Time
+	ValidTo           *time.Time
+	IsDefaultSale     bool
+	IsDefaultPurchase bool
+	IsActive          bool
+	Notes             string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	UpdatedBy         *string
 }
 
 type FinanceVendor struct {

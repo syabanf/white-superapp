@@ -675,6 +675,7 @@ type Store interface {
 	ReimbursementRepo
 	BankingRepo
 	DocumentRepo
+	TaxRepo
 	InsightRepo
 	AnalyticsRepo
 	WithTx(ctx context.Context, fn func(tx Store) error) error

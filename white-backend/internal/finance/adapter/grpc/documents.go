@@ -22,8 +22,14 @@ func vendorPB(v *domain.Vendor) *financev1.Vendor {
 func documentPB(d *domain.Document) *financev1.FinanceDocument {
 	out := &financev1.FinanceDocument{Id: d.ID, Kind: d.Kind, Side: d.Side, Number: d.Number, Status: d.Status, VendorId: d.VendorID, PartyName: d.PartyName, PicName: d.PicName, Phone: d.Phone,
 		Email: d.Email, Address: d.Address, Title: d.Title, IssueDate: d.IssueDate, DueDate: d.DueDate, ExternalNumber: d.ExternalNumber, Notes: d.Notes, DiscountPercent: d.DiscountPercent.String(),
-		PpnPercent: d.PPNPercent.String(), Subtotal: d.Subtotal.String(), DiscountAmount: d.Discount.String(), TaxAmount: d.Tax.String(), TotalAmount: d.Total.String(), AccountId: d.AccountID,
+		Subtotal: d.Subtotal.String(), DiscountAmount: d.Discount.String(), ChargesAmount: d.ChargesAmount.String(), TaxAmount: d.Tax.String(), WithholdingAmount: d.Withholding.String(), NetDue: d.NetDue().String(), TotalAmount: d.Total.String(), AccountId: d.AccountID,
 		SourceId: d.SourceID, LedgerInvoiceId: d.LedgerInvoiceID, RejectReason: d.RejectReason, CreatedBy: d.CreatedBy, DecidedBy: d.DecidedBy}
+	for _, t := range d.Taxes {
+		out.Taxes = append(out.Taxes, &financev1.DocumentTax{TaxId: t.TaxID, Code: t.Code, Name: t.Name, Kind: t.Kind, Rate: t.Rate.String(), Base: t.Base.String(), Amount: t.Amount.String()})
+	}
+	for _, c := range d.Charges {
+		out.Charges = append(out.Charges, &financev1.DocumentCharge{ChargeId: c.ChargeID, Code: c.Code, Name: c.Name, Computation: c.Computation, Value: c.Value.String(), Taxable: c.Taxable, IsDeduction: c.IsDeduction, Amount: c.Amount.String()})
+	}
 	for _, it := range d.Items {
 		out.Items = append(out.Items, &financev1.DocumentItem{Description: it.Description, Unit: it.Unit, Qty: it.Qty.String(), UnitPrice: it.UnitPrice.String(), LineTotal: it.LineTotal.String()})
 	}
@@ -32,13 +38,17 @@ func documentPB(d *domain.Document) *financev1.FinanceDocument {
 
 func documentFrom(r *financev1.DocumentInput) (domain.Document, error) {
 	d := domain.Document{ID: r.Id, Kind: r.Kind, Side: r.Side, VendorID: r.VendorId, PartyName: r.PartyName, PicName: r.PicName, Phone: r.Phone, Email: r.Email, Address: r.Address, Title: r.Title,
-		IssueDate: r.IssueDate, DueDate: r.DueDate, ExternalNumber: r.ExternalNumber, Notes: r.Notes, AccountID: r.AccountId}
+		IssueDate: r.IssueDate, DueDate: r.DueDate, ExternalNumber: r.ExternalNumber, Notes: r.Notes, AccountID: r.AccountId, TaxIDs: r.TaxIds}
 	var err error
 	if d.DiscountPercent, err = money("discount_percent", orZero(r.DiscountPercent)); err != nil {
 		return d, err
 	}
-	if d.PPNPercent, err = money("ppn_percent", orZero(r.PpnPercent)); err != nil {
-		return d, err
+	for _, c := range r.Charges {
+		value, err := money("charges", orZero(c.Value))
+		if err != nil {
+			return d, err
+		}
+		d.Charges = append(d.Charges, domain.DocCharge{ChargeID: c.ChargeId, Value: value})
 	}
 	for _, it := range r.Items {
 		q, err := money("items", orZero(it.Qty))

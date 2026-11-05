@@ -21,7 +21,8 @@ import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/
 import { formatDate } from "@/lib/format";
 import { actOnDocumentAction, convertDocumentAction, deleteDocumentAction, issueDocumentAction, saveDocumentAction, type DocumentValues } from "../actions";
 import { fs } from "../strings";
-import type { DocumentItem, DocumentKind, FinanceDocument, PostableAccount, Vendor } from "../types";
+import { previewDocument } from "../pricing";
+import type { ChargeType, DocumentItem, DocumentKind, FinanceDocument, PostableAccount, TaxCode, Vendor } from "../types";
 import { AccountPicker } from "./account-picker";
 
 const s = fs.documents;
@@ -66,18 +67,27 @@ export function DocumentsTable({ documents, kind, page }: { documents: FinanceDo
 
 const blankItem = (): DocumentItem => ({ description: "", unit: "", qty: "1", unitPrice: "" });
 
-function initial(kind: DocumentKind, d?: FinanceDocument): DocumentValues {
+/** The taxes and charges a document can offer, from the master data. */
+export type TaxOptions = { taxes: TaxCode[]; charges: ChargeType[] };
+
+const fitsSide = (scope: string, side: string) => scope === "BOTH" || (scope === "SALE") === (side === "B2B");
+
+function initial(kind: DocumentKind, options: TaxOptions, d?: FinanceDocument): DocumentValues {
   if (d) {
-    const { id, kind: k, side, vendorId, partyName, picName, phone, email, address, title, issueDate, dueDate, externalNumber, notes, items, discountPercent, ppnPercent } = d;
-    return { id, kind: k, side, vendorId, partyName, picName, phone, email, address, title, issueDate, dueDate, externalNumber, notes, items, discountPercent, ppnPercent };
+    const { id, kind: k, side, vendorId, partyName, picName, phone, email, address, title, issueDate, dueDate, externalNumber, notes, items, discountPercent } = d;
+    return {
+      id, kind: k, side, vendorId, partyName, picName, phone, email, address, title, issueDate, dueDate, externalNumber, notes, items, discountPercent,
+      taxIds: (d.taxes ?? []).map((t) => t.taxId),
+      charges: (d.charges ?? []).map((c) => ({ chargeId: c.chargeId, value: c.value })),
+    };
   }
   const supplier = kind === "PR" || kind === "PO";
-  return { kind, side: supplier ? "SUPPLIER" : "B2B", vendorId: "", partyName: "", picName: "", phone: "", email: "", address: "", title: "", issueDate: toIsoDate(new Date()), dueDate: "", externalNumber: "", notes: "", items: [blankItem()], discountPercent: "0", ppnPercent: supplier ? "0" : "11" };
+  return { kind, side: supplier ? "SUPPLIER" : "B2B", vendorId: "", partyName: "", picName: "", phone: "", email: "", address: "", title: "", issueDate: toIsoDate(new Date()), dueDate: "", externalNumber: "", notes: "", items: [blankItem()], discountPercent: "0", taxIds: options.taxes.filter((t) => (supplier ? t.isDefaultPurchase : t.isDefaultSale)).map((t) => t.id), charges: [] };
 }
 
-function DocumentForm({ kind, document, vendors, close }: { kind: DocumentKind; document?: FinanceDocument; vendors: Vendor[]; close: () => void }) {
+function DocumentForm({ kind, document, vendors, options, close }: { kind: DocumentKind; document?: FinanceDocument; vendors: Vendor[]; options: TaxOptions; close: () => void }) {
   const router = useRouter();
-  const [v, setV] = React.useState<DocumentValues>(() => initial(kind, document));
+  const [v, setV] = React.useState<DocumentValues>(() => initial(kind, options, document));
   const [errors, setErrors] = React.useState<Record<string, string[]>>();
   const { pending, run } = useErpAction();
   const set = <K extends keyof DocumentValues>(k: K, x: DocumentValues[K]) => setV((p) => ({ ...p, [k]: x }));
@@ -89,9 +99,10 @@ function DocumentForm({ kind, document, vendors, close }: { kind: DocumentKind; 
   );
   const usesVendor = v.side === "SUPPLIER" && kind !== "PR";
   const manualParty = kind !== "PR" && !v.vendorId;
-  const subtotal = v.items.reduce((sum, it) => sum + parseMoney(it.qty) * parseMoney(it.unitPrice), 0);
-  const afterDiscount = subtotal * (1 - parseMoney(v.discountPercent) / 100);
-  const total = afterDiscount * (1 + parseMoney(v.ppnPercent) / 100);
+  const taxChoices = options.taxes.filter((t) => fitsSide(t.scope, v.side) || v.taxIds.includes(t.id));
+  const chargeChoices = options.charges.filter((c) => fitsSide(c.scope, v.side) && !v.charges.some((x) => x.chargeId === c.id));
+  const preview = previewDocument(v, options);
+  const toggleTax = (id: string) => set("taxIds", v.taxIds.includes(id) ? v.taxIds.filter((x) => x !== id) : [...v.taxIds, id]);
   return (
     <form
       className="grid gap-4 sm:grid-cols-2"
@@ -160,12 +171,57 @@ function DocumentForm({ kind, document, vendors, close }: { kind: DocumentKind; 
       <Fld label={s.discount} htmlFor="d-disc" error={errors?.discount_percent}>
         <Input id="d-disc" inputMode="decimal" value={v.discountPercent} onChange={(e) => set("discountPercent", e.target.value.replace(",", "."))} />
       </Fld>
-      <Fld label={s.ppn} htmlFor="d-ppn" error={errors?.ppn_percent}>
-        <Input id="d-ppn" inputMode="decimal" value={v.ppnPercent} onChange={(e) => set("ppnPercent", e.target.value.replace(",", "."))} />
-      </Fld>
-      <p className="text-right text-sm font-semibold sm:col-span-2">
-        {s.total}: {formatRupiah(total)}
-      </p>
+      <fieldset className="flex flex-col gap-2 sm:col-span-2">
+        <legend className="mb-1 text-sm font-medium">{s.taxes}</legend>
+        {errors?.tax_ids ? <p className="text-xs text-negative">{errors.tax_ids[0]}</p> : null}
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+          {taxChoices.map((t) => (
+            <label key={t.id} className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={v.taxIds.includes(t.id)} onChange={() => toggleTax(t.id)} />
+              {t.name}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <div className="flex flex-col gap-2 sm:col-span-2">
+        <span className="text-sm font-medium">{s.charges}</span>
+        {errors?.charges ? <p className="text-xs text-negative">{errors.charges[0]}</p> : null}
+        {v.charges.map((c, i) => {
+          const master = options.charges.find((x) => x.id === c.chargeId);
+          return (
+            <div key={c.chargeId} className="flex items-center gap-2">
+              <span className="min-w-0 flex-1 truncate text-sm">{master?.name ?? c.chargeId}</span>
+              {master?.computation === "PERCENT" ? (
+                <Input aria-label={s.chargeValue} className="w-24" inputMode="decimal" placeholder="%" value={c.value} onChange={(e) => set("charges", v.charges.map((x, n) => (n === i ? { ...x, value: e.target.value.replace(",", ".") } : x)))} />
+              ) : (
+                <MoneyInput aria-label={s.chargeValue} className="w-40" value={c.value} onChange={(x) => set("charges", v.charges.map((y, n) => (n === i ? { ...y, value: x } : y)))} />
+              )}
+              <Button type="button" size="icon-xs" variant="ghost" aria-label={s.removeItem} onClick={() => set("charges", v.charges.filter((_, n) => n !== i))}>
+                <X className="size-3.5" />
+              </Button>
+            </div>
+          );
+        })}
+        {chargeChoices.length ? (
+          <SimpleSelect
+            id="d-add-charge"
+            value=""
+            placeholder={s.addCharge}
+            onChange={(id) => {
+              const master = options.charges.find((x) => x.id === id);
+              if (master) set("charges", [...v.charges, { chargeId: id, value: parseMoney(master.value) > 0 ? master.value : "" }]);
+            }}
+            options={chargeChoices.map((c) => ({ value: c.id, label: c.name }))}
+          />
+        ) : null}
+      </div>
+      <dl className="flex flex-col gap-0.5 text-sm sm:col-span-2">
+        <div className="flex justify-end gap-3 font-semibold"><dt>{s.total}</dt><dd>{formatRupiah(preview.total)}</dd></div>
+        {preview.withholding > 0 ? (
+          <div className="flex justify-end gap-3"><dt>{s.net}</dt><dd>{formatRupiah(preview.total - preview.withholding)}</dd></div>
+        ) : null}
+        <p className="text-right text-xs text-muted-foreground">{s.previewNote}</p>
+      </dl>
       <Fld label={s.notes} htmlFor="d-notes" className="sm:col-span-2">
         <Textarea id="d-notes" rows={2} value={v.notes} onChange={(e) => set("notes", e.target.value)} />
       </Fld>
@@ -176,7 +232,7 @@ function DocumentForm({ kind, document, vendors, close }: { kind: DocumentKind; 
   );
 }
 
-export function DocumentDialog({ kind, document, vendors }: { kind: DocumentKind; document?: FinanceDocument; vendors: Vendor[] }) {
+export function DocumentDialog({ kind, document, vendors, options }: { kind: DocumentKind; document?: FinanceDocument; vendors: Vendor[]; options: TaxOptions }) {
   return (
     <FormDialog
       title={document ? `${s.edit} ${document.number}` : s.newKind[kind]}
@@ -193,7 +249,7 @@ export function DocumentDialog({ kind, document, vendors }: { kind: DocumentKind
         )
       }
     >
-      {(close) => <DocumentForm kind={kind} document={document} vendors={vendors} close={close} />}
+      {(close) => <DocumentForm kind={kind} document={document} vendors={vendors} options={options} close={close} />}
     </FormDialog>
   );
 }
@@ -280,7 +336,7 @@ function IssueForm({ doc, accounts, close }: { doc: FinanceDocument; accounts: P
 }
 
 /** What a person can do now, from the document's kind and status. */
-export function DocumentActions({ doc, userId, isAdmin, canWrite, canApprove, vendors, accounts }: { doc: FinanceDocument; userId: string; isAdmin: boolean; canWrite: boolean; canApprove: boolean; vendors: Vendor[]; accounts: PostableAccount[] }) {
+export function DocumentActions({ doc, userId, isAdmin, canWrite, canApprove, vendors, accounts, options }: { doc: FinanceDocument; userId: string; isAdmin: boolean; canWrite: boolean; canApprove: boolean; vendors: Vendor[]; accounts: PostableAccount[]; options: TaxOptions }) {
   const router = useRouter();
   const act = (action: string, variant?: "outline") => (
     <ActionButton key={action} size="xs" variant={variant} action={() => actOnDocumentAction(doc.id, action)} success={s.actionDone}>
@@ -306,7 +362,7 @@ export function DocumentActions({ doc, userId, isAdmin, canWrite, canApprove, ve
   const own = doc.createdBy === userId && !isAdmin;
   const out: React.ReactNode[] = [];
   if (canWrite && doc.status === "DRAFT") {
-    out.push(<DocumentDialog key="edit" kind={doc.kind} document={doc} vendors={vendors} />);
+    out.push(<DocumentDialog key="edit" kind={doc.kind} document={doc} vendors={vendors} options={options} />);
     if (purchase) out.push(act("submit"));
     if (doc.kind === "QUOTATION") out.push(act("send"));
     if (doc.kind === "INVOICE") out.push(<IssueDialog key="issue" doc={doc} accounts={accounts} />);

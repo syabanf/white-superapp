@@ -27,6 +27,7 @@ type Services struct {
 	Banking        *app.Banking
 	Schedules      *app.Schedules
 	Documents      *app.Documents
+	TaxSetup       *app.TaxSetup
 }
 
 func Register(s *grpc.Server, svc Services) {
@@ -42,6 +43,7 @@ func Register(s *grpc.Server, svc Services) {
 	financev1.RegisterBankReconServiceServer(s, &bankReconServer{svc: svc})
 	financev1.RegisterScheduleServiceServer(s, &scheduleServer{svc: svc})
 	financev1.RegisterDocumentServiceServer(s, &documentServer{svc: svc})
+	financev1.RegisterTaxSetupServiceServer(s, &taxServer{svc: svc})
 }
 
 var empty = &emptypb.Empty{}

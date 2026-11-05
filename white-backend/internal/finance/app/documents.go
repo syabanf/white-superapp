@@ -101,8 +101,8 @@ func (s *Documents) normalize(ctx context.Context, d *domain.Document) error {
 			break
 		}
 	}
-	if d.DiscountPercent < 0 || d.DiscountPercent > domain.Rupiah(100) || d.PPNPercent < 0 || d.PPNPercent > domain.Rupiah(100) {
-		check.Add("ppn_percent", "Persentase 0 sampai 100")
+	if d.DiscountPercent < 0 || d.DiscountPercent > domain.Rupiah(100) {
+		check.Add("discount_percent", "Diskon 0 sampai 100 persen")
 	}
 	if d.VendorID != "" {
 		v, err := s.Store.GetVendor(ctx, d.VendorID)
@@ -130,8 +130,110 @@ func (s *Documents) normalize(ctx context.Context, d *domain.Document) error {
 		return err
 	}
 	d.IssueDate, d.DueDate = day, due
+	if err := s.applyMaster(ctx, d); err != nil {
+		return err
+	}
 	d.Recalculate()
 	return nil
+}
+
+// applyMaster copies the chosen taxes and charges onto the document, checking
+// each against the document's side and date.
+func (s *Documents) applyMaster(ctx context.Context, d *domain.Document) error {
+	taxes := make([]domain.DocTax, 0, len(d.TaxIDs))
+	seen := map[string]bool{}
+	vat := 0
+	for _, id := range d.TaxIDs {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		t, err := s.Store.GetTaxCode(ctx, id)
+		if err != nil {
+			return err
+		}
+		if t == nil || !t.IsActive {
+			return apperr.Field("tax_ids", "Kode pajak tidak ditemukan atau nonaktif")
+		}
+		if !domain.ScopeFits(t.Scope, d.Side) {
+			return apperr.Field("tax_ids", t.Code+" tidak berlaku untuk pihak ini")
+		}
+		if (t.ValidFrom != "" && d.IssueDate < t.ValidFrom) || (t.ValidTo != "" && d.IssueDate > t.ValidTo) {
+			return apperr.Field("tax_ids", t.Code+" tidak berlaku pada tanggal dokumen")
+		}
+		if t.Kind == domain.TaxVAT {
+			if vat++; vat > 1 {
+				return apperr.Field("tax_ids", "Satu dokumen hanya boleh memakai satu kode PPN")
+			}
+		}
+		taxes = append(taxes, domain.DocTax{TaxID: t.ID, Code: t.Code, Name: t.Name, Kind: t.Kind, Rate: t.Rate, BaseNumerator: t.BaseNumerator, BaseDenominator: t.BaseDenominator,
+			PriceIncluded: t.PriceIncluded, AccountID: t.AccountFor(d.Side)})
+	}
+	d.Taxes = taxes
+
+	charges := make([]domain.DocCharge, 0, len(d.Charges))
+	for _, in := range d.Charges {
+		c, err := s.Store.GetChargeType(ctx, in.ChargeID)
+		if err != nil {
+			return err
+		}
+		if c == nil || !c.IsActive {
+			return apperr.Field("charges", "Biaya tambahan tidak ditemukan atau nonaktif")
+		}
+		if !domain.ScopeFits(c.Scope, d.Side) {
+			return apperr.Field("charges", c.Code+" tidak berlaku untuk pihak ini")
+		}
+		value := c.Value
+		if in.Value > 0 {
+			value = in.Value
+		}
+		if value <= 0 {
+			return apperr.Field("charges", "Isi nilai "+c.Name)
+		}
+		if c.Computation == domain.ChargePercent && value > domain.Rupiah(100) {
+			return apperr.Field("charges", c.Name+" tidak boleh lebih dari 100%")
+		}
+		charges = append(charges, domain.DocCharge{ChargeID: c.ID, Code: c.Code, Name: c.Name, Computation: c.Computation, Value: value, Taxable: c.Taxable, IsDeduction: c.IsDeduction, AccountID: c.AccountFor(d.Side)})
+	}
+	d.Charges = charges
+	return nil
+}
+
+// issuePostings turns the document's taxes and charges into invoice journal
+// lines. VAT and charges sit on the natural side; withholding and deductions
+// on the other: a withheld PPh 23 is an asset when a client holds it back and a
+// liability when we hold it back from a vendor.
+func issuePostings(d domain.Document, kind string) ([]domain.InvoicePosting, error) {
+	natural, other := domain.Credit, domain.Debit
+	if kind == domain.KindAP {
+		natural, other = domain.Debit, domain.Credit
+	}
+	out := []domain.InvoicePosting{}
+	for _, t := range d.Taxes {
+		if t.Amount == 0 {
+			continue
+		}
+		if t.AccountID == "" {
+			return nil, apperr.Field("account_id", "Kode pajak "+t.Code+" belum punya akun untuk pihak ini. Lengkapi di Master pajak.")
+		}
+		side := natural
+		if t.Kind == domain.TaxWithholding {
+			side = other
+		}
+		out = append(out, domain.InvoicePosting{AccountID: t.AccountID, Side: side, Amount: t.Amount, Memo: t.Name, SortOrder: len(out), TaxCode: t.Code, TaxName: t.Name, TaxKind: t.Kind, TaxBase: t.Base})
+	}
+	for _, c := range d.Charges {
+		// Without its own account a charge stays in the main line.
+		if c.AccountID == "" || c.Amount == 0 {
+			continue
+		}
+		side, amount := natural, c.Amount
+		if amount < 0 {
+			side, amount = other, -amount
+		}
+		out = append(out, domain.InvoicePosting{AccountID: c.AccountID, Side: side, Amount: amount, Memo: c.Name, SortOrder: len(out)})
+	}
+	return out, nil
 }
 
 func (s *Documents) number(ctx context.Context, tx domain.Store, kind string) (string, error) {
@@ -278,6 +380,10 @@ func (s *Documents) Convert(ctx context.Context, userID, id, vendorID string) (*
 	d := *src
 	d.Kind, d.SourceID, d.CreatedBy, d.VendorID = target, src.ID, userID, trim(vendorID)
 	d.IssueDate, d.Letterhead, d.DecidedBy, d.DecidedAt, d.RejectReason = s.today(), nil, "", nil, ""
+	d.TaxIDs = nil
+	for _, t := range src.Taxes {
+		d.TaxIDs = append(d.TaxIDs, t.TaxID)
+	}
 	if target == domain.DocPO && d.VendorID == "" {
 		return nil, apperr.Field("vendor_id", "Pilih vendor untuk PO")
 	}
@@ -322,6 +428,10 @@ func (s *Documents) Issue(ctx context.Context, userID, id, accountID, dueDate st
 	if d.Side == domain.SideB2B {
 		kind = domain.KindAR
 	}
+	postings, err := issuePostings(*d, kind)
+	if err != nil {
+		return nil, err
+	}
 	reference := d.Number
 	if d.ExternalNumber != "" {
 		reference = d.ExternalNumber
@@ -330,9 +440,15 @@ func (s *Documents) Issue(ctx context.Context, userID, id, accountID, dueDate st
 		deps := s.Deps
 		deps.Store = tx
 		inv, err := NewLedgers(deps).CreateInvoice(ctx, kind, userID, InvoiceInput{InvoiceDate: s.today(), DueDate: d.DueDate, PartyName: d.PartyName, Reference: reference,
-			AccountID: accountID, Description: strings.TrimSpace(d.Number + " " + d.Title), Subtotal: d.Subtotal - d.Discount, TaxAmount: d.Tax})
+			AccountID: accountID, Description: strings.TrimSpace(d.Number + " " + d.Title), Subtotal: d.Total - d.Tax, TaxAmount: d.Tax, Withholding: d.Withholding})
 		if err != nil {
 			return err
+		}
+		for _, p := range postings {
+			p.InvoiceID = inv.ID
+			if err := tx.InsertInvoicePosting(ctx, p); err != nil {
+				return err
+			}
 		}
 		s.stamp(d)
 		d.AccountID, d.LedgerInvoiceID, d.UpdatedBy = accountID, inv.ID, userID

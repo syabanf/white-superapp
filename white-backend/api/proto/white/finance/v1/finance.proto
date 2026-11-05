@@ -2033,6 +2033,26 @@ service DocumentService {
   rpc RenderDocumentPdf(IdRequest) returns (DocumentPdf);
 }
 
+// Tax codes and extra charges as master data.
+service TaxSetupService {
+  rpc ListTaxCodes(ListTaxMasterRequest) returns (ListTaxCodesResponse) {
+    option (google.api.http) = {get: "/v1/finance/tax-codes"};
+  }
+  // finance.approve: a change here decides how future documents post.
+  rpc SaveTaxCode(TaxCode) returns (TaxCode) {
+    option (google.api.http) = {post: "/v1/finance/tax-codes" body: "*"};
+  }
+  rpc ListChargeTypes(ListTaxMasterRequest) returns (ListChargeTypesResponse) {
+    option (google.api.http) = {get: "/v1/finance/charge-types"};
+  }
+  rpc SaveChargeType(ChargeType) returns (ChargeType) {
+    option (google.api.http) = {post: "/v1/finance/charge-types" body: "*"};
+  }
+  rpc GetTaxRegister(PeriodRequest) returns (TaxRegister) {
+    option (google.api.http) = {get: "/v1/finance/reports/tax-register"};
+  }
+}
+
 service AnalysisService {
   rpc GetFinancialAnalysis(FinancialAnalysisRequest) returns (FinancialAnalysis) {
     option (google.api.http) = {get: "/v1/finance/analysis"};
@@ -2465,8 +2485,8 @@ message FinanceDocument {
   string external_number = 15;
   string notes = 16;
   repeated DocumentItem items = 17;
+  reserved 19;
   string discount_percent = 18;
-  string ppn_percent = 19;
   string subtotal = 20;
   string discount_amount = 21;
   string tax_amount = 22;
@@ -2477,6 +2497,34 @@ message FinanceDocument {
   string reject_reason = 27;
   string created_by = 28;
   string decided_by = 29;
+  repeated DocumentTax taxes = 30;
+  repeated DocumentCharge charges = 31;
+  string charges_amount = 32;
+  string withholding_amount = 33;
+  // Total minus withholding: what the party pays.
+  string net_due = 34;
+}
+message DocumentTax {
+  string tax_id = 1;
+  string code = 2;
+  string name = 3;
+  // VAT or WITHHOLDING.
+  string kind = 4;
+  string rate = 5;
+  string base = 6;
+  string amount = 7;
+}
+message DocumentCharge {
+  string charge_id = 1;
+  string code = 2;
+  string name = 3;
+  // FIXED or PERCENT.
+  string computation = 4;
+  string value = 5;
+  bool taxable = 6;
+  bool is_deduction = 7;
+  // Signed: a deduction is negative.
+  string amount = 8;
 }
 message DocumentInput {
   // Empty on create.
@@ -2495,9 +2543,12 @@ message DocumentInput {
   string external_number = 13;
   string notes = 14;
   repeated DocumentItem items = 15;
+  reserved 17;
   string discount_percent = 16;
-  string ppn_percent = 17;
   string account_id = 18;
+  repeated string tax_ids = 19;
+  // charge_id plus an optional value; zero uses the master's value.
+  repeated DocumentCharge charges = 20;
 }
 message ListDocumentsRequest {
   string kind = 1;
@@ -2530,4 +2581,77 @@ message DocumentPdf {
   string file_name = 1;
   string content_type = 2;
   bytes data = 3;
+}
+
+message TaxCode {
+  // Empty creates a code.
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  // VAT or WITHHOLDING.
+  string kind = 4;
+  // SALE, PURCHASE or BOTH.
+  string scope = 5;
+  string rate = 6;
+  int32 base_numerator = 7;
+  int32 base_denominator = 8;
+  bool price_included = 9;
+  string account_sale_id = 10;
+  string account_purchase_id = 11;
+  string report_code = 12;
+  string valid_from = 13;
+  string valid_to = 14;
+  bool is_default_sale = 15;
+  bool is_default_purchase = 16;
+  bool is_active = 17;
+  string notes = 18;
+}
+message ChargeType {
+  // Empty creates a charge.
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string scope = 4;
+  // FIXED or PERCENT.
+  string computation = 5;
+  string value = 6;
+  bool taxable = 7;
+  bool is_deduction = 8;
+  string account_sale_id = 9;
+  string account_purchase_id = 10;
+  bool is_active = 11;
+  string notes = 12;
+}
+message ListTaxMasterRequest {
+  bool active_only = 1;
+}
+message ListTaxCodesResponse {
+  repeated TaxCode taxes = 1;
+}
+message ListChargeTypesResponse {
+  repeated ChargeType charges = 1;
+}
+message TaxRegisterRow {
+  // AR is sales, AP is purchases.
+  string kind = 1;
+  // Empty for invoices with a typed tax amount and no code.
+  string tax_code = 2;
+  string tax_name = 3;
+  string tax_kind = 4;
+  int32 invoice_count = 5;
+  string base = 6;
+  string amount = 7;
+}
+message TaxRegister {
+  string date_from = 1;
+  string date_to = 2;
+  repeated TaxRegisterRow rows = 3;
+  string output_vat = 4;
+  string input_vat = 5;
+  // Output minus input VAT: positive is payable, negative is overpaid.
+  string vat_position = 6;
+  // PPh clients held back from us, an asset.
+  string withheld_by_clients = 7;
+  // PPh we held back from vendors, payable to the state.
+  string withheld_from_vendors = 8;
 }

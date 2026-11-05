@@ -73,6 +73,10 @@
       "description": "Vendors, purchase requests, purchase orders and letterhead documents."
     },
     {
+      "name": "TaxSetupService",
+      "description": "Tax codes and extra charges as master data."
+    },
+    {
       "name": "AnalysisService"
     },
     {
@@ -6473,6 +6477,54 @@
         ]
       }
     },
+    "/v1/finance/charge-types": {
+      "get": {
+        "operationId": "TaxSetupService_ListChargeTypes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListChargeTypesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      },
+      "post": {
+        "operationId": "TaxSetupService_SaveChargeType",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ChargeType"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ChargeType"
+            }
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
     "/v1/finance/dashboard": {
       "get": {
         "operationId": "ReportService_GetDashboard",
@@ -9192,6 +9244,37 @@
         ]
       }
     },
+    "/v1/finance/reports/tax-register": {
+      "get": {
+        "operationId": "TaxSetupService_GetTaxRegister",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TaxRegister"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "description": "Defaults to the first day of the current month and today.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
     "/v1/finance/reports/trial-balance": {
       "get": {
         "operationId": "ReportService_GetTrialBalance",
@@ -9242,6 +9325,55 @@
         ],
         "tags": [
           "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/tax-codes": {
+      "get": {
+        "operationId": "TaxSetupService_ListTaxCodes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTaxCodesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      },
+      "post": {
+        "summary": "finance.approve: a change here decides how future documents post.",
+        "operationId": "TaxSetupService_SaveTaxCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TaxCode"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TaxCode"
+            }
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
         ]
       }
     },
@@ -23101,11 +23233,22 @@
         "discountPercent": {
           "type": "string"
         },
-        "ppnPercent": {
-          "type": "string"
-        },
         "accountId": {
           "type": "string"
+        },
+        "taxIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "charges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1DocumentCharge"
+          },
+          "description": "charge_id plus an optional value; zero uses the master's value."
         }
       }
     },
@@ -28392,6 +28535,49 @@
         }
       }
     },
+    "v1ChargeType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Empty creates a charge."
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "computation": {
+          "type": "string",
+          "description": "FIXED or PERCENT."
+        },
+        "value": {
+          "type": "string"
+        },
+        "taxable": {
+          "type": "boolean"
+        },
+        "isDeduction": {
+          "type": "boolean"
+        },
+        "accountSaleId": {
+          "type": "string"
+        },
+        "accountPurchaseId": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
     "v1ChatMessage": {
       "type": "object",
       "properties": {
@@ -32206,6 +32392,37 @@
         }
       }
     },
+    "v1DocumentCharge": {
+      "type": "object",
+      "properties": {
+        "chargeId": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "computation": {
+          "type": "string",
+          "description": "FIXED or PERCENT."
+        },
+        "value": {
+          "type": "string"
+        },
+        "taxable": {
+          "type": "boolean"
+        },
+        "isDeduction": {
+          "type": "boolean"
+        },
+        "amount": {
+          "type": "string",
+          "description": "Signed: a deduction is negative."
+        }
+      }
+    },
     "v1DocumentInput": {
       "type": "object",
       "properties": {
@@ -32262,11 +32479,22 @@
         "discountPercent": {
           "type": "string"
         },
-        "ppnPercent": {
-          "type": "string"
-        },
         "accountId": {
           "type": "string"
+        },
+        "taxIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "charges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1DocumentCharge"
+          },
+          "description": "charge_id plus an optional value; zero uses the master's value."
         }
       }
     },
@@ -32299,6 +32527,33 @@
         "VOID"
       ],
       "default": "DOCUMENT_STATUS_UNSPECIFIED"
+    },
+    "v1DocumentTax": {
+      "type": "object",
+      "properties": {
+        "taxId": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "description": "VAT or WITHHOLDING."
+        },
+        "rate": {
+          "type": "string"
+        },
+        "base": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        }
+      }
     },
     "v1DraftEntryRef": {
       "type": "object",
@@ -33301,9 +33556,6 @@
         "discountPercent": {
           "type": "string"
         },
-        "ppnPercent": {
-          "type": "string"
-        },
         "subtotal": {
           "type": "string"
         },
@@ -33333,6 +33585,30 @@
         },
         "decidedBy": {
           "type": "string"
+        },
+        "taxes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1DocumentTax"
+          }
+        },
+        "charges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1DocumentCharge"
+          }
+        },
+        "chargesAmount": {
+          "type": "string"
+        },
+        "withholdingAmount": {
+          "type": "string"
+        },
+        "netDue": {
+          "type": "string",
+          "description": "Total minus withholding: what the party pays."
         }
       }
     },
@@ -38022,6 +38298,18 @@
         }
       }
     },
+    "v1ListChargeTypesResponse": {
+      "type": "object",
+      "properties": {
+        "charges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ChargeType"
+          }
+        }
+      }
+    },
     "v1ListClaimPayAccountsResponse": {
       "type": "object",
       "properties": {
@@ -39194,6 +39482,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1TaskItem"
+          }
+        }
+      }
+    },
+    "v1ListTaxCodesResponse": {
+      "type": "object",
+      "properties": {
+        "taxes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TaxCode"
           }
         }
       }
@@ -48053,6 +48353,135 @@
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "v1TaxCode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Empty creates a code."
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "description": "VAT or WITHHOLDING."
+        },
+        "scope": {
+          "type": "string",
+          "description": "SALE, PURCHASE or BOTH."
+        },
+        "rate": {
+          "type": "string"
+        },
+        "baseNumerator": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "baseDenominator": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "priceIncluded": {
+          "type": "boolean"
+        },
+        "accountSaleId": {
+          "type": "string"
+        },
+        "accountPurchaseId": {
+          "type": "string"
+        },
+        "reportCode": {
+          "type": "string"
+        },
+        "validFrom": {
+          "type": "string"
+        },
+        "validTo": {
+          "type": "string"
+        },
+        "isDefaultSale": {
+          "type": "boolean"
+        },
+        "isDefaultPurchase": {
+          "type": "boolean"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TaxRegister": {
+      "type": "object",
+      "properties": {
+        "dateFrom": {
+          "type": "string"
+        },
+        "dateTo": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TaxRegisterRow"
+          }
+        },
+        "outputVat": {
+          "type": "string"
+        },
+        "inputVat": {
+          "type": "string"
+        },
+        "vatPosition": {
+          "type": "string",
+          "description": "Output minus input VAT: positive is payable, negative is overpaid."
+        },
+        "withheldByClients": {
+          "type": "string",
+          "description": "PPh clients held back from us, an asset."
+        },
+        "withheldFromVendors": {
+          "type": "string",
+          "description": "PPh we held back from vendors, payable to the state."
+        }
+      }
+    },
+    "v1TaxRegisterRow": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "AR is sales, AP is purchases."
+        },
+        "taxCode": {
+          "type": "string",
+          "description": "Empty for invoices with a typed tax amount and no code."
+        },
+        "taxName": {
+          "type": "string"
+        },
+        "taxKind": {
+          "type": "string"
+        },
+        "invoiceCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "base": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
         }
       }
     },

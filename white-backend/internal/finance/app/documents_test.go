@@ -13,6 +13,15 @@ func item(desc string, qty, price int64) domain.DocItem {
 	return domain.DocItem{Description: desc, Unit: "paket", Qty: rp(qty), UnitPrice: rp(price)}
 }
 
+// vat adds an 11% VAT code to the harness and returns its id.
+func (h *harness) vat(saleAccount, purchaseAccount string) string {
+	h.t.Helper()
+	t, err := app.NewTaxSetup(h.deps).SaveTaxCode(h.ctx, "u1", domain.TaxCode{Code: "PPN-T", Name: "PPN 11%", Kind: domain.TaxVAT, Scope: domain.ScopeBoth, Rate: rp(11), BaseNumerator: 1, BaseDenominator: 1,
+		AccountSaleID: h.id(saleAccount), AccountPurchaseID: h.id(purchaseAccount), IsActive: true})
+	h.ok(err)
+	return t.ID
+}
+
 func code(t *testing.T, err error, want apperr.Code) {
 	t.Helper()
 	if err == nil || apperr.As(err).Code != want {
@@ -38,7 +47,8 @@ func TestPurchaseFlowToPayable(t *testing.T) {
 	// A request has no vendor yet and needs a second person to approve it.
 	_, err = s.Create(h.ctx, maker.UserID, domain.Document{Kind: domain.DocPR, Title: "Cetak", IssueDate: today})
 	code(t, err, apperr.Validation)
-	pr, err := s.Create(h.ctx, maker.UserID, domain.Document{Kind: domain.DocPR, Title: "Cetak brosur", IssueDate: today, Items: []domain.DocItem{item("Brosur", 2, 1_000_000)}, PPNPercent: rp(11)})
+	vat := h.vat("2103003", "1104001")
+	pr, err := s.Create(h.ctx, maker.UserID, domain.Document{Kind: domain.DocPR, Title: "Cetak brosur", IssueDate: today, Items: []domain.DocItem{item("Brosur", 2, 1_000_000)}, TaxIDs: []string{vat}})
 	h.ok(err)
 	if pr.Status != domain.DocDraft || pr.Total != rp(2_220_000) || pr.Side != domain.SideSupplier {
 		t.Fatalf("pr %+v", pr)
@@ -119,7 +129,7 @@ func TestQuotationToReceivable(t *testing.T) {
 	revenue := h.id("4101001")
 
 	qt, err := s.Create(h.ctx, "u1", domain.Document{Kind: domain.DocQuotation, Side: domain.SideB2B, Title: "Retainer", PartyName: "PT Tepat", IssueDate: today,
-		Items: []domain.DocItem{item("Bulanan", 1, 10_000_000)}, DiscountPercent: rp(10), PPNPercent: rp(11)})
+		Items: []domain.DocItem{item("Bulanan", 1, 10_000_000)}, DiscountPercent: rp(10), TaxIDs: []string{h.vat("2103003", "1104001")}})
 	h.ok(err)
 	if qt.Total != rp(9_990_000) {
 		t.Fatalf("total %d", qt.Total)
@@ -153,4 +163,209 @@ func TestQuotationToReceivable(t *testing.T) {
 	if total != 1 || rows[0].ID != inv.ID {
 		t.Fatalf("list %d %+v", total, rows)
 	}
+}
+
+// A sale with PPN, PPh 23 withheld by the client, and a stamp duty charge posts
+// a balanced journal and shows in the tax register.
+func TestDocumentPostsTaxesAndCharges(t *testing.T) {
+	h := newHarness(t)
+	setup := app.NewTaxSetup(h.deps)
+	s := app.NewDocuments(h.deps)
+	l := app.NewLedgers(h.deps)
+	revenue := h.id("4101001")
+
+	ppn := h.vat("2103003", "1104001")
+	pph, err := setup.SaveTaxCode(h.ctx, "u1", domain.TaxCode{Code: "PPH23-T", Name: "PPh 23 2%", Kind: domain.TaxWithholding, Scope: domain.ScopeBoth, Rate: rp(2), BaseNumerator: 1, BaseDenominator: 1,
+		AccountSaleID: h.id("1104002"), AccountPurchaseID: h.id("2103002"), IsActive: true})
+	h.ok(err)
+	materai, err := setup.SaveChargeType(h.ctx, "u1", domain.ChargeType{Code: "MAT", Name: "Bea materai", Scope: domain.ScopeBoth, Computation: domain.ChargeFixed, Value: rp(10_000), IsActive: true})
+	h.ok(err)
+	ongkir, err := setup.SaveChargeType(h.ctx, "u1", domain.ChargeType{Code: "ONG", Name: "Ongkir", Scope: domain.ScopeBoth, Computation: domain.ChargeFixed, Taxable: true, IsActive: true, AccountSaleID: h.id("4101002")})
+	h.ok(err)
+
+	base := domain.Document{Kind: domain.DocInvoice, Side: domain.SideB2B, Title: "Retainer", PartyName: "PT Tepat", IssueDate: today, Items: []domain.DocItem{item("Bulanan", 1, 10_000_000)}}
+	bad := base
+	bad.Charges = []domain.DocCharge{{ChargeID: ongkir.ID}}
+	_, err = s.Create(h.ctx, "u1", bad)
+	h.wantErr(err, "Isi nilai Ongkir")
+
+	doc := base
+	doc.TaxIDs = []string{ppn, pph.ID}
+	doc.Charges = []domain.DocCharge{{ChargeID: materai.ID}, {ChargeID: ongkir.ID, Value: rp(100_000)}}
+	d, err := s.Create(h.ctx, "u1", doc)
+	h.ok(err)
+	// DPP 10.100.000, PPN 1.111.000, materai 10.000, PPh 202.000.
+	if d.Tax != rp(1_111_000) || d.Withholding != rp(202_000) || d.Total != rp(11_221_000) || d.NetDue() != rp(11_019_000) {
+		t.Fatalf("totals tax %d wh %d total %d net %d", d.Tax, d.Withholding, d.Total, d.NetDue())
+	}
+
+	// Changing the master later leaves this document alone.
+	changed := *mustTax(t, h, ppn)
+	changed.Rate = rp(50)
+	_, err = setup.SaveTaxCode(h.ctx, "u1", changed)
+	h.ok(err)
+	again, err := s.Get(h.ctx, d.ID)
+	h.ok(err)
+	if again.Taxes[0].Rate != rp(11) || again.Tax != rp(1_111_000) {
+		t.Fatalf("snapshot moved: %+v", again.Taxes[0])
+	}
+
+	issued, err := s.Issue(h.ctx, "u1", d.ID, revenue, "")
+	h.ok(err)
+	inv, err := l.GetInvoice(h.ctx, domain.KindAR, issued.LedgerInvoiceID)
+	h.ok(err)
+	if inv.TotalAmount != rp(11_019_000) || inv.TaxAmount != rp(1_111_000) {
+		t.Fatalf("invoice %+v", inv)
+	}
+	_, err = l.UpdateInvoice(h.ctx, domain.KindAR, "u1", inv.ID, app.InvoiceInput{InvoiceDate: today, PartyName: "X", Subtotal: rp(1)})
+	h.wantErr(err, "Tagihan ini dibuat dari dokumen, jadi tidak bisa diubah atau dihapus di sini")
+
+	posted, note, err := l.PostInvoice(h.ctx, domain.KindAR, "u1", inv.ID)
+	h.ok(err)
+	if posted.JournalEntryID == "" {
+		t.Fatalf("journal not posted: %s", note)
+	}
+	e, err := app.NewJournals(h.deps).Get(h.ctx, posted.JournalEntryID)
+	h.ok(err)
+	want := map[string]struct {
+		side   string
+		amount int64
+	}{
+		h.id("1103001"): {domain.Debit, 11_019_000},
+		h.id("1104002"): {domain.Debit, 202_000},
+		h.id("2103003"): {domain.Credit, 1_111_000},
+		h.id("4101002"): {domain.Credit, 100_000},
+		revenue:         {domain.Credit, 10_010_000}, // Service plus the materai with no account of its own.
+	}
+	if len(e.Lines) != len(want) {
+		t.Fatalf("lines %+v", e.Lines)
+	}
+	for _, line := range e.Lines {
+		w, ok := want[line.AccountID]
+		if !ok || line.Side != w.side || line.Amount != rp(w.amount) {
+			t.Fatalf("line %s %s %d, want %+v", line.AccountCode, line.Side, line.Amount, w)
+		}
+	}
+
+	// The client pays the net and the invoice closes.
+	_, err = l.CreatePayment(h.ctx, domain.KindAR, "u1", app.PaymentInput{PaymentDate: today, CashAccountID: h.id("1101001"), Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: rp(11_019_000)}}})
+	h.ok(err)
+	paid, err := l.GetInvoice(h.ctx, domain.KindAR, inv.ID)
+	h.ok(err)
+	if paid.Outstanding() != 0 {
+		t.Fatalf("outstanding %d", paid.Outstanding())
+	}
+
+	reg, err := setup.TaxRegister(h.ctx, "2026-10-01", "2026-10-31")
+	h.ok(err)
+	if reg.OutputVAT != rp(1_111_000) || reg.VATPosition != rp(1_111_000) || reg.WithheldByClients != rp(202_000) || len(reg.Rows) != 2 {
+		t.Fatalf("register %+v", reg)
+	}
+}
+
+func TestPurchaseWithholdingPostsPayable(t *testing.T) {
+	h := newHarness(t)
+	setup := app.NewTaxSetup(h.deps)
+	s := app.NewDocuments(h.deps)
+	l := app.NewLedgers(h.deps)
+	ppn := h.vat("2103003", "1104001")
+	pph, err := setup.SaveTaxCode(h.ctx, "u1", domain.TaxCode{Code: "PPH23-T", Name: "PPh 23 2%", Kind: domain.TaxWithholding, Scope: domain.ScopeBoth, Rate: rp(2), BaseNumerator: 1, BaseDenominator: 1,
+		AccountSaleID: h.id("1104002"), AccountPurchaseID: h.id("2103002"), IsActive: true})
+	h.ok(err)
+	d, err := s.Create(h.ctx, "u1", domain.Document{Kind: domain.DocInvoice, Side: domain.SideSupplier, Title: "Jasa cetak", PartyName: "CV Cetak", IssueDate: today, Items: []domain.DocItem{item("Cetak", 1, 1_000_000)}, TaxIDs: []string{ppn, pph.ID}})
+	h.ok(err)
+	issued, err := s.Issue(h.ctx, "u1", d.ID, h.id("6301004"), "")
+	h.ok(err)
+	posted, note, err := l.PostInvoice(h.ctx, domain.KindAP, "u1", issued.LedgerInvoiceID)
+	h.ok(err)
+	if posted.TotalAmount != rp(1_090_000) || posted.JournalEntryID == "" {
+		t.Fatalf("payable %+v %s", posted, note)
+	}
+	e, err := app.NewJournals(h.deps).Get(h.ctx, posted.JournalEntryID)
+	h.ok(err)
+	if l1 := lineOn(e, h.id("2103002")); l1.Side != domain.Credit || l1.Amount != rp(20_000) {
+		t.Fatalf("withheld %+v", l1)
+	}
+	if l2 := lineOn(e, h.id("1104001")); l2.Side != domain.Debit || l2.Amount != rp(110_000) {
+		t.Fatalf("input VAT %+v", l2)
+	}
+	if l3 := lineOn(e, h.id("2101001")); l3.Side != domain.Credit || l3.Amount != rp(1_090_000) {
+		t.Fatalf("payable line %+v", l3)
+	}
+	reg, err := setup.TaxRegister(h.ctx, "2026-10-01", "2026-10-31")
+	h.ok(err)
+	if reg.InputVAT != rp(110_000) || reg.VATPosition != rp(-110_000) || reg.WithheldFromVendors != rp(20_000) {
+		t.Fatalf("register %+v", reg)
+	}
+}
+
+func TestTaxMasterRules(t *testing.T) {
+	h := newHarness(t)
+	setup := app.NewTaxSetup(h.deps)
+	s := app.NewDocuments(h.deps)
+	valid := domain.TaxCode{Code: "A", Name: "A", Kind: domain.TaxVAT, Scope: domain.ScopeBoth, Rate: rp(11), BaseNumerator: 1, BaseDenominator: 1, AccountSaleID: h.id("2103003"), AccountPurchaseID: h.id("1104001"), IsActive: true}
+	bad := valid
+	bad.BaseNumerator = 13
+	bad.BaseDenominator = 12
+	_, err := setup.SaveTaxCode(h.ctx, "u1", bad)
+	code(t, err, apperr.Validation)
+	bad = valid
+	bad.Kind, bad.PriceIncluded = domain.TaxWithholding, true
+	_, err = setup.SaveTaxCode(h.ctx, "u1", bad)
+	code(t, err, apperr.Validation)
+	bad = valid
+	bad.AccountSaleID = ""
+	_, err = setup.SaveTaxCode(h.ctx, "u1", bad)
+	h.wantErr(err, "Kode pajak aktif perlu akun posting")
+	bad = valid
+	bad.AccountSaleID = h.id("1101000")
+	_, err = setup.SaveTaxCode(h.ctx, "u1", bad)
+	code(t, err, apperr.Validation)
+
+	// One default per side.
+	first := valid
+	first.IsDefaultSale = true
+	a, err := setup.SaveTaxCode(h.ctx, "u1", first)
+	h.ok(err)
+	second := valid
+	second.Code, second.IsDefaultSale = "B", true
+	b, err := setup.SaveTaxCode(h.ctx, "u1", second)
+	h.ok(err)
+	if got := mustTax(t, h, a.ID); got.IsDefaultSale {
+		t.Fatal("two defaults for sales")
+	}
+	_, err = setup.SaveTaxCode(h.ctx, "u1", valid)
+	h.wantErr(err, "Kode pajak sudah dipakai")
+
+	item1 := []domain.DocItem{item("X", 1, 100)}
+	_, err = s.Create(h.ctx, "u1", domain.Document{Kind: domain.DocInvoice, Side: domain.SideB2B, Title: "T", PartyName: "P", IssueDate: today, Items: item1, TaxIDs: []string{a.ID, b.ID}})
+	h.wantErr(err, "Satu dokumen hanya boleh memakai satu kode PPN")
+
+	// Validity and side.
+	dated := valid
+	dated.Code, dated.ValidFrom = "C", "2030-01-01"
+	c, err := setup.SaveTaxCode(h.ctx, "u1", dated)
+	h.ok(err)
+	_, err = s.Create(h.ctx, "u1", domain.Document{Kind: domain.DocInvoice, Side: domain.SideB2B, Title: "T", PartyName: "P", IssueDate: today, Items: item1, TaxIDs: []string{c.ID}})
+	h.wantErr(err, "C tidak berlaku pada tanggal dokumen")
+	sale := valid
+	sale.Code, sale.Scope, sale.AccountPurchaseID = "D", domain.ScopeSale, ""
+	d, err := setup.SaveTaxCode(h.ctx, "u1", sale)
+	h.ok(err)
+	_, err = s.Create(h.ctx, "u1", domain.Document{Kind: domain.DocPR, Title: "T", IssueDate: today, Items: item1, TaxIDs: []string{d.ID}})
+	h.wantErr(err, "D tidak berlaku untuk pihak ini")
+	// Inactive codes are refused.
+	off := *mustTax(t, h, d.ID)
+	off.IsActive = false
+	_, err = setup.SaveTaxCode(h.ctx, "u1", off)
+	h.ok(err)
+	_, err = s.Create(h.ctx, "u1", domain.Document{Kind: domain.DocInvoice, Side: domain.SideB2B, Title: "T", PartyName: "P", IssueDate: today, Items: item1, TaxIDs: []string{d.ID}})
+	h.wantErr(err, "Kode pajak tidak ditemukan atau nonaktif")
+}
+
+func mustTax(t *testing.T, h *harness, id string) *domain.TaxCode {
+	t.Helper()
+	got, err := h.deps.Store.GetTaxCode(h.ctx, id)
+	h.ok(err)
+	return got
 }

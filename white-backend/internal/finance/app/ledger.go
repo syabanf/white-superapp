@@ -103,6 +103,8 @@ func (l *Ledgers) InvoiceBySales(ctx context.Context, salesInvoiceID string) (*d
 type InvoiceInput struct {
 	InvoiceDate, DueDate, PartyName, Reference, AccountID, Description, ClientID string
 	Subtotal, TaxAmount                                                          domain.Money
+	// Withholding comes off what the party pays, so off the invoice's total.
+	Withholding domain.Money
 }
 
 func (l *Ledgers) normalizeInvoice(ctx context.Context, in *InvoiceInput) error {
@@ -151,7 +153,7 @@ func (l *Ledgers) CreateInvoice(ctx context.Context, kind, userID string, in Inv
 	}
 	inv := domain.Invoice{
 		ID: ids.New(), Kind: kind, InvoiceDate: in.InvoiceDate, DueDate: in.DueDate, PartyName: in.PartyName, Reference: in.Reference,
-		AccountID: in.AccountID, Currency: "IDR", Subtotal: in.Subtotal, TaxAmount: in.TaxAmount, TotalAmount: in.Subtotal + in.TaxAmount,
+		AccountID: in.AccountID, Currency: "IDR", Subtotal: in.Subtotal, TaxAmount: in.TaxAmount, TotalAmount: in.Subtotal + in.TaxAmount - in.Withholding,
 		Status: domain.StatusDraft, Description: in.Description, ClientID: in.ClientID, CreatedBy: userID,
 	}
 	err := l.Store.WithTx(ctx, func(tx domain.Store) error {
@@ -179,7 +181,23 @@ func (l *Ledgers) draftInvoice(ctx context.Context, kind, id string) (*domain.In
 	return inv, nil
 }
 
+// documentGuard keeps an invoice made from a document in step with it: its tax
+// lines and the document's status would otherwise stop matching.
+func (l *Ledgers) documentGuard(ctx context.Context, id string) error {
+	linked, err := l.Store.IsDocumentInvoice(ctx, id)
+	if err != nil {
+		return err
+	}
+	if linked {
+		return domain.Conflict("Tagihan ini dibuat dari dokumen, jadi tidak bisa diubah atau dihapus di sini")
+	}
+	return nil
+}
+
 func (l *Ledgers) UpdateInvoice(ctx context.Context, kind, userID, id string, in InvoiceInput) (*domain.Invoice, error) {
+	if err := l.documentGuard(ctx, id); err != nil {
+		return nil, err
+	}
 	inv, err := l.draftInvoice(ctx, kind, id)
 	if err != nil {
 		return nil, err
@@ -197,13 +215,35 @@ func (l *Ledgers) UpdateInvoice(ctx context.Context, kind, userID, id string, in
 }
 
 func (l *Ledgers) DeleteInvoice(ctx context.Context, kind, userID, id string) error {
+	if err := l.documentGuard(ctx, id); err != nil {
+		return err
+	}
 	if _, err := l.draftInvoice(ctx, kind, id); err != nil {
 		return err
 	}
 	return l.Store.SoftDeleteInvoice(ctx, id, userID)
 }
 
-func (l *Ledgers) invoicePost(inv domain.Invoice, userID string) MappingPost {
+// mainLineAmount is what the mapping's revenue or expense line must carry so
+// the journal balances with the invoice's extra lines. The natural side is where
+// VAT sits: credit on a receivable, debit on a payable.
+func mainLineAmount(inv domain.Invoice, extras []domain.InvoicePosting) domain.Money {
+	natural := domain.Credit
+	if inv.Kind == domain.KindAP {
+		natural = domain.Debit
+	}
+	amount := inv.TotalAmount
+	for _, p := range extras {
+		if p.Side == natural {
+			amount -= p.Amount
+		} else {
+			amount += p.Amount
+		}
+	}
+	return amount
+}
+
+func (l *Ledgers) invoicePost(inv domain.Invoice, userID string, extras []domain.InvoicePosting) MappingPost {
 	cfg := kinds[inv.Kind]
 	desc := cfg.label + " " + inv.InvoiceNo + " " + inv.PartyName
 	if inv.Reference != "" {
@@ -217,12 +257,22 @@ func (l *Ledgers) invoicePost(inv domain.Invoice, userID string) MappingPost {
 	if inv.AccountID != "" {
 		post.Overrides = map[string]string{cfg.accountRole: inv.AccountID}
 	}
+	if len(extras) > 0 {
+		post.Amounts = domain.Amounts{"SUBTOTAL": mainLineAmount(inv, extras), "TOTAL": inv.TotalAmount}
+		for _, p := range extras {
+			post.Extra = append(post.Extra, domain.Line{AccountID: p.AccountID, Side: p.Side, Amount: p.Amount, Memo: p.Memo, SortOrder: 10 + p.SortOrder})
+		}
+	}
 	return post
 }
 
 // postInvoiceJournal posts the invoice's mapping and links the journal.
 func (l *Ledgers) postInvoiceJournal(ctx context.Context, tx domain.Store, inv domain.Invoice, userID string) (domain.PostResult, error) {
-	res, err := PostFromMapping(ctx, tx, l.invoicePost(inv, userID))
+	extras, err := tx.ListInvoicePostings(ctx, inv.ID)
+	if err != nil {
+		return domain.PostResult{}, err
+	}
+	res, err := PostFromMapping(ctx, tx, l.invoicePost(inv, userID, extras))
 	if err != nil || res.EntryID == "" {
 		return res, err
 	}

@@ -5844,6 +5844,266 @@ var DocumentService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	TaxSetupService_ListTaxCodes_FullMethodName    = "/white.finance.v1.TaxSetupService/ListTaxCodes"
+	TaxSetupService_SaveTaxCode_FullMethodName     = "/white.finance.v1.TaxSetupService/SaveTaxCode"
+	TaxSetupService_ListChargeTypes_FullMethodName = "/white.finance.v1.TaxSetupService/ListChargeTypes"
+	TaxSetupService_SaveChargeType_FullMethodName  = "/white.finance.v1.TaxSetupService/SaveChargeType"
+	TaxSetupService_GetTaxRegister_FullMethodName  = "/white.finance.v1.TaxSetupService/GetTaxRegister"
+)
+
+// TaxSetupServiceClient is the client API for TaxSetupService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Tax codes and extra charges as master data.
+type TaxSetupServiceClient interface {
+	ListTaxCodes(ctx context.Context, in *ListTaxMasterRequest, opts ...grpc.CallOption) (*ListTaxCodesResponse, error)
+	// finance.approve: a change here decides how future documents post.
+	SaveTaxCode(ctx context.Context, in *TaxCode, opts ...grpc.CallOption) (*TaxCode, error)
+	ListChargeTypes(ctx context.Context, in *ListTaxMasterRequest, opts ...grpc.CallOption) (*ListChargeTypesResponse, error)
+	SaveChargeType(ctx context.Context, in *ChargeType, opts ...grpc.CallOption) (*ChargeType, error)
+	GetTaxRegister(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*TaxRegister, error)
+}
+
+type taxSetupServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTaxSetupServiceClient(cc grpc.ClientConnInterface) TaxSetupServiceClient {
+	return &taxSetupServiceClient{cc}
+}
+
+func (c *taxSetupServiceClient) ListTaxCodes(ctx context.Context, in *ListTaxMasterRequest, opts ...grpc.CallOption) (*ListTaxCodesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTaxCodesResponse)
+	err := c.cc.Invoke(ctx, TaxSetupService_ListTaxCodes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) SaveTaxCode(ctx context.Context, in *TaxCode, opts ...grpc.CallOption) (*TaxCode, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TaxCode)
+	err := c.cc.Invoke(ctx, TaxSetupService_SaveTaxCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) ListChargeTypes(ctx context.Context, in *ListTaxMasterRequest, opts ...grpc.CallOption) (*ListChargeTypesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListChargeTypesResponse)
+	err := c.cc.Invoke(ctx, TaxSetupService_ListChargeTypes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) SaveChargeType(ctx context.Context, in *ChargeType, opts ...grpc.CallOption) (*ChargeType, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ChargeType)
+	err := c.cc.Invoke(ctx, TaxSetupService_SaveChargeType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) GetTaxRegister(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*TaxRegister, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TaxRegister)
+	err := c.cc.Invoke(ctx, TaxSetupService_GetTaxRegister_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TaxSetupServiceServer is the server API for TaxSetupService service.
+// All implementations must embed UnimplementedTaxSetupServiceServer
+// for forward compatibility.
+//
+// Tax codes and extra charges as master data.
+type TaxSetupServiceServer interface {
+	ListTaxCodes(context.Context, *ListTaxMasterRequest) (*ListTaxCodesResponse, error)
+	// finance.approve: a change here decides how future documents post.
+	SaveTaxCode(context.Context, *TaxCode) (*TaxCode, error)
+	ListChargeTypes(context.Context, *ListTaxMasterRequest) (*ListChargeTypesResponse, error)
+	SaveChargeType(context.Context, *ChargeType) (*ChargeType, error)
+	GetTaxRegister(context.Context, *PeriodRequest) (*TaxRegister, error)
+	mustEmbedUnimplementedTaxSetupServiceServer()
+}
+
+// UnimplementedTaxSetupServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedTaxSetupServiceServer struct{}
+
+func (UnimplementedTaxSetupServiceServer) ListTaxCodes(context.Context, *ListTaxMasterRequest) (*ListTaxCodesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTaxCodes not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) SaveTaxCode(context.Context, *TaxCode) (*TaxCode, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveTaxCode not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) ListChargeTypes(context.Context, *ListTaxMasterRequest) (*ListChargeTypesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListChargeTypes not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) SaveChargeType(context.Context, *ChargeType) (*ChargeType, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveChargeType not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) GetTaxRegister(context.Context, *PeriodRequest) (*TaxRegister, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTaxRegister not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) mustEmbedUnimplementedTaxSetupServiceServer() {}
+func (UnimplementedTaxSetupServiceServer) testEmbeddedByValue()                         {}
+
+// UnsafeTaxSetupServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TaxSetupServiceServer will
+// result in compilation errors.
+type UnsafeTaxSetupServiceServer interface {
+	mustEmbedUnimplementedTaxSetupServiceServer()
+}
+
+func RegisterTaxSetupServiceServer(s grpc.ServiceRegistrar, srv TaxSetupServiceServer) {
+	// If the following call panics, it indicates UnimplementedTaxSetupServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&TaxSetupService_ServiceDesc, srv)
+}
+
+func _TaxSetupService_ListTaxCodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTaxMasterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).ListTaxCodes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_ListTaxCodes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).ListTaxCodes(ctx, req.(*ListTaxMasterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_SaveTaxCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaxCode)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).SaveTaxCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_SaveTaxCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).SaveTaxCode(ctx, req.(*TaxCode))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_ListChargeTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTaxMasterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).ListChargeTypes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_ListChargeTypes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).ListChargeTypes(ctx, req.(*ListTaxMasterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_SaveChargeType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChargeType)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).SaveChargeType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_SaveChargeType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).SaveChargeType(ctx, req.(*ChargeType))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_GetTaxRegister_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PeriodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).GetTaxRegister(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_GetTaxRegister_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).GetTaxRegister(ctx, req.(*PeriodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// TaxSetupService_ServiceDesc is the grpc.ServiceDesc for TaxSetupService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TaxSetupService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.TaxSetupService",
+	HandlerType: (*TaxSetupServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListTaxCodes",
+			Handler:    _TaxSetupService_ListTaxCodes_Handler,
+		},
+		{
+			MethodName: "SaveTaxCode",
+			Handler:    _TaxSetupService_SaveTaxCode_Handler,
+		},
+		{
+			MethodName: "ListChargeTypes",
+			Handler:    _TaxSetupService_ListChargeTypes_Handler,
+		},
+		{
+			MethodName: "SaveChargeType",
+			Handler:    _TaxSetupService_SaveChargeType_Handler,
+		},
+		{
+			MethodName: "GetTaxRegister",
+			Handler:    _TaxSetupService_GetTaxRegister_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
 	AnalysisService_GetFinancialAnalysis_FullMethodName     = "/white.finance.v1.AnalysisService/GetFinancialAnalysis"
 	AnalysisService_GenerateFinancialInsight_FullMethodName = "/white.finance.v1.AnalysisService/GenerateFinancialInsight"
 	AnalysisService_ListFinancialInsights_FullMethodName    = "/white.finance.v1.AnalysisService/ListFinancialInsights"

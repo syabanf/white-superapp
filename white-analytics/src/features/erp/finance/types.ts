@@ -875,10 +875,14 @@ export type FinanceDocument = {
   notes: string;
   items: DocumentItem[];
   discountPercent: string;
-  ppnPercent: string;
+  taxes: DocumentTax[];
+  charges: DocumentCharge[];
   subtotal: string;
   discountAmount: string;
+  chargesAmount: string;
   taxAmount: string;
+  withholdingAmount: string;
+  netDue: string;
   totalAmount: string;
   accountId: string;
   sourceId: string;
@@ -886,4 +890,58 @@ export type FinanceDocument = {
   rejectReason: string;
   createdBy: string;
   decidedBy: string;
+};
+
+export type TaxScope = "SALE" | "PURCHASE" | "BOTH";
+export type TaxKind = "VAT" | "WITHHOLDING";
+
+export type TaxCode = {
+  id: string;
+  code: string;
+  name: string;
+  kind: TaxKind;
+  scope: TaxScope;
+  rate: string;
+  baseNumerator: number;
+  baseDenominator: number;
+  priceIncluded: boolean;
+  accountSaleId: string;
+  accountPurchaseId: string;
+  reportCode: string;
+  validFrom: string;
+  validTo: string;
+  isDefaultSale: boolean;
+  isDefaultPurchase: boolean;
+  isActive: boolean;
+  notes: string;
+};
+
+export type ChargeType = {
+  id: string;
+  code: string;
+  name: string;
+  scope: TaxScope;
+  computation: "FIXED" | "PERCENT";
+  value: string;
+  taxable: boolean;
+  isDeduction: boolean;
+  accountSaleId: string;
+  accountPurchaseId: string;
+  isActive: boolean;
+  notes: string;
+};
+
+export type DocumentTax = { taxId: string; code: string; name: string; kind: TaxKind; rate: string; base: string; amount: string };
+export type DocumentCharge = { chargeId: string; code: string; name: string; computation: "FIXED" | "PERCENT"; value: string; taxable: boolean; isDeduction: boolean; amount: string };
+
+export type TaxRegisterRow = { kind: "AR" | "AP"; taxCode: string; taxName: string; taxKind: TaxKind; invoiceCount: number; base: string; amount: string };
+export type TaxRegister = {
+  dateFrom: string;
+  dateTo: string;
+  rows: TaxRegisterRow[];
+  outputVat: string;
+  inputVat: string;
+  vatPosition: string;
+  withheldByClients: string;
+  withheldFromVendors: string;
 };

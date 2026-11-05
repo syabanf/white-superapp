@@ -15,7 +15,7 @@ func TestDocumentPDF(t *testing.T) {
 	}
 	for _, kind := range []string{domain.DocPR, domain.DocPO, domain.DocQuotation, domain.DocInvoice} {
 		d := domain.Document{Kind: kind, Number: "X-1", Title: "Uji — dokumen", PartyName: "PT Tepat", IssueDate: "2026-11-05", DueDate: "2026-12-05", Items: items,
-			DiscountPercent: domain.Rupiah(10), PPNPercent: domain.Rupiah(11), Notes: "Catatan"}
+			DiscountPercent: domain.Rupiah(10), Notes: "Catatan", Taxes: []domain.DocTax{{Name: "PPN", Kind: domain.TaxVAT, Rate: domain.Rupiah(12), BaseNumerator: 11, BaseDenominator: 12}, {Name: "PPh 23", Kind: domain.TaxWithholding, Rate: domain.Rupiah(2)}}, Charges: []domain.DocCharge{{Name: "Bea materai", Computation: domain.ChargeFixed, Value: domain.Rupiah(10_000)}}}
 		d.Recalculate()
 		data, err := DocumentPDF(d, domain.Company{LegalName: "PT Mixist", Address: "Jakarta", NPWP: "01.234"})
 		if err != nil || !bytes.HasPrefix(data, []byte("%PDF")) {

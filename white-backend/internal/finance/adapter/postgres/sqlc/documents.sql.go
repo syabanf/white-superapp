@@ -22,7 +22,7 @@ func (q *Queries) DeleteDocument(ctx context.Context, id string) error {
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT id, kind, side, number, status, vendor_id, party_name, pic_name, phone, email, address, title, issue_date, due_date, external_number, notes, items, discount_percent, ppn_percent, subtotal, discount_amount, tax_amount, total_amount, account_id, source_id, ledger_invoice_id, letterhead, reject_reason, decided_by, decided_at, created_at, created_by, updated_at, updated_by FROM finance.documents WHERE id = $1
+SELECT id, kind, side, number, status, vendor_id, party_name, pic_name, phone, email, address, title, issue_date, due_date, external_number, notes, items, discount_percent, subtotal, discount_amount, tax_amount, total_amount, account_id, source_id, ledger_invoice_id, letterhead, reject_reason, decided_by, decided_at, created_at, created_by, updated_at, updated_by, taxes, charges, charges_amount, withholding_amount FROM finance.documents WHERE id = $1
 `
 
 func (q *Queries) GetDocument(ctx context.Context, id string) (FinanceDocument, error) {
@@ -47,7 +47,6 @@ func (q *Queries) GetDocument(ctx context.Context, id string) (FinanceDocument, 
 		&i.Notes,
 		&i.Items,
 		&i.DiscountPercent,
-		&i.PpnPercent,
 		&i.Subtotal,
 		&i.DiscountAmount,
 		&i.TaxAmount,
@@ -63,6 +62,10 @@ func (q *Queries) GetDocument(ctx context.Context, id string) (FinanceDocument, 
 		&i.CreatedBy,
 		&i.UpdatedAt,
 		&i.UpdatedBy,
+		&i.Taxes,
+		&i.Charges,
+		&i.ChargesAmount,
+		&i.WithholdingAmount,
 	)
 	return i, err
 }
@@ -98,38 +101,41 @@ func (q *Queries) GetVendor(ctx context.Context, id string) (FinanceVendor, erro
 
 const insertDocument = `-- name: InsertDocument :exec
 INSERT INTO finance.documents (id, kind, side, number, status, vendor_id, party_name, pic_name, phone, email, address, title, issue_date, due_date,
-  external_number, notes, items, discount_percent, ppn_percent, subtotal, discount_amount, tax_amount, total_amount, account_id, source_id, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $22, $6, $7, $8, $9, $10, $11, $12, $23, $13, $14, $15, $16, $17, $18, $19, $20, $21,
-  $24, $25, $26, $26)
+  external_number, notes, items, discount_percent, taxes, charges, subtotal, discount_amount, charges_amount, tax_amount, withholding_amount, total_amount, account_id, source_id, created_by, updated_by)
+VALUES ($1, $2, $3, $4, $5, $25, $6, $7, $8, $9, $10, $11, $12, $26, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24,
+  $27, $28, $29, $29)
 `
 
 type InsertDocumentParams struct {
-	ID              string
-	Kind            string
-	Side            string
-	Number          string
-	Status          string
-	PartyName       string
-	PicName         string
-	Phone           string
-	Email           string
-	Address         string
-	Title           string
-	IssueDate       time.Time
-	ExternalNumber  string
-	Notes           string
-	Items           []byte
-	DiscountPercent domain.Money
-	PpnPercent      domain.Money
-	Subtotal        domain.Money
-	DiscountAmount  domain.Money
-	TaxAmount       domain.Money
-	TotalAmount     domain.Money
-	VendorID        *string
-	DueDate         *time.Time
-	AccountID       *string
-	SourceID        *string
-	By              *string
+	ID                string
+	Kind              string
+	Side              string
+	Number            string
+	Status            string
+	PartyName         string
+	PicName           string
+	Phone             string
+	Email             string
+	Address           string
+	Title             string
+	IssueDate         time.Time
+	ExternalNumber    string
+	Notes             string
+	Items             []byte
+	DiscountPercent   domain.Money
+	Taxes             []byte
+	Charges           []byte
+	Subtotal          domain.Money
+	DiscountAmount    domain.Money
+	ChargesAmount     domain.Money
+	TaxAmount         domain.Money
+	WithholdingAmount domain.Money
+	TotalAmount       domain.Money
+	VendorID          *string
+	DueDate           *time.Time
+	AccountID         *string
+	SourceID          *string
+	By                *string
 }
 
 func (q *Queries) InsertDocument(ctx context.Context, arg InsertDocumentParams) error {
@@ -150,10 +156,13 @@ func (q *Queries) InsertDocument(ctx context.Context, arg InsertDocumentParams) 
 		arg.Notes,
 		arg.Items,
 		arg.DiscountPercent,
-		arg.PpnPercent,
+		arg.Taxes,
+		arg.Charges,
 		arg.Subtotal,
 		arg.DiscountAmount,
+		arg.ChargesAmount,
 		arg.TaxAmount,
+		arg.WithholdingAmount,
 		arg.TotalAmount,
 		arg.VendorID,
 		arg.DueDate,
@@ -165,7 +174,7 @@ func (q *Queries) InsertDocument(ctx context.Context, arg InsertDocumentParams) 
 }
 
 const listDocuments = `-- name: ListDocuments :many
-SELECT id, kind, side, number, status, vendor_id, party_name, pic_name, phone, email, address, title, issue_date, due_date, external_number, notes, items, discount_percent, ppn_percent, subtotal, discount_amount, tax_amount, total_amount, account_id, source_id, ledger_invoice_id, letterhead, reject_reason, decided_by, decided_at, created_at, created_by, updated_at, updated_by, count(*) OVER ()::int AS total
+SELECT id, kind, side, number, status, vendor_id, party_name, pic_name, phone, email, address, title, issue_date, due_date, external_number, notes, items, discount_percent, subtotal, discount_amount, tax_amount, total_amount, account_id, source_id, ledger_invoice_id, letterhead, reject_reason, decided_by, decided_at, created_at, created_by, updated_at, updated_by, taxes, charges, charges_amount, withholding_amount, count(*) OVER ()::int AS total
   FROM finance.documents
  WHERE kind = $1
    AND ($2::text IS NULL OR status = $2)
@@ -183,41 +192,44 @@ type ListDocumentsParams struct {
 }
 
 type ListDocumentsRow struct {
-	ID              string
-	Kind            string
-	Side            string
-	Number          string
-	Status          string
-	VendorID        *string
-	PartyName       string
-	PicName         string
-	Phone           string
-	Email           string
-	Address         string
-	Title           string
-	IssueDate       time.Time
-	DueDate         *time.Time
-	ExternalNumber  string
-	Notes           string
-	Items           []byte
-	DiscountPercent domain.Money
-	PpnPercent      domain.Money
-	Subtotal        domain.Money
-	DiscountAmount  domain.Money
-	TaxAmount       domain.Money
-	TotalAmount     domain.Money
-	AccountID       *string
-	SourceID        *string
-	LedgerInvoiceID *string
-	Letterhead      []byte
-	RejectReason    string
-	DecidedBy       *string
-	DecidedAt       *time.Time
-	CreatedAt       time.Time
-	CreatedBy       *string
-	UpdatedAt       time.Time
-	UpdatedBy       *string
-	Total           int32
+	ID                string
+	Kind              string
+	Side              string
+	Number            string
+	Status            string
+	VendorID          *string
+	PartyName         string
+	PicName           string
+	Phone             string
+	Email             string
+	Address           string
+	Title             string
+	IssueDate         time.Time
+	DueDate           *time.Time
+	ExternalNumber    string
+	Notes             string
+	Items             []byte
+	DiscountPercent   domain.Money
+	Subtotal          domain.Money
+	DiscountAmount    domain.Money
+	TaxAmount         domain.Money
+	TotalAmount       domain.Money
+	AccountID         *string
+	SourceID          *string
+	LedgerInvoiceID   *string
+	Letterhead        []byte
+	RejectReason      string
+	DecidedBy         *string
+	DecidedAt         *time.Time
+	CreatedAt         time.Time
+	CreatedBy         *string
+	UpdatedAt         time.Time
+	UpdatedBy         *string
+	Taxes             []byte
+	Charges           []byte
+	ChargesAmount     domain.Money
+	WithholdingAmount domain.Money
+	Total             int32
 }
 
 func (q *Queries) ListDocuments(ctx context.Context, arg ListDocumentsParams) ([]ListDocumentsRow, error) {
@@ -254,7 +266,6 @@ func (q *Queries) ListDocuments(ctx context.Context, arg ListDocumentsParams) ([
 			&i.Notes,
 			&i.Items,
 			&i.DiscountPercent,
-			&i.PpnPercent,
 			&i.Subtotal,
 			&i.DiscountAmount,
 			&i.TaxAmount,
@@ -270,6 +281,10 @@ func (q *Queries) ListDocuments(ctx context.Context, arg ListDocumentsParams) ([
 			&i.CreatedBy,
 			&i.UpdatedAt,
 			&i.UpdatedBy,
+			&i.Taxes,
+			&i.Charges,
+			&i.ChargesAmount,
+			&i.WithholdingAmount,
 			&i.Total,
 		); err != nil {
 			return nil, err
@@ -334,41 +349,44 @@ func (q *Queries) ListVendors(ctx context.Context, arg ListVendorsParams) ([]Fin
 
 const updateDocument = `-- name: UpdateDocument :exec
 UPDATE finance.documents
-   SET vendor_id = $20, party_name = $2, pic_name = $3, phone = $4, email = $5, address = $6, title = $7, issue_date = $8, due_date = $21,
-       external_number = $9, notes = $10, items = $11, discount_percent = $12, ppn_percent = $13, subtotal = $14, discount_amount = $15, tax_amount = $16, total_amount = $17,
-       account_id = $22, status = $18, ledger_invoice_id = $23, letterhead = $24, reject_reason = $19,
-       decided_by = $25, decided_at = $26, updated_by = $27, updated_at = now()
+   SET vendor_id = $23, party_name = $2, pic_name = $3, phone = $4, email = $5, address = $6, title = $7, issue_date = $8, due_date = $24,
+       external_number = $9, notes = $10, items = $11, discount_percent = $12, taxes = $13, charges = $14, subtotal = $15, discount_amount = $16, charges_amount = $17, tax_amount = $18, withholding_amount = $19, total_amount = $20,
+       account_id = $25, status = $21, ledger_invoice_id = $26, letterhead = $27, reject_reason = $22,
+       decided_by = $28, decided_at = $29, updated_by = $30, updated_at = now()
  WHERE id = $1
 `
 
 type UpdateDocumentParams struct {
-	ID              string
-	PartyName       string
-	PicName         string
-	Phone           string
-	Email           string
-	Address         string
-	Title           string
-	IssueDate       time.Time
-	ExternalNumber  string
-	Notes           string
-	Items           []byte
-	DiscountPercent domain.Money
-	PpnPercent      domain.Money
-	Subtotal        domain.Money
-	DiscountAmount  domain.Money
-	TaxAmount       domain.Money
-	TotalAmount     domain.Money
-	Status          string
-	RejectReason    string
-	VendorID        *string
-	DueDate         *time.Time
-	AccountID       *string
-	LedgerInvoiceID *string
-	Letterhead      []byte
-	DecidedBy       *string
-	DecidedAt       *time.Time
-	By              *string
+	ID                string
+	PartyName         string
+	PicName           string
+	Phone             string
+	Email             string
+	Address           string
+	Title             string
+	IssueDate         time.Time
+	ExternalNumber    string
+	Notes             string
+	Items             []byte
+	DiscountPercent   domain.Money
+	Taxes             []byte
+	Charges           []byte
+	Subtotal          domain.Money
+	DiscountAmount    domain.Money
+	ChargesAmount     domain.Money
+	TaxAmount         domain.Money
+	WithholdingAmount domain.Money
+	TotalAmount       domain.Money
+	Status            string
+	RejectReason      string
+	VendorID          *string
+	DueDate           *time.Time
+	AccountID         *string
+	LedgerInvoiceID   *string
+	Letterhead        []byte
+	DecidedBy         *string
+	DecidedAt         *time.Time
+	By                *string
 }
 
 func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) error {
@@ -385,10 +403,13 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		arg.Notes,
 		arg.Items,
 		arg.DiscountPercent,
-		arg.PpnPercent,
+		arg.Taxes,
+		arg.Charges,
 		arg.Subtotal,
 		arg.DiscountAmount,
+		arg.ChargesAmount,
 		arg.TaxAmount,
+		arg.WithholdingAmount,
 		arg.TotalAmount,
 		arg.Status,
 		arg.RejectReason,

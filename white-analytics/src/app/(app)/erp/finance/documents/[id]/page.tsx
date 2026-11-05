@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { requireErp } from "@/features/erp/access";
 import { DocumentActions } from "@/features/erp/finance/components/documents";
 import { financePerms } from "@/features/erp/finance/perms";
-import { getDocument, listPostableAccounts, listVendors } from "@/features/erp/finance/queries";
+import { getDocument, listChargeTypes, listPostableAccounts, listTaxCodes, listVendors } from "@/features/erp/finance/queries";
 import { fs } from "@/features/erp/finance/strings";
 import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load } from "@/features/erp/shared/load";
@@ -40,7 +40,12 @@ export default async function DocumentPage(props: PageProps<"/erp/finance/docume
   const doc = res.data;
   const user = await requireUser();
   const { canWrite, canApprove } = financePerms(access);
-  const [vendors, accounts] = await Promise.all([load(() => listVendors({ activeOnly: true })), canWrite ? load(listPostableAccounts) : null]);
+  const [vendors, accounts, taxes, charges] = await Promise.all([
+    load(() => listVendors({ activeOnly: true })),
+    canWrite ? load(listPostableAccounts) : null,
+    load(() => listTaxCodes(true)),
+    load(() => listChargeTypes(true)),
+  ]);
   const purchase = doc.kind === "PR" || doc.kind === "PO";
   const ledger = doc.side === "SUPPLIER" ? "payables" : "receivables";
   return (
@@ -50,7 +55,7 @@ export default async function DocumentPage(props: PageProps<"/erp/finance/docume
         eyebrow={s.kinds[doc.kind]}
         title={doc.number}
         description={doc.title}
-        actions={<DocumentActions doc={doc} userId={user.id} isAdmin={access.role === "ADMIN"} canWrite={canWrite} canApprove={canApprove} vendors={vendors.data ?? []} accounts={accounts?.data ?? []} />}
+        actions={<DocumentActions doc={doc} userId={user.id} isAdmin={access.role === "ADMIN"} canWrite={canWrite} canApprove={canApprove} vendors={vendors.data ?? []} accounts={accounts?.data ?? []} options={{ taxes: taxes.data ?? [], charges: charges.data ?? [] }} />}
       />
       {doc.status === "SUBMITTED" && doc.createdBy === user.id && access.role !== "ADMIN" ? <p className="text-sm text-muted-foreground">{s.ownDocument}</p> : null}
       {doc.rejectReason ? (
@@ -99,8 +104,17 @@ export default async function DocumentPage(props: PageProps<"/erp/finance/docume
         <dl className="ml-auto flex w-full max-w-xs flex-col gap-1 border-t p-4 text-sm">
           <div className="flex justify-between"><dt className="text-muted-foreground">{s.subtotal}</dt><dd><Money value={doc.subtotal} /></dd></div>
           {parseMoney(doc.discountAmount) > 0 ? <div className="flex justify-between"><dt className="text-muted-foreground">{s.discountAmount}</dt><dd><Money value={doc.discountAmount} /></dd></div> : null}
-          {parseMoney(doc.taxAmount) > 0 ? <div className="flex justify-between"><dt className="text-muted-foreground">{s.tax}</dt><dd><Money value={doc.taxAmount} /></dd></div> : null}
+          {(doc.charges ?? []).map((c) => (
+            <div key={c.chargeId} className="flex justify-between"><dt className="text-muted-foreground">{c.name}</dt><dd><Money value={c.amount} signed /></dd></div>
+          ))}
+          {(doc.taxes ?? []).filter((t) => t.kind === "VAT").map((t) => (
+            <div key={t.taxId} className="flex justify-between gap-3"><dt className="text-muted-foreground">{t.name}</dt><dd><Money value={t.amount} /></dd></div>
+          ))}
           <div className="flex justify-between font-semibold"><dt>{s.total}</dt><dd><Money value={doc.totalAmount} /></dd></div>
+          {(doc.taxes ?? []).filter((t) => t.kind === "WITHHOLDING").map((t) => (
+            <div key={t.taxId} className="flex justify-between gap-3"><dt className="text-muted-foreground">{s.withheld(t.name)}</dt><dd><Money value={t.amount} /></dd></div>
+          ))}
+          {parseMoney(doc.withholdingAmount) > 0 ? <div className="flex justify-between font-semibold"><dt>{s.net}</dt><dd><Money value={doc.netDue} /></dd></div> : null}
         </dl>
       </Card>
       {doc.notes ? <Card className="p-(--card-pad) text-sm whitespace-pre-line">{doc.notes}</Card> : null}

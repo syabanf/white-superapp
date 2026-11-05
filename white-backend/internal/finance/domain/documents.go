@@ -104,21 +104,25 @@ type Vendor struct {
 	By                                              string
 }
 
-// Document is a PR, PO, quotation or invoice. Percentages keep two decimals in
-// a Money: 11% is Rupiah(11).
+// Document is a PR, PO, quotation or invoice. DiscountPercent keeps two decimals
+// in a Money: 10% is Rupiah(10). Taxes and Charges are copies of the master data.
 type Document struct {
 	ID, Kind, Side, Number, Status                      string
 	VendorID, PartyName, PicName, Phone, Email, Address string
 	Title, IssueDate, DueDate, ExternalNumber, Notes    string
 	Items                                               []DocItem
-	DiscountPercent, PPNPercent                         Money
-	Subtotal, Discount, Tax, Total                      Money
-	AccountID, SourceID, LedgerInvoiceID, RejectReason  string
-	Letterhead                                          json.RawMessage
-	DecidedBy                                           string
-	DecidedAt                                           *time.Time
-	CreatedBy, UpdatedBy                                string
-	CreatedAt                                           time.Time
+	DiscountPercent                                     Money
+	Taxes                                               []DocTax
+	Charges                                             []DocCharge
+	// Input only: what to copy from the master on save.
+	TaxIDs                                                     []string
+	Subtotal, Discount, ChargesAmount, Tax, Withholding, Total Money
+	AccountID, SourceID, LedgerInvoiceID, RejectReason         string
+	Letterhead                                                 json.RawMessage
+	DecidedBy                                                  string
+	DecidedAt                                                  *time.Time
+	CreatedBy, UpdatedBy                                       string
+	CreatedAt                                                  time.Time
 }
 
 // DocumentFilter selects documents of one kind.
@@ -127,21 +131,69 @@ type DocumentFilter struct {
 	Limit, Offset       int
 }
 
-func mulHundredths(a, b Money) Money { return Money((int64(a)*int64(b) + 5000) / 10000) }
+func mulHundredths(a, b Money) Money { return mulDiv(int64(a), int64(b), 10000) }
 
-// Recalculate fills line totals and document totals. The discount applies
-// before tax, the way Indonesian invoices state PPN.
+// Recalculate runs the pricing steps in a fixed order, like an SAP pricing
+// procedure: lines, included VAT taken out, discount, taxable charges, tax base,
+// taxes, untaxed charges. Subtotal is the net of lines before discount.
+// Total is what the party owes before withholding; NetDue is what they pay.
 func (d *Document) Recalculate() {
-	d.Subtotal = 0
+	var gross Money
 	for i := range d.Items {
 		// Qty and price both hold hundredths, so the product divides by 100.
-		d.Items[i].LineTotal = Money((int64(d.Items[i].Qty)*int64(d.Items[i].UnitPrice) + 50) / 100)
-		d.Subtotal += d.Items[i].LineTotal
+		d.Items[i].LineTotal = mulDiv(int64(d.Items[i].Qty), int64(d.Items[i].UnitPrice), 100)
+		gross += d.Items[i].LineTotal
+	}
+	d.Subtotal = gross
+	for _, t := range d.Taxes {
+		if t.PriceIncluded && t.Kind == TaxVAT {
+			num, den := t.ratio()
+			d.Subtotal = mulDiv(int64(gross), den*10000, den*10000+num*int64(t.Rate))
+		}
 	}
 	d.Discount = mulHundredths(d.Subtotal, d.DiscountPercent)
-	d.Tax = mulHundredths(d.Subtotal-d.Discount, d.PPNPercent)
-	d.Total = d.Subtotal - d.Discount + d.Tax
+	after := d.Subtotal - d.Discount
+
+	var taxable, untaxed Money
+	for i := range d.Charges {
+		c := &d.Charges[i]
+		c.Amount = c.Value
+		if c.Computation == ChargePercent {
+			c.Amount = mulHundredths(after, c.Value)
+		}
+		if c.IsDeduction {
+			c.Amount = -c.Amount
+		}
+		if c.Taxable {
+			taxable += c.Amount
+		} else {
+			untaxed += c.Amount
+		}
+	}
+	dpp := after + taxable
+	d.ChargesAmount = taxable + untaxed
+
+	d.Tax, d.Withholding = 0, 0
+	for i := range d.Taxes {
+		t := &d.Taxes[i]
+		num, den := t.ratio()
+		t.Base = mulDiv(int64(dpp), num, den)
+		t.Amount = mulHundredths(t.Base, t.Rate)
+		// With nothing changing the price, included VAT is exactly what came out.
+		if t.PriceIncluded && t.Kind == TaxVAT && d.Discount == 0 && taxable == 0 {
+			t.Amount = gross - d.Subtotal
+		}
+		if t.Kind == TaxWithholding {
+			d.Withholding += t.Amount
+		} else {
+			d.Tax += t.Amount
+		}
+	}
+	d.Total = dpp + d.Tax + untaxed
 }
+
+// NetDue is what the party pays after withholding.
+func (d Document) NetDue() Money { return d.Total - d.Withholding }
 
 // DocumentRepo stores vendors and documents.
 type DocumentRepo interface {

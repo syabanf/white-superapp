@@ -26,6 +26,7 @@ import {
   REPORTS,
   ReportHub,
   SubsidiaryLedgerView,
+  TaxRegisterView,
   TrialBalanceView,
   type ReportKey,
 } from "@/features/erp/finance/components/report-views";
@@ -34,6 +35,7 @@ import {
   getBudgetVsActual,
   getClientEconomics,
   getEquityChanges,
+  getTaxRegister,
   getCashFlow,
   getGeneralLedger,
   getIncomeStatement,
@@ -115,6 +117,11 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
     case "income-statement": {
       const res = await load(() => getIncomeStatement(from, to));
       body = res.error ? <ErpLoadError error={res.error} /> : <IncomeStatementView data={res.data} />;
+      break;
+    }
+    case "tax-register": {
+      const res = await load(() => getTaxRegister(from, to));
+      body = res.error ? <ErpLoadError error={res.error} /> : <TaxRegisterView data={res.data} />;
       break;
     }
     case "budget-vs-actual": {

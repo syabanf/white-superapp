@@ -29,15 +29,15 @@ SELECT * FROM finance.documents WHERE id = $1;
 
 -- name: InsertDocument :exec
 INSERT INTO finance.documents (id, kind, side, number, status, vendor_id, party_name, pic_name, phone, email, address, title, issue_date, due_date,
-  external_number, notes, items, discount_percent, ppn_percent, subtotal, discount_amount, tax_amount, total_amount, account_id, source_id, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, sqlc.narg(vendor_id), $6, $7, $8, $9, $10, $11, $12, sqlc.narg(due_date), $13, $14, $15, $16, $17, $18, $19, $20, $21,
+  external_number, notes, items, discount_percent, taxes, charges, subtotal, discount_amount, charges_amount, tax_amount, withholding_amount, total_amount, account_id, source_id, created_by, updated_by)
+VALUES ($1, $2, $3, $4, $5, sqlc.narg(vendor_id), $6, $7, $8, $9, $10, $11, $12, sqlc.narg(due_date), $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24,
   sqlc.narg(account_id), sqlc.narg(source_id), sqlc.narg(by), sqlc.narg(by));
 
 -- name: UpdateDocument :exec
 UPDATE finance.documents
    SET vendor_id = sqlc.narg(vendor_id), party_name = $2, pic_name = $3, phone = $4, email = $5, address = $6, title = $7, issue_date = $8, due_date = sqlc.narg(due_date),
-       external_number = $9, notes = $10, items = $11, discount_percent = $12, ppn_percent = $13, subtotal = $14, discount_amount = $15, tax_amount = $16, total_amount = $17,
-       account_id = sqlc.narg(account_id), status = $18, ledger_invoice_id = sqlc.narg(ledger_invoice_id), letterhead = sqlc.narg(letterhead), reject_reason = $19,
+       external_number = $9, notes = $10, items = $11, discount_percent = $12, taxes = $13, charges = $14, subtotal = $15, discount_amount = $16, charges_amount = $17, tax_amount = $18, withholding_amount = $19, total_amount = $20,
+       account_id = sqlc.narg(account_id), status = $21, ledger_invoice_id = sqlc.narg(ledger_invoice_id), letterhead = sqlc.narg(letterhead), reject_reason = $22,
        decided_by = sqlc.narg(decided_by), decided_at = sqlc.narg(decided_at), updated_by = sqlc.narg(by), updated_at = now()
  WHERE id = $1;
 

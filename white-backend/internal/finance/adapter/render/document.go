@@ -173,18 +173,31 @@ func DocumentPDF(d domain.Document, co domain.Company) ([]byte, error) {
 			style = "B"
 		}
 		pdf.SetFont("Helvetica", style, 10)
-		pdf.CellFormat(120, 6, "", "", 0, "L", false, 0, "")
-		pdf.CellFormat(26, 6, t(label), "", 0, "L", false, 0, "")
+		pdf.CellFormat(84, 6, "", "", 0, "L", false, 0, "")
+		pdf.CellFormat(62, 6, t(label), "", 0, "L", false, 0, "")
 		pdf.CellFormat(28, 6, value, "", 1, "R", false, 0, "")
 	}
 	total("Subtotal", rupiah(d.Subtotal), false)
 	if d.Discount > 0 {
 		total("Diskon "+percent(d.DiscountPercent), "-"+rupiah(d.Discount), false)
 	}
-	if d.Tax > 0 {
-		total("PPN "+percent(d.PPNPercent), rupiah(d.Tax), false)
+	for _, c := range d.Charges {
+		total(c.Name, rupiah(c.Amount), false)
+	}
+	for _, t := range d.Taxes {
+		if t.Kind == domain.TaxVAT {
+			total(t.Name, rupiah(t.Amount), false)
+		}
 	}
 	total("Total", rupiah(d.Total), true)
+	for _, t := range d.Taxes {
+		if t.Kind == domain.TaxWithholding {
+			total("Dipotong "+t.Name, "-"+rupiah(t.Amount), false)
+		}
+	}
+	if d.Withholding > 0 {
+		total("Dibayar", rupiah(d.NetDue()), true)
+	}
 
 	if strings.TrimSpace(d.Notes) != "" {
 		pdf.Ln(5)

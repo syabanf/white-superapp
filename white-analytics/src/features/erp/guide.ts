@@ -76,6 +76,10 @@ export const ERP_GUIDE_SECTIONS: GuideSection[] = [
             text: "Keuangan → Laporan keuangan menyediakan Budget vs Actual, Perubahan ekuitas, Ekonomi klien, dan Kesehatan neraca. Isi rencana lewat “Atur anggaran” di Budget vs Actual: pilih tahun, isi nominal per akun dan bulan, lalu simpan. Laporan membandingkan per bulan penuh, dan selisih positif berarti lebih baik dari rencana.",
           },
           {
+            title: "Master pajak dan biaya tambahan",
+            text: "Keuangan → Master pajak & biaya. Kode pajak menyimpan jenis (PPN atau PPh potong), tarif, porsi DPP seperti 11/12, harga termasuk pajak, akun posting, dan masa berlaku. Biaya tambahan menyimpan cara hitung, kena pajak atau tidak, dan akunnya. Dokumen menyalin nilainya saat disimpan, jadi perubahan master hanya berlaku untuk dokumen baru. Nonaktifkan kode yang tidak dipakai, karena kode tidak bisa dihapus. Register pajak ada di Laporan keuangan.",
+          },
+          {
             title: "Pengadaan: dari PR sampai tagihan",
             text: "Keuangan → Pengadaan. Buat purchase request lalu “Ajukan”. Orang lain dengan izin finance.approve memberi “Setujui” atau “Tolak”; pembuat dokumen tidak bisa memutuskan dokumennya sendiri, kecuali Admin. “Buat PO” dari PR yang disetujui, pilih vendor, ajukan, dan setujui. “Jadikan tagihan” membuat draf di Hutang usaha, yang tetap perlu diposting di sana. Data pemasok ada di Keuangan → Vendor.",
           },

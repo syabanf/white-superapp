@@ -7,6 +7,8 @@ import { gatewayFetch } from "@/lib/erp/gateway";
 import { runGateway, zodFieldErrors } from "@/features/erp/shared/action";
 import { fs } from "./strings";
 import type {
+  ChargeType,
+  TaxCode,
   DocumentItem,
   DocumentKind,
   FinanceDocument,
@@ -681,7 +683,8 @@ export type DocumentValues = {
   notes: string;
   items: DocumentItem[];
   discountPercent: string;
-  ppnPercent: string;
+  taxIds: string[];
+  charges: { chargeId: string; value: string }[];
 };
 
 function revalidateDocuments() {
@@ -715,5 +718,17 @@ export async function issueDocumentAction(documentId: string, accountId: string,
   const res = await documentCall<FinanceDocument>(`/${id(documentId)}:issue`, "POST", { accountId, dueDate });
   revalidatePath(`${ROOT}/payables`);
   revalidatePath(`${ROOT}/receivables`);
+  return res;
+}
+
+export async function saveTaxCodeAction(input: TaxCode) {
+  const res = await runGateway(() => gatewayFetch<TaxCode>(`${F}/tax-codes`, json("POST", input)));
+  revalidatePath(`${ROOT}/tax-setup`);
+  return res;
+}
+
+export async function saveChargeTypeAction(input: ChargeType) {
+  const res = await runGateway(() => gatewayFetch<ChargeType>(`${F}/charge-types`, json("POST", input)));
+  revalidatePath(`${ROOT}/tax-setup`);
   return res;
 }

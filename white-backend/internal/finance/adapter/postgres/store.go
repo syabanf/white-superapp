@@ -1339,10 +1339,13 @@ func (s *Store) SaveVendor(ctx context.Context, v domain.Vendor) error {
 func toDocument(r sqlc.FinanceDocument) domain.Document {
 	d := domain.Document{ID: r.ID, Kind: r.Kind, Side: r.Side, Number: r.Number, Status: r.Status, VendorID: str(r.VendorID), PartyName: r.PartyName, PicName: r.PicName,
 		Phone: r.Phone, Email: r.Email, Address: r.Address, Title: r.Title, IssueDate: ds(r.IssueDate), DueDate: dsp(r.DueDate), ExternalNumber: r.ExternalNumber, Notes: r.Notes,
-		DiscountPercent: r.DiscountPercent, PPNPercent: r.PpnPercent, Subtotal: r.Subtotal, Discount: r.DiscountAmount, Tax: r.TaxAmount, Total: r.TotalAmount,
+		DiscountPercent: r.DiscountPercent, Subtotal: r.Subtotal, Discount: r.DiscountAmount, ChargesAmount: r.ChargesAmount, Tax: r.TaxAmount, Withholding: r.WithholdingAmount, Total: r.TotalAmount,
 		AccountID: str(r.AccountID), SourceID: str(r.SourceID), LedgerInvoiceID: str(r.LedgerInvoiceID), Letterhead: r.Letterhead, RejectReason: r.RejectReason,
 		DecidedBy: str(r.DecidedBy), DecidedAt: r.DecidedAt, CreatedBy: str(r.CreatedBy), UpdatedBy: str(r.UpdatedBy), CreatedAt: r.CreatedAt}
-	_ = json.Unmarshal(r.Items, &d.Items) // Written by this store only.
+	// Written by this store only.
+	_ = json.Unmarshal(r.Items, &d.Items)
+	_ = json.Unmarshal(r.Taxes, &d.Taxes)
+	_ = json.Unmarshal(r.Charges, &d.Charges)
 	return d
 }
 
@@ -1356,7 +1359,7 @@ func (s *Store) ListDocuments(ctx context.Context, f domain.DocumentFilter) ([]d
 	for i, r := range rows {
 		out[i] = toDocument(sqlc.FinanceDocument{ID: r.ID, Kind: r.Kind, Side: r.Side, Number: r.Number, Status: r.Status, VendorID: r.VendorID, PartyName: r.PartyName, PicName: r.PicName,
 			Phone: r.Phone, Email: r.Email, Address: r.Address, Title: r.Title, IssueDate: r.IssueDate, DueDate: r.DueDate, ExternalNumber: r.ExternalNumber, Notes: r.Notes, Items: r.Items,
-			DiscountPercent: r.DiscountPercent, PpnPercent: r.PpnPercent, Subtotal: r.Subtotal, DiscountAmount: r.DiscountAmount, TaxAmount: r.TaxAmount, TotalAmount: r.TotalAmount,
+			DiscountPercent: r.DiscountPercent, Taxes: r.Taxes, Charges: r.Charges, Subtotal: r.Subtotal, DiscountAmount: r.DiscountAmount, ChargesAmount: r.ChargesAmount, TaxAmount: r.TaxAmount, WithholdingAmount: r.WithholdingAmount, TotalAmount: r.TotalAmount,
 			AccountID: r.AccountID, SourceID: r.SourceID, LedgerInvoiceID: r.LedgerInvoiceID, RejectReason: r.RejectReason, CreatedBy: r.CreatedBy, CreatedAt: r.CreatedAt})
 		total = int(r.Total)
 	}
@@ -1368,27 +1371,145 @@ func (s *Store) GetDocument(ctx context.Context, id string) (*domain.Document, e
 	return one(r, err, toDocument)
 }
 
+// documentJSON encodes the parts a document stores as copies.
+func documentJSON(d domain.Document) (items, taxes, charges []byte, err error) {
+	if items, err = json.Marshal(d.Items); err != nil {
+		return
+	}
+	if d.Taxes == nil {
+		d.Taxes = []domain.DocTax{}
+	}
+	if taxes, err = json.Marshal(d.Taxes); err != nil {
+		return
+	}
+	if d.Charges == nil {
+		d.Charges = []domain.DocCharge{}
+	}
+	charges, err = json.Marshal(d.Charges)
+	return
+}
+
 func (s *Store) InsertDocument(ctx context.Context, d domain.Document) error {
-	items, err := json.Marshal(d.Items)
+	items, taxes, charges, err := documentJSON(d)
 	if err != nil {
 		return err
 	}
 	return wrap(s.q.InsertDocument(ctx, sqlc.InsertDocumentParams{ID: d.ID, Kind: d.Kind, Side: d.Side, Number: d.Number, Status: d.Status, VendorID: sp(d.VendorID), PartyName: d.PartyName, PicName: d.PicName,
 		Phone: d.Phone, Email: d.Email, Address: d.Address, Title: d.Title, IssueDate: day(d.IssueDate), DueDate: dayp(d.DueDate), ExternalNumber: d.ExternalNumber, Notes: d.Notes, Items: items,
-		DiscountPercent: d.DiscountPercent, PpnPercent: d.PPNPercent, Subtotal: d.Subtotal, DiscountAmount: d.Discount, TaxAmount: d.Tax, TotalAmount: d.Total, AccountID: sp(d.AccountID), SourceID: sp(d.SourceID), By: sp(d.CreatedBy)}))
+		DiscountPercent: d.DiscountPercent, Taxes: taxes, Charges: charges, Subtotal: d.Subtotal, DiscountAmount: d.Discount, ChargesAmount: d.ChargesAmount, TaxAmount: d.Tax, WithholdingAmount: d.Withholding, TotalAmount: d.Total, AccountID: sp(d.AccountID), SourceID: sp(d.SourceID), By: sp(d.CreatedBy)}))
 }
 
 func (s *Store) UpdateDocument(ctx context.Context, d domain.Document) error {
-	items, err := json.Marshal(d.Items)
+	items, taxes, charges, err := documentJSON(d)
 	if err != nil {
 		return err
 	}
 	return wrap(s.q.UpdateDocument(ctx, sqlc.UpdateDocumentParams{ID: d.ID, VendorID: sp(d.VendorID), PartyName: d.PartyName, PicName: d.PicName, Phone: d.Phone, Email: d.Email, Address: d.Address, Title: d.Title,
-		IssueDate: day(d.IssueDate), DueDate: dayp(d.DueDate), ExternalNumber: d.ExternalNumber, Notes: d.Notes, Items: items, DiscountPercent: d.DiscountPercent, PpnPercent: d.PPNPercent, Subtotal: d.Subtotal,
-		DiscountAmount: d.Discount, TaxAmount: d.Tax, TotalAmount: d.Total, AccountID: sp(d.AccountID), Status: d.Status, LedgerInvoiceID: sp(d.LedgerInvoiceID), Letterhead: d.Letterhead, RejectReason: d.RejectReason,
+		IssueDate: day(d.IssueDate), DueDate: dayp(d.DueDate), ExternalNumber: d.ExternalNumber, Notes: d.Notes, Items: items, DiscountPercent: d.DiscountPercent, Taxes: taxes, Charges: charges, Subtotal: d.Subtotal,
+		DiscountAmount: d.Discount, ChargesAmount: d.ChargesAmount, TaxAmount: d.Tax, WithholdingAmount: d.Withholding, TotalAmount: d.Total, AccountID: sp(d.AccountID), Status: d.Status, LedgerInvoiceID: sp(d.LedgerInvoiceID), Letterhead: d.Letterhead, RejectReason: d.RejectReason,
 		DecidedBy: sp(d.DecidedBy), DecidedAt: d.DecidedAt, By: sp(d.UpdatedBy)}))
 }
 
 func (s *Store) DeleteDocument(ctx context.Context, id string) error {
 	return s.q.DeleteDocument(ctx, id)
+}
+
+// ─── Tax master ──────────────────────────────
+
+func toTaxCode(r sqlc.FinanceTaxCode) domain.TaxCode {
+	return domain.TaxCode{ID: r.ID, Code: r.Code, Name: r.Name, Kind: r.Kind, Scope: r.Scope, Rate: r.Rate, BaseNumerator: int(r.BaseNumerator), BaseDenominator: int(r.BaseDenominator),
+		PriceIncluded: r.PriceIncluded, AccountSaleID: str(r.AccountSaleID), AccountPurchaseID: str(r.AccountPurchaseID), ReportCode: r.ReportCode, ValidFrom: dsp(r.ValidFrom), ValidTo: dsp(r.ValidTo),
+		IsDefaultSale: r.IsDefaultSale, IsDefaultPurchase: r.IsDefaultPurchase, IsActive: r.IsActive, Notes: r.Notes}
+}
+
+func activeParam(activeOnly bool) *bool {
+	if activeOnly {
+		return &activeOnly
+	}
+	return nil
+}
+
+func (s *Store) ListTaxCodes(ctx context.Context, activeOnly bool) ([]domain.TaxCode, error) {
+	rows, err := s.q.ListTaxCodes(ctx, activeParam(activeOnly))
+	return mapAll(rows, toTaxCode), err
+}
+
+func (s *Store) GetTaxCode(ctx context.Context, id string) (*domain.TaxCode, error) {
+	r, err := s.q.GetTaxCode(ctx, id)
+	return one(r, err, toTaxCode)
+}
+
+// SaveTaxCode keeps one default per side.
+func (s *Store) SaveTaxCode(ctx context.Context, t domain.TaxCode) error {
+	return s.WithTx(ctx, func(tx domain.Store) error {
+		st := tx.(*Store)
+		if t.IsDefaultSale {
+			if err := st.q.ClearDefaultSaleTax(ctx, t.ID); err != nil {
+				return err
+			}
+		}
+		if t.IsDefaultPurchase {
+			if err := st.q.ClearDefaultPurchaseTax(ctx, t.ID); err != nil {
+				return err
+			}
+		}
+		return wrap(st.q.UpsertTaxCode(ctx, sqlc.UpsertTaxCodeParams{ID: t.ID, Code: t.Code, Name: t.Name, Kind: t.Kind, Scope: t.Scope, Rate: t.Rate, BaseNumerator: int32(t.BaseNumerator), BaseDenominator: int32(t.BaseDenominator),
+			PriceIncluded: t.PriceIncluded, AccountSaleID: sp(t.AccountSaleID), AccountPurchaseID: sp(t.AccountPurchaseID), ReportCode: t.ReportCode, ValidFrom: dayp(t.ValidFrom), ValidTo: dayp(t.ValidTo),
+			IsDefaultSale: t.IsDefaultSale, IsDefaultPurchase: t.IsDefaultPurchase, IsActive: t.IsActive, Notes: t.Notes, By: sp(t.UpdatedBy)}))
+	})
+}
+
+func toChargeType(r sqlc.FinanceChargeType) domain.ChargeType {
+	return domain.ChargeType{ID: r.ID, Code: r.Code, Name: r.Name, Scope: r.Scope, Computation: r.Computation, Value: r.Value, Taxable: r.Taxable, IsDeduction: r.IsDeduction,
+		AccountSaleID: str(r.AccountSaleID), AccountPurchaseID: str(r.AccountPurchaseID), IsActive: r.IsActive, Notes: r.Notes}
+}
+
+func (s *Store) ListChargeTypes(ctx context.Context, activeOnly bool) ([]domain.ChargeType, error) {
+	rows, err := s.q.ListChargeTypes(ctx, activeParam(activeOnly))
+	return mapAll(rows, toChargeType), err
+}
+
+func (s *Store) GetChargeType(ctx context.Context, id string) (*domain.ChargeType, error) {
+	r, err := s.q.GetChargeType(ctx, id)
+	return one(r, err, toChargeType)
+}
+
+func (s *Store) SaveChargeType(ctx context.Context, c domain.ChargeType) error {
+	return wrap(s.q.UpsertChargeType(ctx, sqlc.UpsertChargeTypeParams{ID: c.ID, Code: c.Code, Name: c.Name, Scope: c.Scope, Computation: c.Computation, Value: c.Value, Taxable: c.Taxable, IsDeduction: c.IsDeduction,
+		AccountSaleID: sp(c.AccountSaleID), AccountPurchaseID: sp(c.AccountPurchaseID), IsActive: c.IsActive, Notes: c.Notes, By: sp(c.UpdatedBy)}))
+}
+
+func (s *Store) InsertInvoicePosting(ctx context.Context, p domain.InvoicePosting) error {
+	return wrap(s.q.InsertInvoicePosting(ctx, sqlc.InsertInvoicePostingParams{ID: ids.New(), InvoiceID: p.InvoiceID, SortOrder: int32(p.SortOrder), AccountID: p.AccountID, EntrySide: p.Side, Amount: p.Amount, Memo: p.Memo,
+		TaxCode: p.TaxCode, TaxName: p.TaxName, TaxKind: p.TaxKind, TaxBase: p.TaxBase}))
+}
+
+func (s *Store) ListInvoicePostings(ctx context.Context, invoiceID string) ([]domain.InvoicePosting, error) {
+	rows, err := s.q.ListInvoicePostings(ctx, invoiceID)
+	return mapAll(rows, func(r sqlc.FinanceInvoicePosting) domain.InvoicePosting {
+		return domain.InvoicePosting{ID: r.ID, InvoiceID: r.InvoiceID, SortOrder: int(r.SortOrder), AccountID: r.AccountID, Side: r.EntrySide, Amount: r.Amount, Memo: r.Memo, TaxCode: r.TaxCode, TaxName: r.TaxName, TaxKind: r.TaxKind, TaxBase: r.TaxBase}
+	}), err
+}
+
+func (s *Store) IsDocumentInvoice(ctx context.Context, invoiceID string) (bool, error) {
+	n, err := s.q.DocumentCountByInvoice(ctx, &invoiceID)
+	return n > 0, err
+}
+
+func (s *Store) TaxRegister(ctx context.Context, from, to string) ([]domain.TaxRegisterRow, error) {
+	coded, err := s.q.TaxRegister(ctx, sqlc.TaxRegisterParams{DateFrom: day(from), DateTo: day(to)})
+	if err != nil {
+		return nil, err
+	}
+	out := mapAll(coded, func(r sqlc.TaxRegisterRow) domain.TaxRegisterRow {
+		return domain.TaxRegisterRow{Kind: r.Kind, TaxCode: r.TaxCode, TaxName: r.TaxName, TaxKind: r.TaxKind, InvoiceCount: int(r.InvoiceCount), Base: r.Base, Amount: r.Amount}
+	})
+	untagged, err := s.q.UntaggedTaxTotals(ctx, sqlc.UntaggedTaxTotalsParams{DateFrom: day(from), DateTo: day(to)})
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range untagged {
+		out = append(out, domain.TaxRegisterRow{Kind: r.Kind, TaxKind: domain.TaxVAT, InvoiceCount: int(r.InvoiceCount), Base: r.Base, Amount: r.Amount})
+	}
+	return out, nil
 }

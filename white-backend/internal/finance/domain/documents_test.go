@@ -2,15 +2,71 @@ package domain
 
 import "testing"
 
+func tax(kind string, rate int64, num, den int, included bool) DocTax {
+	return DocTax{Kind: kind, Rate: Rupiah(rate), BaseNumerator: num, BaseDenominator: den, PriceIncluded: included}
+}
+
 func TestDocumentTotals(t *testing.T) {
 	d := Document{Items: []DocItem{{Qty: Rupiah(2), UnitPrice: Rupiah(1_000_000)}, {Qty: 150, UnitPrice: Rupiah(200_000)}},
-		DiscountPercent: Rupiah(10), PPNPercent: Rupiah(11)}
+		DiscountPercent: Rupiah(10), Taxes: []DocTax{tax(TaxVAT, 11, 1, 1, false)}}
 	d.Recalculate()
 	if d.Items[1].LineTotal != Rupiah(300_000) || d.Subtotal != Rupiah(2_300_000) {
 		t.Fatalf("lines %+v subtotal %d", d.Items, d.Subtotal)
 	}
 	if d.Discount != Rupiah(230_000) || d.Tax != Rupiah(227_700) || d.Total != Rupiah(2_297_700) {
 		t.Fatalf("totals %d %d %d", d.Discount, d.Tax, d.Total)
+	}
+}
+
+func TestDPPNilaiLainIsEffectivelyEleven(t *testing.T) {
+	d := Document{Items: []DocItem{{Qty: Rupiah(1), UnitPrice: Rupiah(10_000_000)}}, Taxes: []DocTax{tax(TaxVAT, 12, 11, 12, false)}}
+	d.Recalculate()
+	if d.Tax != Rupiah(1_100_000) || d.Total != Rupiah(11_100_000) {
+		t.Fatalf("tax %d total %d", d.Tax, d.Total)
+	}
+	if d.Taxes[0].Base != mulDiv(int64(Rupiah(10_000_000)), 11, 12) {
+		t.Fatalf("base %d", d.Taxes[0].Base)
+	}
+}
+
+func TestWithholdingUsesBaseWithoutVAT(t *testing.T) {
+	d := Document{Items: []DocItem{{Qty: Rupiah(1), UnitPrice: Rupiah(10_000_000)}}, Taxes: []DocTax{tax(TaxVAT, 11, 1, 1, false), tax(TaxWithholding, 2, 1, 1, false)}}
+	d.Recalculate()
+	if d.Withholding != Rupiah(200_000) || d.Total != Rupiah(11_100_000) || d.NetDue() != Rupiah(10_900_000) {
+		t.Fatalf("wh %d total %d net %d", d.Withholding, d.Total, d.NetDue())
+	}
+}
+
+func TestPriceIncludedVAT(t *testing.T) {
+	d := Document{Items: []DocItem{{Qty: Rupiah(1), UnitPrice: Rupiah(1_110_000)}}, Taxes: []DocTax{tax(TaxVAT, 11, 1, 1, true)}}
+	d.Recalculate()
+	if d.Subtotal != Rupiah(1_000_000) || d.Tax != Rupiah(110_000) || d.Total != Rupiah(1_110_000) {
+		t.Fatalf("subtotal %d tax %d total %d", d.Subtotal, d.Tax, d.Total)
+	}
+	// A price that does not divide evenly still totals the price typed.
+	odd := Document{Items: []DocItem{{Qty: Rupiah(1), UnitPrice: Rupiah(100_001)}}, Taxes: []DocTax{tax(TaxVAT, 12, 11, 12, true)}}
+	odd.Recalculate()
+	if odd.Total != Rupiah(100_001) {
+		t.Fatalf("odd total %d", odd.Total)
+	}
+}
+
+func TestChargesAroundTheTaxBase(t *testing.T) {
+	d := Document{Items: []DocItem{{Qty: Rupiah(1), UnitPrice: Rupiah(10_000_000)}}, Taxes: []DocTax{tax(TaxVAT, 11, 1, 1, false)}, Charges: []DocCharge{
+		{Computation: ChargePercent, Value: Rupiah(10), Taxable: true},                       // Agency fee 1.000.000.
+		{Computation: ChargeFixed, Value: Rupiah(10_000)},                                    // Materai, after tax.
+		{Computation: ChargeFixed, Value: Rupiah(500_000), Taxable: true, IsDeduction: true}, // Potongan.
+	}}
+	d.Recalculate()
+	wantBase := Rupiah(10_500_000)
+	if d.Taxes[0].Base != wantBase || d.Tax != Rupiah(1_155_000) {
+		t.Fatalf("base %d tax %d", d.Taxes[0].Base, d.Tax)
+	}
+	if d.Total != wantBase+Rupiah(1_155_000)+Rupiah(10_000) || d.ChargesAmount != Rupiah(510_000) {
+		t.Fatalf("total %d charges %d", d.Total, d.ChargesAmount)
+	}
+	if d.Charges[2].Amount != Rupiah(-500_000) {
+		t.Fatalf("deduction %d", d.Charges[2].Amount)
 	}
 }
 

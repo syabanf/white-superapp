@@ -200,6 +200,7 @@ export const t = {
     receivables: "Piutang usaha",
     financeInvoices: "Invoice penjualan",
     reconciliation: "Rekonsiliasi",
+    taxSetup: "Master pajak & biaya",
     purchasing: "Pengadaan",
     vendors: "Vendor",
     commercialDocs: "Dokumen komersial",

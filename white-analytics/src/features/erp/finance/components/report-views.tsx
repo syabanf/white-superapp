@@ -1,14 +1,14 @@
 import type * as React from "react";
 import type { RatioTrendSeries } from "../dashboard/types";
 import Link from "next/link";
-import { ArrowRight, BookOpen, FileBarChart, HeartPulse, Landmark, Scale, Target, Users, Wallet } from "lucide-react";
+import { ArrowRight, BookOpen, FileBarChart, HeartPulse, Landmark, Percent, Scale, Target, Users, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/features/erp/shared/money-display";
 import { parseMoney } from "@/features/erp/shared/money";
-import type { BudgetVsActual, ClientEconomicsReport, EquityChanges, AccountBalance, BalanceSheet, CashFlow, CashFlowSection, IncomeStatement, SubsidiaryLedger, TrialBalance } from "../types";
+import type { TaxRegister, BudgetVsActual, ClientEconomicsReport, EquityChanges, AccountBalance, BalanceSheet, CashFlow, CashFlowSection, IncomeStatement, SubsidiaryLedger, TrialBalance } from "../types";
 import { fs } from "../strings";
 
 const r = fs.reports;
@@ -20,6 +20,7 @@ export const REPORTS = [
   { key: "cash-flow", label: r.cashFlow, icon: Wallet },
   { key: "general-ledger", label: r.generalLedger, icon: BookOpen },
   { key: "subsidiary-ledger", label: r.subsidiaryLedger, icon: Users },
+  { key: "tax-register", label: r.taxRegister, icon: Percent },
   { key: "budget-vs-actual", label: r.budgetVsActual, icon: Target },
   { key: "equity-changes", label: r.equityChanges, icon: Scale },
   { key: "client-economics", label: r.clientEconomics, icon: Users },
@@ -537,6 +538,60 @@ export function BalanceHealthView({ series, asOf }: { series: RatioTrendSeries[]
           </tbody>
         </table>
       )}
+    </ReportPaper>
+  );
+}
+
+export function TaxRegisterView({ data }: { data: TaxRegister }) {
+  const rows = data.rows ?? [];
+  const groups = [
+    { title: r.sales, rows: rows.filter((x) => x.kind === "AR") },
+    { title: r.purchases, rows: rows.filter((x) => x.kind === "AP") },
+  ].filter((g) => g.rows.length > 0);
+  return (
+    <ReportPaper title={r.taxRegister} subtitle={`${formatDate(data.dateFrom)} – ${formatDate(data.dateTo)}`}>
+      {rows.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">{r.noTaxes}</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-4 pb-4 md:grid-cols-5">
+            <Stat label={r.outputVat} value={<Money value={data.outputVat} />} />
+            <Stat label={r.inputVat} value={<Money value={data.inputVat} />} />
+            <Stat label={r.vatPosition} value={<Money value={data.vatPosition} signed />} />
+            <Stat label={r.withheldByClients} value={<Money value={data.withheldByClients} />} />
+            <Stat label={r.withheldFromVendors} value={<Money value={data.withheldFromVendors} />} />
+          </div>
+          <table className="w-full min-w-[560px] text-sm">
+            <thead className="text-xs text-muted-foreground">
+              <tr className="border-b">
+                <th className="py-2 text-left font-medium">{r.taxCode}</th>
+                <th className="py-2 text-right font-medium">{r.invoices}</th>
+                <th className="py-2 text-right font-medium">{r.taxBase}</th>
+                <th className="py-2 text-right font-medium">{r.taxAmount}</th>
+              </tr>
+            </thead>
+            {groups.map((g) => (
+              <tbody key={g.title}>
+                <tr>
+                  <td colSpan={4} className="pt-3 pb-1 text-xs font-semibold">{g.title}</td>
+                </tr>
+                {g.rows.map((x) => (
+                  <tr key={x.kind + x.taxCode} className="border-b border-border/50">
+                    <td className="py-1.5">
+                      {x.taxCode ? <span className="font-mono text-xs text-muted-foreground">{x.taxCode} </span> : null}
+                      {x.taxName || r.noTaxCode}
+                    </td>
+                    <td className="py-1.5 text-right tabular">{x.invoiceCount}</td>
+                    <td className="py-1.5 text-right"><Money value={x.base} /></td>
+                    <td className="py-1.5 text-right"><Money value={x.amount} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            ))}
+          </table>
+        </>
+      )}
+      <p className="pt-3 text-xs text-muted-foreground">{r.taxRegisterNote}</p>
     </ReportPaper>
   );
 }
