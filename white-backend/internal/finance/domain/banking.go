@@ -427,6 +427,7 @@ const (
 
 // RecurringJournal is a journal template posted on a schedule.
 type RecurringJournal struct {
+	TagID                                                                      string
 	ID, Name, Description, Frequency, NextRun, EndDate, LastEntryID, LastError string
 	AnchorDay                                                                  int
 	Lines                                                                      []Line

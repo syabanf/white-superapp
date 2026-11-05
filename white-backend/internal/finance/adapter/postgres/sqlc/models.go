@@ -45,6 +45,29 @@ type FinanceAccountType struct {
 	UpdatedBy     *string
 }
 
+type FinanceAdvance struct {
+	ID               string
+	Kind             string
+	AdvanceNo        string
+	AdvanceDate      time.Time
+	PartyName        string
+	Amount           domain.Money
+	CashAccountID    string
+	AdvanceAccountID string
+	Reference        string
+	Notes            string
+	Status           string
+	JournalEntryID   *string
+	VoidReason       string
+	CreatedAt        time.Time
+	CreatedBy        *string
+}
+
+type FinanceAdvanceApplication struct {
+	PaymentID string
+	AdvanceID string
+}
+
 type FinanceBankStatement struct {
 	ID        string
 	AccountID string
@@ -242,6 +265,7 @@ type FinanceInvoice struct {
 	UpdatedBy      *string
 	DeletedAt      *time.Time
 	DeletedBy      *string
+	TagID          *string
 }
 
 type FinanceInvoicePosting struct {
@@ -285,6 +309,7 @@ type FinanceJournalEntry struct {
 	UpdatedBy          *string
 	DeletedAt          *time.Time
 	DeletedBy          *string
+	TagID              *string
 }
 
 type FinanceJournalEntryLine struct {
@@ -384,6 +409,45 @@ type FinancePostingLog struct {
 	UpdatedAt     time.Time
 }
 
+type FinanceProjectTag struct {
+	ID         string
+	Name       string
+	ClientName string
+	DealID     *string
+	IsActive   bool
+	Notes      string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	UpdatedBy  *string
+}
+
+type FinanceRecurringInvoice struct {
+	ID            string
+	Kind          string
+	Name          string
+	PartyName     string
+	ClientID      string
+	AccountID     *string
+	TagID         *string
+	Description   string
+	Subtotal      domain.Money
+	TaxAmount     domain.Money
+	TaxIds        []byte
+	DueDays       int32
+	Frequency     string
+	AnchorDay     int32
+	NextRun       time.Time
+	EndDate       *time.Time
+	AutoPost      bool
+	IsActive      bool
+	LastInvoiceID *string
+	LastError     string
+	CreatedAt     time.Time
+	CreatedBy     *string
+	UpdatedAt     time.Time
+	UpdatedBy     *string
+}
+
 type FinanceRecurringJournal struct {
 	ID          string
 	Name        string
@@ -400,6 +464,7 @@ type FinanceRecurringJournal struct {
 	CreatedBy   *string
 	UpdatedAt   time.Time
 	UpdatedBy   *string
+	TagID       *string
 }
 
 type FinanceReimbursementBatch struct {

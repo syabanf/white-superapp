@@ -126,6 +126,7 @@ type MovementInput struct {
 	CashAccountID     string
 	OffsetAccountID   string
 	Description, Memo string
+	TagID             string
 }
 
 // Movement is a cash journal with its two accounts.
@@ -175,8 +176,11 @@ func (c *CashBank) CreateMovement(ctx context.Context, userID string, in Movemen
 	}
 	desc := orDefault(in.Description, label+": "+cash.Code+" "+cash.Name+" ke "+offset.Code+" "+offset.Name)
 	memo := orDefault(in.Memo, label)
+	if err := checkTag(ctx, c.Store, in.TagID); err != nil {
+		return nil, err
+	}
 	entry, err := createEntry(ctx, c.Store, NewEntry{
-		UserID: userID, EntryDate: day, Description: desc, Post: true, SourceModule: "CASH_BANK", SourceEventCode: event, SourceDocumentType: in.Kind,
+		TagID: in.TagID, UserID: userID, EntryDate: day, Description: desc, Post: true, SourceModule: "CASH_BANK", SourceEventCode: event, SourceDocumentType: in.Kind,
 		Lines: []domain.Line{
 			{AccountID: cash.ID, Side: cashSide, Amount: in.Amount, Memo: memo, SortOrder: 10},
 			{AccountID: offset.ID, Side: offsetSide, Amount: in.Amount, Memo: memo, SortOrder: 20},

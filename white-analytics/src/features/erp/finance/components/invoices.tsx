@@ -25,7 +25,8 @@ import { toast } from "@/lib/toast";
 import { Fld, FormDialog, FormFooter } from "@/features/erp/sales/components/ui";
 import { createCreditNoteAction, deleteInvoiceAction, getInvoiceTaxIdsAction, postInvoiceAction, saveInvoiceAction } from "../actions";
 import { taxOn } from "../pricing";
-import type { Invoice, LedgerKind, PostableAccount, TaxCode } from "../types";
+import type { Invoice, LedgerKind, PostableAccount, ProjectTag, TaxCode } from "../types";
+import { TagPicker } from "./tag-picker";
 import type { FinancePerms } from "../perms";
 import { fs } from "../strings";
 import { AccountPicker } from "./account-picker";
@@ -54,12 +55,14 @@ export function InvoiceDialog({
   invoice,
   accounts,
   taxes,
+  tags,
   onClose,
 }: {
   kind: LedgerKind;
   invoice?: Invoice;
   accounts: PostableAccount[];
   taxes: TaxCode[];
+  tags: ProjectTag[];
   onClose: () => void;
 }) {
   const k = iv[kind];
@@ -75,6 +78,7 @@ export function InvoiceDialog({
     description: invoice?.description ?? "",
     clientId: invoice?.clientId ?? "",
     taxIds: [] as string[],
+    tagId: invoice?.tagId ?? "",
   });
   // List rows do not carry the codes, and saving without them would clear them.
   const [taxesReady, setTaxesReady] = React.useState(!invoice);
@@ -132,6 +136,9 @@ export function InvoiceDialog({
           </div>
           <FormField label={k.account} error={errors.accountId} hint={fs.mappingDefault}>
             <AccountPicker accounts={accounts} filter={(a) => !a.isCashBank} value={form.accountId} onChange={(v) => set("accountId", v)} clearable />
+          </FormField>
+          <FormField label={fs.projects.tag} error={errors.tag_id}>
+            <TagPicker tags={tags} value={form.tagId} onChange={(v) => set("tagId", v)} />
           </FormField>
           {taxChoices.length ? (
             <fieldset className="flex flex-col gap-1.5">
@@ -212,6 +219,7 @@ export function InvoicesTable({
   page,
   accounts,
   taxes,
+  tags,
   parties,
   perms,
 }: {
@@ -220,6 +228,7 @@ export function InvoicesTable({
   page: ServerPage;
   accounts: PostableAccount[];
   taxes: TaxCode[];
+  tags: ProjectTag[];
   /** party names for the party filter */
   parties: string[];
   perms: FinancePerms;
@@ -234,7 +243,8 @@ export function InvoicesTable({
       cell: ({ row }) => (
         <span>
           <span className="block font-mono text-xs font-medium">{row.original.invoiceNo || "–"}</span>
-          {row.original.reference ? <span className="text-xs text-muted-foreground">{row.original.reference}</span> : null}
+          {row.original.reference ? <span className="block text-xs text-muted-foreground">{row.original.reference}</span> : null}
+          {row.original.tagName ? <span className="block text-xs text-muted-foreground">{row.original.tagName}</span> : null}
         </span>
       ),
     },
@@ -367,7 +377,8 @@ export function InvoicesTable({
                 className="w-56"
               />
             ) : null}
-            <ResetFilters params={["q", "status", "pay", "from", "to", "party"]} />
+            {tags.length ? <SearchSelectFilter param="tag" placeholder={fs.projects.allTags} options={tags.map((t) => ({ value: t.id, label: t.name }))} className="w-56" /> : null}
+            <ResetFilters params={["q", "status", "pay", "from", "to", "party", "tag"]} />
             {perms.canWrite ? (
               <Button className="ml-auto" onClick={() => setDialog({})}>
                 <Plus className="size-4" /> {k.newInvoice}
@@ -376,7 +387,7 @@ export function InvoicesTable({
           </>
         }
       />
-      {dialog ? <InvoiceDialog kind={kind} invoice={dialog.invoice} accounts={accounts} taxes={taxes} onClose={() => setDialog(null)} /> : null}
+      {dialog ? <InvoiceDialog kind={kind} invoice={dialog.invoice} accounts={accounts} taxes={taxes} tags={tags} onClose={() => setDialog(null)} /> : null}
     </>
   );
 }

@@ -13,7 +13,7 @@ import (
 )
 
 const getInvoice = `-- name: GetInvoice :one
-SELECT i.id, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.reference, i.account_id,
+SELECT i.id, i.tag_id, COALESCE(pt.name, '')::text AS tag_name, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.reference, i.account_id,
        COALESCE(a.name, '')::text AS account_name, i.currency, i.subtotal, i.tax_amount, i.total_amount, i.status,
        i.description, i.sales_invoice_id, i.client_id, i.deal_id, i.journal_entry_id, i.posted_at, i.created_by, i.created_at,
        COALESCE((SELECT SUM(pa.amount) FROM finance.payment_allocations pa
@@ -21,11 +21,14 @@ SELECT i.id, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.r
                   WHERE pa.invoice_id = i.id AND p.deleted_at IS NULL AND p.status = 'POSTED'), 0)::numeric AS allocated
   FROM finance.invoices i
   LEFT JOIN finance.accounts a ON a.id = i.account_id
+  LEFT JOIN finance.project_tags pt ON pt.id = i.tag_id
  WHERE i.id = $1 AND i.deleted_at IS NULL
 `
 
 type GetInvoiceRow struct {
 	ID             string
+	TagID          *string
+	TagName        string
 	Kind           string
 	InvoiceNo      string
 	InvoiceDate    time.Time
@@ -55,6 +58,8 @@ func (q *Queries) GetInvoice(ctx context.Context, id string) (GetInvoiceRow, err
 	var i GetInvoiceRow
 	err := row.Scan(
 		&i.ID,
+		&i.TagID,
+		&i.TagName,
 		&i.Kind,
 		&i.InvoiceNo,
 		&i.InvoiceDate,
@@ -183,11 +188,11 @@ func (q *Queries) InsertAllocation(ctx context.Context, arg InsertAllocationPara
 const insertInvoice = `-- name: InsertInvoice :exec
 INSERT INTO finance.invoices (id, kind, invoice_no, invoice_date, due_date, party_name, reference, account_id, currency,
                               subtotal, tax_amount, total_amount, status, description, sales_invoice_id, client_id, deal_id,
-                              posted_at, posted_by, created_by, updated_by)
+                              posted_at, posted_by, created_by, updated_by, tag_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
         CASE WHEN $13::text = 'POSTED' THEN now() END,
         CASE WHEN $13::text = 'POSTED' THEN $18::text END,
-        $18, $18)
+        $18, $18, $19)
 `
 
 type InsertInvoiceParams struct {
@@ -209,6 +214,7 @@ type InsertInvoiceParams struct {
 	ClientID       *string
 	DealID         *string
 	By             *string
+	TagID          *string
 }
 
 func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) error {
@@ -231,6 +237,7 @@ func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) er
 		arg.ClientID,
 		arg.DealID,
 		arg.By,
+		arg.TagID,
 	)
 	return err
 }
@@ -275,7 +282,7 @@ func (q *Queries) InsertPayment(ctx context.Context, arg InsertPaymentParams) er
 }
 
 const listInvoices = `-- name: ListInvoices :many
-SELECT i.id, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.reference, i.account_id,
+SELECT i.id, i.tag_id, COALESCE(pt.name, '')::text AS tag_name, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.reference, i.account_id,
        COALESCE(a.name, '')::text AS account_name, i.currency, i.subtotal, i.tax_amount, i.total_amount, i.status,
        i.description, i.sales_invoice_id, i.client_id, i.deal_id, i.journal_entry_id, i.posted_at, i.created_by, i.created_at,
        COALESCE((SELECT SUM(pa.amount) FROM finance.payment_allocations pa
@@ -284,19 +291,22 @@ SELECT i.id, i.kind, i.invoice_no, i.invoice_date, i.due_date, i.party_name, i.r
        count(*) OVER ()::int AS total
   FROM finance.invoices i
   LEFT JOIN finance.accounts a ON a.id = i.account_id
+  LEFT JOIN finance.project_tags pt ON pt.id = i.tag_id
  WHERE i.deleted_at IS NULL AND i.kind = $1
-   AND ($2::text IS NULL OR i.status = $2)
-   AND ($3::text IS NULL OR i.invoice_no ILIKE '%' || $3 || '%'
-        OR i.party_name ILIKE '%' || $3 || '%' OR i.reference ILIKE '%' || $3 || '%')
-   AND ($4::date IS NULL OR i.invoice_date >= $4)
-   AND ($5::date IS NULL OR i.invoice_date <= $5)
-   AND ($6::text IS NULL OR i.party_name = $6)
+   AND ($2::text IS NULL OR i.tag_id = $2)
+   AND ($3::text IS NULL OR i.status = $3)
+   AND ($4::text IS NULL OR i.invoice_no ILIKE '%' || $4 || '%'
+        OR i.party_name ILIKE '%' || $4 || '%' OR i.reference ILIKE '%' || $4 || '%')
+   AND ($5::date IS NULL OR i.invoice_date >= $5)
+   AND ($6::date IS NULL OR i.invoice_date <= $6)
+   AND ($7::text IS NULL OR i.party_name = $7)
  ORDER BY i.invoice_date DESC, i.created_at DESC
- LIMIT $8 OFFSET $7
+ LIMIT $9 OFFSET $8
 `
 
 type ListInvoicesParams struct {
 	Kind      string
+	TagID     *string
 	Status    *string
 	Search    *string
 	DateFrom  *time.Time
@@ -308,6 +318,8 @@ type ListInvoicesParams struct {
 
 type ListInvoicesRow struct {
 	ID             string
+	TagID          *string
+	TagName        string
 	Kind           string
 	InvoiceNo      string
 	InvoiceDate    time.Time
@@ -336,6 +348,7 @@ type ListInvoicesRow struct {
 func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]ListInvoicesRow, error) {
 	rows, err := q.db.Query(ctx, listInvoices,
 		arg.Kind,
+		arg.TagID,
 		arg.Status,
 		arg.Search,
 		arg.DateFrom,
@@ -353,6 +366,8 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 		var i ListInvoicesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.TagID,
+			&i.TagName,
 			&i.Kind,
 			&i.InvoiceNo,
 			&i.InvoiceDate,
@@ -771,7 +786,7 @@ func (q *Queries) SubsidiaryParties(ctx context.Context, kind string) ([]Subsidi
 const updateInvoice = `-- name: UpdateInvoice :exec
 UPDATE finance.invoices
    SET invoice_date = $2, due_date = $3, party_name = $4, reference = $5, account_id = $6, subtotal = $7,
-       tax_amount = $8, total_amount = $9, description = $10, client_id = $11, updated_by = $12, updated_at = now()
+       tax_amount = $8, total_amount = $9, description = $10, client_id = $11, tag_id = $12, updated_by = $13, updated_at = now()
  WHERE id = $1 AND deleted_at IS NULL AND status = 'DRAFT'
 `
 
@@ -787,6 +802,7 @@ type UpdateInvoiceParams struct {
 	TotalAmount domain.Money
 	Description string
 	ClientID    *string
+	TagID       *string
 	By          *string
 }
 
@@ -803,6 +819,7 @@ func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) er
 		arg.TotalAmount,
 		arg.Description,
 		arg.ClientID,
+		arg.TagID,
 		arg.By,
 	)
 	return err

@@ -641,6 +641,8 @@ message JournalEntry {
   bool can_edit = 20;
   google.protobuf.Timestamp created_at = 21;
   google.protobuf.Timestamp updated_at = 22;
+  string tag_id = 23;
+  string tag_name = 24;
 }
 
 message JournalLineInput {
@@ -657,6 +659,7 @@ message JournalEntryInput {
   repeated JournalLineInput lines = 4;
   // Save as POSTED right away (needs finance.approve).
   bool post = 5;
+  string tag_id = 6;
 }
 
 message UpdateJournalEntryRequest {
@@ -673,6 +676,7 @@ message ListJournalEntriesRequest {
   string account_id = 6;
   int32 page_size = 7;
   int32 page = 8;
+  string tag_id = 9;
 }
 
 message ListJournalEntriesResponse {
@@ -797,6 +801,7 @@ message CashMovementInput {
   string offset_account_id = 5;
   string description = 6;
   string memo = 7;
+  string tag_id = 8;
 }
 
 message CashMovement {
@@ -889,6 +894,8 @@ message Invoice {
   string withholding_amount = 25;
   // Set on a single invoice read, for the edit form.
   repeated string tax_ids = 26;
+  string tag_id = 27;
+  string tag_name = 28;
 }
 
 message InvoiceInput {
@@ -903,6 +910,7 @@ message InvoiceInput {
   string client_id = 9;
   // Master tax codes; they replace a typed tax_amount.
   repeated string tax_ids = 10;
+  string tag_id = 11;
 }
 
 message UpdateInvoiceRequest {
@@ -921,6 +929,7 @@ message ListInvoicesRequest {
   string date_to = 7;
   // Exact party (client or vendor) name.
   string party_name = 8;
+  string tag_id = 9;
 }
 
 message ListInvoicesResponse {
@@ -1988,6 +1997,21 @@ service ScheduleService {
   rpc CreateFixedAsset(FixedAssetInput) returns (FixedAsset) {
     option (google.api.http) = {post: "/v1/finance/fixed-assets" body: "*"};
   }
+  rpc ListRecurringInvoices(google.protobuf.Empty) returns (ListRecurringInvoicesResponse) {
+    option (google.api.http) = {get: "/v1/finance/recurring-invoices"};
+  }
+  rpc CreateRecurringInvoice(RecurringInvoiceInput) returns (RecurringInvoice) {
+    option (google.api.http) = {post: "/v1/finance/recurring-invoices" body: "*"};
+  }
+  rpc UpdateRecurringInvoice(UpdateRecurringInvoiceRequest) returns (RecurringInvoice) {
+    option (google.api.http) = {patch: "/v1/finance/recurring-invoices/{id}" body: "input"};
+  }
+  rpc SetRecurringInvoiceActive(SetActiveRequest) returns (RecurringInvoice) {
+    option (google.api.http) = {post: "/v1/finance/recurring-invoices/{id}:active" body: "*"};
+  }
+  rpc DeleteRecurringInvoice(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/recurring-invoices/{id}"};
+  }
   // After the first depreciation only the name and the accounts can change.
   rpc UpdateFixedAsset(UpdateFixedAssetRequest) returns (FixedAsset) {
     option (google.api.http) = {patch: "/v1/finance/fixed-assets/{id}" body: "input"};
@@ -2102,6 +2126,38 @@ service TaxSetupService {
   // lowers what the party owes.
   rpc CreateCreditNote(CreditNoteRequest) returns (Invoice) {
     option (google.api.http) = {post: "/v1/finance/invoices/{invoice_id}:credit-note" body: "*"};
+  }
+}
+
+// Projects a client's transactions are grouped under.
+service ProjectTagService {
+  rpc ListProjectTags(ListProjectTagsRequest) returns (ListProjectTagsResponse) {
+    option (google.api.http) = {get: "/v1/finance/project-tags"};
+  }
+  rpc SaveProjectTag(ProjectTag) returns (ProjectTag) {
+    option (google.api.http) = {post: "/v1/finance/project-tags" body: "*"};
+  }
+  rpc DeleteProjectTag(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/project-tags/{id}"};
+  }
+  rpc GetProjectProfit(ProjectProfitRequest) returns (ProjectProfit) {
+    option (google.api.http) = {get: "/v1/finance/reports/project-profit"};
+  }
+}
+
+// Money paid or received before the invoice. finance.approve for every change.
+service AdvanceService {
+  rpc ListAdvances(ListAdvancesRequest) returns (ListAdvancesResponse) {
+    option (google.api.http) = {get: "/v1/finance/advances"};
+  }
+  rpc CreateAdvance(AdvanceInput) returns (Advance) {
+    option (google.api.http) = {post: "/v1/finance/advances" body: "*"};
+  }
+  rpc ApplyAdvance(ApplyAdvanceRequest) returns (Invoice) {
+    option (google.api.http) = {post: "/v1/finance/advances/{id}:apply" body: "*"};
+  }
+  rpc VoidAdvance(VoidAdvanceRequest) returns (Advance) {
+    option (google.api.http) = {post: "/v1/finance/advances/{id}:void" body: "*"};
   }
 }
 
@@ -2347,6 +2403,7 @@ message RecurringJournal {
   string total = 9;
   string last_entry_id = 10;
   string last_error = 11;
+  string tag_id = 12;
 }
 message RecurringJournalInput {
   string name = 1;
@@ -2355,6 +2412,7 @@ message RecurringJournalInput {
   string start_date = 4;
   string end_date = 5;
   repeated JournalLineInput lines = 6;
+  string tag_id = 7;
 }
 message UpdateRecurringJournalRequest {
   string id = 1;
@@ -2770,4 +2828,136 @@ message CreditNoteRequest {
   // What the party no longer owes, tax included. Empty credits the outstanding amount.
   string amount = 3;
   string reason = 4;
+}
+
+message ProjectTag {
+  string id = 1;
+  string name = 2;
+  string client_name = 3;
+  // Set on the tag Finance creates for a Sales deal.
+  string deal_id = 4;
+  bool is_active = 5;
+  string notes = 6;
+}
+message ListProjectTagsRequest {
+  bool active_only = 1;
+}
+message ListProjectTagsResponse {
+  repeated ProjectTag tags = 1;
+}
+message ProjectProfitRequest {
+  string date_from = 1;
+  string date_to = 2;
+  string client_name = 3;
+}
+message ProjectProfitRow {
+  // Empty on the row of untagged journals.
+  string tag_id = 1;
+  string tag_name = 2;
+  string client_name = 3;
+  string revenue = 4;
+  string cost = 5;
+  string profit = 6;
+}
+message ProjectProfit {
+  string date_from = 1;
+  string date_to = 2;
+  repeated ProjectProfitRow rows = 3;
+  string total_revenue = 4;
+  string total_cost = 5;
+  string total_profit = 6;
+}
+
+message RecurringInvoice {
+  string id = 1;
+  // AP or AR.
+  string kind = 2;
+  string name = 3;
+  string party_name = 4;
+  string client_id = 5;
+  string account_id = 6;
+  string tag_id = 7;
+  string description = 8;
+  string subtotal = 9;
+  string tax_amount = 10;
+  repeated string tax_ids = 11;
+  int32 due_days = 12;
+  string frequency = 13;
+  string next_run = 14;
+  string end_date = 15;
+  bool auto_post = 16;
+  bool is_active = 17;
+  string last_invoice_id = 18;
+  string last_error = 19;
+}
+message RecurringInvoiceInput {
+  string kind = 1;
+  string name = 2;
+  string party_name = 3;
+  string client_id = 4;
+  string account_id = 5;
+  string tag_id = 6;
+  string description = 7;
+  string subtotal = 8;
+  string tax_amount = 9;
+  repeated string tax_ids = 10;
+  int32 due_days = 11;
+  string frequency = 12;
+  string start_date = 13;
+  string end_date = 14;
+  bool auto_post = 15;
+}
+message UpdateRecurringInvoiceRequest {
+  string id = 1;
+  RecurringInvoiceInput input = 2;
+}
+message ListRecurringInvoicesResponse {
+  repeated RecurringInvoice invoices = 1;
+}
+
+message Advance {
+  string id = 1;
+  string kind = 2;
+  string advance_no = 3;
+  string advance_date = 4;
+  string party_name = 5;
+  string amount = 6;
+  string applied = 7;
+  string remaining = 8;
+  string cash_account_id = 9;
+  string cash_account_name = 10;
+  string advance_account_id = 11;
+  string advance_account_name = 12;
+  string reference = 13;
+  string notes = 14;
+  // POSTED or VOID.
+  string status = 15;
+  string journal_entry_id = 16;
+  string void_reason = 17;
+}
+message AdvanceInput {
+  string kind = 1;
+  string advance_date = 2;
+  string party_name = 3;
+  string amount = 4;
+  string cash_account_id = 5;
+  string advance_account_id = 6;
+  string reference = 7;
+  string notes = 8;
+}
+message ListAdvancesRequest {
+  string kind = 1;
+}
+message ListAdvancesResponse {
+  repeated Advance advances = 1;
+}
+message ApplyAdvanceRequest {
+  string id = 1;
+  string invoice_id = 2;
+  string amount = 3;
+  string date = 4;
+}
+message VoidAdvanceRequest {
+  string id = 1;
+  string reason = 2;
 }

@@ -35,6 +35,8 @@ var chart = []coaRow{
 	{"1104002", "PPh 23 Dibayar di Muka", domain.TypeAsset, "OPERATING", false, false},
 	{"1105000", "Biaya Dibayar di Muka", domain.TypeAsset, "", false, false},
 	{"1105001", "Sewa Dibayar di Muka", domain.TypeAsset, "OPERATING", false, false},
+	{"1106000", "Uang Muka", domain.TypeAsset, "", false, false},
+	{"1106001", "Uang Muka Pembelian", domain.TypeAsset, "OPERATING", false, false},
 	{"1200000", "Aset Tetap", domain.TypeAsset, "", false, false},
 	{"1201000", "Peralatan", domain.TypeAsset, "", false, false},
 	{"1201001", "Peralatan Kantor dan Komputer", domain.TypeAsset, "INVESTING", false, false},

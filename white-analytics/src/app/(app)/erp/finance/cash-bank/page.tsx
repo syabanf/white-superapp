@@ -15,6 +15,7 @@ import {
 import { financePerms } from "@/features/erp/finance/perms";
 import {
   listCashBankAccounts,
+  listProjectTags,
   listCashMovements,
   listCashTransfers,
   listPostableAccounts,
@@ -32,6 +33,7 @@ export default async function CashBankPage(props: PageProps<"/erp/finance/cash-b
   const tab = sp1(sp.tab) ?? "accounts";
   const postable = canWrite ? await load(listPostableAccounts) : null;
   const accounts = postable?.data ?? [];
+  const tags = canWrite ? ((await load(() => listProjectTags())).data ?? []) : [];
   const header = (
     <PageHeader
       eyebrow={fs.eyebrow}
@@ -40,8 +42,8 @@ export default async function CashBankPage(props: PageProps<"/erp/finance/cash-b
       actions={
         canWrite && !offline ? (
           <>
-            <CashMovementDialog kind="CASH_IN" accounts={accounts} />
-            <CashMovementDialog kind="CASH_OUT" accounts={accounts} />
+            <CashMovementDialog kind="CASH_IN" accounts={accounts} tags={tags} />
+            <CashMovementDialog kind="CASH_OUT" accounts={accounts} tags={tags} />
             <CashTransferDialog accounts={accounts} />
           </>
         ) : null

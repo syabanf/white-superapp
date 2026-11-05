@@ -475,12 +475,12 @@ func (s *Store) InsertJournalEntry(ctx context.Context, e domain.JournalEntry) e
 	return wrap(s.q.InsertJournalEntry(ctx, sqlc.InsertJournalEntryParams{
 		ID: e.ID, EntryNo: e.EntryNo, EntryDate: day(e.EntryDate), Description: e.Description, FiscalPeriodID: e.FiscalPeriodID,
 		Status: e.Status, IsRecon: e.IsRecon, EntryType: e.EntryType, SourceModule: e.SourceModule, SourceEventCode: e.SourceEventCode,
-		SourceDocumentType: e.SourceDocumentType, SourceDocumentID: sp(e.SourceDocumentID), SourceFiscalYearID: sp(e.SourceFiscalYearID), By: sp(e.CreatedBy),
+		SourceDocumentType: e.SourceDocumentType, SourceDocumentID: sp(e.SourceDocumentID), SourceFiscalYearID: sp(e.SourceFiscalYearID), By: sp(e.CreatedBy), TagID: sp(e.TagID),
 	}))
 }
 
 func (s *Store) UpdateJournalHeader(ctx context.Context, e domain.JournalEntry, by string) error {
-	return s.q.UpdateJournalHeader(ctx, sqlc.UpdateJournalHeaderParams{ID: e.ID, EntryDate: day(e.EntryDate), Description: e.Description, FiscalPeriodID: e.FiscalPeriodID, Status: e.Status, IsRecon: e.IsRecon, By: sp(by)})
+	return s.q.UpdateJournalHeader(ctx, sqlc.UpdateJournalHeaderParams{TagID: sp(e.TagID), ID: e.ID, EntryDate: day(e.EntryDate), Description: e.Description, FiscalPeriodID: e.FiscalPeriodID, Status: e.Status, IsRecon: e.IsRecon, By: sp(by)})
 }
 
 func (s *Store) ReplaceJournalLines(ctx context.Context, entryID string, lines []domain.Line) error {
@@ -509,7 +509,7 @@ func (s *Store) SoftDeleteJournalEntry(ctx context.Context, id, by string) error
 
 func toEntry(r sqlc.GetJournalEntryRow) domain.JournalEntry {
 	return domain.JournalEntry{
-		ID: r.ID, EntryNo: r.EntryNo, EntryDate: ds(r.EntryDate), Description: r.Description, FiscalPeriodID: r.FiscalPeriodID,
+		TagID: str(r.TagID), TagName: r.TagName, ID: r.ID, EntryNo: r.EntryNo, EntryDate: ds(r.EntryDate), Description: r.Description, FiscalPeriodID: r.FiscalPeriodID,
 		PeriodName: r.PeriodName, YearCode: r.YearCode, EntryType: r.EntryType, Status: r.Status, IsRecon: r.IsRecon,
 		PostedAt: r.PostedAt, PostedBy: str(r.PostedBy), SourceModule: r.SourceModule, SourceEventCode: r.SourceEventCode,
 		SourceDocumentType: r.SourceDocumentType, SourceDocumentID: str(r.SourceDocumentID), SourceFiscalYearID: str(r.SourceFiscalYearID),
@@ -554,7 +554,7 @@ func (s *Store) GetJournalEntry(ctx context.Context, id string) (*domain.Journal
 func (s *Store) ListJournalEntries(ctx context.Context, f domain.JournalFilter) ([]domain.JournalEntry, int, error) {
 	rows, err := s.q.ListJournalEntries(ctx, sqlc.ListJournalEntriesParams{
 		Status: sp(f.Status), EntryType: sp(f.EntryType), DateFrom: dayp(f.DateFrom), DateTo: dayp(f.DateTo), Search: sp(f.Search),
-		SourceDocumentType: sp(f.SourceDocumentType), AccountID: sp(f.AccountID), Lim: int32(f.Limit), Off: int32(f.Offset),
+		SourceDocumentType: sp(f.SourceDocumentType), AccountID: sp(f.AccountID), TagID: sp(f.TagID), Lim: int32(f.Limit), Off: int32(f.Offset),
 	})
 	if err != nil {
 		return nil, 0, err
@@ -563,7 +563,7 @@ func (s *Store) ListJournalEntries(ctx context.Context, f domain.JournalFilter) 
 	entries := make([]domain.JournalEntry, len(rows))
 	for i, r := range rows {
 		total = int(r.Total)
-		entries[i] = toEntry(sqlc.GetJournalEntryRow{ID: r.ID, EntryNo: r.EntryNo, EntryDate: r.EntryDate, Description: r.Description, FiscalPeriodID: r.FiscalPeriodID, PeriodName: r.PeriodName, YearCode: r.YearCode, EntryType: r.EntryType, Status: r.Status, IsRecon: r.IsRecon, PostedAt: r.PostedAt, PostedBy: r.PostedBy, SourceModule: r.SourceModule, SourceEventCode: r.SourceEventCode, SourceDocumentType: r.SourceDocumentType, SourceDocumentID: r.SourceDocumentID, SourceFiscalYearID: r.SourceFiscalYearID, CreatedBy: r.CreatedBy, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt})
+		entries[i] = toEntry(sqlc.GetJournalEntryRow{TagID: r.TagID, TagName: r.TagName, ID: r.ID, EntryNo: r.EntryNo, EntryDate: r.EntryDate, Description: r.Description, FiscalPeriodID: r.FiscalPeriodID, PeriodName: r.PeriodName, YearCode: r.YearCode, EntryType: r.EntryType, Status: r.Status, IsRecon: r.IsRecon, PostedAt: r.PostedAt, PostedBy: r.PostedBy, SourceModule: r.SourceModule, SourceEventCode: r.SourceEventCode, SourceDocumentType: r.SourceDocumentType, SourceDocumentID: r.SourceDocumentID, SourceFiscalYearID: r.SourceFiscalYearID, CreatedBy: r.CreatedBy, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt})
 	}
 	entries, err = s.entriesWithLines(ctx, entries)
 	return entries, total, err
@@ -653,7 +653,7 @@ func (s *Store) MonthlyPnL(ctx context.Context, from, to string) ([]domain.Month
 
 func toInvoice(r sqlc.GetInvoiceRow) domain.Invoice {
 	return domain.Invoice{
-		ID: r.ID, Kind: r.Kind, InvoiceNo: r.InvoiceNo, InvoiceDate: ds(r.InvoiceDate), DueDate: dsp(r.DueDate), PartyName: r.PartyName,
+		TagID: str(r.TagID), TagName: r.TagName, ID: r.ID, Kind: r.Kind, InvoiceNo: r.InvoiceNo, InvoiceDate: ds(r.InvoiceDate), DueDate: dsp(r.DueDate), PartyName: r.PartyName,
 		Reference: r.Reference, AccountID: str(r.AccountID), AccountName: r.AccountName, Currency: r.Currency, Subtotal: r.Subtotal,
 		TaxAmount: r.TaxAmount, TotalAmount: r.TotalAmount, Status: r.Status, Description: r.Description, SalesInvoiceID: str(r.SalesInvoiceID),
 		ClientID: str(r.ClientID), DealID: str(r.DealID), Allocated: r.Allocated, JournalEntryID: str(r.JournalEntryID), PostedAt: r.PostedAt,
@@ -662,7 +662,7 @@ func toInvoice(r sqlc.GetInvoiceRow) domain.Invoice {
 }
 
 func (s *Store) ListInvoices(ctx context.Context, f domain.InvoiceFilter) ([]domain.Invoice, int, error) {
-	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Kind: f.Kind, Status: sp(f.Status), Search: sp(f.Search), DateFrom: dayp(f.From), DateTo: dayp(f.To),
+	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{TagID: sp(f.TagID), Kind: f.Kind, Status: sp(f.Status), Search: sp(f.Search), DateFrom: dayp(f.From), DateTo: dayp(f.To),
 		PartyName: sp(f.PartyName), Lim: int32(f.Limit), Off: int32(f.Offset)})
 	if err != nil {
 		return nil, 0, err
@@ -671,7 +671,7 @@ func (s *Store) ListInvoices(ctx context.Context, f domain.InvoiceFilter) ([]dom
 	out := make([]domain.Invoice, len(rows))
 	for i, r := range rows {
 		total = int(r.Total)
-		out[i] = toInvoice(sqlc.GetInvoiceRow{ID: r.ID, Kind: r.Kind, InvoiceNo: r.InvoiceNo, InvoiceDate: r.InvoiceDate, DueDate: r.DueDate, PartyName: r.PartyName, Reference: r.Reference, AccountID: r.AccountID, AccountName: r.AccountName, Currency: r.Currency, Subtotal: r.Subtotal, TaxAmount: r.TaxAmount, TotalAmount: r.TotalAmount, Status: r.Status, Description: r.Description, SalesInvoiceID: r.SalesInvoiceID, ClientID: r.ClientID, DealID: r.DealID, JournalEntryID: r.JournalEntryID, PostedAt: r.PostedAt, CreatedBy: r.CreatedBy, CreatedAt: r.CreatedAt, Allocated: r.Allocated})
+		out[i] = toInvoice(sqlc.GetInvoiceRow{TagID: r.TagID, TagName: r.TagName, ID: r.ID, Kind: r.Kind, InvoiceNo: r.InvoiceNo, InvoiceDate: r.InvoiceDate, DueDate: r.DueDate, PartyName: r.PartyName, Reference: r.Reference, AccountID: r.AccountID, AccountName: r.AccountName, Currency: r.Currency, Subtotal: r.Subtotal, TaxAmount: r.TaxAmount, TotalAmount: r.TotalAmount, Status: r.Status, Description: r.Description, SalesInvoiceID: r.SalesInvoiceID, ClientID: r.ClientID, DealID: r.DealID, JournalEntryID: r.JournalEntryID, PostedAt: r.PostedAt, CreatedBy: r.CreatedBy, CreatedAt: r.CreatedAt, Allocated: r.Allocated})
 	}
 	return out, total, nil
 }
@@ -694,7 +694,7 @@ func (s *Store) GetInvoiceBySalesID(ctx context.Context, salesInvoiceID string) 
 
 func (s *Store) InsertInvoice(ctx context.Context, i domain.Invoice) error {
 	return wrap(s.q.InsertInvoice(ctx, sqlc.InsertInvoiceParams{
-		ID: i.ID, Kind: i.Kind, InvoiceNo: i.InvoiceNo, InvoiceDate: day(i.InvoiceDate), DueDate: dayp(i.DueDate), PartyName: i.PartyName,
+		TagID: sp(i.TagID), ID: i.ID, Kind: i.Kind, InvoiceNo: i.InvoiceNo, InvoiceDate: day(i.InvoiceDate), DueDate: dayp(i.DueDate), PartyName: i.PartyName,
 		Reference: i.Reference, AccountID: sp(i.AccountID), Currency: i.Currency, Subtotal: i.Subtotal, TaxAmount: i.TaxAmount,
 		TotalAmount: i.TotalAmount, Status: i.Status, Description: i.Description, SalesInvoiceID: sp(i.SalesInvoiceID),
 		ClientID: sp(i.ClientID), DealID: sp(i.DealID), By: sp(i.CreatedBy),
@@ -702,7 +702,7 @@ func (s *Store) InsertInvoice(ctx context.Context, i domain.Invoice) error {
 }
 
 func (s *Store) UpdateInvoice(ctx context.Context, i domain.Invoice, by string) error {
-	return s.q.UpdateInvoice(ctx, sqlc.UpdateInvoiceParams{ID: i.ID, InvoiceDate: day(i.InvoiceDate), DueDate: dayp(i.DueDate), PartyName: i.PartyName, Reference: i.Reference, AccountID: sp(i.AccountID), Subtotal: i.Subtotal, TaxAmount: i.TaxAmount, TotalAmount: i.TotalAmount, Description: i.Description, ClientID: sp(i.ClientID), By: sp(by)})
+	return s.q.UpdateInvoice(ctx, sqlc.UpdateInvoiceParams{TagID: sp(i.TagID), ID: i.ID, InvoiceDate: day(i.InvoiceDate), DueDate: dayp(i.DueDate), PartyName: i.PartyName, Reference: i.Reference, AccountID: sp(i.AccountID), Subtotal: i.Subtotal, TaxAmount: i.TaxAmount, TotalAmount: i.TotalAmount, Description: i.Description, ClientID: sp(i.ClientID), By: sp(by)})
 }
 
 func (s *Store) SoftDeleteInvoice(ctx context.Context, id, by string) error {
@@ -1203,7 +1203,7 @@ func (s *Store) JournalLineOnAccount(ctx context.Context, entryID, accountID, si
 }
 
 func toRecurring(r sqlc.FinanceRecurringJournal) domain.RecurringJournal {
-	out := domain.RecurringJournal{ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency, AnchorDay: int(r.AnchorDay), NextRun: ds(r.NextRun),
+	out := domain.RecurringJournal{TagID: str(r.TagID), ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency, AnchorDay: int(r.AnchorDay), NextRun: ds(r.NextRun),
 		EndDate: dsp(r.EndDate), IsActive: r.IsActive, LastEntryID: str(r.LastEntryID), LastError: r.LastError, CreatedBy: str(r.CreatedBy), UpdatedBy: str(r.UpdatedBy)}
 	_ = json.Unmarshal(r.Lines, &out.Lines) // Written by InsertRecurringJournal only.
 	return out
@@ -1229,7 +1229,7 @@ func (s *Store) InsertRecurringJournal(ctx context.Context, r domain.RecurringJo
 	if err != nil {
 		return err
 	}
-	return wrap(s.q.InsertRecurringJournal(ctx, sqlc.InsertRecurringJournalParams{ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency,
+	return wrap(s.q.InsertRecurringJournal(ctx, sqlc.InsertRecurringJournalParams{TagID: sp(r.TagID), ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency,
 		AnchorDay: int32(r.AnchorDay), NextRun: day(r.NextRun), EndDate: dayp(r.EndDate), Lines: lines, By: sp(r.CreatedBy)}))
 }
 
@@ -1238,7 +1238,7 @@ func (s *Store) UpdateRecurringJournal(ctx context.Context, r domain.RecurringJo
 	if err != nil {
 		return err
 	}
-	return s.q.UpdateRecurringJournal(ctx, sqlc.UpdateRecurringJournalParams{ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency,
+	return s.q.UpdateRecurringJournal(ctx, sqlc.UpdateRecurringJournalParams{TagID: sp(r.TagID), ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency,
 		AnchorDay: int32(r.AnchorDay), NextRun: day(r.NextRun), EndDate: dayp(r.EndDate), Lines: lines, By: sp(by)})
 }
 

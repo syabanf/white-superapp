@@ -68,12 +68,12 @@ SELECT * FROM finance.recurring_journals WHERE id = $1;
 SELECT * FROM finance.recurring_journals WHERE is_active AND next_run <= sqlc.arg(today)::date ORDER BY next_run, id;
 
 -- name: InsertRecurringJournal :exec
-INSERT INTO finance.recurring_journals (id, name, description, frequency, anchor_day, next_run, end_date, lines, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, sqlc.narg(end_date), $7, sqlc.narg(by), sqlc.narg(by));
+INSERT INTO finance.recurring_journals (id, name, description, frequency, anchor_day, next_run, end_date, lines, created_by, updated_by, tag_id)
+VALUES ($1, $2, $3, $4, $5, $6, sqlc.narg(end_date), $7, sqlc.narg(by), sqlc.narg(by), sqlc.narg(tag_id));
 
 -- name: UpdateRecurringJournal :exec
 UPDATE finance.recurring_journals
-   SET name = $2, description = $3, frequency = $4, anchor_day = $5, next_run = $6, end_date = sqlc.narg(end_date), lines = $7,
+   SET name = $2, description = $3, frequency = $4, anchor_day = $5, next_run = $6, end_date = sqlc.narg(end_date), lines = $7, tag_id = sqlc.narg(tag_id),
        last_error = '', updated_by = sqlc.narg(by), updated_at = now()
  WHERE id = $1;
 

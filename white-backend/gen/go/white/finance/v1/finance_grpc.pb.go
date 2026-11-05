@@ -4939,6 +4939,11 @@ const (
 	ScheduleService_DeleteRecurringJournal_FullMethodName    = "/white.finance.v1.ScheduleService/DeleteRecurringJournal"
 	ScheduleService_ListFixedAssets_FullMethodName           = "/white.finance.v1.ScheduleService/ListFixedAssets"
 	ScheduleService_CreateFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/CreateFixedAsset"
+	ScheduleService_ListRecurringInvoices_FullMethodName     = "/white.finance.v1.ScheduleService/ListRecurringInvoices"
+	ScheduleService_CreateRecurringInvoice_FullMethodName    = "/white.finance.v1.ScheduleService/CreateRecurringInvoice"
+	ScheduleService_UpdateRecurringInvoice_FullMethodName    = "/white.finance.v1.ScheduleService/UpdateRecurringInvoice"
+	ScheduleService_SetRecurringInvoiceActive_FullMethodName = "/white.finance.v1.ScheduleService/SetRecurringInvoiceActive"
+	ScheduleService_DeleteRecurringInvoice_FullMethodName    = "/white.finance.v1.ScheduleService/DeleteRecurringInvoice"
 	ScheduleService_UpdateFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/UpdateFixedAsset"
 	ScheduleService_SetFixedAssetActive_FullMethodName       = "/white.finance.v1.ScheduleService/SetFixedAssetActive"
 	ScheduleService_DeleteFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/DeleteFixedAsset"
@@ -4958,6 +4963,11 @@ type ScheduleServiceClient interface {
 	DeleteRecurringJournal(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListFixedAssets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListFixedAssetsResponse, error)
 	CreateFixedAsset(ctx context.Context, in *FixedAssetInput, opts ...grpc.CallOption) (*FixedAsset, error)
+	ListRecurringInvoices(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListRecurringInvoicesResponse, error)
+	CreateRecurringInvoice(ctx context.Context, in *RecurringInvoiceInput, opts ...grpc.CallOption) (*RecurringInvoice, error)
+	UpdateRecurringInvoice(ctx context.Context, in *UpdateRecurringInvoiceRequest, opts ...grpc.CallOption) (*RecurringInvoice, error)
+	SetRecurringInvoiceActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*RecurringInvoice, error)
+	DeleteRecurringInvoice(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// After the first depreciation only the name and the accounts can change.
 	UpdateFixedAsset(ctx context.Context, in *UpdateFixedAssetRequest, opts ...grpc.CallOption) (*FixedAsset, error)
 	SetFixedAssetActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*FixedAsset, error)
@@ -5044,6 +5054,56 @@ func (c *scheduleServiceClient) CreateFixedAsset(ctx context.Context, in *FixedA
 	return out, nil
 }
 
+func (c *scheduleServiceClient) ListRecurringInvoices(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListRecurringInvoicesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRecurringInvoicesResponse)
+	err := c.cc.Invoke(ctx, ScheduleService_ListRecurringInvoices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) CreateRecurringInvoice(ctx context.Context, in *RecurringInvoiceInput, opts ...grpc.CallOption) (*RecurringInvoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecurringInvoice)
+	err := c.cc.Invoke(ctx, ScheduleService_CreateRecurringInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) UpdateRecurringInvoice(ctx context.Context, in *UpdateRecurringInvoiceRequest, opts ...grpc.CallOption) (*RecurringInvoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecurringInvoice)
+	err := c.cc.Invoke(ctx, ScheduleService_UpdateRecurringInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) SetRecurringInvoiceActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*RecurringInvoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecurringInvoice)
+	err := c.cc.Invoke(ctx, ScheduleService_SetRecurringInvoiceActive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) DeleteRecurringInvoice(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ScheduleService_DeleteRecurringInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *scheduleServiceClient) UpdateFixedAsset(ctx context.Context, in *UpdateFixedAssetRequest, opts ...grpc.CallOption) (*FixedAsset, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FixedAsset)
@@ -5097,6 +5157,11 @@ type ScheduleServiceServer interface {
 	DeleteRecurringJournal(context.Context, *IdRequest) (*emptypb.Empty, error)
 	ListFixedAssets(context.Context, *emptypb.Empty) (*ListFixedAssetsResponse, error)
 	CreateFixedAsset(context.Context, *FixedAssetInput) (*FixedAsset, error)
+	ListRecurringInvoices(context.Context, *emptypb.Empty) (*ListRecurringInvoicesResponse, error)
+	CreateRecurringInvoice(context.Context, *RecurringInvoiceInput) (*RecurringInvoice, error)
+	UpdateRecurringInvoice(context.Context, *UpdateRecurringInvoiceRequest) (*RecurringInvoice, error)
+	SetRecurringInvoiceActive(context.Context, *SetActiveRequest) (*RecurringInvoice, error)
+	DeleteRecurringInvoice(context.Context, *IdRequest) (*emptypb.Empty, error)
 	// After the first depreciation only the name and the accounts can change.
 	UpdateFixedAsset(context.Context, *UpdateFixedAssetRequest) (*FixedAsset, error)
 	SetFixedAssetActive(context.Context, *SetActiveRequest) (*FixedAsset, error)
@@ -5133,6 +5198,21 @@ func (UnimplementedScheduleServiceServer) ListFixedAssets(context.Context, *empt
 }
 func (UnimplementedScheduleServiceServer) CreateFixedAsset(context.Context, *FixedAssetInput) (*FixedAsset, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateFixedAsset not implemented")
+}
+func (UnimplementedScheduleServiceServer) ListRecurringInvoices(context.Context, *emptypb.Empty) (*ListRecurringInvoicesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRecurringInvoices not implemented")
+}
+func (UnimplementedScheduleServiceServer) CreateRecurringInvoice(context.Context, *RecurringInvoiceInput) (*RecurringInvoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateRecurringInvoice not implemented")
+}
+func (UnimplementedScheduleServiceServer) UpdateRecurringInvoice(context.Context, *UpdateRecurringInvoiceRequest) (*RecurringInvoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateRecurringInvoice not implemented")
+}
+func (UnimplementedScheduleServiceServer) SetRecurringInvoiceActive(context.Context, *SetActiveRequest) (*RecurringInvoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetRecurringInvoiceActive not implemented")
+}
+func (UnimplementedScheduleServiceServer) DeleteRecurringInvoice(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteRecurringInvoice not implemented")
 }
 func (UnimplementedScheduleServiceServer) UpdateFixedAsset(context.Context, *UpdateFixedAssetRequest) (*FixedAsset, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateFixedAsset not implemented")
@@ -5293,6 +5373,96 @@ func _ScheduleService_CreateFixedAsset_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ScheduleService_ListRecurringInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).ListRecurringInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_ListRecurringInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).ListRecurringInvoices(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_CreateRecurringInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecurringInvoiceInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).CreateRecurringInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_CreateRecurringInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).CreateRecurringInvoice(ctx, req.(*RecurringInvoiceInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_UpdateRecurringInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRecurringInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).UpdateRecurringInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_UpdateRecurringInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).UpdateRecurringInvoice(ctx, req.(*UpdateRecurringInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_SetRecurringInvoiceActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetActiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).SetRecurringInvoiceActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_SetRecurringInvoiceActive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).SetRecurringInvoiceActive(ctx, req.(*SetActiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_DeleteRecurringInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).DeleteRecurringInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_DeleteRecurringInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).DeleteRecurringInvoice(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ScheduleService_UpdateFixedAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateFixedAssetRequest)
 	if err := dec(in); err != nil {
@@ -5399,6 +5569,26 @@ var ScheduleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateFixedAsset",
 			Handler:    _ScheduleService_CreateFixedAsset_Handler,
+		},
+		{
+			MethodName: "ListRecurringInvoices",
+			Handler:    _ScheduleService_ListRecurringInvoices_Handler,
+		},
+		{
+			MethodName: "CreateRecurringInvoice",
+			Handler:    _ScheduleService_CreateRecurringInvoice_Handler,
+		},
+		{
+			MethodName: "UpdateRecurringInvoice",
+			Handler:    _ScheduleService_UpdateRecurringInvoice_Handler,
+		},
+		{
+			MethodName: "SetRecurringInvoiceActive",
+			Handler:    _ScheduleService_SetRecurringInvoiceActive_Handler,
+		},
+		{
+			MethodName: "DeleteRecurringInvoice",
+			Handler:    _ScheduleService_DeleteRecurringInvoice_Handler,
 		},
 		{
 			MethodName: "UpdateFixedAsset",
@@ -6605,6 +6795,446 @@ var TaxSetupService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateCreditNote",
 			Handler:    _TaxSetupService_CreateCreditNote_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
+	ProjectTagService_ListProjectTags_FullMethodName  = "/white.finance.v1.ProjectTagService/ListProjectTags"
+	ProjectTagService_SaveProjectTag_FullMethodName   = "/white.finance.v1.ProjectTagService/SaveProjectTag"
+	ProjectTagService_DeleteProjectTag_FullMethodName = "/white.finance.v1.ProjectTagService/DeleteProjectTag"
+	ProjectTagService_GetProjectProfit_FullMethodName = "/white.finance.v1.ProjectTagService/GetProjectProfit"
+)
+
+// ProjectTagServiceClient is the client API for ProjectTagService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Projects a client's transactions are grouped under.
+type ProjectTagServiceClient interface {
+	ListProjectTags(ctx context.Context, in *ListProjectTagsRequest, opts ...grpc.CallOption) (*ListProjectTagsResponse, error)
+	SaveProjectTag(ctx context.Context, in *ProjectTag, opts ...grpc.CallOption) (*ProjectTag, error)
+	DeleteProjectTag(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetProjectProfit(ctx context.Context, in *ProjectProfitRequest, opts ...grpc.CallOption) (*ProjectProfit, error)
+}
+
+type projectTagServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewProjectTagServiceClient(cc grpc.ClientConnInterface) ProjectTagServiceClient {
+	return &projectTagServiceClient{cc}
+}
+
+func (c *projectTagServiceClient) ListProjectTags(ctx context.Context, in *ListProjectTagsRequest, opts ...grpc.CallOption) (*ListProjectTagsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListProjectTagsResponse)
+	err := c.cc.Invoke(ctx, ProjectTagService_ListProjectTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectTagServiceClient) SaveProjectTag(ctx context.Context, in *ProjectTag, opts ...grpc.CallOption) (*ProjectTag, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProjectTag)
+	err := c.cc.Invoke(ctx, ProjectTagService_SaveProjectTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectTagServiceClient) DeleteProjectTag(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ProjectTagService_DeleteProjectTag_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectTagServiceClient) GetProjectProfit(ctx context.Context, in *ProjectProfitRequest, opts ...grpc.CallOption) (*ProjectProfit, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProjectProfit)
+	err := c.cc.Invoke(ctx, ProjectTagService_GetProjectProfit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ProjectTagServiceServer is the server API for ProjectTagService service.
+// All implementations must embed UnimplementedProjectTagServiceServer
+// for forward compatibility.
+//
+// Projects a client's transactions are grouped under.
+type ProjectTagServiceServer interface {
+	ListProjectTags(context.Context, *ListProjectTagsRequest) (*ListProjectTagsResponse, error)
+	SaveProjectTag(context.Context, *ProjectTag) (*ProjectTag, error)
+	DeleteProjectTag(context.Context, *IdRequest) (*emptypb.Empty, error)
+	GetProjectProfit(context.Context, *ProjectProfitRequest) (*ProjectProfit, error)
+	mustEmbedUnimplementedProjectTagServiceServer()
+}
+
+// UnimplementedProjectTagServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedProjectTagServiceServer struct{}
+
+func (UnimplementedProjectTagServiceServer) ListProjectTags(context.Context, *ListProjectTagsRequest) (*ListProjectTagsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListProjectTags not implemented")
+}
+func (UnimplementedProjectTagServiceServer) SaveProjectTag(context.Context, *ProjectTag) (*ProjectTag, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveProjectTag not implemented")
+}
+func (UnimplementedProjectTagServiceServer) DeleteProjectTag(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteProjectTag not implemented")
+}
+func (UnimplementedProjectTagServiceServer) GetProjectProfit(context.Context, *ProjectProfitRequest) (*ProjectProfit, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProjectProfit not implemented")
+}
+func (UnimplementedProjectTagServiceServer) mustEmbedUnimplementedProjectTagServiceServer() {}
+func (UnimplementedProjectTagServiceServer) testEmbeddedByValue()                           {}
+
+// UnsafeProjectTagServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ProjectTagServiceServer will
+// result in compilation errors.
+type UnsafeProjectTagServiceServer interface {
+	mustEmbedUnimplementedProjectTagServiceServer()
+}
+
+func RegisterProjectTagServiceServer(s grpc.ServiceRegistrar, srv ProjectTagServiceServer) {
+	// If the following call panics, it indicates UnimplementedProjectTagServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&ProjectTagService_ServiceDesc, srv)
+}
+
+func _ProjectTagService_ListProjectTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProjectTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectTagServiceServer).ListProjectTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectTagService_ListProjectTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectTagServiceServer).ListProjectTags(ctx, req.(*ListProjectTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectTagService_SaveProjectTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProjectTag)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectTagServiceServer).SaveProjectTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectTagService_SaveProjectTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectTagServiceServer).SaveProjectTag(ctx, req.(*ProjectTag))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectTagService_DeleteProjectTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectTagServiceServer).DeleteProjectTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectTagService_DeleteProjectTag_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectTagServiceServer).DeleteProjectTag(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectTagService_GetProjectProfit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProjectProfitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectTagServiceServer).GetProjectProfit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectTagService_GetProjectProfit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectTagServiceServer).GetProjectProfit(ctx, req.(*ProjectProfitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ProjectTagService_ServiceDesc is the grpc.ServiceDesc for ProjectTagService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ProjectTagService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.ProjectTagService",
+	HandlerType: (*ProjectTagServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListProjectTags",
+			Handler:    _ProjectTagService_ListProjectTags_Handler,
+		},
+		{
+			MethodName: "SaveProjectTag",
+			Handler:    _ProjectTagService_SaveProjectTag_Handler,
+		},
+		{
+			MethodName: "DeleteProjectTag",
+			Handler:    _ProjectTagService_DeleteProjectTag_Handler,
+		},
+		{
+			MethodName: "GetProjectProfit",
+			Handler:    _ProjectTagService_GetProjectProfit_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
+	AdvanceService_ListAdvances_FullMethodName  = "/white.finance.v1.AdvanceService/ListAdvances"
+	AdvanceService_CreateAdvance_FullMethodName = "/white.finance.v1.AdvanceService/CreateAdvance"
+	AdvanceService_ApplyAdvance_FullMethodName  = "/white.finance.v1.AdvanceService/ApplyAdvance"
+	AdvanceService_VoidAdvance_FullMethodName   = "/white.finance.v1.AdvanceService/VoidAdvance"
+)
+
+// AdvanceServiceClient is the client API for AdvanceService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Money paid or received before the invoice. finance.approve for every change.
+type AdvanceServiceClient interface {
+	ListAdvances(ctx context.Context, in *ListAdvancesRequest, opts ...grpc.CallOption) (*ListAdvancesResponse, error)
+	CreateAdvance(ctx context.Context, in *AdvanceInput, opts ...grpc.CallOption) (*Advance, error)
+	ApplyAdvance(ctx context.Context, in *ApplyAdvanceRequest, opts ...grpc.CallOption) (*Invoice, error)
+	VoidAdvance(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*Advance, error)
+}
+
+type advanceServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAdvanceServiceClient(cc grpc.ClientConnInterface) AdvanceServiceClient {
+	return &advanceServiceClient{cc}
+}
+
+func (c *advanceServiceClient) ListAdvances(ctx context.Context, in *ListAdvancesRequest, opts ...grpc.CallOption) (*ListAdvancesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAdvancesResponse)
+	err := c.cc.Invoke(ctx, AdvanceService_ListAdvances_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *advanceServiceClient) CreateAdvance(ctx context.Context, in *AdvanceInput, opts ...grpc.CallOption) (*Advance, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Advance)
+	err := c.cc.Invoke(ctx, AdvanceService_CreateAdvance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *advanceServiceClient) ApplyAdvance(ctx context.Context, in *ApplyAdvanceRequest, opts ...grpc.CallOption) (*Invoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Invoice)
+	err := c.cc.Invoke(ctx, AdvanceService_ApplyAdvance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *advanceServiceClient) VoidAdvance(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*Advance, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Advance)
+	err := c.cc.Invoke(ctx, AdvanceService_VoidAdvance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AdvanceServiceServer is the server API for AdvanceService service.
+// All implementations must embed UnimplementedAdvanceServiceServer
+// for forward compatibility.
+//
+// Money paid or received before the invoice. finance.approve for every change.
+type AdvanceServiceServer interface {
+	ListAdvances(context.Context, *ListAdvancesRequest) (*ListAdvancesResponse, error)
+	CreateAdvance(context.Context, *AdvanceInput) (*Advance, error)
+	ApplyAdvance(context.Context, *ApplyAdvanceRequest) (*Invoice, error)
+	VoidAdvance(context.Context, *VoidAdvanceRequest) (*Advance, error)
+	mustEmbedUnimplementedAdvanceServiceServer()
+}
+
+// UnimplementedAdvanceServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAdvanceServiceServer struct{}
+
+func (UnimplementedAdvanceServiceServer) ListAdvances(context.Context, *ListAdvancesRequest) (*ListAdvancesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAdvances not implemented")
+}
+func (UnimplementedAdvanceServiceServer) CreateAdvance(context.Context, *AdvanceInput) (*Advance, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAdvance not implemented")
+}
+func (UnimplementedAdvanceServiceServer) ApplyAdvance(context.Context, *ApplyAdvanceRequest) (*Invoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApplyAdvance not implemented")
+}
+func (UnimplementedAdvanceServiceServer) VoidAdvance(context.Context, *VoidAdvanceRequest) (*Advance, error) {
+	return nil, status.Error(codes.Unimplemented, "method VoidAdvance not implemented")
+}
+func (UnimplementedAdvanceServiceServer) mustEmbedUnimplementedAdvanceServiceServer() {}
+func (UnimplementedAdvanceServiceServer) testEmbeddedByValue()                        {}
+
+// UnsafeAdvanceServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AdvanceServiceServer will
+// result in compilation errors.
+type UnsafeAdvanceServiceServer interface {
+	mustEmbedUnimplementedAdvanceServiceServer()
+}
+
+func RegisterAdvanceServiceServer(s grpc.ServiceRegistrar, srv AdvanceServiceServer) {
+	// If the following call panics, it indicates UnimplementedAdvanceServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AdvanceService_ServiceDesc, srv)
+}
+
+func _AdvanceService_ListAdvances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAdvancesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdvanceServiceServer).ListAdvances(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdvanceService_ListAdvances_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdvanceServiceServer).ListAdvances(ctx, req.(*ListAdvancesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdvanceService_CreateAdvance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdvanceInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdvanceServiceServer).CreateAdvance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdvanceService_CreateAdvance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdvanceServiceServer).CreateAdvance(ctx, req.(*AdvanceInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdvanceService_ApplyAdvance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyAdvanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdvanceServiceServer).ApplyAdvance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdvanceService_ApplyAdvance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdvanceServiceServer).ApplyAdvance(ctx, req.(*ApplyAdvanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdvanceService_VoidAdvance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoidAdvanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdvanceServiceServer).VoidAdvance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdvanceService_VoidAdvance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdvanceServiceServer).VoidAdvance(ctx, req.(*VoidAdvanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AdvanceService_ServiceDesc is the grpc.ServiceDesc for AdvanceService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AdvanceService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.AdvanceService",
+	HandlerType: (*AdvanceServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListAdvances",
+			Handler:    _AdvanceService_ListAdvances_Handler,
+		},
+		{
+			MethodName: "CreateAdvance",
+			Handler:    _AdvanceService_CreateAdvance_Handler,
+		},
+		{
+			MethodName: "ApplyAdvance",
+			Handler:    _AdvanceService_ApplyAdvance_Handler,
+		},
+		{
+			MethodName: "VoidAdvance",
+			Handler:    _AdvanceService_VoidAdvance_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

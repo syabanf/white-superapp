@@ -12,7 +12,7 @@ import { JournalHistory } from "@/features/erp/finance/components/journal-histor
 import { JournalsTable } from "@/features/erp/finance/components/journals-table";
 import { PostingLogs } from "@/features/erp/finance/components/posting-logs";
 import { financePerms } from "@/features/erp/finance/perms";
-import { listJournalEntries, listPostableAccounts, listPostingLogs } from "@/features/erp/finance/queries";
+import { listProjectTags, listJournalEntries, listPostableAccounts, listPostingLogs } from "@/features/erp/finance/queries";
 import { fs } from "@/features/erp/finance/strings";
 
 export const metadata: Metadata = { title: fs.journals.title };
@@ -47,7 +47,7 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
         { value: "history", label: fs.journals.tabHistory },
         { value: "logs", label: fs.journals.tabLogs },
       ]}
-      reset={["page", "q", "status", "type", "from", "to", "account", "logStatus"]}
+      reset={["page", "q", "status", "type", "from", "to", "account", "logStatus", "tag"]}
     />
   );
   if (offline) return <>{header}<OfflineNotice message={offline.message} /></>;
@@ -63,11 +63,13 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
     );
   }
 
+  const tags = (await load(() => listProjectTags())).data ?? [];
   const page = spInt(sp.page, 1);
   const pageSize = spInt(sp.pageSize, 20);
   const res = await load(() =>
     listJournalEntries({
       search: sp1(sp.q),
+      tagId: sp1(sp.tag),
       status: tab === "history" ? "POSTED" : sp1(sp.status),
       entryType: sp1(sp.type),
       dateFrom: sp1(sp.from),
@@ -98,7 +100,7 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
       {res.error ? (
         <ErpLoadError error={res.error} />
       ) : (
-        <JournalsTable entries={res.data.entries} page={{ page, pageSize, total: res.data.total }} />
+        <JournalsTable entries={res.data.entries} page={{ page, pageSize, total: res.data.total }} tags={tags} />
       )}
     </>
   );

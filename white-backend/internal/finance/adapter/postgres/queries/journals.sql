@@ -7,15 +7,15 @@ RETURNING last_no;
 INSERT INTO finance.journal_entries (
   id, entry_no, entry_date, description, fiscal_period_id, status, is_recon, entry_type,
   source_module, source_event_code, source_document_type, source_document_id, source_fiscal_year_id,
-  posted_at, posted_by, created_by, updated_by)
+  posted_at, posted_by, created_by, updated_by, tag_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
         CASE WHEN $6::text = 'POSTED' THEN now() END,
         CASE WHEN $6::text = 'POSTED' THEN sqlc.narg(by)::text END,
-        sqlc.narg(by), sqlc.narg(by));
+        sqlc.narg(by), sqlc.narg(by), sqlc.narg(tag_id));
 
 -- name: UpdateJournalHeader :exec
 UPDATE finance.journal_entries
-   SET entry_date = $2, description = $3, fiscal_period_id = $4, status = $5, is_recon = $6,
+   SET entry_date = $2, description = $3, fiscal_period_id = $4, status = $5, is_recon = $6, tag_id = sqlc.narg(tag_id),
        posted_at = CASE WHEN $5::text = 'POSTED' THEN COALESCE(posted_at, now()) END,
        posted_by = CASE WHEN $5::text = 'POSTED' THEN COALESCE(posted_by, sqlc.narg(by)::text) END,
        updated_by = sqlc.narg(by), updated_at = now()
@@ -39,14 +39,16 @@ UPDATE finance.journal_entries
  WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: ListJournalEntries :many
-SELECT e.id, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
+SELECT e.id, e.tag_id, COALESCE(pt.name, '')::text AS tag_name, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
        e.entry_type, e.status, e.is_recon, e.posted_at, e.posted_by, e.source_module, e.source_event_code,
        e.source_document_type, e.source_document_id, e.source_fiscal_year_id, e.created_by, e.created_at, e.updated_at,
        count(*) OVER ()::int AS total
   FROM finance.journal_entries e
   JOIN finance.fiscal_periods p ON p.id = e.fiscal_period_id
   JOIN finance.fiscal_years y ON y.id = p.fiscal_year_id
+  LEFT JOIN finance.project_tags pt ON pt.id = e.tag_id
  WHERE e.deleted_at IS NULL
+   AND (sqlc.narg(tag_id)::text IS NULL OR e.tag_id = sqlc.narg(tag_id))
    AND (sqlc.narg(status)::text IS NULL OR e.status = sqlc.narg(status))
    AND (sqlc.narg(entry_type)::text IS NULL OR e.entry_type = sqlc.narg(entry_type))
    AND (sqlc.narg(date_from)::date IS NULL OR e.entry_date >= sqlc.narg(date_from))
@@ -59,12 +61,13 @@ SELECT e.id, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name
  LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
 
 -- name: GetJournalEntry :one
-SELECT e.id, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
+SELECT e.id, e.tag_id, COALESCE(pt.name, '')::text AS tag_name, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
        e.entry_type, e.status, e.is_recon, e.posted_at, e.posted_by, e.source_module, e.source_event_code,
        e.source_document_type, e.source_document_id, e.source_fiscal_year_id, e.created_by, e.created_at, e.updated_at
   FROM finance.journal_entries e
   JOIN finance.fiscal_periods p ON p.id = e.fiscal_period_id
   JOIN finance.fiscal_years y ON y.id = p.fiscal_year_id
+  LEFT JOIN finance.project_tags pt ON pt.id = e.tag_id
  WHERE e.id = $1 AND e.deleted_at IS NULL;
 
 -- name: FindEntryBySource :one

@@ -65,17 +65,20 @@ func (q *Queries) FindEntryBySource(ctx context.Context, arg FindEntryBySourcePa
 }
 
 const getJournalEntry = `-- name: GetJournalEntry :one
-SELECT e.id, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
+SELECT e.id, e.tag_id, COALESCE(pt.name, '')::text AS tag_name, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
        e.entry_type, e.status, e.is_recon, e.posted_at, e.posted_by, e.source_module, e.source_event_code,
        e.source_document_type, e.source_document_id, e.source_fiscal_year_id, e.created_by, e.created_at, e.updated_at
   FROM finance.journal_entries e
   JOIN finance.fiscal_periods p ON p.id = e.fiscal_period_id
   JOIN finance.fiscal_years y ON y.id = p.fiscal_year_id
+  LEFT JOIN finance.project_tags pt ON pt.id = e.tag_id
  WHERE e.id = $1 AND e.deleted_at IS NULL
 `
 
 type GetJournalEntryRow struct {
 	ID                 string
+	TagID              *string
+	TagName            string
 	EntryNo            string
 	EntryDate          time.Time
 	Description        string
@@ -102,6 +105,8 @@ func (q *Queries) GetJournalEntry(ctx context.Context, id string) (GetJournalEnt
 	var i GetJournalEntryRow
 	err := row.Scan(
 		&i.ID,
+		&i.TagID,
+		&i.TagName,
 		&i.EntryNo,
 		&i.EntryDate,
 		&i.Description,
@@ -153,11 +158,11 @@ const insertJournalEntry = `-- name: InsertJournalEntry :exec
 INSERT INTO finance.journal_entries (
   id, entry_no, entry_date, description, fiscal_period_id, status, is_recon, entry_type,
   source_module, source_event_code, source_document_type, source_document_id, source_fiscal_year_id,
-  posted_at, posted_by, created_by, updated_by)
+  posted_at, posted_by, created_by, updated_by, tag_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
         CASE WHEN $6::text = 'POSTED' THEN now() END,
         CASE WHEN $6::text = 'POSTED' THEN $14::text END,
-        $14, $14)
+        $14, $14, $15)
 `
 
 type InsertJournalEntryParams struct {
@@ -175,6 +180,7 @@ type InsertJournalEntryParams struct {
 	SourceDocumentID   *string
 	SourceFiscalYearID *string
 	By                 *string
+	TagID              *string
 }
 
 func (q *Queries) InsertJournalEntry(ctx context.Context, arg InsertJournalEntryParams) error {
@@ -193,6 +199,7 @@ func (q *Queries) InsertJournalEntry(ctx context.Context, arg InsertJournalEntry
 		arg.SourceDocumentID,
 		arg.SourceFiscalYearID,
 		arg.By,
+		arg.TagID,
 	)
 	return err
 }
@@ -277,27 +284,30 @@ func (q *Queries) JournalLines(ctx context.Context, entryIds []string) ([]Journa
 }
 
 const listJournalEntries = `-- name: ListJournalEntries :many
-SELECT e.id, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
+SELECT e.id, e.tag_id, COALESCE(pt.name, '')::text AS tag_name, e.entry_no, e.entry_date, e.description, e.fiscal_period_id, p.name AS period_name, y.code AS year_code,
        e.entry_type, e.status, e.is_recon, e.posted_at, e.posted_by, e.source_module, e.source_event_code,
        e.source_document_type, e.source_document_id, e.source_fiscal_year_id, e.created_by, e.created_at, e.updated_at,
        count(*) OVER ()::int AS total
   FROM finance.journal_entries e
   JOIN finance.fiscal_periods p ON p.id = e.fiscal_period_id
   JOIN finance.fiscal_years y ON y.id = p.fiscal_year_id
+  LEFT JOIN finance.project_tags pt ON pt.id = e.tag_id
  WHERE e.deleted_at IS NULL
-   AND ($1::text IS NULL OR e.status = $1)
-   AND ($2::text IS NULL OR e.entry_type = $2)
-   AND ($3::date IS NULL OR e.entry_date >= $3)
-   AND ($4::date IS NULL OR e.entry_date <= $4)
-   AND ($5::text IS NULL OR e.entry_no ILIKE '%' || $5 || '%' OR e.description ILIKE '%' || $5 || '%')
-   AND ($6::text IS NULL OR e.source_document_type = $6)
-   AND ($7::text IS NULL OR EXISTS (
-         SELECT 1 FROM finance.journal_entry_lines l WHERE l.entry_id = e.id AND l.account_id = $7))
+   AND ($1::text IS NULL OR e.tag_id = $1)
+   AND ($2::text IS NULL OR e.status = $2)
+   AND ($3::text IS NULL OR e.entry_type = $3)
+   AND ($4::date IS NULL OR e.entry_date >= $4)
+   AND ($5::date IS NULL OR e.entry_date <= $5)
+   AND ($6::text IS NULL OR e.entry_no ILIKE '%' || $6 || '%' OR e.description ILIKE '%' || $6 || '%')
+   AND ($7::text IS NULL OR e.source_document_type = $7)
+   AND ($8::text IS NULL OR EXISTS (
+         SELECT 1 FROM finance.journal_entry_lines l WHERE l.entry_id = e.id AND l.account_id = $8))
  ORDER BY e.entry_date DESC, e.entry_no DESC
- LIMIT $9 OFFSET $8
+ LIMIT $10 OFFSET $9
 `
 
 type ListJournalEntriesParams struct {
+	TagID              *string
 	Status             *string
 	EntryType          *string
 	DateFrom           *time.Time
@@ -311,6 +321,8 @@ type ListJournalEntriesParams struct {
 
 type ListJournalEntriesRow struct {
 	ID                 string
+	TagID              *string
+	TagName            string
 	EntryNo            string
 	EntryDate          time.Time
 	Description        string
@@ -335,6 +347,7 @@ type ListJournalEntriesRow struct {
 
 func (q *Queries) ListJournalEntries(ctx context.Context, arg ListJournalEntriesParams) ([]ListJournalEntriesRow, error) {
 	rows, err := q.db.Query(ctx, listJournalEntries,
+		arg.TagID,
 		arg.Status,
 		arg.EntryType,
 		arg.DateFrom,
@@ -354,6 +367,8 @@ func (q *Queries) ListJournalEntries(ctx context.Context, arg ListJournalEntries
 		var i ListJournalEntriesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.TagID,
+			&i.TagName,
 			&i.EntryNo,
 			&i.EntryDate,
 			&i.Description,
@@ -493,10 +508,10 @@ func (q *Queries) SoftDeleteJournalEntry(ctx context.Context, arg SoftDeleteJour
 
 const updateJournalHeader = `-- name: UpdateJournalHeader :exec
 UPDATE finance.journal_entries
-   SET entry_date = $2, description = $3, fiscal_period_id = $4, status = $5, is_recon = $6,
+   SET entry_date = $2, description = $3, fiscal_period_id = $4, status = $5, is_recon = $6, tag_id = $7,
        posted_at = CASE WHEN $5::text = 'POSTED' THEN COALESCE(posted_at, now()) END,
-       posted_by = CASE WHEN $5::text = 'POSTED' THEN COALESCE(posted_by, $7::text) END,
-       updated_by = $7, updated_at = now()
+       posted_by = CASE WHEN $5::text = 'POSTED' THEN COALESCE(posted_by, $8::text) END,
+       updated_by = $8, updated_at = now()
  WHERE id = $1 AND deleted_at IS NULL
 `
 
@@ -507,6 +522,7 @@ type UpdateJournalHeaderParams struct {
 	FiscalPeriodID string
 	Status         string
 	IsRecon        bool
+	TagID          *string
 	By             *string
 }
 
@@ -518,6 +534,7 @@ func (q *Queries) UpdateJournalHeader(ctx context.Context, arg UpdateJournalHead
 		arg.FiscalPeriodID,
 		arg.Status,
 		arg.IsRecon,
+		arg.TagID,
 		arg.By,
 	)
 	return err

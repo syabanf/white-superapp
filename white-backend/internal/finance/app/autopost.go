@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/ids"
@@ -91,6 +92,11 @@ func (a *AutoPost) SalesInvoiceIssued(ctx context.Context, p domain.SalesInvoice
 			return err
 		}
 		inv.InvoiceNo = no
+		if p.DealID != "" {
+			if inv.TagID, err = tx.EnsureDealTag(ctx, domain.ProjectTag{ID: ids.New(), DealID: p.DealID, ClientName: inv.PartyName, Name: dealTagName(inv.Description)}); err != nil {
+				return err
+			}
+		}
 		if err := tx.InsertInvoice(ctx, inv); err != nil {
 			return err
 		}
@@ -108,6 +114,14 @@ func (a *AutoPost) SalesInvoiceIssued(ctx context.Context, p domain.SalesInvoice
 		return nil, err
 	}
 	return a.Store.GetInvoice(ctx, inv.ID)
+}
+
+// dealTagName takes the deal title from "label · deal title".
+func dealTagName(description string) string {
+	if _, title, ok := strings.Cut(description, " · "); ok && trim(title) != "" {
+		return trim(title)
+	}
+	return description
 }
 
 // tagSalesTax books a sales invoice's PPN under the code the quotation chose. An

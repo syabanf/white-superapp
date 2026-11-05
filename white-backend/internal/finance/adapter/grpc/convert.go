@@ -246,7 +246,7 @@ func yearFrom(in *financev1.FiscalYearInput) app.YearInput {
 func entryPB(e *domain.JournalEntry) *financev1.JournalEntry {
 	debit, credit := e.Totals()
 	out := &financev1.JournalEntry{
-		Id: e.ID, EntryNo: e.EntryNo, EntryDate: e.EntryDate, Description: e.Description, FiscalPeriodId: e.FiscalPeriodID,
+		TagId: e.TagID, TagName: e.TagName, Id: e.ID, EntryNo: e.EntryNo, EntryDate: e.EntryDate, Description: e.Description, FiscalPeriodId: e.FiscalPeriodID,
 		FiscalPeriodName: e.PeriodName, FiscalYearCode: e.YearCode, EntryType: entryTypePB(e.EntryType), Status: docStatusPB(e.Status),
 		IsRecon: e.IsRecon, PostedAt: tsPtr(e.PostedAt), PostedBy: e.PostedBy, SourceModule: e.SourceModule, SourceEventCode: e.SourceEventCode,
 		SourceDocumentType: e.SourceDocumentType, SourceDocumentId: e.SourceDocumentID, TotalDebit: debit.String(), TotalCredit: credit.String(),
@@ -273,7 +273,7 @@ func linesFrom(in []*financev1.JournalLineInput) ([]domain.Line, error) {
 
 func entryInputFrom(in *financev1.JournalEntryInput) (app.EntryInput, error) {
 	lines, err := linesFrom(in.GetLines())
-	return app.EntryInput{EntryDate: in.GetEntryDate(), Description: in.GetDescription(), IsRecon: in.GetIsRecon(), Lines: lines, Post: in.GetPost()}, err
+	return app.EntryInput{TagID: in.GetTagId(), EntryDate: in.GetEntryDate(), Description: in.GetDescription(), IsRecon: in.GetIsRecon(), Lines: lines, Post: in.GetPost()}, err
 }
 
 func postingLogPB(l *domain.PostingLog) *financev1.PostingLog {
@@ -325,7 +325,7 @@ func transferPB(m *app.Movement) *financev1.CashTransfer {
 
 func invoicePB(i *domain.Invoice, paymentStatus string) *financev1.Invoice {
 	return &financev1.Invoice{
-		Id: i.ID, Kind: kindPB(i.Kind), InvoiceNo: i.InvoiceNo, InvoiceDate: i.InvoiceDate, DueDate: i.DueDate, PartyName: i.PartyName, Reference: i.Reference,
+		TagId: i.TagID, TagName: i.TagName, Id: i.ID, Kind: kindPB(i.Kind), InvoiceNo: i.InvoiceNo, InvoiceDate: i.InvoiceDate, DueDate: i.DueDate, PartyName: i.PartyName, Reference: i.Reference,
 		AccountId: i.AccountID, AccountName: i.AccountName, Currency: i.Currency, Subtotal: i.Subtotal.String(), TaxAmount: i.TaxAmount.String(),
 		TotalAmount: i.TotalAmount.String(), Status: docStatusPB(i.Status), Description: i.Description, SalesInvoiceId: i.SalesInvoiceID, ClientId: i.ClientID,
 		DealId: i.DealID, AllocatedAmount: i.Allocated.String(), OutstandingAmount: i.Outstanding().String(), PaymentStatus: paymentStatus,
@@ -339,7 +339,7 @@ func invoiceInputFrom(in *financev1.InvoiceInput) (app.InvoiceInput, error) {
 		return app.InvoiceInput{}, err
 	}
 	tax, err := money("tax_amount", in.GetTaxAmount())
-	return app.InvoiceInput{InvoiceDate: in.GetInvoiceDate(), DueDate: in.GetDueDate(), PartyName: in.GetPartyName(), Reference: in.GetReference(),
+	return app.InvoiceInput{TagID: in.GetTagId(), InvoiceDate: in.GetInvoiceDate(), DueDate: in.GetDueDate(), PartyName: in.GetPartyName(), Reference: in.GetReference(),
 		AccountID: in.GetAccountId(), Description: in.GetDescription(), ClientID: in.GetClientId(), Subtotal: sub, TaxAmount: tax, TaxIDs: in.GetTaxIds()}, err
 }
 

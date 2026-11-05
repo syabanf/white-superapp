@@ -32,6 +32,7 @@ type NewEntry struct {
 	SourceEventCode    string
 	SourceDocumentType string
 	SourceDocumentID   string
+	TagID              string
 }
 
 // periodFor checks the lines' accounts and returns the OPEN period of date.
@@ -83,7 +84,7 @@ func createEntry(ctx context.Context, s domain.Store, in NewEntry) (*domain.Jour
 			ID: ids.New(), EntryNo: domain.SequenceNo(prefix, n), EntryDate: in.EntryDate, Description: in.Description,
 			FiscalPeriodID: period.ID, Status: status, IsRecon: in.IsRecon, EntryType: entryType, SourceModule: in.SourceModule,
 			SourceEventCode: in.SourceEventCode, SourceDocumentType: in.SourceDocumentType, SourceDocumentID: in.SourceDocumentID,
-			CreatedBy: in.UserID,
+			CreatedBy: in.UserID, TagID: in.TagID,
 		}
 		if err := tx.InsertJournalEntry(ctx, e); err != nil {
 			return err
@@ -119,6 +120,7 @@ type EntryInput struct {
 	IsRecon     bool
 	Lines       []domain.Line
 	Post        bool
+	TagID       string
 }
 
 func (in *EntryInput) normalize() error {
@@ -134,7 +136,10 @@ func (j *Journals) Create(ctx context.Context, userID string, in EntryInput) (*d
 	if err := in.normalize(); err != nil {
 		return nil, err
 	}
-	return createEntry(ctx, j.Store, NewEntry{UserID: userID, EntryDate: in.EntryDate, Description: in.Description, IsRecon: in.IsRecon, Lines: in.Lines, Post: in.Post})
+	if err := checkTag(ctx, j.Store, in.TagID); err != nil {
+		return nil, err
+	}
+	return createEntry(ctx, j.Store, NewEntry{TagID: in.TagID, UserID: userID, EntryDate: in.EntryDate, Description: in.Description, IsRecon: in.IsRecon, Lines: in.Lines, Post: in.Post})
 }
 
 func (j *Journals) Update(ctx context.Context, userID, id string, in EntryInput) (*domain.JournalEntry, error) {
@@ -151,13 +156,16 @@ func (j *Journals) Update(ctx context.Context, userID, id string, in EntryInput)
 	if err := domain.ValidateBalanced(in.Lines); err != nil {
 		return nil, err
 	}
+	if err := checkTag(ctx, j.Store, in.TagID); err != nil {
+		return nil, err
+	}
 	err = j.Store.WithTx(ctx, func(tx domain.Store) error {
 		period, err := periodFor(ctx, tx, in.EntryDate, in.Lines)
 		if err != nil {
 			return err
 		}
 		e := *existing
-		e.EntryDate, e.Description, e.FiscalPeriodID, e.IsRecon = in.EntryDate, in.Description, period.ID, in.IsRecon
+		e.EntryDate, e.Description, e.FiscalPeriodID, e.IsRecon, e.TagID = in.EntryDate, in.Description, period.ID, in.IsRecon, in.TagID
 		e.Status = domain.StatusDraft
 		if in.Post {
 			e.Status = domain.StatusPosted
@@ -223,6 +231,7 @@ type MappingPost struct {
 	Splits        map[string][]domain.Split `json:"splits,omitempty"`
 	// Extra adds fixed lines the mapping has no role for, such as per-tax accounts.
 	Extra []domain.Line `json:"extra,omitempty"`
+	TagID string        `json:"tagId,omitempty"`
 }
 
 // PostFromMapping posts an AUTO journal keyed by (event, document):
@@ -285,7 +294,7 @@ func buildAndPost(ctx context.Context, s domain.Store, in MappingPost) (domain.P
 	entry, err := createEntry(ctx, s, NewEntry{
 		UserID: in.UserID, EntryDate: in.EntryDate, Description: in.Description, Lines: lines, Post: true,
 		EntryType: domain.EntryAuto, SourceModule: in.Module, SourceEventCode: in.EventCode,
-		SourceDocumentType: in.DocumentType, SourceDocumentID: in.DocumentID,
+		SourceDocumentType: in.DocumentType, SourceDocumentID: in.DocumentID, TagID: in.TagID,
 	})
 	if err == nil {
 		return domain.PostResult{Status: domain.PostPosted, EntryID: entry.ID}, nil

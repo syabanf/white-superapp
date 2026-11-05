@@ -2,6 +2,10 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  Advance,
+  ProjectProfit,
+  ProjectTag,
+  RecurringInvoice,
   FiscalPosition,
   PartyTaxProfile,
   ChargeType,
@@ -299,4 +303,20 @@ export async function listFiscalPositions() {
 
 export async function listPartyProfiles() {
   return (await gatewayFetch<{ profiles?: PartyTaxProfile[] }>(`${F}/party-tax-profiles`)).profiles ?? [];
+}
+
+export async function listProjectTags(activeOnly = false) {
+  return (await gatewayFetch<{ tags?: ProjectTag[] }>(`${F}/project-tags${qs({ activeOnly })}`)).tags ?? [];
+}
+
+export function getProjectProfit(q: Q) {
+  return gatewayFetch<ProjectProfit>(`${F}/reports/project-profit${qs(q)}`);
+}
+
+export async function listRecurringInvoices() {
+  return (await gatewayFetch<{ invoices?: RecurringInvoice[] }>(`${F}/recurring-invoices`)).invoices ?? [];
+}
+
+export async function listAdvances(kind: LedgerKind) {
+  return (await gatewayFetch<{ advances?: Advance[] }>(`${F}/advances${qs({ kind })}`)).advances ?? [];
 }

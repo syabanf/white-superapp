@@ -19,7 +19,8 @@ import { formatRupiah } from "@/features/erp/shared/money";
 import { DatePicker, toIsoDate } from "@/features/erp/shared/period-picker";
 import { fiscalCoverageAction, openPeriodAction, saveJournalEntryAction } from "../actions";
 import { lineTotals, linesFromEntry, newLine, payloadLines, setLineAmount, type FormLine } from "../journal-form";
-import type { FiscalCoverage, JournalEntry, PostableAccount } from "../types";
+import type { FiscalCoverage, JournalEntry, PostableAccount, ProjectTag } from "../types";
+import { TagPicker } from "./tag-picker";
 import { fs } from "../strings";
 import { AccountPicker } from "./account-picker";
 
@@ -78,16 +79,19 @@ function CoverageBanner({ date, canApprove }: { date: string; canApprove: boolea
 export function JournalForm({
   entry,
   accounts,
+  tags,
   canApprove,
 }: {
   entry?: JournalEntry;
   accounts: PostableAccount[];
+  tags: ProjectTag[];
   canApprove: boolean;
 }) {
   const router = useRouter();
   const [entryDate, setEntryDate] = React.useState(entry?.entryDate ?? toIsoDate(new Date()));
   const [description, setDescription] = React.useState(entry?.description ?? "");
   const [isRecon, setIsRecon] = React.useState(entry?.isRecon ?? false);
+  const [tagId, setTagId] = React.useState(entry?.tagId ?? "");
   const [lines, setLines] = React.useState<FormLine[]>(() => (entry ? linesFromEntry(entry) : [newLine(), newLine()]));
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
   const { pending, run } = useErpAction();
@@ -108,7 +112,7 @@ export function JournalForm({
       return;
     }
     void run(
-      () => saveJournalEntryAction(entry?.id ?? null, { entryDate, description, isRecon, lines: built.lines, post }),
+      () => saveJournalEntryAction(entry?.id ?? null, { entryDate, description, isRecon, lines: built.lines, post, tagId }),
       {
         success: post ? j.posted : fs.saved,
         onOk: (saved) => router.push(`/erp/finance/journals/${saved.id}`),
@@ -165,6 +169,9 @@ export function JournalForm({
           </FormField>
         </div>
         <CoverageBanner date={entryDate} canApprove={canApprove} />
+        <FormField label={fs.projects.tag} htmlFor="entry-tag" error={errors.tag_id}>
+          <TagPicker id="entry-tag" tags={tags} value={tagId} onChange={setTagId} />
+        </FormField>
         <div className="flex items-center gap-2">
           <Switch id="isRecon" checked={isRecon} onCheckedChange={setIsRecon} />
           <Label htmlFor="isRecon" className="font-normal">

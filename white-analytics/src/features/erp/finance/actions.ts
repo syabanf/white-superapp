@@ -7,6 +7,9 @@ import { gatewayFetch } from "@/lib/erp/gateway";
 import { runGateway, zodFieldErrors } from "@/features/erp/shared/action";
 import { fs } from "./strings";
 import type {
+  Advance,
+  ProjectTag,
+  RecurringInvoice,
   ChargeType,
   FiscalPosition,
   PartyTaxProfile,
@@ -279,6 +282,7 @@ const journalSchema = z.object({
     .array(z.object({ accountId: z.string().min(1), entrySide: side, amount: money, memo: z.string().max(300) }))
     .min(2, fs.journals.minLines),
   post: z.boolean(),
+  tagId: z.string(),
 });
 
 export async function saveJournalEntryAction(
@@ -328,6 +332,7 @@ const movementSchema = z.object({
   offsetAccountId: z.string().min(1, fs.cash.accountRequired),
   description: z.string().trim().min(1, fs.journals.descriptionRequired).max(500),
   memo: z.string().max(300),
+  tagId: z.string(),
 });
 
 export async function createCashMovementAction(input: z.input<typeof movementSchema>) {
@@ -373,6 +378,7 @@ const invoiceSchema = z.object({
   description: z.string().max(500),
   clientId: z.string(),
   taxIds: z.array(z.string()),
+  tagId: z.string(),
 });
 
 export async function saveInvoiceAction(kind: LedgerKind, invoiceId: string | null, input: z.input<typeof invoiceSchema>) {
@@ -614,13 +620,14 @@ export type RecurringValues = {
   debitAccountId: string;
   creditAccountId: string;
   amount: string;
+  tagId: string;
 };
 
 const recurringBody = ({ debitAccountId, creditAccountId, amount, ...rest }: RecurringValues) => ({
   ...rest,
   lines: [
-    { accountId: debitAccountId, entrySide: "ENTRY_SIDE_DEBIT", amount },
-    { accountId: creditAccountId, entrySide: "ENTRY_SIDE_CREDIT", amount },
+    { accountId: debitAccountId, entrySide: "DEBIT", amount },
+    { accountId: creditAccountId, entrySide: "CREDIT", amount },
   ],
 });
 
@@ -789,5 +796,54 @@ export async function deletePartyProfileAction(profileId: string) {
 export async function saveChargeTypeAction(input: ChargeType) {
   const res = await runGateway(() => gatewayFetch<ChargeType>(`${F}/charge-types`, json("POST", input)));
   revalidatePath(`${ROOT}/tax-setup`);
+  return res;
+}
+
+// ─── Projects, recurring invoices, advances ──────────────────
+
+export async function saveProjectTagAction(input: ProjectTag) {
+  const res = await runGateway(() => gatewayFetch<ProjectTag>(`${F}/project-tags`, json("POST", input)));
+  revalidatePath(`${ROOT}/projects`);
+  return res;
+}
+
+export async function deleteProjectTagAction(tagId: string) {
+  const res = await runGateway(() => gatewayFetch(`${F}/project-tags/${id(tagId)}`, json("DELETE")));
+  revalidatePath(`${ROOT}/projects`);
+  return res;
+}
+
+export type RecurringInvoiceValues = Pick<RecurringInvoice, "kind" | "name" | "partyName" | "clientId" | "accountId" | "tagId" | "description" | "subtotal" | "taxAmount" | "dueDays" | "frequency" | "endDate" | "autoPost"> & {
+  taxIds: string[];
+  startDate: string;
+};
+
+export async function saveRecurringInvoiceAction(invoiceId: string | null, v: RecurringInvoiceValues) {
+  return invoiceId ? scheduleAction<RecurringInvoice>(`recurring-invoices/${id(invoiceId)}`, "PATCH", v) : scheduleAction<RecurringInvoice>("recurring-invoices", "POST", v);
+}
+
+export async function setRecurringInvoiceActiveAction(invoiceId: string, active: boolean) {
+  return scheduleAction<RecurringInvoice>(`recurring-invoices/${id(invoiceId)}:active`, "POST", { active });
+}
+
+export async function deleteRecurringInvoiceAction(invoiceId: string) {
+  return scheduleAction(`recurring-invoices/${id(invoiceId)}`, "DELETE");
+}
+
+export async function createAdvanceAction(input: { kind: LedgerKind; advanceDate: string; partyName: string; amount: string; cashAccountId: string; advanceAccountId: string; reference: string; notes: string }) {
+  const res = await runGateway(() => gatewayFetch<Advance>(`${F}/advances`, json("POST", input)));
+  revalidatePath(pagePath(input.kind));
+  return res;
+}
+
+export async function applyAdvanceAction(kind: LedgerKind, advanceId: string, input: { invoiceId: string; amount: string; date: string }) {
+  const res = await runGateway(() => gatewayFetch(`${F}/advances/${id(advanceId)}:apply`, json("POST", input)));
+  revalidatePath(pagePath(kind));
+  return res;
+}
+
+export async function voidAdvanceAction(kind: LedgerKind, advanceId: string, reason: string) {
+  const res = await runGateway(() => gatewayFetch<Advance>(`${F}/advances/${id(advanceId)}:void`, json("POST", { reason })));
+  revalidatePath(pagePath(kind));
   return res;
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { byClient } from "@/features/erp/finance/components/project-profit";
 import { previewDocument } from "@/features/erp/finance/pricing";
 import type { ChargeType, TaxCode } from "@/features/erp/finance/types";
 
@@ -43,5 +44,15 @@ describe("previewDocument", () => {
     const p = previewDocument({ items, discountPercent: "0", taxIds: ["t"], charges: [{ chargeId: "a", value: "10" }, { chargeId: "m", value: "" }, { chargeId: "d", value: "500000" }] }, { taxes: [tax({})], charges });
     expect(p.tax).toBeCloseTo(1_155_000);
     expect(p.total).toBeCloseTo(10_500_000 + 1_155_000 + 10_000);
+  });
+});
+
+describe("byClient", () => {
+  it("merges projects per client and keeps untagged apart", () => {
+    const row = (tagId: string, tagName: string, clientName: string, revenue: string, cost: string) => ({ tagId, tagName, clientName, revenue, cost, profit: String(Number(revenue) - Number(cost)) });
+    const merged = byClient([row("a", "SEO", "PT A", "100", "40"), row("b", "Ads", "PT A", "50", "10"), row("c", "Lepas", "", "30", "5"), row("", "", "", "0", "20")]);
+    expect(merged.find((r) => r.tagName === "PT A")).toMatchObject({ revenue: "150.00", cost: "50.00", profit: "100.00" });
+    expect(merged.find((r) => r.tagName === "Lepas")?.profit).toBe("25.00");
+    expect(merged.find((r) => r.tagName === "")?.cost).toBe("20.00");
   });
 });

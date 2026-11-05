@@ -164,7 +164,7 @@ type scheduleServer struct {
 }
 
 func recurringPB(r *domain.RecurringJournal) *financev1.RecurringJournal {
-	out := &financev1.RecurringJournal{Id: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency, NextRun: r.NextRun, EndDate: r.EndDate,
+	out := &financev1.RecurringJournal{TagId: r.TagID, Id: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency, NextRun: r.NextRun, EndDate: r.EndDate,
 		IsActive: r.IsActive, LastEntryId: r.LastEntryID, LastError: r.LastError}
 	var total domain.Money
 	for _, l := range r.Lines {
@@ -210,7 +210,7 @@ func (s *scheduleServer) CreateRecurringJournal(ctx context.Context, r *financev
 	if err != nil {
 		return nil, err
 	}
-	out, err := s.svc.Schedules.CreateRecurring(ctx, p.UserID, app.RecurringInput{Name: r.Name, Description: r.Description, Frequency: r.Frequency, StartDate: r.StartDate, EndDate: r.EndDate, Lines: lines})
+	out, err := s.svc.Schedules.CreateRecurring(ctx, p.UserID, app.RecurringInput{TagID: r.TagId, Name: r.Name, Description: r.Description, Frequency: r.Frequency, StartDate: r.StartDate, EndDate: r.EndDate, Lines: lines})
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (s *scheduleServer) UpdateRecurringJournal(ctx context.Context, r *financev
 	if err != nil {
 		return nil, err
 	}
-	out, err := s.svc.Schedules.UpdateRecurring(ctx, p.UserID, r.Id, app.RecurringInput{Name: in.GetName(), Description: in.GetDescription(), Frequency: in.GetFrequency(), StartDate: in.GetStartDate(), EndDate: in.GetEndDate(), Lines: lines})
+	out, err := s.svc.Schedules.UpdateRecurring(ctx, p.UserID, r.Id, app.RecurringInput{TagID: in.GetTagId(), Name: in.GetName(), Description: in.GetDescription(), Frequency: in.GetFrequency(), StartDate: in.GetStartDate(), EndDate: in.GetEndDate(), Lines: lines})
 	if err != nil {
 		return nil, err
 	}
@@ -251,6 +251,91 @@ func (s *scheduleServer) DeleteRecurringJournal(ctx context.Context, r *financev
 		return nil, err
 	}
 	return empty, s.svc.Schedules.DeleteRecurring(ctx, r.Id)
+}
+
+func recurringInvoicePB(r *domain.RecurringInvoice) *financev1.RecurringInvoice {
+	return &financev1.RecurringInvoice{Id: r.ID, Kind: r.Kind, Name: r.Name, PartyName: r.PartyName, ClientId: r.ClientID, AccountId: r.AccountID, TagId: r.TagID, Description: r.Description,
+		Subtotal: r.Subtotal.String(), TaxAmount: r.TaxAmount.String(), TaxIds: r.TaxIDs, DueDays: int32(r.DueDays), Frequency: r.Frequency, NextRun: r.NextRun, EndDate: r.EndDate,
+		AutoPost: r.AutoPost, IsActive: r.IsActive, LastInvoiceId: r.LastInvoiceID, LastError: r.LastError}
+}
+
+func recurringInvoiceInput(r *financev1.RecurringInvoiceInput) (app.RecurringInvoiceInput, error) {
+	sub, err := money("subtotal", r.GetSubtotal())
+	if err != nil {
+		return app.RecurringInvoiceInput{}, err
+	}
+	tax, err := money("tax_amount", orZero(r.GetTaxAmount()))
+	if err != nil {
+		return app.RecurringInvoiceInput{}, err
+	}
+	return app.RecurringInvoiceInput{Kind: r.GetKind(), Name: r.GetName(), PartyName: r.GetPartyName(), ClientID: r.GetClientId(), AccountID: r.GetAccountId(), TagID: r.GetTagId(), Description: r.GetDescription(),
+		Frequency: r.GetFrequency(), StartDate: r.GetStartDate(), EndDate: r.GetEndDate(), Subtotal: sub, TaxAmount: tax, TaxIDs: r.GetTaxIds(), DueDays: int(r.GetDueDays()), AutoPost: r.GetAutoPost()}, nil
+}
+
+func (s *scheduleServer) ListRecurringInvoices(ctx context.Context, _ *emptypb.Empty) (*financev1.ListRecurringInvoicesResponse, error) {
+	if _, err := read(ctx); err != nil {
+		return nil, err
+	}
+	rows, err := s.svc.Schedules.ListRecurringInvoices(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := &financev1.ListRecurringInvoicesResponse{}
+	for i := range rows {
+		out.Invoices = append(out.Invoices, recurringInvoicePB(&rows[i]))
+	}
+	return out, nil
+}
+
+func (s *scheduleServer) CreateRecurringInvoice(ctx context.Context, r *financev1.RecurringInvoiceInput) (*financev1.RecurringInvoice, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	in, err := recurringInvoiceInput(r)
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.svc.Schedules.CreateRecurringInvoice(ctx, p.UserID, in)
+	if err != nil {
+		return nil, err
+	}
+	return recurringInvoicePB(out), nil
+}
+
+func (s *scheduleServer) UpdateRecurringInvoice(ctx context.Context, r *financev1.UpdateRecurringInvoiceRequest) (*financev1.RecurringInvoice, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	in, err := recurringInvoiceInput(r.GetInput())
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.svc.Schedules.UpdateRecurringInvoice(ctx, p.UserID, r.Id, in)
+	if err != nil {
+		return nil, err
+	}
+	return recurringInvoicePB(out), nil
+}
+
+func (s *scheduleServer) SetRecurringInvoiceActive(ctx context.Context, r *financev1.SetActiveRequest) (*financev1.RecurringInvoice, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.svc.Schedules.SetRecurringInvoiceActive(ctx, p.UserID, r.Id, r.Active)
+	if err != nil {
+		return nil, err
+	}
+	return recurringInvoicePB(out), nil
+}
+
+func (s *scheduleServer) DeleteRecurringInvoice(ctx context.Context, r *financev1.IdRequest) (*emptypb.Empty, error) {
+	if _, err := approve(ctx); err != nil {
+		return nil, err
+	}
+	return empty, s.svc.Schedules.DeleteRecurringInvoice(ctx, r.Id)
 }
 
 func (s *scheduleServer) ListFixedAssets(ctx context.Context, _ *emptypb.Empty) (*financev1.ListFixedAssetsResponse, error) {

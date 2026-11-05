@@ -20,7 +20,8 @@ import { ErpEmpty } from "@/features/erp/shared/states";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { SearchFilter } from "@/features/erp/shared/url-filters";
 import { createCashMovementAction, createCashTransferAction } from "../actions";
-import type { CashBankAccount, CashMovement, CashTransfer, PostableAccount } from "../types";
+import type { CashBankAccount, CashMovement, CashTransfer, PostableAccount, ProjectTag } from "../types";
+import { TagPicker } from "./tag-picker";
 import { fs } from "../strings";
 import { AccountPicker } from "./account-picker";
 
@@ -63,9 +64,9 @@ function useFormState<T extends object>(initial: T) {
   return [form, set, setForm] as const;
 }
 
-export function CashMovementDialog({ kind, accounts }: { kind: "CASH_IN" | "CASH_OUT"; accounts: PostableAccount[] }) {
+export function CashMovementDialog({ kind, accounts, tags }: { kind: "CASH_IN" | "CASH_OUT"; accounts: PostableAccount[]; tags: ProjectTag[] }) {
   const [open, setOpen] = React.useState(false);
-  const blank = { entryDate: toIsoDate(new Date()), amount: "", cashAccountId: "", offsetAccountId: "", description: "", memo: "" };
+  const blank = { tagId: "", entryDate: toIsoDate(new Date()), amount: "", cashAccountId: "", offsetAccountId: "", description: "", memo: "" };
   const [form, set, setForm] = useFormState(blank);
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
   const { pending, run } = useErpAction();
@@ -118,6 +119,9 @@ export function CashMovementDialog({ kind, accounts }: { kind: "CASH_IN" | "CASH
           </FormField>
           <FormField label={fs.description} htmlFor="cm-desc" error={errors.description} required>
             <Textarea id="cm-desc" rows={2} value={form.description} onChange={(e) => set("description", e.target.value)} />
+          </FormField>
+          <FormField label={fs.projects.tag} htmlFor="cm-tag" error={errors.tag_id}>
+            <TagPicker id="cm-tag" tags={tags} value={form.tagId} onChange={(v) => set("tagId", v)} />
           </FormField>
           <FormField label={fs.memo} htmlFor="cm-memo">
             <Input id="cm-memo" value={form.memo} onChange={(e) => set("memo", e.target.value)} />

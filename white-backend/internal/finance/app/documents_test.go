@@ -625,3 +625,204 @@ func TestUpdateSchedules(t *testing.T) {
 		t.Fatalf("%+v", a)
 	}
 }
+
+func TestProjectProfitMatchesIncomeStatement(t *testing.T) {
+	h := newHarness(t)
+	tags := app.NewProjectTags(h.deps)
+	l := app.NewLedgers(h.deps)
+	j := app.NewJournals(h.deps)
+	a, err := tags.Save(h.ctx, "u1", domain.ProjectTag{Name: "Kampanye Oktober", ClientName: "PT A", IsActive: true})
+	h.ok(err)
+	_, err = tags.Save(h.ctx, "u1", domain.ProjectTag{Name: "kampanye oktober", ClientName: "pt a", IsActive: true})
+	h.wantErr(err, "Proyek ini sudah ada untuk klien tersebut")
+
+	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "PT A", AccountID: h.id("4101001"), Subtotal: rp(10_000_000), TagID: a.ID})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", inv.ID)
+	h.ok(err)
+	_, err = j.Create(h.ctx, "u1", app.EntryInput{EntryDate: today, Description: "Biaya produksi", TagID: a.ID, Post: true,
+		Lines: []domain.Line{line(h.id("6301004"), domain.Debit, 3_000_000), line(h.id("1101001"), domain.Credit, 3_000_000)}})
+	h.ok(err)
+	_, err = j.Create(h.ctx, "u1", app.EntryInput{EntryDate: today, Description: "Sewa kantor", Post: true,
+		Lines: []domain.Line{line(h.id("6301004"), domain.Debit, 500_000), line(h.id("1101001"), domain.Credit, 500_000)}})
+	h.ok(err)
+	// A credit note takes the revenue back from the same project.
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, today, rp(1_000_000), "Revisi nilai")
+	h.ok(err)
+
+	rows, from, to, err := tags.ProjectProfit(h.ctx, "2026-10-01", "2026-10-31", "")
+	h.ok(err)
+	var tagged *domain.ProjectProfitRow
+	var profit domain.Money
+	for i := range rows {
+		profit += rows[i].Revenue - rows[i].Cost
+		if rows[i].TagID == a.ID {
+			tagged = &rows[i]
+		}
+	}
+	if tagged == nil || tagged.Revenue != rp(9_000_000) || tagged.Cost != rp(3_000_000) || tagged.ClientName != "PT A" {
+		t.Fatalf("tagged %+v", tagged)
+	}
+	is, err := app.NewReports(h.deps).IncomeStatement(h.ctx, from, to)
+	h.ok(err)
+	if profit != is.NetIncome {
+		t.Fatalf("rows add to %d, income statement says %d", profit, is.NetIncome)
+	}
+	only, _, _, err := tags.ProjectProfit(h.ctx, from, to, "pt a")
+	h.ok(err)
+	if len(only) != 1 || only[0].TagID != a.ID {
+		t.Fatalf("client filter %+v", only)
+	}
+	h.wantErr(tags.Delete(h.ctx, a.ID), "Tag sudah dipakai transaksi. Nonaktifkan saja.")
+	a.IsActive = false
+	_, err = tags.Save(h.ctx, "u1", *a)
+	h.ok(err)
+	_, err = l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "PT A", Subtotal: rp(1), TagID: a.ID})
+	h.wantErr(err, "Tag proyek tidak ditemukan atau nonaktif")
+}
+
+func TestSalesInvoiceTagsItsDeal(t *testing.T) {
+	h := newHarness(t)
+	auto := app.NewAutoPost(h.deps)
+	issue := func(id string) *domain.Invoice {
+		inv, err := auto.SalesInvoiceIssued(h.ctx, domain.SalesInvoiceIssued{InvoiceID: id, InvoiceNumber: id, DealID: "deal-1", CustomerName: "PT D", IssueDate: today, Subtotal: rp(100), TotalAmount: rp(100), Description: "Termin 1 · Retainer SEO"})
+		h.ok(err)
+		return inv
+	}
+	first, second := issue("s1"), issue("s2")
+	if first.TagID == "" || first.TagID != second.TagID || first.TagName != "Retainer SEO" {
+		t.Fatalf("%+v %+v", first, second)
+	}
+}
+
+func TestRecurringInvoices(t *testing.T) {
+	h := newHarness(t)
+	s := app.NewSchedules(h.deps)
+	l := app.NewLedgers(h.deps)
+	ppn := h.vat("2103003", "1104001")
+	in := app.RecurringInvoiceInput{Kind: domain.KindAR, Name: "Retainer", PartyName: "PT R", AccountID: h.id("4101001"), Subtotal: rp(1_000_000), TaxIDs: []string{ppn}, DueDays: 14, Frequency: domain.FreqMonthly, StartDate: "2026-10-05", AutoPost: true}
+	bad := in
+	bad.Subtotal = 0
+	_, err := s.CreateRecurringInvoice(h.ctx, "u1", bad)
+	h.wantErr(err, "Subtotal harus lebih dari 0")
+	r, err := s.CreateRecurringInvoice(h.ctx, "u1", in)
+	h.ok(err)
+
+	res, err := s.RunDue(h.ctx)
+	h.ok(err)
+	if res.Posted != 1 || res.Failed != 0 {
+		t.Fatalf("run %+v", res)
+	}
+	r, err = h.deps.Store.GetRecurringInvoice(h.ctx, r.ID)
+	h.ok(err)
+	if r.NextRun != "2026-11-05" || r.LastInvoiceID == "" {
+		t.Fatalf("%+v", r)
+	}
+	inv, err := l.GetInvoice(h.ctx, domain.KindAR, r.LastInvoiceID)
+	h.ok(err)
+	if inv.Status != domain.StatusPosted || inv.JournalEntryID == "" || inv.TaxAmount != rp(110_000) || inv.DueDate != "2026-10-19" {
+		t.Fatalf("%+v", inv)
+	}
+	// Running again bills nothing new.
+	res, err = s.RunDue(h.ctx)
+	h.ok(err)
+	if res.Posted != 0 {
+		t.Fatalf("billed twice %+v", res)
+	}
+	back := in
+	back.StartDate = "2026-10-01"
+	_, err = s.UpdateRecurringInvoice(h.ctx, "u1", r.ID, back)
+	h.wantErr(err, "Jadwal ini sudah berjalan, jadwal berikutnya tidak bisa mundur")
+
+	// A closed period leaves no invoice, keeps the date due and reports why.
+	closed := in
+	closed.PartyName, closed.StartDate = "PT Tutup", "2026-09-05"
+	c, err := s.CreateRecurringInvoice(h.ctx, "u1", closed)
+	h.ok(err)
+	res, err = s.RunDue(h.ctx)
+	h.ok(err)
+	if res.Failed != 1 {
+		t.Fatalf("closed period %+v", res)
+	}
+	c, err = h.deps.Store.GetRecurringInvoice(h.ctx, c.ID)
+	h.ok(err)
+	rows, _, err := l.ListInvoices(h.ctx, domain.InvoiceFilter{Kind: domain.KindAR, PartyName: "PT Tutup", Limit: 5}, "")
+	h.ok(err)
+	if c.NextRun != "2026-09-05" || c.LastError == "" || len(rows) != 0 {
+		t.Fatalf("%+v %d", c, len(rows))
+	}
+	h.ok(s.DeleteRecurringInvoice(h.ctx, c.ID))
+}
+
+func TestAdvances(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	cash, liability := h.id("1101001"), h.id("2105001")
+	in := app.AdvanceInput{Kind: domain.KindAR, Date: today, PartyName: "PT M", CashAccountID: cash, AdvanceAccountID: liability, Amount: rp(5_000_000)}
+	wrong := in
+	wrong.AdvanceAccountID = h.id("1103001")
+	_, err := l.CreateAdvance(h.ctx, "u1", wrong)
+	h.wantErr(err, "Akun uang muka harus akun liabilitas yang postable dan bukan kas")
+	a, err := l.CreateAdvance(h.ctx, "u1", in)
+	h.ok(err)
+	if a.Remaining() != rp(5_000_000) || a.JournalEntryID == "" {
+		t.Fatalf("%+v", a)
+	}
+
+	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "PT M", AccountID: h.id("4101001"), Subtotal: rp(8_000_000)})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", inv.ID)
+	h.ok(err)
+	other, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "PT Lain", AccountID: h.id("4101001"), Subtotal: rp(1_000)})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", other.ID)
+	h.ok(err)
+	_, err = l.ApplyAdvance(h.ctx, "u1", a.ID, other.ID, today, rp(1_000))
+	h.wantErr(err, "Uang muka hanya bisa dipakai untuk tagihan pihak yang sama")
+	_, err = l.ApplyAdvance(h.ctx, "u1", a.ID, inv.ID, today, rp(6_000_000))
+	h.wantErr(err, "Nilai melebihi sisa uang muka")
+
+	res, err := l.ApplyAdvance(h.ctx, "u1", a.ID, inv.ID, today, rp(2_000_000))
+	h.ok(err)
+	if res.Invoices[0].Outstanding() != rp(6_000_000) || res.Payment.Method != "advance" {
+		t.Fatalf("%+v", res)
+	}
+	e, err := app.NewJournals(h.deps).Get(h.ctx, res.Payment.JournalEntryID)
+	h.ok(err)
+	if lineOn(e, liability).Amount != rp(2_000_000) || lineOn(e, liability).Side != domain.Debit {
+		t.Fatalf("advance account not debited: %+v", e.Lines)
+	}
+	a, err = h.deps.Store.GetAdvance(h.ctx, a.ID)
+	h.ok(err)
+	if a.Remaining() != rp(3_000_000) {
+		t.Fatalf("%+v", a)
+	}
+	_, err = l.VoidAdvance(h.ctx, "u1", a.ID, "Salah catat")
+	h.wantErr(err, "Uang muka sudah dipakai tagihan. Batalkan pemakaiannya dulu.")
+
+	// Voiding the application frees the advance, which can then be voided.
+	_, err = l.VoidPayment(h.ctx, domain.KindAR, "u1", res.Payment.ID, "Salah tagihan")
+	h.ok(err)
+	a, err = l.VoidAdvance(h.ctx, "u1", a.ID, "Salah catat")
+	h.ok(err)
+	if a.Status != domain.StatusVoid || a.Remaining() != 0 {
+		t.Fatalf("%+v", a)
+	}
+	bs, err := app.NewReports(h.deps).BalanceSheet(h.ctx, today)
+	h.ok(err)
+	if bs.TotalAssets != bs.TotalLiabilitiesAndEquity {
+		t.Fatalf("balance sheet off: %d vs %d", bs.TotalAssets, bs.TotalLiabilitiesAndEquity)
+	}
+
+	vendor, err := l.CreateAdvance(h.ctx, "u1", app.AdvanceInput{Kind: domain.KindAP, Date: today, PartyName: "CV V", CashAccountID: cash, AdvanceAccountID: h.id("1106001"), Amount: rp(1_000_000)})
+	h.ok(err)
+	bill, err := l.CreateInvoice(h.ctx, domain.KindAP, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "CV V", Subtotal: rp(1_000_000)})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAP, "u1", bill.ID)
+	h.ok(err)
+	paid, err := l.ApplyAdvance(h.ctx, "u1", vendor.ID, bill.ID, today, rp(1_000_000))
+	h.ok(err)
+	if paid.Invoices[0].Outstanding() != 0 {
+		t.Fatalf("%+v", paid.Invoices[0])
+	}
+}

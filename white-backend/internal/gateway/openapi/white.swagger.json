@@ -77,6 +77,14 @@
       "description": "Tax codes and extra charges as master data."
     },
     {
+      "name": "ProjectTagService",
+      "description": "Projects a client's transactions are grouped under."
+    },
+    {
+      "name": "AdvanceService",
+      "description": "Money paid or received before the invoice. finance.approve for every change."
+    },
+    {
       "name": "AnalysisService"
     },
     {
@@ -5373,6 +5381,118 @@
         ]
       }
     },
+    "/v1/finance/advances": {
+      "get": {
+        "operationId": "AdvanceService_ListAdvances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListAdvancesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AdvanceService"
+        ]
+      },
+      "post": {
+        "operationId": "AdvanceService_CreateAdvance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Advance"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AdvanceInput"
+            }
+          }
+        ],
+        "tags": [
+          "AdvanceService"
+        ]
+      }
+    },
+    "/v1/finance/advances/{id}:apply": {
+      "post": {
+        "operationId": "AdvanceService_ApplyAdvance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteFinanceV1Invoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AdvanceServiceApplyAdvanceBody"
+            }
+          }
+        ],
+        "tags": [
+          "AdvanceService"
+        ]
+      }
+    },
+    "/v1/finance/advances/{id}:void": {
+      "post": {
+        "operationId": "AdvanceService_VoidAdvance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Advance"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AdvanceServiceVoidAdvanceBody"
+            }
+          }
+        ],
+        "tags": [
+          "AdvanceService"
+        ]
+      }
+    },
     "/v1/finance/analysis": {
       "get": {
         "operationId": "AnalysisService_GetFinancialAnalysis",
@@ -5591,6 +5711,12 @@
           {
             "name": "partyName",
             "description": "Exact party (client or vendor) name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tagId",
             "in": "query",
             "required": false,
             "type": "string"
@@ -5951,6 +6077,12 @@
           {
             "name": "partyName",
             "description": "Exact party (client or vendor) name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tagId",
             "in": "query",
             "required": false,
             "type": "string"
@@ -7803,6 +7935,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "tagId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -8252,6 +8390,79 @@
         ]
       }
     },
+    "/v1/finance/project-tags": {
+      "get": {
+        "operationId": "ProjectTagService_ListProjectTags",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListProjectTagsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "ProjectTagService"
+        ]
+      },
+      "post": {
+        "operationId": "ProjectTagService_SaveProjectTag",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ProjectTag"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ProjectTag"
+            }
+          }
+        ],
+        "tags": [
+          "ProjectTagService"
+        ]
+      }
+    },
+    "/v1/finance/project-tags/{id}": {
+      "delete": {
+        "operationId": "ProjectTagService_DeleteProjectTag",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ProjectTagService"
+        ]
+      }
+    },
     "/v1/finance/recon/accounts": {
       "get": {
         "operationId": "BankReconService_ListReconAccounts",
@@ -8507,6 +8718,133 @@
         ],
         "tags": [
           "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recurring-invoices": {
+      "get": {
+        "operationId": "ScheduleService_ListRecurringInvoices",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListRecurringInvoicesResponse"
+            }
+          }
+        },
+        "tags": [
+          "ScheduleService"
+        ]
+      },
+      "post": {
+        "operationId": "ScheduleService_CreateRecurringInvoice",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RecurringInvoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RecurringInvoiceInput"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/recurring-invoices/{id}": {
+      "delete": {
+        "operationId": "ScheduleService_DeleteRecurringInvoice",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      },
+      "patch": {
+        "operationId": "ScheduleService_UpdateRecurringInvoice",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RecurringInvoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RecurringInvoiceInput"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/recurring-invoices/{id}:active": {
+      "post": {
+        "operationId": "ScheduleService_SetRecurringInvoiceActive",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RecurringInvoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ScheduleServiceSetRecurringInvoiceActiveBody"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
         ]
       }
     },
@@ -9405,6 +9743,42 @@
         ],
         "tags": [
           "ReportService"
+        ]
+      }
+    },
+    "/v1/finance/reports/project-profit": {
+      "get": {
+        "operationId": "ProjectTagService_GetProjectProfit",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ProjectProfit"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clientName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ProjectTagService"
         ]
       }
     },
@@ -23027,6 +23401,28 @@
     "AdsServiceSyncAdsBody": {
       "type": "object"
     },
+    "AdvanceServiceApplyAdvanceBody": {
+      "type": "object",
+      "properties": {
+        "invoiceId": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        }
+      }
+    },
+    "AdvanceServiceVoidAdvanceBody": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
     "AssetServiceCreateAssetBody": {
       "type": "object",
       "properties": {
@@ -25484,6 +25880,14 @@
         }
       }
     },
+    "ScheduleServiceSetRecurringInvoiceActiveBody": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
     "ScheduleServiceSetRecurringJournalActiveBody": {
       "type": "object",
       "properties": {
@@ -26687,6 +27091,92 @@
         "ctr": {
           "type": "number",
           "format": "double"
+        }
+      }
+    },
+    "v1Advance": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "advanceNo": {
+          "type": "string"
+        },
+        "advanceDate": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "applied": {
+          "type": "string"
+        },
+        "remaining": {
+          "type": "string"
+        },
+        "cashAccountId": {
+          "type": "string"
+        },
+        "cashAccountName": {
+          "type": "string"
+        },
+        "advanceAccountId": {
+          "type": "string"
+        },
+        "advanceAccountName": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "description": "POSTED or VOID."
+        },
+        "journalEntryId": {
+          "type": "string"
+        },
+        "voidReason": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AdvanceInput": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "advanceDate": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "cashAccountId": {
+          "type": "string"
+        },
+        "advanceAccountId": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
         }
       }
     },
@@ -28860,6 +29350,9 @@
           "type": "string"
         },
         "memo": {
+          "type": "string"
+        },
+        "tagId": {
           "type": "string"
         }
       }
@@ -37225,6 +37718,9 @@
             "type": "string"
           },
           "description": "Master tax codes; they replace a typed tax_amount."
+        },
+        "tagId": {
+          "type": "string"
         }
       }
     },
@@ -37690,6 +38186,12 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "tagId": {
+          "type": "string"
+        },
+        "tagName": {
+          "type": "string"
         }
       }
     },
@@ -37715,6 +38217,9 @@
         "post": {
           "type": "boolean",
           "description": "Save as POSTED right away (needs finance.approve)."
+        },
+        "tagId": {
+          "type": "string"
         }
       }
     },
@@ -38599,6 +39104,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1AdAccount"
+          }
+        }
+      }
+    },
+    "v1ListAdvancesResponse": {
+      "type": "object",
+      "properties": {
+        "advances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Advance"
           }
         }
       }
@@ -39753,6 +40270,18 @@
         }
       }
     },
+    "v1ListProjectTagsResponse": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProjectTag"
+          }
+        }
+      }
+    },
     "v1ListPublicJobsResponse": {
       "type": "object",
       "properties": {
@@ -39797,6 +40326,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1ReconAccount"
+          }
+        }
+      }
+    },
+    "v1ListRecurringInvoicesResponse": {
+      "type": "object",
+      "properties": {
+        "invoices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1RecurringInvoice"
           }
         }
       }
@@ -44046,6 +44587,81 @@
         }
       }
     },
+    "v1ProjectProfit": {
+      "type": "object",
+      "properties": {
+        "dateFrom": {
+          "type": "string"
+        },
+        "dateTo": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProjectProfitRow"
+          }
+        },
+        "totalRevenue": {
+          "type": "string"
+        },
+        "totalCost": {
+          "type": "string"
+        },
+        "totalProfit": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ProjectProfitRow": {
+      "type": "object",
+      "properties": {
+        "tagId": {
+          "type": "string",
+          "description": "Empty on the row of untagged journals."
+        },
+        "tagName": {
+          "type": "string"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "revenue": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "string"
+        },
+        "profit": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ProjectTag": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "dealId": {
+          "type": "string",
+          "description": "Set on the tag Finance creates for a Sales deal."
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
     "v1ProviderMode": {
       "type": "object",
       "properties": {
@@ -45614,6 +46230,127 @@
         }
       }
     },
+    "v1RecurringInvoice": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "description": "AP or AR."
+        },
+        "name": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "tagId": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "subtotal": {
+          "type": "string"
+        },
+        "taxAmount": {
+          "type": "string"
+        },
+        "taxIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dueDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "nextRun": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "autoPost": {
+          "type": "boolean"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "lastInvoiceId": {
+          "type": "string"
+        },
+        "lastError": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RecurringInvoiceInput": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "tagId": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "subtotal": {
+          "type": "string"
+        },
+        "taxAmount": {
+          "type": "string"
+        },
+        "taxIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dueDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "autoPost": {
+          "type": "boolean"
+        }
+      }
+    },
     "v1RecurringJournal": {
       "type": "object",
       "properties": {
@@ -45654,6 +46391,9 @@
         },
         "lastError": {
           "type": "string"
+        },
+        "tagId": {
+          "type": "string"
         }
       }
     },
@@ -45681,6 +46421,9 @@
             "type": "object",
             "$ref": "#/definitions/v1JournalLineInput"
           }
+        },
+        "tagId": {
+          "type": "string"
         }
       }
     },
@@ -50313,6 +51056,12 @@
             "type": "string"
           },
           "description": "Set on a single invoice read, for the edit form."
+        },
+        "tagId": {
+          "type": "string"
+        },
+        "tagName": {
+          "type": "string"
         }
       }
     },

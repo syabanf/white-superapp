@@ -30,8 +30,9 @@ import {
   type RecurringValues,
 } from "../actions";
 import { fs } from "../strings";
-import type { FixedAsset, PostableAccount, RecurringJournal } from "../types";
+import type { FixedAsset, PostableAccount, ProjectTag, RecurringJournal } from "../types";
 import { AccountPicker } from "./account-picker";
+import { TagPicker } from "./tag-picker";
 
 const s = fs.schedules;
 
@@ -72,7 +73,7 @@ function ToggleDelete({ edit, active, onToggle, canDelete, onDelete }: { edit: R
   );
 }
 
-export function RecurringTable({ rows, accounts, canApprove }: { rows: RecurringJournal[]; accounts: PostableAccount[]; canApprove: boolean }) {
+export function RecurringTable({ rows, accounts, tags, canApprove }: { rows: RecurringJournal[]; accounts: PostableAccount[]; tags: ProjectTag[]; canApprove: boolean }) {
   const columns: ColumnDef<RecurringJournal, unknown>[] = [
     {
       accessorKey: "name",
@@ -106,7 +107,7 @@ export function RecurringTable({ rows, accounts, canApprove }: { rows: Recurring
             enableSorting: false,
             cell: ({ row }: { row: { original: RecurringJournal } }) => (
               <ToggleDelete
-                edit={<RecurringDialog accounts={accounts} recurring={row.original} />}
+                edit={<RecurringDialog accounts={accounts} tags={tags} recurring={row.original} />}
                 active={row.original.isActive}
                 onToggle={() => setRecurringActiveAction(row.original.id, !row.original.isActive)}
                 canDelete
@@ -196,7 +197,7 @@ const EditTrigger = ({ label }: { label: string }) => (
   </Button>
 );
 
-export function RecurringDialog({ accounts, recurring }: { accounts: PostableAccount[]; recurring?: RecurringJournal }) {
+export function RecurringDialog({ accounts, tags, recurring }: { accounts: PostableAccount[]; tags: ProjectTag[]; recurring?: RecurringJournal }) {
   return (
     <FormDialog
       title={recurring ? s.editRecurring : s.newRecurring}
@@ -211,13 +212,13 @@ export function RecurringDialog({ accounts, recurring }: { accounts: PostableAcc
         )
       }
     >
-      {(close) => <RecurringForm accounts={accounts} recurring={recurring} close={close} />}
+      {(close) => <RecurringForm accounts={accounts} tags={tags} recurring={recurring} close={close} />}
     </FormDialog>
   );
 }
 
 function recurringValues(r?: RecurringJournal): RecurringValues {
-  if (!r) return { name: "", description: "", frequency: "MONTHLY", startDate: toIsoDate(new Date()), endDate: "", debitAccountId: "", creditAccountId: "", amount: "" };
+  if (!r) return { name: "", description: "", frequency: "MONTHLY", startDate: toIsoDate(new Date()), endDate: "", debitAccountId: "", creditAccountId: "", amount: "", tagId: "" };
   const lines = r.lines ?? [];
   return {
     name: r.name,
@@ -225,13 +226,14 @@ function recurringValues(r?: RecurringJournal): RecurringValues {
     frequency: r.frequency,
     startDate: r.nextRun,
     endDate: r.endDate,
-    debitAccountId: lines.find((l) => l.entrySide === "ENTRY_SIDE_DEBIT")?.accountId ?? "",
-    creditAccountId: lines.find((l) => l.entrySide === "ENTRY_SIDE_CREDIT")?.accountId ?? "",
+    debitAccountId: lines.find((l) => l.entrySide === "DEBIT")?.accountId ?? "",
+    creditAccountId: lines.find((l) => l.entrySide === "CREDIT")?.accountId ?? "",
     amount: r.total,
+    tagId: r.tagId ?? "",
   };
 }
 
-function RecurringForm({ accounts, recurring, close }: { accounts: PostableAccount[]; recurring?: RecurringJournal; close: () => void }) {
+function RecurringForm({ accounts, tags, recurring, close }: { accounts: PostableAccount[]; tags: ProjectTag[]; recurring?: RecurringJournal; close: () => void }) {
   const [v, setV] = React.useState<RecurringValues>(() => recurringValues(recurring));
   const [errors, setErrors] = React.useState<Record<string, string[]>>();
   const { pending, run } = useErpAction();
@@ -258,6 +260,9 @@ function RecurringForm({ accounts, recurring, close }: { accounts: PostableAccou
       </Fld>
       <Fld label={s.endDate} htmlFor="rj-end" error={errors?.end_date}>
         <DatePicker id="rj-end" value={v.endDate} onChange={(x) => set("endDate", x)} clearable />
+      </Fld>
+      <Fld label={fs.projects.tag} htmlFor="rj-tag" className="sm:col-span-2" error={errors?.tag_id}>
+        <TagPicker id="rj-tag" tags={tags} value={v.tagId} onChange={(x) => set("tagId", x)} />
       </Fld>
       <Fld label={s.debit} htmlFor="rj-debit" className="sm:col-span-2">
         <AccountPicker accounts={accounts} value={v.debitAccountId} onChange={(x) => set("debitAccountId", x)} />

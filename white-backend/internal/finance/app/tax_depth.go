@@ -186,7 +186,7 @@ func (l *Ledgers) CreateCreditNote(ctx context.Context, userID, invoiceID, date 
 		if err := tx.InsertPayment(ctx, p); err != nil {
 			return err
 		}
-		e, err := createEntry(ctx, tx, NewEntry{UserID: userID, EntryDate: day, Description: "Credit note " + p.PaymentNo + " atas " + inv.InvoiceNo + ": " + reason, Lines: lines, Post: true,
+		e, err := createEntry(ctx, tx, NewEntry{TagID: inv.TagID, UserID: userID, EntryDate: day, Description: "Credit note " + p.PaymentNo + " atas " + inv.InvoiceNo + ": " + reason, Lines: lines, Post: true,
 			EntryType: domain.EntryAuto, SourceModule: kinds[inv.Kind].module, SourceEventCode: "CREDIT_NOTE", SourceDocumentType: "credit_note", SourceDocumentID: p.ID})
 		if err != nil {
 			return err

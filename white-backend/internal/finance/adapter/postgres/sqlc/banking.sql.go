@@ -101,7 +101,7 @@ func (q *Queries) DeleteRecurringJournal(ctx context.Context, id string) error {
 }
 
 const dueRecurringJournals = `-- name: DueRecurringJournals :many
-SELECT id, name, description, frequency, anchor_day, next_run, end_date, lines, is_active, last_entry_id, last_error, created_at, created_by, updated_at, updated_by FROM finance.recurring_journals WHERE is_active AND next_run <= $1::date ORDER BY next_run, id
+SELECT id, name, description, frequency, anchor_day, next_run, end_date, lines, is_active, last_entry_id, last_error, created_at, created_by, updated_at, updated_by, tag_id FROM finance.recurring_journals WHERE is_active AND next_run <= $1::date ORDER BY next_run, id
 `
 
 func (q *Queries) DueRecurringJournals(ctx context.Context, today time.Time) ([]FinanceRecurringJournal, error) {
@@ -129,6 +129,7 @@ func (q *Queries) DueRecurringJournals(ctx context.Context, today time.Time) ([]
 			&i.CreatedBy,
 			&i.UpdatedAt,
 			&i.UpdatedBy,
+			&i.TagID,
 		); err != nil {
 			return nil, err
 		}
@@ -181,7 +182,7 @@ func (q *Queries) GetJournalLineForMatch(ctx context.Context, id string) (GetJou
 }
 
 const getRecurringJournal = `-- name: GetRecurringJournal :one
-SELECT id, name, description, frequency, anchor_day, next_run, end_date, lines, is_active, last_entry_id, last_error, created_at, created_by, updated_at, updated_by FROM finance.recurring_journals WHERE id = $1
+SELECT id, name, description, frequency, anchor_day, next_run, end_date, lines, is_active, last_entry_id, last_error, created_at, created_by, updated_at, updated_by, tag_id FROM finance.recurring_journals WHERE id = $1
 `
 
 func (q *Queries) GetRecurringJournal(ctx context.Context, id string) (FinanceRecurringJournal, error) {
@@ -203,6 +204,7 @@ func (q *Queries) GetRecurringJournal(ctx context.Context, id string) (FinanceRe
 		&i.CreatedBy,
 		&i.UpdatedAt,
 		&i.UpdatedBy,
+		&i.TagID,
 	)
 	return i, err
 }
@@ -293,8 +295,8 @@ func (q *Queries) InsertFixedAsset(ctx context.Context, arg InsertFixedAssetPara
 }
 
 const insertRecurringJournal = `-- name: InsertRecurringJournal :exec
-INSERT INTO finance.recurring_journals (id, name, description, frequency, anchor_day, next_run, end_date, lines, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, $8, $7, $9, $9)
+INSERT INTO finance.recurring_journals (id, name, description, frequency, anchor_day, next_run, end_date, lines, created_by, updated_by, tag_id)
+VALUES ($1, $2, $3, $4, $5, $6, $8, $7, $9, $9, $10)
 `
 
 type InsertRecurringJournalParams struct {
@@ -307,6 +309,7 @@ type InsertRecurringJournalParams struct {
 	Lines       []byte
 	EndDate     *time.Time
 	By          *string
+	TagID       *string
 }
 
 func (q *Queries) InsertRecurringJournal(ctx context.Context, arg InsertRecurringJournalParams) error {
@@ -320,6 +323,7 @@ func (q *Queries) InsertRecurringJournal(ctx context.Context, arg InsertRecurrin
 		arg.Lines,
 		arg.EndDate,
 		arg.By,
+		arg.TagID,
 	)
 	return err
 }
@@ -496,7 +500,7 @@ func (q *Queries) ListFixedAssets(ctx context.Context, arg ListFixedAssetsParams
 }
 
 const listRecurringJournals = `-- name: ListRecurringJournals :many
-SELECT id, name, description, frequency, anchor_day, next_run, end_date, lines, is_active, last_entry_id, last_error, created_at, created_by, updated_at, updated_by FROM finance.recurring_journals ORDER BY is_active DESC, next_run, name
+SELECT id, name, description, frequency, anchor_day, next_run, end_date, lines, is_active, last_entry_id, last_error, created_at, created_by, updated_at, updated_by, tag_id FROM finance.recurring_journals ORDER BY is_active DESC, next_run, name
 `
 
 func (q *Queries) ListRecurringJournals(ctx context.Context) ([]FinanceRecurringJournal, error) {
@@ -524,6 +528,7 @@ func (q *Queries) ListRecurringJournals(ctx context.Context) ([]FinanceRecurring
 			&i.CreatedBy,
 			&i.UpdatedAt,
 			&i.UpdatedBy,
+			&i.TagID,
 		); err != nil {
 			return nil, err
 		}
@@ -904,8 +909,8 @@ func (q *Queries) UpdateFixedAssetRun(ctx context.Context, arg UpdateFixedAssetR
 
 const updateRecurringJournal = `-- name: UpdateRecurringJournal :exec
 UPDATE finance.recurring_journals
-   SET name = $2, description = $3, frequency = $4, anchor_day = $5, next_run = $6, end_date = $8, lines = $7,
-       last_error = '', updated_by = $9, updated_at = now()
+   SET name = $2, description = $3, frequency = $4, anchor_day = $5, next_run = $6, end_date = $8, lines = $7, tag_id = $9,
+       last_error = '', updated_by = $10, updated_at = now()
  WHERE id = $1
 `
 
@@ -918,6 +923,7 @@ type UpdateRecurringJournalParams struct {
 	NextRun     time.Time
 	Lines       []byte
 	EndDate     *time.Time
+	TagID       *string
 	By          *string
 }
 
@@ -931,6 +937,7 @@ func (q *Queries) UpdateRecurringJournal(ctx context.Context, arg UpdateRecurrin
 		arg.NextRun,
 		arg.Lines,
 		arg.EndDate,
+		arg.TagID,
 		arg.By,
 	)
 	return err

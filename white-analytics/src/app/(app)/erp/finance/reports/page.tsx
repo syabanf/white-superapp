@@ -12,10 +12,11 @@ import { formatRupiah } from "@/features/erp/shared/money";
 import { DateFilter, DateRangeFilter } from "@/features/erp/shared/period-picker";
 import { PrintButton } from "@/features/erp/shared/print";
 import { ErpEmpty, ErpLoadError } from "@/features/erp/shared/states";
-import { SearchSelectFilter } from "@/features/erp/shared/url-filters";
+import { SearchSelectFilter, ResetFilters, SelectFilter } from "@/features/erp/shared/url-filters";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
 import { LedgerTable } from "@/features/erp/finance/components/ledger-table";
 import { TaxExportButtons } from "@/features/erp/finance/components/tax-export";
+import { ProjectProfitView } from "@/features/erp/finance/components/project-profit";
 import {
   BalanceHealthView,
   BalanceSheetView,
@@ -36,6 +37,7 @@ import {
   getBudgetVsActual,
   getClientEconomics,
   getEquityChanges,
+  getProjectProfit,
   getTaxRegister,
   getCashFlow,
   getGeneralLedger,
@@ -118,6 +120,24 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
     case "income-statement": {
       const res = await load(() => getIncomeStatement(from, to));
       body = res.error ? <ErpLoadError error={res.error} /> : <IncomeStatementView data={res.data} />;
+      break;
+    }
+    case "project-profit": {
+      const res = await load(() => getProjectProfit({ dateFrom: from, dateTo: to, clientName: sp1(sp.client) }));
+      const grouped = sp1(sp.group) === "client";
+      const clients = [...new Set((res.data?.rows ?? []).map((x) => x.clientName).filter(Boolean))].sort();
+      body = res.error ? (
+        <ErpLoadError error={res.error} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            <SelectFilter param="group" label={fs.projects.groupBy} allLabel={fs.projects.groups.project} options={[{ value: "client", label: fs.projects.groups.client }]} />
+            {clients.length ? <SearchSelectFilter param="client" placeholder={fs.projects.allClients} options={clients.map((c) => ({ value: c, label: c }))} className="w-56" /> : null}
+            <ResetFilters params={["group", "client"]} />
+          </div>
+          <ProjectProfitView data={res.data} grouped={grouped} />
+        </div>
+      );
       break;
     }
     case "tax-register": {

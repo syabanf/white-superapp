@@ -241,6 +241,8 @@ export type JournalLine = {
 
 export type JournalEntry = {
   id: string;
+  tagId?: string;
+  tagName?: string;
   entryNo: string;
   entryDate: string;
   description: string;
@@ -357,6 +359,8 @@ export type PaymentStatus = "paid" | "partial" | "overdue" | "unpaid" | string;
 
 export type Invoice = {
   id: string;
+  tagId?: string;
+  tagName?: string;
   kind: LedgerKind;
   invoiceNo: string;
   invoiceDate: string;
@@ -788,6 +792,7 @@ export type StatementImportResult = { inserted: number; skipped: number; matched
 
 export type RecurringJournal = {
   id: string;
+  tagId?: string;
   name: string;
   description: string;
   frequency: "MONTHLY" | "QUARTERLY" | "YEARLY";
@@ -956,4 +961,48 @@ export type TaxRegister = {
   vatPosition: string;
   withheldByClients: string;
   withheldFromVendors: string;
+};
+
+export type ProjectTag = { id: string; name: string; clientName: string; dealId: string; isActive: boolean; notes: string };
+export type ProjectProfitRow = { tagId: string; tagName: string; clientName: string; revenue: string; cost: string; profit: string };
+export type ProjectProfit = { dateFrom: string; dateTo: string; rows?: ProjectProfitRow[]; totalRevenue: string; totalCost: string; totalProfit: string };
+
+export type RecurringInvoice = {
+  id: string;
+  kind: "AP" | "AR";
+  name: string;
+  partyName: string;
+  clientId: string;
+  accountId: string;
+  tagId: string;
+  description: string;
+  subtotal: string;
+  taxAmount: string;
+  taxIds?: string[];
+  dueDays: number;
+  frequency: "MONTHLY" | "QUARTERLY" | "YEARLY";
+  nextRun: string;
+  endDate: string;
+  autoPost: boolean;
+  isActive: boolean;
+  lastInvoiceId: string;
+  lastError: string;
+};
+
+export type Advance = {
+  id: string;
+  kind: LedgerKind;
+  advanceNo: string;
+  advanceDate: string;
+  partyName: string;
+  amount: string;
+  applied: string;
+  remaining: string;
+  cashAccountName: string;
+  advanceAccountName: string;
+  reference: string;
+  notes: string;
+  status: "POSTED" | "VOID";
+  journalEntryId: string;
+  voidReason: string;
 };

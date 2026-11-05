@@ -16,6 +16,7 @@ import (
 )
 
 type Services struct {
+	ProjectTags    *app.ProjectTags
 	Accounts       *app.Accounts
 	Fiscal         *app.Fiscal
 	Journals       *app.Journals
@@ -44,6 +45,8 @@ func Register(s *grpc.Server, svc Services) {
 	financev1.RegisterScheduleServiceServer(s, &scheduleServer{svc: svc})
 	financev1.RegisterDocumentServiceServer(s, &documentServer{svc: svc})
 	financev1.RegisterTaxSetupServiceServer(s, &taxServer{svc: svc})
+	financev1.RegisterProjectTagServiceServer(s, &projectTagServer{svc: svc})
+	financev1.RegisterAdvanceServiceServer(s, &advanceServer{svc: svc})
 }
 
 var empty = &emptypb.Empty{}
@@ -482,7 +485,7 @@ func (s *journalServer) ListJournalEntries(ctx context.Context, req *financev1.L
 	}
 	limit, offset := app.Page(int(req.Page), int(req.PageSize))
 	rows, total, err := s.svc.Journals.List(ctx, domain.JournalFilter{Search: req.Search, Status: docStatusFrom(req.Status), EntryType: entryTypeFrom(req.EntryType),
-		DateFrom: req.DateFrom, DateTo: req.DateTo, AccountID: req.AccountId, Limit: limit, Offset: offset})
+		DateFrom: req.DateFrom, DateTo: req.DateTo, AccountID: req.AccountId, TagID: req.TagId, Limit: limit, Offset: offset})
 	if err != nil {
 		return nil, err
 	}
@@ -657,7 +660,7 @@ func (s *cashBankServer) CreateCashMovement(ctx context.Context, req *financev1.
 		return nil, err
 	}
 	m, err := s.svc.CashBank.CreateMovement(ctx, p.UserID, app.MovementInput{Kind: movementKind(req.Kind), EntryDate: req.EntryDate, Amount: amount,
-		CashAccountID: req.CashAccountId, OffsetAccountID: req.OffsetAccountId, Description: req.Description, Memo: req.Memo})
+		CashAccountID: req.CashAccountId, OffsetAccountID: req.OffsetAccountId, Description: req.Description, Memo: req.Memo, TagID: req.TagId})
 	if err != nil {
 		return nil, err
 	}
@@ -722,7 +725,7 @@ func (l ledger) listInvoices(ctx context.Context, req *financev1.ListInvoicesReq
 	}
 	limit, offset := app.Page(int(req.Page), int(req.PageSize))
 	rows, total, err := l.svc.Ledgers.ListInvoices(ctx, domain.InvoiceFilter{Kind: l.kind, Status: docStatusFrom(req.Status), Search: req.Search,
-		From: req.DateFrom, To: req.DateTo, PartyName: req.PartyName, Limit: limit, Offset: offset}, req.PaymentStatus)
+		From: req.DateFrom, To: req.DateTo, PartyName: req.PartyName, TagID: req.TagId, Limit: limit, Offset: offset}, req.PaymentStatus)
 	if err != nil {
 		return nil, err
 	}

@@ -7,14 +7,14 @@ import { ErpDataTable, type ServerPage } from "@/features/erp/shared/data-table"
 import { Money } from "@/features/erp/shared/money-display";
 import { DateRangeFilter } from "@/features/erp/shared/period-picker";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
-import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
+import { ResetFilters, SearchFilter, SearchSelectFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
-import type { JournalEntry } from "../types";
+import type { JournalEntry, ProjectTag } from "../types";
 import { fs } from "../strings";
 
 const j = fs.journals;
 
-export function JournalsTable({ entries, page }: { entries: JournalEntry[]; page: ServerPage }) {
+export function JournalsTable({ entries, page, tags }: { entries: JournalEntry[]; page: ServerPage; tags: ProjectTag[] }) {
   const router = useRouter();
   const columns: ColumnDef<JournalEntry, unknown>[] = [
     {
@@ -80,7 +80,8 @@ export function JournalsTable({ entries, page }: { entries: JournalEntry[]; page
             options={Object.entries(fs.entryType).map(([value, label]) => ({ value, label }))}
           />
           <DateRangeFilter />
-          <ResetFilters params={["q", "status", "type", "from", "to", "account"]} />
+          {tags.length ? <SearchSelectFilter param="tag" placeholder={fs.projects.allTags} options={tags.map((t) => ({ value: t.id, label: t.name }))} className="w-56" /> : null}
+          <ResetFilters params={["q", "status", "type", "from", "to", "account", "tag"]} />
         </>
       }
     />

@@ -178,6 +178,7 @@ type JournalEntry struct {
 	SourceDocumentType string
 	SourceDocumentID   string
 	SourceFiscalYearID string
+	TagID, TagName     string
 	Lines              []JournalLine
 	CreatedBy          string
 	CreatedAt          time.Time
@@ -204,6 +205,7 @@ type JournalFilter struct {
 	EntryType          string
 	DateFrom, DateTo   string
 	AccountID          string
+	TagID              string
 	SourceDocumentType string
 	Limit, Offset      int
 }
@@ -280,6 +282,7 @@ const (
 
 type Invoice struct {
 	ID             string
+	TagID, TagName string
 	Kind           string
 	InvoiceNo      string
 	InvoiceDate    string
@@ -312,6 +315,7 @@ type InvoiceFilter struct {
 	Search        string
 	From, To      string
 	PartyName     string
+	TagID         string
 	Limit, Offset int
 }
 
@@ -678,6 +682,7 @@ type Store interface {
 	BankingRepo
 	DocumentRepo
 	TaxRepo
+	PlanningRepo
 	InsightRepo
 	AnalyticsRepo
 	WithTx(ctx context.Context, fn func(tx Store) error) error

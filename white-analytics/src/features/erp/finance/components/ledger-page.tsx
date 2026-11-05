@@ -2,16 +2,19 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import type { ErpAccess } from "@/components/shell/nav-config";
 import type { GatewayError } from "@/lib/erp/gateway";
 import { OfflineNotice } from "@/features/erp/offline-notice";
+import { matchesText } from "@/features/erp/shared/list-filter";
 import { load, sp1, spInt } from "@/features/erp/shared/load";
 import { DateFilter } from "@/features/erp/shared/period-picker";
 import { ErpLoadError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
 import { financePerms } from "../perms";
-import { getAging, listInvoices, listOpenInvoices, listPayments, listPostableAccounts, listSubsidiaryParties, listTaxCodes } from "../queries";
+import { getAging, listInvoices, listOpenInvoices, listPayments, listPostableAccounts, listAdvances, listProjectTags, listSubsidiaryParties, listTaxCodes } from "../queries";
 import type { LedgerKind } from "../types";
 import { fs } from "../strings";
 import { InvoicesTable } from "./invoices";
 import { AgingView, PaymentDialog, PaymentsTable } from "./payments";
+import { advanceState } from "../advance-state";
+import { AdvanceDialog, AdvancesTable } from "./advances";
 
 type SP = Record<string, string | string[] | undefined>;
 
@@ -36,9 +39,10 @@ export async function LedgerKindPage({
       tabs={[
         { value: "invoices", label: fs.invoices.tabInvoices },
         { value: "payments", label: k.tabPayments },
+        { value: "advances", label: fs.advances.tab },
         { value: "aging", label: fs.invoices.tabAging },
       ]}
-      reset={["page", "q", "status", "pay", "asOf", "from", "to", "party"]}
+      reset={["page", "q", "status", "pay", "asOf", "from", "to", "party", "tag"]}
     />
   );
   const header = (actions?: React.ReactNode) => (
@@ -56,6 +60,30 @@ export async function LedgerKindPage({
         {header(<DateFilter param="asOf" label={fs.invoices.asOf} />)}
         {tabs}
         {res.error ? <ErpLoadError error={res.error} /> : <AgingView kind={kind} aging={res.data} />}
+      </>
+    );
+  }
+
+  if (tab === "advances") {
+    const [res, extra] = await Promise.all([
+      load(() => listAdvances(kind)),
+      perms.canApprove ? load(() => Promise.all([listOpenInvoices(kind), listPostableAccounts()])) : null,
+    ]);
+    const [q, status] = [sp1(sp.q), sp1(sp.status)];
+    return (
+      <>
+        {header(extra?.data ? <AdvanceDialog kind={kind} accounts={extra.data[1]} /> : null)}
+        {tabs}
+        {res.error ? (
+          <ErpLoadError error={res.error} />
+        ) : (
+          <AdvancesTable
+            kind={kind}
+            rows={res.data.filter((a) => matchesText(q, a.advanceNo, a.partyName, a.reference) && (!status || advanceState(a) === status))}
+            openInvoices={extra?.data?.[0] ?? []}
+            canApprove={perms.canApprove}
+          />
+        )}
       </>
     );
   }
@@ -78,7 +106,7 @@ export async function LedgerKindPage({
     );
   }
 
-  const [res, accounts, parties, taxes] = await Promise.all([
+  const [res, accounts, parties, taxes, tags] = await Promise.all([
     load(() =>
       listInvoices(kind, {
         search: sp1(sp.q),
@@ -87,6 +115,7 @@ export async function LedgerKindPage({
         dateFrom: sp1(sp.from),
         dateTo: sp1(sp.to),
         partyName: sp1(sp.party),
+        tagId: sp1(sp.tag),
         page,
         pageSize,
       }),
@@ -94,6 +123,7 @@ export async function LedgerKindPage({
     perms.canWrite ? load(listPostableAccounts) : null,
     load(() => listSubsidiaryParties(kind)),
     perms.canWrite ? load(() => listTaxCodes(true)) : null,
+    load(() => listProjectTags()),
   ]);
   return (
     <>
@@ -108,6 +138,7 @@ export async function LedgerKindPage({
           page={{ page, pageSize, total: res.data.total }}
           accounts={accounts?.data ?? []}
           taxes={taxes?.data ?? []}
+          tags={tags.data ?? []}
           parties={(parties.data ?? []).map((p) => p.partyName)}
           perms={perms}
         />

@@ -202,6 +202,7 @@ export const t = {
     reconciliation: "Rekonsiliasi",
     taxSetup: "Master pajak & biaya",
     purchasing: "Pengadaan",
+    projects: "Proyek",
     vendors: "Vendor",
     commercialDocs: "Dokumen komersial",
     schedules: "Jurnal berulang & aset",

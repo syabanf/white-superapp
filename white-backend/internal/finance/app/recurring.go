@@ -23,6 +23,7 @@ const maxCatchUp = 24
 
 // RecurringInput is a new recurring journal.
 type RecurringInput struct {
+	TagID                                            string
 	Name, Description, Frequency, StartDate, EndDate string
 	Lines                                            []domain.Line
 }
@@ -57,6 +58,9 @@ func (s *Schedules) checkRecurring(ctx context.Context, in *RecurringInput) (sta
 	for i, l := range in.Lines {
 		accountIDs[i] = l.AccountID
 	}
+	if err := checkTag(ctx, s.Store, in.TagID); err != nil {
+		return "", "", err
+	}
 	return start, end, checkAccounts(ctx, s.Store, accountIDs, "Akun COA wajib diisi", "Akun jurnal harus postable (bukan header)")
 }
 
@@ -67,7 +71,7 @@ func (s *Schedules) CreateRecurring(ctx context.Context, userID string, in Recur
 	}
 	first, _ := time.Parse(time.DateOnly, start)
 	r := domain.RecurringJournal{ID: ids.New(), Name: in.Name, Description: trim(in.Description), Frequency: in.Frequency, AnchorDay: first.Day(),
-		NextRun: start, EndDate: end, Lines: in.Lines, IsActive: true, CreatedBy: userID}
+		NextRun: start, EndDate: end, Lines: in.Lines, IsActive: true, CreatedBy: userID, TagID: in.TagID}
 	if err := s.Store.InsertRecurringJournal(ctx, r); err != nil {
 		return nil, err
 	}
@@ -93,7 +97,7 @@ func (s *Schedules) UpdateRecurring(ctx context.Context, userID, id string, in R
 		return nil, apperr.Field("start_date", "Jurnal ini sudah berjalan, jadwal berikutnya tidak bisa mundur")
 	}
 	first, _ := time.Parse(time.DateOnly, start)
-	r.Name, r.Description, r.Frequency, r.AnchorDay, r.NextRun, r.EndDate, r.Lines = in.Name, trim(in.Description), in.Frequency, first.Day(), start, end, in.Lines
+	r.Name, r.Description, r.Frequency, r.AnchorDay, r.NextRun, r.EndDate, r.Lines, r.TagID = in.Name, trim(in.Description), in.Frequency, first.Day(), start, end, in.Lines, in.TagID
 	if err := s.Store.UpdateRecurringJournal(ctx, *r, userID); err != nil {
 		return nil, err
 	}
@@ -240,6 +244,13 @@ func (s *Schedules) RunDue(ctx context.Context) (RunResult, error) {
 	for _, r := range due {
 		s.runRecurring(ctx, r, today, &res)
 	}
+	invoices, err := s.Store.DueRecurringInvoices(ctx, today)
+	if err != nil {
+		return res, err
+	}
+	for _, r := range invoices {
+		s.runRecurringInvoice(ctx, r, today, &res)
+	}
 	assets, err := s.Store.ListFixedAssets(ctx, true)
 	if err != nil {
 		return res, err
@@ -257,7 +268,7 @@ func (s *Schedules) runRecurring(ctx context.Context, r domain.RecurringJournal,
 		}
 		runDay := r.NextRun
 		err := s.Store.WithTx(ctx, func(tx domain.Store) error {
-			e, err := createEntry(ctx, tx, NewEntry{EntryDate: runDay, Description: fmt.Sprintf("%s %s", r.Name, runDay[:7]), Post: true, EntryType: domain.EntryAuto,
+			e, err := createEntry(ctx, tx, NewEntry{TagID: r.TagID, EntryDate: runDay, Description: fmt.Sprintf("%s %s", r.Name, runDay[:7]), Post: true, EntryType: domain.EntryAuto,
 				SourceModule: "finance", SourceEventCode: "RECURRING_JOURNAL", SourceDocumentType: "recurring_journal", SourceDocumentID: r.ID + ":" + runDay, Lines: r.Lines})
 			if err != nil {
 				return err

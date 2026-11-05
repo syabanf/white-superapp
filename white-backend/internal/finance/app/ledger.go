@@ -107,6 +107,7 @@ type InvoiceInput struct {
 	Withholding domain.Money
 	// TaxIDs picks master tax codes; they replace a typed TaxAmount.
 	TaxIDs []string
+	TagID  string
 }
 
 func (l *Ledgers) normalizeInvoice(ctx context.Context, in *InvoiceInput) error {
@@ -131,6 +132,9 @@ func (l *Ledgers) normalizeInvoice(ctx context.Context, in *InvoiceInput) error 
 		v.Add("due_date", "Jatuh tempo tidak boleh sebelum tanggal invoice")
 	}
 	if err := v.Err(); err != nil {
+		return err
+	}
+	if err := checkTag(ctx, l.Store, in.TagID); err != nil {
 		return err
 	}
 	if in.AccountID != "" {
@@ -190,7 +194,7 @@ func (l *Ledgers) CreateInvoice(ctx context.Context, kind, userID string, in Inv
 	inv := domain.Invoice{
 		ID: ids.New(), Kind: kind, InvoiceDate: in.InvoiceDate, DueDate: in.DueDate, PartyName: in.PartyName, Reference: in.Reference,
 		AccountID: in.AccountID, Currency: "IDR", Subtotal: in.Subtotal, TaxAmount: in.TaxAmount, TotalAmount: in.Subtotal + in.TaxAmount - in.Withholding,
-		Status: domain.StatusDraft, Description: in.Description, ClientID: in.ClientID, CreatedBy: userID,
+		Status: domain.StatusDraft, Description: in.Description, ClientID: in.ClientID, TagID: in.TagID, CreatedBy: userID,
 	}
 	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
 		no, err := l.nextNo(ctx, tx, kinds[kind].invoicePrefix)
@@ -250,7 +254,7 @@ func (l *Ledgers) UpdateInvoice(ctx context.Context, kind, userID, id string, in
 	}
 	inv.InvoiceDate, inv.DueDate, inv.PartyName, inv.Reference = in.InvoiceDate, in.DueDate, in.PartyName, in.Reference
 	inv.AccountID, inv.Subtotal, inv.TaxAmount, inv.TotalAmount = in.AccountID, in.Subtotal, in.TaxAmount, in.Subtotal+in.TaxAmount-in.Withholding
-	inv.Description, inv.ClientID = in.Description, in.ClientID
+	inv.Description, inv.ClientID, inv.TagID = in.Description, in.ClientID, in.TagID
 	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
 		if err := tx.UpdateInvoice(ctx, *inv, userID); err != nil {
 			return err
@@ -302,7 +306,7 @@ func (l *Ledgers) invoicePost(inv domain.Invoice, userID string, extras []domain
 		desc += " (" + inv.Reference + ")"
 	}
 	post := MappingPost{
-		UserID: userID, EventCode: cfg.invoiceEvent, DocumentType: DocInvoice, DocumentID: inv.ID, DocumentLabel: inv.InvoiceNo,
+		TagID: inv.TagID, UserID: userID, EventCode: cfg.invoiceEvent, DocumentType: DocInvoice, DocumentID: inv.ID, DocumentLabel: inv.InvoiceNo,
 		EntryDate: inv.InvoiceDate, Description: desc, Module: cfg.module,
 		Amounts: domain.Amounts{"SUBTOTAL": inv.Subtotal, "TAX": inv.TaxAmount, "TOTAL": inv.TotalAmount},
 	}
@@ -449,13 +453,6 @@ type PaymentResult struct {
 // the payment journal (NüHabit posts after the commit too).
 func (l *Ledgers) CreatePayment(ctx context.Context, kind, userID string, in PaymentInput) (*PaymentResult, error) {
 	cfg := kinds[kind]
-	day := l.today()
-	if trim(in.PaymentDate) != "" {
-		var err error
-		if day, err = parseDay("payment_date", in.PaymentDate); err != nil {
-			return nil, err
-		}
-	}
 	method := orDefault(in.Method, cfg.defaultMethod)
 	if !slices.Contains(cfg.methods, method) {
 		return nil, apperr.Field("method", "Metode pembayaran tidak valid")
@@ -472,50 +469,74 @@ func (l *Ledgers) CreatePayment(ctx context.Context, kind, userID string, in Pay
 			return nil, domain.Bad("Akun kas/bank tidak valid")
 		}
 	}
-	p := domain.Payment{
-		ID: ids.New(), Kind: kind, PaymentDate: day, Method: method, CashAccountID: in.CashAccountID, Reference: trim(in.Reference),
-		Notes: trim(in.Notes), Status: domain.StatusPosted, SalesPaymentID: in.SalesPaymentID, CreatedBy: userID,
-	}
+	var p domain.Payment
 	var invoiceIDs []string
 	err := l.Store.WithTx(ctx, func(tx domain.Store) error {
-		for _, a := range in.Allocations {
-			if slices.Contains(invoiceIDs, a.InvoiceID) {
-				return domain.Bad("Invoice yang sama dipilih lebih dari sekali")
-			}
-			inv, err := tx.GetInvoice(ctx, a.InvoiceID)
-			if err != nil {
-				return err
-			}
-			if inv == nil || inv.Kind != kind {
-				return domain.NotFound(cfg.label + " invoice tidak ditemukan")
-			}
-			if inv.Status != domain.StatusPosted {
-				return domain.Bad("Hanya invoice POSTED yang bisa dibayar")
-			}
-			if a.Amount <= 0 {
-				return domain.Bad("Amount pembayaran harus > 0")
-			}
-			if a.Amount > inv.Outstanding() {
-				return domain.Bad("Amount pembayaran tidak boleh melebihi outstanding")
-			}
-			if p.PartyName == "" {
-				p.PartyName = inv.PartyName
-			} else if !strings.EqualFold(p.PartyName, inv.PartyName) {
-				return domain.Bad("Semua invoice dalam satu pembayaran harus dari pihak yang sama")
-			}
-			p.Amount += a.Amount
-			invoiceIDs = append(invoiceIDs, a.InvoiceID)
-		}
-		no, err := l.nextNo(ctx, tx, cfg.paymentPrefix)
-		if err != nil {
-			return err
-		}
-		p.PaymentNo, p.Allocations = no, in.Allocations
-		return tx.InsertPayment(ctx, p)
+		var err error
+		p, invoiceIDs, err = l.insertPayment(ctx, tx, kind, userID, in)
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+	return l.finishPayment(ctx, p, invoiceIDs, userID)
+}
+
+// insertPayment validates the allocations and stores the payment. The caller
+// has checked the method and the account.
+func (l *Ledgers) insertPayment(ctx context.Context, tx domain.Store, kind, userID string, in PaymentInput) (domain.Payment, []string, error) {
+	cfg := kinds[kind]
+	day := l.today()
+	if trim(in.PaymentDate) != "" {
+		var err error
+		if day, err = parseDay("payment_date", in.PaymentDate); err != nil {
+			return domain.Payment{}, nil, err
+		}
+	}
+	p := domain.Payment{
+		ID: ids.New(), Kind: kind, PaymentDate: day, Method: orDefault(in.Method, cfg.defaultMethod), CashAccountID: in.CashAccountID, Reference: trim(in.Reference),
+		Notes: trim(in.Notes), Status: domain.StatusPosted, SalesPaymentID: in.SalesPaymentID, CreatedBy: userID,
+	}
+	var invoiceIDs []string
+	for _, a := range in.Allocations {
+		if slices.Contains(invoiceIDs, a.InvoiceID) {
+			return p, nil, domain.Bad("Invoice yang sama dipilih lebih dari sekali")
+		}
+		inv, err := tx.GetInvoice(ctx, a.InvoiceID)
+		if err != nil {
+			return p, nil, err
+		}
+		if inv == nil || inv.Kind != kind {
+			return p, nil, domain.NotFound(cfg.label + " invoice tidak ditemukan")
+		}
+		if inv.Status != domain.StatusPosted {
+			return p, nil, domain.Bad("Hanya invoice POSTED yang bisa dibayar")
+		}
+		if a.Amount <= 0 {
+			return p, nil, domain.Bad("Amount pembayaran harus > 0")
+		}
+		if a.Amount > inv.Outstanding() {
+			return p, nil, domain.Bad("Amount pembayaran tidak boleh melebihi outstanding")
+		}
+		if p.PartyName == "" {
+			p.PartyName = inv.PartyName
+		} else if !strings.EqualFold(p.PartyName, inv.PartyName) {
+			return p, nil, domain.Bad("Semua invoice dalam satu pembayaran harus dari pihak yang sama")
+		}
+		p.Amount += a.Amount
+		invoiceIDs = append(invoiceIDs, a.InvoiceID)
+	}
+	no, err := l.nextNo(ctx, tx, cfg.paymentPrefix)
+	if err != nil {
+		return p, nil, err
+	}
+	p.PaymentNo, p.Allocations = no, in.Allocations
+	return p, invoiceIDs, tx.InsertPayment(ctx, p)
+}
+
+// finishPayment posts the journal after the commit (NüHabit does too) and
+// recognizes any cash basis VAT.
+func (l *Ledgers) finishPayment(ctx context.Context, p domain.Payment, invoiceIDs []string, userID string) (*PaymentResult, error) {
 	res, err := l.postPaymentJournal(ctx, p, userID)
 	if err != nil {
 		return nil, err
