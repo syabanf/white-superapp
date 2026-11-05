@@ -18,6 +18,12 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $7);
 INSERT INTO performance.logbook_template_items (id, template_id, title, description, weight, is_required, sort_order)
 VALUES ($1, $2, $3, $4, $5, $6, $7);
 
+-- name: UpdateTemplate :exec
+UPDATE performance.logbook_templates SET name = $2, description = $3, frequency = $4 WHERE id = $1;
+
+-- name: DeleteTemplateItems :exec
+DELETE FROM performance.logbook_template_items WHERE template_id = $1;
+
 -- name: CountTemplateEntries :one
 SELECT count(*)::int FROM performance.logbook_entries WHERE template_id = $1;
 

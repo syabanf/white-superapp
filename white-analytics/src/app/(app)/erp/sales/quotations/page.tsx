@@ -7,6 +7,7 @@ import { ErpError } from "@/features/erp/shared/states";
 import { SelectFilter } from "@/features/erp/shared/url-filters";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
 import { CatalogSettings } from "@/features/erp/sales/components/catalog";
+import { matchesText } from "@/features/erp/shared/list-filter";
 import { ApprovalsInbox, QuotationsTable } from "@/features/erp/sales/components/quotations";
 import { salesCaps } from "@/features/erp/sales/lib";
 import {
@@ -79,7 +80,7 @@ export default async function QuotationsPage(props: PageProps<"/erp/sales/quotat
     ]);
     const dealOptions = (deals.data?.deals ?? []).map((d) => ({ value: d.id, label: `${d.title} · ${d.clientName}` }));
     body = quotations.data ? (
-      <QuotationsTable quotations={quotations.data} caps={caps} deals={dealOptions} />
+      <QuotationsTable quotations={quotations.data.filter((x) => matchesText(sp1(sp.q), x.quoteNumber, x.clientName, x.dealTitle))} caps={caps} deals={dealOptions} />
     ) : (
       <ErpError message={quotations.error?.message} />
     );

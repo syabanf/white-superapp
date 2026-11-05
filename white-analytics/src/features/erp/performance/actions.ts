@@ -393,6 +393,12 @@ export async function createTemplateAction(input: TemplateInput) {
   return send<LogbookTemplate>("/logbook/templates", "POST", p.data);
 }
 
+export async function updateTemplateAction(templateId: string, input: TemplateInput) {
+  const p = parse(templateSchema, input);
+  if ("error" in p) return p.error;
+  return send<LogbookTemplate>(`/logbook/templates/${enc(templateId)}`, "PATCH", p.data);
+}
+
 export async function deleteTemplateAction(templateId: string) {
   return send<{ message: string; archived: boolean }>(`/logbook/templates/${enc(templateId)}`, "DELETE");
 }

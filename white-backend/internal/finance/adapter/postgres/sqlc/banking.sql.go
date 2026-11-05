@@ -843,6 +843,40 @@ func (q *Queries) StatementLineCounts(ctx context.Context, accountID string) ([]
 	return items, nil
 }
 
+const updateFixedAsset = `-- name: UpdateFixedAsset :exec
+UPDATE finance.fixed_assets
+   SET name = $2, acquired_on = $3, cost = $4, salvage = $5, life_months = $6, expense_account_id = $7, accum_account_id = $8,
+       last_error = '', updated_by = $9, updated_at = now()
+ WHERE id = $1
+`
+
+type UpdateFixedAssetParams struct {
+	ID               string
+	Name             string
+	AcquiredOn       time.Time
+	Cost             domain.Money
+	Salvage          domain.Money
+	LifeMonths       int32
+	ExpenseAccountID string
+	AccumAccountID   string
+	By               *string
+}
+
+func (q *Queries) UpdateFixedAsset(ctx context.Context, arg UpdateFixedAssetParams) error {
+	_, err := q.db.Exec(ctx, updateFixedAsset,
+		arg.ID,
+		arg.Name,
+		arg.AcquiredOn,
+		arg.Cost,
+		arg.Salvage,
+		arg.LifeMonths,
+		arg.ExpenseAccountID,
+		arg.AccumAccountID,
+		arg.By,
+	)
+	return err
+}
+
 const updateFixedAssetRun = `-- name: UpdateFixedAssetRun :exec
 UPDATE finance.fixed_assets
    SET depreciated_months = $2, is_active = $3, last_entry_id = $5, last_error = $4, updated_at = now()
@@ -864,6 +898,40 @@ func (q *Queries) UpdateFixedAssetRun(ctx context.Context, arg UpdateFixedAssetR
 		arg.IsActive,
 		arg.LastError,
 		arg.LastEntryID,
+	)
+	return err
+}
+
+const updateRecurringJournal = `-- name: UpdateRecurringJournal :exec
+UPDATE finance.recurring_journals
+   SET name = $2, description = $3, frequency = $4, anchor_day = $5, next_run = $6, end_date = $8, lines = $7,
+       last_error = '', updated_by = $9, updated_at = now()
+ WHERE id = $1
+`
+
+type UpdateRecurringJournalParams struct {
+	ID          string
+	Name        string
+	Description string
+	Frequency   string
+	AnchorDay   int32
+	NextRun     time.Time
+	Lines       []byte
+	EndDate     *time.Time
+	By          *string
+}
+
+func (q *Queries) UpdateRecurringJournal(ctx context.Context, arg UpdateRecurringJournalParams) error {
+	_, err := q.db.Exec(ctx, updateRecurringJournal,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Frequency,
+		arg.AnchorDay,
+		arg.NextRun,
+		arg.Lines,
+		arg.EndDate,
+		arg.By,
 	)
 	return err
 }

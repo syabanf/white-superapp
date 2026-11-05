@@ -645,6 +645,8 @@ export const th = {
     amount: "Jumlah",
     periodHint: "Kosongkan periode untuk payroll berikutnya yang belum disetujui.",
     created: "Tambahan disimpan",
+    edit: "Ubah tambahan",
+    editBody: "Karyawan dan periode tidak bisa diubah. Bila salah, hapus lalu buat lagi.",
     amountRequired: "Jumlah harus lebih dari 0.",
     labelRequired: "Keterangan wajib diisi.",
   },

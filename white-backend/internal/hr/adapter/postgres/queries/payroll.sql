@@ -149,6 +149,9 @@ SELECT * FROM hr.payroll_additions WHERE id = $1;
 INSERT INTO hr.payroll_additions (id, employee_id, period_month, period_year, amount, label, created_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7);
 
+-- name: UpdatePayrollAddition :exec
+UPDATE hr.payroll_additions SET amount = $2, label = $3 WHERE id = $1;
+
 -- name: DeletePayrollAddition :execrows
 DELETE FROM hr.payroll_additions WHERE id = $1;
 

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Play, Plus, Power, Trash2 } from "lucide-react";
+import { Pencil, Play, Plus, Power, Trash2 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import type { ActionResult } from "@/lib/action-result";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { ErpDataTable } from "@/features/erp/shared/data-table";
 import { Money } from "@/features/erp/shared/money-display";
 import { MoneyInput } from "@/features/erp/shared/money-input";
 import { DatePicker, toIsoDate } from "@/features/erp/shared/period-picker";
+import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
 import {
   createAssetAction,
@@ -23,6 +24,8 @@ import {
   runSchedulesAction,
   setAssetActiveAction,
   setRecurringActiveAction,
+  updateAssetAction,
+  updateRecurringAction,
   type AssetValues,
   type RecurringValues,
 } from "../actions";
@@ -45,9 +48,12 @@ function RowError({ message }: { message: string }) {
   return message ? <span className="block max-w-xs text-xs text-negative">{message}</span> : null;
 }
 
-function ToggleDelete({ active, onToggle, canDelete, onDelete }: { active: boolean; onToggle: () => Promise<ActionResult<unknown>>; canDelete: boolean; onDelete: () => Promise<ActionResult<unknown>> }) {
+const options = (map: Record<string, string>) => Object.entries(map).map(([value, label]) => ({ value, label }));
+
+function ToggleDelete({ edit, active, onToggle, canDelete, onDelete }: { edit: React.ReactNode; active: boolean; onToggle: () => Promise<ActionResult<unknown>>; canDelete: boolean; onDelete: () => Promise<ActionResult<unknown>> }) {
   return (
     <div className="flex justify-end gap-1">
+      {edit}
       <ActionButton size="xs" variant="ghost" action={onToggle} success={s.saved}>
         <Power className="size-3.5" /> {active ? s.deactivate : s.activate}
       </ActionButton>
@@ -66,7 +72,7 @@ function ToggleDelete({ active, onToggle, canDelete, onDelete }: { active: boole
   );
 }
 
-export function RecurringTable({ rows, canApprove }: { rows: RecurringJournal[]; canApprove: boolean }) {
+export function RecurringTable({ rows, accounts, canApprove }: { rows: RecurringJournal[]; accounts: PostableAccount[]; canApprove: boolean }) {
   const columns: ColumnDef<RecurringJournal, unknown>[] = [
     {
       accessorKey: "name",
@@ -100,6 +106,7 @@ export function RecurringTable({ rows, canApprove }: { rows: RecurringJournal[];
             enableSorting: false,
             cell: ({ row }: { row: { original: RecurringJournal } }) => (
               <ToggleDelete
+                edit={<RecurringDialog accounts={accounts} recurring={row.original} />}
                 active={row.original.isActive}
                 onToggle={() => setRecurringActiveAction(row.original.id, !row.original.isActive)}
                 canDelete
@@ -110,10 +117,26 @@ export function RecurringTable({ rows, canApprove }: { rows: RecurringJournal[];
         ]
       : []),
   ];
-  return <ErpDataTable columns={columns} data={rows} getRowId={(r) => r.id} emptyMessage={s.emptyRecurring} />;
+  return (
+    <ErpDataTable
+      columns={columns}
+      data={rows}
+      getRowId={(r) => r.id}
+      emptyMessage={s.emptyRecurring}
+      exportName="jurnal-berulang"
+      toolbar={
+        <>
+          <SearchFilter placeholder={s.search} />
+          <SelectFilter param="frequency" label={s.frequency} allLabel={s.allFrequencies} options={options(s.frequencies)} />
+          <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={options(s.statuses)} />
+          <ResetFilters params={["q", "frequency", "status"]} />
+        </>
+      }
+    />
+  );
 }
 
-export function AssetsTable({ rows, canApprove }: { rows: FixedAsset[]; canApprove: boolean }) {
+export function AssetsTable({ rows, accounts, canApprove }: { rows: FixedAsset[]; accounts: PostableAccount[]; canApprove: boolean }) {
   const columns: ColumnDef<FixedAsset, unknown>[] = [
     {
       accessorKey: "name",
@@ -138,6 +161,7 @@ export function AssetsTable({ rows, canApprove }: { rows: FixedAsset[]; canAppro
             enableSorting: false,
             cell: ({ row }: { row: { original: FixedAsset } }) => (
               <ToggleDelete
+                edit={<AssetDialog accounts={accounts} asset={row.original} />}
                 active={row.original.isActive}
                 onToggle={() => setAssetActiveAction(row.original.id, !row.original.isActive)}
                 canDelete={row.original.depreciatedMonths === 0}
@@ -148,26 +172,68 @@ export function AssetsTable({ rows, canApprove }: { rows: FixedAsset[]; canAppro
         ]
       : []),
   ];
-  return <ErpDataTable columns={columns} data={rows} getRowId={(a) => a.id} emptyMessage={s.emptyAssets} />;
+  return (
+    <ErpDataTable
+      columns={columns}
+      data={rows}
+      getRowId={(a) => a.id}
+      emptyMessage={s.emptyAssets}
+      exportName="aset"
+      toolbar={
+        <>
+          <SearchFilter placeholder={s.search} />
+          <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={options(s.statuses)} />
+          <ResetFilters params={["q", "status"]} />
+        </>
+      }
+    />
+  );
 }
 
-export function RecurringDialog({ accounts }: { accounts: PostableAccount[] }) {
+const EditTrigger = ({ label }: { label: string }) => (
+  <Button size="icon-xs" variant="ghost" aria-label={label}>
+    <Pencil className="size-3.5" />
+  </Button>
+);
+
+export function RecurringDialog({ accounts, recurring }: { accounts: PostableAccount[]; recurring?: RecurringJournal }) {
   return (
     <FormDialog
-      title={s.newRecurring}
+      title={recurring ? s.editRecurring : s.newRecurring}
+      description={recurring ? s.editRecurringHint : undefined}
       trigger={
-        <Button size="sm">
-          <Plus className="size-4" /> {s.newRecurring}
-        </Button>
+        recurring ? (
+          <EditTrigger label={s.editRecurring} />
+        ) : (
+          <Button size="sm">
+            <Plus className="size-4" /> {s.newRecurring}
+          </Button>
+        )
       }
     >
-      {(close) => <RecurringForm accounts={accounts} close={close} />}
+      {(close) => <RecurringForm accounts={accounts} recurring={recurring} close={close} />}
     </FormDialog>
   );
 }
 
-function RecurringForm({ accounts, close }: { accounts: PostableAccount[]; close: () => void }) {
-  const [v, setV] = React.useState<RecurringValues>({ name: "", description: "", frequency: "MONTHLY", startDate: toIsoDate(new Date()), endDate: "", debitAccountId: "", creditAccountId: "", amount: "" });
+function recurringValues(r?: RecurringJournal): RecurringValues {
+  if (!r) return { name: "", description: "", frequency: "MONTHLY", startDate: toIsoDate(new Date()), endDate: "", debitAccountId: "", creditAccountId: "", amount: "" };
+  const lines = r.lines ?? [];
+  return {
+    name: r.name,
+    description: r.description,
+    frequency: r.frequency,
+    startDate: r.nextRun,
+    endDate: r.endDate,
+    debitAccountId: lines.find((l) => l.entrySide === "ENTRY_SIDE_DEBIT")?.accountId ?? "",
+    creditAccountId: lines.find((l) => l.entrySide === "ENTRY_SIDE_CREDIT")?.accountId ?? "",
+    amount: r.total,
+  };
+}
+
+function RecurringForm({ accounts, recurring, close }: { accounts: PostableAccount[]; recurring?: RecurringJournal; close: () => void }) {
+  const [v, setV] = React.useState<RecurringValues>(() => recurringValues(recurring));
+  const [errors, setErrors] = React.useState<Record<string, string[]>>();
   const { pending, run } = useErpAction();
   const set = (k: keyof RecurringValues, x: string) => setV((p) => ({ ...p, [k]: x }));
   return (
@@ -175,22 +241,22 @@ function RecurringForm({ accounts, close }: { accounts: PostableAccount[]; close
       className="grid gap-4 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
-        void run(() => createRecurringAction(v), { success: s.saved, onOk: close });
+        void run(() => (recurring ? updateRecurringAction(recurring.id, v) : createRecurringAction(v)), { success: s.saved, onOk: close, onFail: (r) => setErrors(r.fieldErrors) });
       }}
     >
-      <Fld label={s.name} htmlFor="rj-name" className="sm:col-span-2">
+      <Fld label={s.name} htmlFor="rj-name" className="sm:col-span-2" error={errors?.name}>
         <Input id="rj-name" value={v.name} onChange={(e) => set("name", e.target.value)} />
       </Fld>
       <Fld label={s.frequency} htmlFor="rj-freq">
-        <SimpleSelect id="rj-freq" value={v.frequency} onChange={(x) => set("frequency", x)} options={Object.entries(s.frequencies).map(([value, label]) => ({ value, label }))} />
+        <SimpleSelect id="rj-freq" value={v.frequency} onChange={(x) => set("frequency", x)} options={options(s.frequencies)} />
       </Fld>
       <Fld label={s.amount} htmlFor="rj-amount">
         <MoneyInput id="rj-amount" value={v.amount} onChange={(x) => set("amount", x)} />
       </Fld>
-      <Fld label={s.startDate} htmlFor="rj-start">
+      <Fld label={recurring ? s.nextRun : s.startDate} htmlFor="rj-start" error={errors?.start_date}>
         <DatePicker id="rj-start" value={v.startDate} onChange={(x) => set("startDate", x)} />
       </Fld>
-      <Fld label={s.endDate} htmlFor="rj-end">
+      <Fld label={s.endDate} htmlFor="rj-end" error={errors?.end_date}>
         <DatePicker id="rj-end" value={v.endDate} onChange={(x) => set("endDate", x)} clearable />
       </Fld>
       <Fld label={s.debit} htmlFor="rj-debit" className="sm:col-span-2">
@@ -206,50 +272,63 @@ function RecurringForm({ accounts, close }: { accounts: PostableAccount[]; close
   );
 }
 
-export function AssetDialog({ accounts }: { accounts: PostableAccount[] }) {
+export function AssetDialog({ accounts, asset }: { accounts: PostableAccount[]; asset?: FixedAsset }) {
   return (
     <FormDialog
-      title={s.newAsset}
-      description={s.assetHint}
+      title={asset ? s.editAsset : s.newAsset}
+      description={asset?.depreciatedMonths ? s.assetLocked : s.assetHint}
       trigger={
-        <Button size="sm">
-          <Plus className="size-4" /> {s.newAsset}
-        </Button>
+        asset ? (
+          <EditTrigger label={s.editAsset} />
+        ) : (
+          <Button size="sm">
+            <Plus className="size-4" /> {s.newAsset}
+          </Button>
+        )
       }
     >
-      {(close) => <AssetForm accounts={accounts} close={close} />}
+      {(close) => <AssetForm accounts={accounts} asset={asset} close={close} />}
     </FormDialog>
   );
 }
 
-function AssetForm({ accounts, close }: { accounts: PostableAccount[]; close: () => void }) {
-  const [v, setV] = React.useState<AssetValues>({ name: "", acquiredOn: toIsoDate(new Date()), cost: "", salvage: "", lifeMonths: 48, expenseAccountId: "", accumAccountId: "" });
+function AssetForm({ accounts, asset, close }: { accounts: PostableAccount[]; asset?: FixedAsset; close: () => void }) {
+  const [v, setV] = React.useState<AssetValues>(
+    asset
+      ? { name: asset.name, acquiredOn: asset.acquiredOn, cost: asset.cost, salvage: asset.salvage, lifeMonths: asset.lifeMonths, expenseAccountId: asset.expenseAccountId, accumAccountId: asset.accumAccountId }
+      : { name: "", acquiredOn: toIsoDate(new Date()), cost: "", salvage: "", lifeMonths: 48, expenseAccountId: "", accumAccountId: "" },
+  );
   const [errors, setErrors] = React.useState<Record<string, string[]>>();
   const { pending, run } = useErpAction();
   const set = <K extends keyof AssetValues>(k: K, x: AssetValues[K]) => setV((p) => ({ ...p, [k]: x }));
+  const locked = Boolean(asset?.depreciatedMonths);
   return (
     <form
       className="grid gap-4 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
-        void run(() => createAssetAction(v), { success: s.saved, onOk: close, onFail: (r) => setErrors(r.fieldErrors) });
+        void run(() => (asset ? updateAssetAction(asset.id, v) : createAssetAction(v)), { success: s.saved, onOk: close, onFail: (r) => setErrors(r.fieldErrors) });
       }}
     >
       <Fld label={s.assetName} htmlFor="fa-name" className="sm:col-span-2" error={errors?.name}>
         <Input id="fa-name" value={v.name} onChange={(e) => set("name", e.target.value)} />
       </Fld>
-      <Fld label={s.acquiredOn} htmlFor="fa-date">
-        <DatePicker id="fa-date" value={v.acquiredOn} onChange={(x) => set("acquiredOn", x)} />
-      </Fld>
-      <Fld label={s.life} htmlFor="fa-life" error={errors?.life_months}>
-        <Input id="fa-life" type="number" min={1} max={600} value={v.lifeMonths} onChange={(e) => set("lifeMonths", Number(e.target.value))} />
-      </Fld>
-      <Fld label={s.cost} htmlFor="fa-cost" error={errors?.cost}>
-        <MoneyInput id="fa-cost" value={v.cost} onChange={(x) => set("cost", x)} />
-      </Fld>
-      <Fld label={s.salvage} htmlFor="fa-salvage" error={errors?.salvage}>
-        <MoneyInput id="fa-salvage" value={v.salvage} onChange={(x) => set("salvage", x)} />
-      </Fld>
+      {locked ? null : (
+        <>
+          <Fld label={s.acquiredOn} htmlFor="fa-date">
+            <DatePicker id="fa-date" value={v.acquiredOn} onChange={(x) => set("acquiredOn", x)} />
+          </Fld>
+          <Fld label={s.life} htmlFor="fa-life" error={errors?.life_months}>
+            <Input id="fa-life" type="number" min={1} max={600} value={v.lifeMonths} onChange={(e) => set("lifeMonths", Number(e.target.value))} />
+          </Fld>
+          <Fld label={s.cost} htmlFor="fa-cost" error={errors?.cost}>
+            <MoneyInput id="fa-cost" value={v.cost} onChange={(x) => set("cost", x)} />
+          </Fld>
+          <Fld label={s.salvage} htmlFor="fa-salvage" error={errors?.salvage}>
+            <MoneyInput id="fa-salvage" value={v.salvage} onChange={(x) => set("salvage", x)} />
+          </Fld>
+        </>
+      )}
       <Fld label={s.expense} htmlFor="fa-exp" className="sm:col-span-2" error={errors?.expense_account_id}>
         <AccountPicker accounts={accounts} value={v.expenseAccountId} onChange={(x) => set("expenseAccountId", x)} />
       </Fld>

@@ -329,7 +329,7 @@ func invoicePB(i *domain.Invoice, paymentStatus string) *financev1.Invoice {
 		AccountId: i.AccountID, AccountName: i.AccountName, Currency: i.Currency, Subtotal: i.Subtotal.String(), TaxAmount: i.TaxAmount.String(),
 		TotalAmount: i.TotalAmount.String(), Status: docStatusPB(i.Status), Description: i.Description, SalesInvoiceId: i.SalesInvoiceID, ClientId: i.ClientID,
 		DealId: i.DealID, AllocatedAmount: i.Allocated.String(), OutstandingAmount: i.Outstanding().String(), PaymentStatus: paymentStatus,
-		JournalEntryId: i.JournalEntryID, PostedAt: tsPtr(i.PostedAt), CreatedAt: ts(i.CreatedAt),
+		JournalEntryId: i.JournalEntryID, PostedAt: tsPtr(i.PostedAt), CreatedAt: ts(i.CreatedAt), WithholdingAmount: (i.Subtotal + i.TaxAmount - i.TotalAmount).String(),
 	}
 }
 
@@ -340,7 +340,7 @@ func invoiceInputFrom(in *financev1.InvoiceInput) (app.InvoiceInput, error) {
 	}
 	tax, err := money("tax_amount", in.GetTaxAmount())
 	return app.InvoiceInput{InvoiceDate: in.GetInvoiceDate(), DueDate: in.GetDueDate(), PartyName: in.GetPartyName(), Reference: in.GetReference(),
-		AccountID: in.GetAccountId(), Description: in.GetDescription(), ClientID: in.GetClientId(), Subtotal: sub, TaxAmount: tax}, err
+		AccountID: in.GetAccountId(), Description: in.GetDescription(), ClientID: in.GetClientId(), Subtotal: sub, TaxAmount: tax, TaxIDs: in.GetTaxIds()}, err
 }
 
 func paymentPB(p *domain.Payment) *financev1.Payment {

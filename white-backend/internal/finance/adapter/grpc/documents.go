@@ -79,6 +79,13 @@ func (s *documentServer) ListVendors(ctx context.Context, r *financev1.ListVendo
 	return out, nil
 }
 
+func (s *documentServer) DeleteVendor(ctx context.Context, r *financev1.IdRequest) (*emptypb.Empty, error) {
+	if _, err := write(ctx); err != nil {
+		return nil, err
+	}
+	return empty, s.svc.Documents.DeleteVendor(ctx, r.Id)
+}
+
 func (s *documentServer) SaveVendor(ctx context.Context, r *financev1.VendorInput) (*financev1.Vendor, error) {
 	p, err := write(ctx)
 	if err != nil {

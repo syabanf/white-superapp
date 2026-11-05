@@ -25,6 +25,18 @@ func (s *Documents) ListVendors(ctx context.Context, query string, activeOnly bo
 	return s.Store.ListVendors(ctx, trim(query), activeOnly)
 }
 
+// DeleteVendor removes a vendor nothing refers to yet.
+func (s *Documents) DeleteVendor(ctx context.Context, id string) error {
+	used, err := s.Store.VendorInUse(ctx, id)
+	if err != nil {
+		return err
+	}
+	if used {
+		return domain.Conflict("Vendor sudah dipakai dokumen. Nonaktifkan saja.")
+	}
+	return s.Store.DeleteVendor(ctx, id)
+}
+
 func (s *Documents) SaveVendor(ctx context.Context, userID string, v domain.Vendor) (*domain.Vendor, error) {
 	v.Name = trim(v.Name)
 	check := validate.New().Required("name", v.Name, "Nama vendor wajib diisi")
@@ -140,34 +152,9 @@ func (s *Documents) normalize(ctx context.Context, d *domain.Document) error {
 // applyMaster copies the chosen taxes and charges onto the document, checking
 // each against the document's side and date.
 func (s *Documents) applyMaster(ctx context.Context, d *domain.Document) error {
-	taxes := make([]domain.DocTax, 0, len(d.TaxIDs))
-	seen := map[string]bool{}
-	vat := 0
-	for _, id := range d.TaxIDs {
-		if seen[id] {
-			continue
-		}
-		seen[id] = true
-		t, err := s.Store.GetTaxCode(ctx, id)
-		if err != nil {
-			return err
-		}
-		if t == nil || !t.IsActive {
-			return apperr.Field("tax_ids", "Kode pajak tidak ditemukan atau nonaktif")
-		}
-		if !domain.ScopeFits(t.Scope, d.Side) {
-			return apperr.Field("tax_ids", t.Code+" tidak berlaku untuk pihak ini")
-		}
-		if (t.ValidFrom != "" && d.IssueDate < t.ValidFrom) || (t.ValidTo != "" && d.IssueDate > t.ValidTo) {
-			return apperr.Field("tax_ids", t.Code+" tidak berlaku pada tanggal dokumen")
-		}
-		if t.Kind == domain.TaxVAT {
-			if vat++; vat > 1 {
-				return apperr.Field("tax_ids", "Satu dokumen hanya boleh memakai satu kode PPN")
-			}
-		}
-		taxes = append(taxes, domain.DocTax{TaxID: t.ID, Code: t.Code, Name: t.Name, Kind: t.Kind, Rate: t.Rate, BaseNumerator: t.BaseNumerator, BaseDenominator: t.BaseDenominator,
-			PriceIncluded: t.PriceIncluded, AccountID: t.AccountFor(d.Side)})
+	taxes, err := resolveTaxes(ctx, s.Store, d.TaxIDs, d.Side, d.IssueDate, d.PartyName)
+	if err != nil {
+		return err
 	}
 	d.Taxes = taxes
 
@@ -199,29 +186,13 @@ func (s *Documents) applyMaster(ctx context.Context, d *domain.Document) error {
 	return nil
 }
 
-// issuePostings turns the document's taxes and charges into invoice journal
-// lines. VAT and charges sit on the natural side; withholding and deductions
-// on the other: a withheld PPh 23 is an asset when a client holds it back and a
-// liability when we hold it back from a vendor.
+// issuePostings is the document's tax lines plus charges with their own account.
 func issuePostings(d domain.Document, kind string) ([]domain.InvoicePosting, error) {
-	natural, other := domain.Credit, domain.Debit
-	if kind == domain.KindAP {
-		natural, other = domain.Debit, domain.Credit
+	out, err := taxPostings(d.Taxes, kind)
+	if err != nil {
+		return nil, err
 	}
-	out := []domain.InvoicePosting{}
-	for _, t := range d.Taxes {
-		if t.Amount == 0 {
-			continue
-		}
-		if t.AccountID == "" {
-			return nil, apperr.Field("account_id", "Kode pajak "+t.Code+" belum punya akun untuk pihak ini. Lengkapi di Master pajak.")
-		}
-		side := natural
-		if t.Kind == domain.TaxWithholding {
-			side = other
-		}
-		out = append(out, domain.InvoicePosting{AccountID: t.AccountID, Side: side, Amount: t.Amount, Memo: t.Name, SortOrder: len(out), TaxCode: t.Code, TaxName: t.Name, TaxKind: t.Kind, TaxBase: t.Base})
-	}
+	natural, other := naturalSides(kind)
 	for _, c := range d.Charges {
 		// Without its own account a charge stays in the main line.
 		if c.AccountID == "" || c.Amount == 0 {

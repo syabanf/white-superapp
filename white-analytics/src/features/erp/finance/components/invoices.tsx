@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CheckCheck, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { CheckCheck, Loader2, Pencil, Plus, ReceiptText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,8 +22,10 @@ import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { DateRangeFilter } from "@/features/erp/shared/period-picker";
 import { ResetFilters, SearchFilter, SearchSelectFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { toast } from "@/lib/toast";
-import { deleteInvoiceAction, postInvoiceAction, saveInvoiceAction } from "../actions";
-import type { Invoice, LedgerKind, PostableAccount } from "../types";
+import { Fld, FormDialog, FormFooter } from "@/features/erp/sales/components/ui";
+import { createCreditNoteAction, deleteInvoiceAction, getInvoiceTaxIdsAction, postInvoiceAction, saveInvoiceAction } from "../actions";
+import { taxOn } from "../pricing";
+import type { Invoice, LedgerKind, PostableAccount, TaxCode } from "../types";
 import type { FinancePerms } from "../perms";
 import { fs } from "../strings";
 import { AccountPicker } from "./account-picker";
@@ -51,11 +53,13 @@ export function InvoiceDialog({
   kind,
   invoice,
   accounts,
+  taxes,
   onClose,
 }: {
   kind: LedgerKind;
   invoice?: Invoice;
   accounts: PostableAccount[];
+  taxes: TaxCode[];
   onClose: () => void;
 }) {
   const k = iv[kind];
@@ -70,11 +74,31 @@ export function InvoiceDialog({
     taxAmount: invoice?.taxAmount ?? "0.00",
     description: invoice?.description ?? "",
     clientId: invoice?.clientId ?? "",
+    taxIds: [] as string[],
   });
+  // List rows do not carry the codes, and saving without them would clear them.
+  const [taxesReady, setTaxesReady] = React.useState(!invoice);
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
   const { pending, run } = useErpAction();
   const set = <K extends keyof typeof form>(key: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [key]: v }));
-  const total = parseMoney(form.subtotal) + parseMoney(form.taxAmount);
+  React.useEffect(() => {
+    if (!invoice) return;
+    void getInvoiceTaxIdsAction(kind, invoice.id).then((res) => {
+      if (res.ok) {
+        setForm((f) => ({ ...f, taxIds: res.data }));
+        setTaxesReady(true);
+      } else {
+        toast.error(res.error);
+      }
+    });
+  }, [kind, invoice]);
+  const taxChoices = taxes.filter((t) => t.scope === "BOTH" || t.scope === (kind === "AR" ? "SALE" : "PURCHASE") || form.taxIds.includes(t.id));
+  const chosen = taxes.filter((t) => form.taxIds.includes(t.id));
+  const sum = (taxKind: TaxCode["kind"]) => chosen.filter((t) => t.kind === taxKind).reduce((acc, t) => acc + taxOn(t, parseMoney(form.subtotal)), 0);
+  const taxShown = chosen.length ? sum("VAT") : parseMoney(form.taxAmount);
+  const withholding = sum("WITHHOLDING");
+  const total = parseMoney(form.subtotal) + taxShown - withholding;
+  const toggleTax = (id: string) => set("taxIds", form.taxIds.includes(id) ? form.taxIds.filter((x) => x !== id) : [...form.taxIds, id]);
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-xl">
@@ -109,14 +133,32 @@ export function InvoiceDialog({
           <FormField label={k.account} error={errors.accountId} hint={fs.mappingDefault}>
             <AccountPicker accounts={accounts} filter={(a) => !a.isCashBank} value={form.accountId} onChange={(v) => set("accountId", v)} clearable />
           </FormField>
+          {taxChoices.length ? (
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="text-sm font-medium">{iv.taxCodes}</legend>
+              <p className="text-xs text-muted-foreground">{iv.taxCodesHint}</p>
+              {errors.taxIds || errors.tax_ids ? <p className="text-xs text-negative">{(errors.taxIds ?? errors.tax_ids)[0]}</p> : null}
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                {taxChoices.map((t) => (
+                  <label key={t.id} className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={form.taxIds.includes(t.id)} disabled={!taxesReady} onChange={() => toggleTax(t.id)} /> {t.name}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
           <div className="grid gap-4 sm:grid-cols-3">
             <FormField label={iv.subtotal} error={errors.subtotal} required>
               <MoneyInput value={form.subtotal} onChange={(v) => set("subtotal", v)} invalid={!!errors.subtotal} />
             </FormField>
             <FormField label={iv.tax} error={errors.taxAmount}>
-              <MoneyInput value={form.taxAmount} onChange={(v) => set("taxAmount", v)} />
+              {chosen.length ? (
+                <div className="flex h-9 items-center justify-end rounded-md border bg-muted/40 px-3 tabular">{formatRupiah(taxShown)}</div>
+              ) : (
+                <MoneyInput value={form.taxAmount} onChange={(v) => set("taxAmount", v)} />
+              )}
             </FormField>
-            <FormField label={iv.totalAmount}>
+            <FormField label={iv.totalAmount} hint={withholding ? `${iv.withholding} ${formatRupiah(withholding)}` : undefined}>
               <div className="flex h-9 items-center justify-end rounded-md border bg-muted/40 px-3 font-semibold tabular">{formatRupiah(total)}</div>
             </FormField>
           </div>
@@ -127,7 +169,7 @@ export function InvoiceDialog({
             <Button type="button" variant="ghost" onClick={onClose}>
               {fs.cancel}
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || !taxesReady}>
               {pending ? <Loader2 className="size-4 animate-spin" /> : null}
               {fs.saveDraft}
             </Button>
@@ -138,11 +180,38 @@ export function InvoiceDialog({
   );
 }
 
+function CreditNoteForm({ kind, invoice, close }: { kind: LedgerKind; invoice: Invoice; close: () => void }) {
+  const [v, setV] = React.useState({ noteDate: toIsoDate(new Date()), amount: invoice.outstandingAmount, reason: "" });
+  const [errors, setErrors] = React.useState<Record<string, string[]>>();
+  const { pending, run } = useErpAction();
+  return (
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(() => createCreditNoteAction(kind, invoice.id, v), { success: iv.creditNoteSaved, onOk: close, onFail: (r) => setErrors(r.fieldErrors) });
+      }}
+    >
+      <Fld label={iv.creditNoteAmount} htmlFor="cn-amount" error={errors?.amount}>
+        <MoneyInput id="cn-amount" value={v.amount} onChange={(x) => setV((p) => ({ ...p, amount: x }))} />
+      </Fld>
+      <Fld label={iv.creditNoteDate} htmlFor="cn-date" error={errors?.note_date}>
+        <DatePicker id="cn-date" value={v.noteDate} onChange={(x) => setV((p) => ({ ...p, noteDate: x }))} />
+      </Fld>
+      <Fld label={iv.creditNoteReason} htmlFor="cn-reason" error={errors?.reason}>
+        <Input id="cn-reason" value={v.reason} onChange={(e) => setV((p) => ({ ...p, reason: e.target.value }))} />
+      </Fld>
+      <FormFooter onCancel={close} pending={pending} />
+    </form>
+  );
+}
+
 export function InvoicesTable({
   kind,
   invoices,
   page,
   accounts,
+  taxes,
   parties,
   perms,
 }: {
@@ -150,6 +219,7 @@ export function InvoicesTable({
   invoices: Invoice[];
   page: ServerPage;
   accounts: PostableAccount[];
+  taxes: TaxCode[];
   /** party names for the party filter */
   parties: string[];
   perms: FinancePerms;
@@ -207,6 +277,19 @@ export function InvoicesTable({
               <Button asChild size="xs" variant="ghost">
                 <Link href={`/erp/finance/journals/${inv.journalEntryId}`}>{iv.journal}</Link>
               </Button>
+            ) : null}
+            {inv.status === "POSTED" && inv.journalEntryId && parseMoney(inv.outstandingAmount) > 0 && perms.canApprove ? (
+              <FormDialog
+                title={iv.creditNoteTitle}
+                description={iv.creditNoteHint}
+                trigger={
+                  <Button size="xs" variant="ghost">
+                    <ReceiptText className="size-3.5" /> {iv.creditNote}
+                  </Button>
+                }
+              >
+                {(close) => <CreditNoteForm kind={kind} invoice={inv} close={close} />}
+              </FormDialog>
             ) : null}
             {inv.status === "DRAFT" && perms.canWrite ? (
               <>
@@ -293,7 +376,7 @@ export function InvoicesTable({
           </>
         }
       />
-      {dialog ? <InvoiceDialog kind={kind} invoice={dialog.invoice} accounts={accounts} onClose={() => setDialog(null)} /> : null}
+      {dialog ? <InvoiceDialog kind={kind} invoice={dialog.invoice} accounts={accounts} taxes={taxes} onClose={() => setDialog(null)} /> : null}
     </>
   );
 }

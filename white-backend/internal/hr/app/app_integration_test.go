@@ -622,6 +622,17 @@ func TestPayrollRunPublishesBalancedTotals(t *testing.T) {
 	if add.PeriodMonth != 9 {
 		t.Fatal("explicit period")
 	}
+	fixed, err := e.payroll.UpdateAddition(e.ctx, payrollAdmin, add.ID, "6000000", "Bonus pitching Q3")
+	e.must(err)
+	if fixed.Amount != 6000000 || fixed.Label != "Bonus pitching Q3" || fixed.EmployeeName == "" {
+		t.Fatalf("%+v", fixed)
+	}
+	_, err = e.payroll.UpdateAddition(e.ctx, payrollAdmin, add.ID, "0", "Bonus")
+	if err == nil {
+		t.Fatal("zero amount saved")
+	}
+	_, err = e.payroll.UpdateAddition(e.ctx, payrollAdmin, add.ID, "5000000", "Bonus pitching")
+	e.must(err)
 	run, err := e.payroll.CreateRun(e.ctx, payrollAdmin, 9, 2026, "")
 	e.must(err)
 	if run.RunName != "Payroll September 2026" {

@@ -13,6 +13,7 @@ import { MoneyInput } from "@/features/erp/shared/money-input";
 import { DatePicker } from "@/features/erp/shared/period-picker";
 import { cn } from "@/lib/utils";
 import { createQuotationAction, updateQuotationAction } from "../actions";
+import type { TaxCode } from "@/features/erp/finance/types";
 import { sumsTo100 } from "../lib";
 import { TIER, ss } from "../strings";
 import type { CatalogItem, DocumentParty, Quotation, QuotationInput, RetainerDiscount } from "../types";
@@ -66,12 +67,15 @@ export function QuotationEditor({
   party,
   catalog,
   retainerRules,
+  taxes,
 }: {
   quotation: Quotation | null;
   dealId: string;
   party: DocumentParty | null;
   catalog: CatalogItem[];
   retainerRules: RetainerDiscount[];
+  /** Active finance VAT codes usable on sales. */
+  taxes: TaxCode[];
 }) {
   const router = useRouter();
   const init = React.useMemo(() => initial(quotation), [quotation]);
@@ -79,7 +83,10 @@ export function QuotationEditor({
   const [terms, setTerms] = React.useState<Term[]>(init.terms);
   const [discount, setDiscount] = React.useState(quotation?.discountPercent ?? 0);
   const [usePpn, setUsePpn] = React.useState(quotation?.usePpn ?? true);
-  const [ppn, setPpn] = React.useState(quotation?.ppnPercent || 11);
+  const [taxCode, setTaxCode] = React.useState(quotation ? quotation.taxCode : (taxes.find((t) => t.isDefaultSale)?.code ?? ""));
+  const [typedPpn, setTypedPpn] = React.useState(quotation?.ppnPercent || 11);
+  const chosenTax = taxes.find((t) => t.code === taxCode);
+  const ppn = chosenTax ? (Number(chosenTax.rate) * chosenTax.baseNumerator) / (chosenTax.baseDenominator || 1) : typedPpn;
   const [notes, setNotes] = React.useState(quotation?.notes ?? "");
   const [validUntil, setValidUntil] = React.useState(quotation?.validUntil ?? "");
   const [error, setError] = React.useState<string | null>(null);
@@ -127,6 +134,7 @@ export function QuotationEditor({
     const input: QuotationInput = {
       usePpn,
       ppnPercent: Number(ppn) || 0,
+      taxCode,
       discountPercent: Number(discount) || 0,
       notes,
       validUntil,
@@ -365,18 +373,28 @@ export function QuotationEditor({
             <label className="flex items-center gap-2 text-sm">
               <Switch checked={usePpn} onCheckedChange={setUsePpn} /> {s.usePpn}
             </label>
-            {usePpn ? (
+            {usePpn && !chosenTax ? (
               <Input
                 aria-label={s.ppn}
                 type="number"
                 min={0}
                 step="any"
-                value={ppn}
-                onChange={(e) => setPpn(Number(e.target.value))}
+                value={typedPpn}
+                onChange={(e) => setTypedPpn(Number(e.target.value))}
                 className="w-24 text-right tabular"
               />
             ) : null}
           </div>
+          {usePpn && taxes.length ? (
+            <Fld label={s.taxCode} htmlFor="q-tax-code">
+              <SimpleSelect
+                id="q-tax-code"
+                value={taxCode || "-"}
+                onChange={(x) => setTaxCode(x === "-" ? "" : x)}
+                options={[{ value: "-", label: s.manualRate }, ...taxes.map((t) => ({ value: t.code, label: t.name }))]}
+              />
+            </Fld>
+          ) : null}
           {usePpn ? <Row label={s.ppnNominal} value={formatRupiah(ppnNominal)} muted /> : null}
           <div className="border-t pt-3">
             <Row label={s.total} value={formatRupiah(total)} strong />

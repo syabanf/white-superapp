@@ -63,12 +63,24 @@ func (s *logbookServer) ListTemplates(ctx context.Context, req *pb.ListTemplates
 	return out, nil
 }
 
-func (s *logbookServer) CreateTemplate(ctx context.Context, req *pb.CreateTemplateRequest) (*pb.LogbookTemplate, error) {
-	in := app.TemplateInput{DepartmentID: req.DepartmentId, Name: req.Name, Description: req.Description, Frequency: req.Frequency}
-	for _, it := range req.Items {
+func templateInput(req *pb.CreateTemplateRequest) app.TemplateInput {
+	in := app.TemplateInput{DepartmentID: req.GetDepartmentId(), Name: req.GetName(), Description: req.Description, Frequency: req.GetFrequency()}
+	for _, it := range req.GetItems() {
 		in.Items = append(in.Items, app.TemplateItemInput{Title: it.Title, Description: it.Description, Weight: it.Weight, IsRequired: it.IsRequired})
 	}
-	t, err := s.svc.Logbook.CreateTemplate(ctx, in)
+	return in
+}
+
+func (s *logbookServer) CreateTemplate(ctx context.Context, req *pb.CreateTemplateRequest) (*pb.LogbookTemplate, error) {
+	t, err := s.svc.Logbook.CreateTemplate(ctx, templateInput(req))
+	if err != nil {
+		return nil, err
+	}
+	return templatePB(*t), nil
+}
+
+func (s *logbookServer) UpdateTemplate(ctx context.Context, req *pb.UpdateTemplateRequest) (*pb.LogbookTemplate, error) {
+	t, err := s.svc.Logbook.UpdateTemplate(ctx, req.Id, templateInput(req.GetInput()))
 	if err != nil {
 		return nil, err
 	}

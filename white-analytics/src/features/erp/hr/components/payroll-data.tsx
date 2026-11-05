@@ -21,6 +21,7 @@ import {
   createPayrollAdditionAction,
   deactivateSalaryAction,
   deletePayrollAdditionAction,
+  updatePayrollAdditionAction,
   saveSalaryAction,
   updatePayrollSettingsAction,
 } from "../actions";
@@ -264,17 +265,30 @@ export function AdditionsTable({
       header: "",
       cell: ({ row }) =>
         canWrite ? (
-          <ConfirmAction
-            title={th.confirmDelete}
-            confirmLabel={th.delete}
-            success={th.deleted}
-            action={() => deletePayrollAdditionAction(row.original.id)}
-            trigger={
-              <Button size="icon-xs" variant="ghost" aria-label={th.delete}>
-                <Trash2 />
-              </Button>
-            }
-          />
+          <span className="flex justify-end gap-0.5">
+            <FormDialog
+              title={a.edit}
+              description={a.editBody}
+              trigger={
+                <Button size="icon-xs" variant="ghost" aria-label={a.edit}>
+                  <Pencil />
+                </Button>
+              }
+            >
+              {(close) => <AdditionEditForm addition={row.original} close={close} />}
+            </FormDialog>
+            <ConfirmAction
+              title={th.confirmDelete}
+              confirmLabel={th.delete}
+              success={th.deleted}
+              action={() => deletePayrollAdditionAction(row.original.id)}
+              trigger={
+                <Button size="icon-xs" variant="ghost" aria-label={th.delete}>
+                  <Trash2 />
+                </Button>
+              }
+            />
+          </span>
         ) : null,
     },
   ];
@@ -284,23 +298,50 @@ export function AdditionsTable({
       data={additions}
       getRowId={(r) => r.id}
       toolbar={
-        canWrite ? (
-          <div className="ml-auto">
-            <FormDialog
-              title={a.newAddition}
-              description={a.newAdditionBody}
-              trigger={
-                <Button>
-                  <Plus className="size-4" /> {a.newAddition}
-                </Button>
-              }
-            >
-              {(close) => <AdditionForm employees={employees} close={close} />}
-            </FormDialog>
-          </div>
-        ) : null
+        <>
+          <PeopleFilters departments={[]} employees={employees} />
+          {canWrite ? (
+            <div className="ml-auto">
+              <FormDialog
+                title={a.newAddition}
+                description={a.newAdditionBody}
+                trigger={
+                  <Button>
+                    <Plus className="size-4" /> {a.newAddition}
+                  </Button>
+                }
+              >
+                {(close) => <AdditionForm employees={employees} close={close} />}
+              </FormDialog>
+            </div>
+          ) : null}
+        </>
       }
     />
+  );
+}
+
+function AdditionEditForm({ addition, close }: { addition: PayrollAddition; close: () => void }) {
+  const a = th.additions;
+  const [v, setV] = React.useState({ amount: addition.amount, label: addition.label });
+  const { errors, onFail } = useFieldErrors();
+  const { pending, run } = useErpAction();
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(() => updatePayrollAdditionAction(addition.id, v), { success: a.created, onOk: close, onFail });
+      }}
+    >
+      <Fld label={a.label} htmlFor="edit-label" error={errors?.label}>
+        <Input id="edit-label" value={v.label} onChange={(e) => setV({ ...v, label: e.target.value })} />
+      </Fld>
+      <Fld label={a.amount} error={errors?.amount}>
+        <MoneyInput value={v.amount} onChange={(amount) => setV({ ...v, amount })} />
+      </Fld>
+      <FormFooter onCancel={close} pending={pending} />
+    </form>
   );
 }
 

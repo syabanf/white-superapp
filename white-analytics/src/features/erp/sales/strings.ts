@@ -454,6 +454,7 @@ export const ss = {
   },
 
   quotations: {
+    searchPh: "Cari nomor, klien, atau deal",
     title: "Quotation",
     subtitle: "Penawaran harga per deal, dengan versi, persetujuan diskon, dan PDF.",
     tabs: { list: "Daftar", approvals: "Persetujuan", catalog: "Katalog" },
@@ -492,6 +493,8 @@ export const ss = {
     retainerHint: (m: number, p: number) => `Retainer ${m} bulan: diskon ${p}%`,
     usePpn: "Kenakan PPN",
     ppn: "PPN %",
+    taxCode: "Kode PPN",
+    manualRate: "Tarif manual",
     ppnNominal: "PPN",
     termsTitle: "Termin pembayaran",
     addTerm: "Tambah termin",
@@ -650,6 +653,7 @@ export const ss = {
   },
 
   forms: {
+    searchSubmissions: "Cari isi kiriman",
     title: "Formulir lead",
     subtitle: "Formulir publik yang langsung membuat lead baru.",
     add: "Formulir baru",
@@ -748,6 +752,7 @@ export const ss = {
   },
 
   contracts: {
+    searchPh: "Cari nomor atau klien",
     title: "Kontrak klien",
     subtitle: "Kontrak dari quotation yang diterima, dikirim untuk tanda tangan elektronik.",
     tabs: { list: "Daftar", templates: "Template" },
@@ -790,6 +795,8 @@ export const ss = {
   },
 
   decks: {
+    allDeals: "Semua deal",
+    removeTitle: "Hapus deck ini?",
     title: "Pitch deck",
     subtitle: "Deck PPTX yang disusun dari deal dan studi kasus.",
     tabs: { decks: "Deck", cases: "Studi kasus" },

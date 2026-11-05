@@ -8,6 +8,7 @@ import { requireErp } from "@/features/erp/access";
 import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load } from "@/features/erp/shared/load";
 import { ErpError } from "@/features/erp/shared/states";
+import { listTaxCodes } from "@/features/erp/finance/queries";
 import { QuotationEditor } from "@/features/erp/sales/components/quotation-editor";
 import { QuotationView } from "@/features/erp/sales/components/quotation-view";
 import { QuotationActions } from "@/features/erp/sales/components/quotations";
@@ -36,11 +37,12 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
   if (!res.data) return <ErpError message={res.error?.message} />;
   const q = res.data;
   const editable = caps.write && q.status === "draft";
-  const [catalog, retainer, siblings, party] = await Promise.all([
+  const [catalog, retainer, siblings, party, taxes] = await Promise.all([
     editable ? load(() => listCatalog()) : null,
     editable ? load(listRetainerDiscounts) : null,
     load(() => listQuotations({ dealId: q.dealId, limit: 100 })),
     load(() => getDocumentParty(q.dealId)),
+    editable ? load(() => listTaxCodes(true)) : null,
   ]);
   const versions = (siblings.data ?? [])
     .filter((x) => x.quoteNumber === q.quoteNumber)
@@ -88,6 +90,7 @@ export default async function QuotationPage(props: PageProps<"/erp/sales/quotati
       {editable ? (
         <QuotationEditor
           quotation={q}
+          taxes={(taxes?.data ?? []).filter((t) => t.kind === "VAT" && t.scope !== "PURCHASE")}
           dealId={q.dealId}
           party={party.data}
           catalog={catalog?.data ?? []}

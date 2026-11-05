@@ -2537,6 +2537,7 @@ const (
 	LogbookService_GetLogbookMe_FullMethodName    = "/white.performance.v1.LogbookService/GetLogbookMe"
 	LogbookService_ListTemplates_FullMethodName   = "/white.performance.v1.LogbookService/ListTemplates"
 	LogbookService_CreateTemplate_FullMethodName  = "/white.performance.v1.LogbookService/CreateTemplate"
+	LogbookService_UpdateTemplate_FullMethodName  = "/white.performance.v1.LogbookService/UpdateTemplate"
 	LogbookService_DeleteTemplate_FullMethodName  = "/white.performance.v1.LogbookService/DeleteTemplate"
 	LogbookService_ListEntries_FullMethodName     = "/white.performance.v1.LogbookService/ListEntries"
 	LogbookService_GetEntry_FullMethodName        = "/white.performance.v1.LogbookService/GetEntry"
@@ -2555,6 +2556,8 @@ type LogbookServiceClient interface {
 	GetLogbookMe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*LogbookMe, error)
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	CreateTemplate(ctx context.Context, in *CreateTemplateRequest, opts ...grpc.CallOption) (*LogbookTemplate, error)
+	// Past entries keep their own copy of the checklist.
+	UpdateTemplate(ctx context.Context, in *UpdateTemplateRequest, opts ...grpc.CallOption) (*LogbookTemplate, error)
 	DeleteTemplate(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*DeleteTemplateResponse, error)
 	ListEntries(ctx context.Context, in *ListEntriesRequest, opts ...grpc.CallOption) (*ListEntriesResponse, error)
 	GetEntry(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*EntryResponse, error)
@@ -2598,6 +2601,16 @@ func (c *logbookServiceClient) CreateTemplate(ctx context.Context, in *CreateTem
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LogbookTemplate)
 	err := c.cc.Invoke(ctx, LogbookService_CreateTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logbookServiceClient) UpdateTemplate(ctx context.Context, in *UpdateTemplateRequest, opts ...grpc.CallOption) (*LogbookTemplate, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LogbookTemplate)
+	err := c.cc.Invoke(ctx, LogbookService_UpdateTemplate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2701,6 +2714,8 @@ type LogbookServiceServer interface {
 	GetLogbookMe(context.Context, *emptypb.Empty) (*LogbookMe, error)
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	CreateTemplate(context.Context, *CreateTemplateRequest) (*LogbookTemplate, error)
+	// Past entries keep their own copy of the checklist.
+	UpdateTemplate(context.Context, *UpdateTemplateRequest) (*LogbookTemplate, error)
 	DeleteTemplate(context.Context, *IdRequest) (*DeleteTemplateResponse, error)
 	ListEntries(context.Context, *ListEntriesRequest) (*ListEntriesResponse, error)
 	GetEntry(context.Context, *IdRequest) (*EntryResponse, error)
@@ -2728,6 +2743,9 @@ func (UnimplementedLogbookServiceServer) ListTemplates(context.Context, *ListTem
 }
 func (UnimplementedLogbookServiceServer) CreateTemplate(context.Context, *CreateTemplateRequest) (*LogbookTemplate, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateTemplate not implemented")
+}
+func (UnimplementedLogbookServiceServer) UpdateTemplate(context.Context, *UpdateTemplateRequest) (*LogbookTemplate, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateTemplate not implemented")
 }
 func (UnimplementedLogbookServiceServer) DeleteTemplate(context.Context, *IdRequest) (*DeleteTemplateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteTemplate not implemented")
@@ -2827,6 +2845,24 @@ func _LogbookService_CreateTemplate_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LogbookServiceServer).CreateTemplate(ctx, req.(*CreateTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogbookService_UpdateTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogbookServiceServer).UpdateTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogbookService_UpdateTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogbookServiceServer).UpdateTemplate(ctx, req.(*UpdateTemplateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3011,6 +3047,10 @@ var LogbookService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTemplate",
 			Handler:    _LogbookService_CreateTemplate_Handler,
+		},
+		{
+			MethodName: "UpdateTemplate",
+			Handler:    _LogbookService_UpdateTemplate_Handler,
 		},
 		{
 			MethodName: "DeleteTemplate",

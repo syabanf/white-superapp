@@ -5,6 +5,7 @@ import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load, sp1 } from "@/features/erp/shared/load";
 import { ErpError } from "@/features/erp/shared/states";
 import { QuotationDealPicker } from "@/features/erp/sales/components/quotation-deal-picker";
+import { listTaxCodes } from "@/features/erp/finance/queries";
 import { QuotationEditor } from "@/features/erp/sales/components/quotation-editor";
 import { getDocumentParty, listCatalog, listDeals, listRetainerDiscounts } from "@/features/erp/sales/queries";
 import { ss } from "@/features/erp/sales/strings";
@@ -17,11 +18,12 @@ export default async function NewQuotationPage(props: PageProps<"/erp/sales/quot
   const dealId = sp1(sp.deal);
   const { offline } = await requireErp("sales.write");
   if (offline) return <OfflineNotice message={offline.message} />;
-  const [deals, party, catalog, retainer] = await Promise.all([
+  const [deals, party, catalog, retainer, taxes] = await Promise.all([
     load(() => listDeals({ status: "open", pageSize: 200 })),
     dealId ? load(() => getDocumentParty(dealId)) : null,
     dealId ? load(() => listCatalog()) : null,
     dealId ? load(listRetainerDiscounts) : null,
+    load(() => listTaxCodes(true)),
   ]);
   const deal = party?.data?.deal;
   return (
@@ -37,6 +39,7 @@ export default async function NewQuotationPage(props: PageProps<"/erp/sales/quot
       {deal ? (
         <QuotationEditor
           quotation={null}
+          taxes={(taxes.data ?? []).filter((t) => t.kind === "VAT" && t.scope !== "PURCHASE")}
           dealId={deal.id}
           party={party.data}
           catalog={catalog?.data ?? []}

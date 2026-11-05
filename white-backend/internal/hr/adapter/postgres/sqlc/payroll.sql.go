@@ -1365,6 +1365,21 @@ func (q *Queries) SumPayrollAdditions(ctx context.Context, arg SumPayrollAdditio
 	return column_1, err
 }
 
+const updatePayrollAddition = `-- name: UpdatePayrollAddition :exec
+UPDATE hr.payroll_additions SET amount = $2, label = $3 WHERE id = $1
+`
+
+type UpdatePayrollAdditionParams struct {
+	ID     string
+	Amount string
+	Label  string
+}
+
+func (q *Queries) UpdatePayrollAddition(ctx context.Context, arg UpdatePayrollAdditionParams) error {
+	_, err := q.db.Exec(ctx, updatePayrollAddition, arg.ID, arg.Amount, arg.Label)
+	return err
+}
+
 const updatePayrollSettings = `-- name: UpdatePayrollSettings :one
 UPDATE hr.payroll_settings SET
     bpjs_tk_jht_employee = $1, bpjs_tk_jht_employer = $2, bpjs_tk_jp_employee = $3, bpjs_tk_jp_employer = $4,

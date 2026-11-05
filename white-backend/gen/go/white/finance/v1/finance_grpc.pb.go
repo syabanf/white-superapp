@@ -4934,10 +4934,12 @@ var BankReconService_ServiceDesc = grpc.ServiceDesc{
 const (
 	ScheduleService_ListRecurringJournals_FullMethodName     = "/white.finance.v1.ScheduleService/ListRecurringJournals"
 	ScheduleService_CreateRecurringJournal_FullMethodName    = "/white.finance.v1.ScheduleService/CreateRecurringJournal"
+	ScheduleService_UpdateRecurringJournal_FullMethodName    = "/white.finance.v1.ScheduleService/UpdateRecurringJournal"
 	ScheduleService_SetRecurringJournalActive_FullMethodName = "/white.finance.v1.ScheduleService/SetRecurringJournalActive"
 	ScheduleService_DeleteRecurringJournal_FullMethodName    = "/white.finance.v1.ScheduleService/DeleteRecurringJournal"
 	ScheduleService_ListFixedAssets_FullMethodName           = "/white.finance.v1.ScheduleService/ListFixedAssets"
 	ScheduleService_CreateFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/CreateFixedAsset"
+	ScheduleService_UpdateFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/UpdateFixedAsset"
 	ScheduleService_SetFixedAssetActive_FullMethodName       = "/white.finance.v1.ScheduleService/SetFixedAssetActive"
 	ScheduleService_DeleteFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/DeleteFixedAsset"
 	ScheduleService_RunSchedules_FullMethodName              = "/white.finance.v1.ScheduleService/RunSchedules"
@@ -4951,10 +4953,13 @@ const (
 type ScheduleServiceClient interface {
 	ListRecurringJournals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListRecurringJournalsResponse, error)
 	CreateRecurringJournal(ctx context.Context, in *RecurringJournalInput, opts ...grpc.CallOption) (*RecurringJournal, error)
+	UpdateRecurringJournal(ctx context.Context, in *UpdateRecurringJournalRequest, opts ...grpc.CallOption) (*RecurringJournal, error)
 	SetRecurringJournalActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*RecurringJournal, error)
 	DeleteRecurringJournal(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListFixedAssets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListFixedAssetsResponse, error)
 	CreateFixedAsset(ctx context.Context, in *FixedAssetInput, opts ...grpc.CallOption) (*FixedAsset, error)
+	// After the first depreciation only the name and the accounts can change.
+	UpdateFixedAsset(ctx context.Context, in *UpdateFixedAssetRequest, opts ...grpc.CallOption) (*FixedAsset, error)
 	SetFixedAssetActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*FixedAsset, error)
 	DeleteFixedAsset(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Posts everything due now; the daily tick does the same.
@@ -4983,6 +4988,16 @@ func (c *scheduleServiceClient) CreateRecurringJournal(ctx context.Context, in *
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RecurringJournal)
 	err := c.cc.Invoke(ctx, ScheduleService_CreateRecurringJournal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) UpdateRecurringJournal(ctx context.Context, in *UpdateRecurringJournalRequest, opts ...grpc.CallOption) (*RecurringJournal, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecurringJournal)
+	err := c.cc.Invoke(ctx, ScheduleService_UpdateRecurringJournal_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -5029,6 +5044,16 @@ func (c *scheduleServiceClient) CreateFixedAsset(ctx context.Context, in *FixedA
 	return out, nil
 }
 
+func (c *scheduleServiceClient) UpdateFixedAsset(ctx context.Context, in *UpdateFixedAssetRequest, opts ...grpc.CallOption) (*FixedAsset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FixedAsset)
+	err := c.cc.Invoke(ctx, ScheduleService_UpdateFixedAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *scheduleServiceClient) SetFixedAssetActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*FixedAsset, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FixedAsset)
@@ -5067,10 +5092,13 @@ func (c *scheduleServiceClient) RunSchedules(ctx context.Context, in *emptypb.Em
 type ScheduleServiceServer interface {
 	ListRecurringJournals(context.Context, *emptypb.Empty) (*ListRecurringJournalsResponse, error)
 	CreateRecurringJournal(context.Context, *RecurringJournalInput) (*RecurringJournal, error)
+	UpdateRecurringJournal(context.Context, *UpdateRecurringJournalRequest) (*RecurringJournal, error)
 	SetRecurringJournalActive(context.Context, *SetActiveRequest) (*RecurringJournal, error)
 	DeleteRecurringJournal(context.Context, *IdRequest) (*emptypb.Empty, error)
 	ListFixedAssets(context.Context, *emptypb.Empty) (*ListFixedAssetsResponse, error)
 	CreateFixedAsset(context.Context, *FixedAssetInput) (*FixedAsset, error)
+	// After the first depreciation only the name and the accounts can change.
+	UpdateFixedAsset(context.Context, *UpdateFixedAssetRequest) (*FixedAsset, error)
 	SetFixedAssetActive(context.Context, *SetActiveRequest) (*FixedAsset, error)
 	DeleteFixedAsset(context.Context, *IdRequest) (*emptypb.Empty, error)
 	// Posts everything due now; the daily tick does the same.
@@ -5091,6 +5119,9 @@ func (UnimplementedScheduleServiceServer) ListRecurringJournals(context.Context,
 func (UnimplementedScheduleServiceServer) CreateRecurringJournal(context.Context, *RecurringJournalInput) (*RecurringJournal, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateRecurringJournal not implemented")
 }
+func (UnimplementedScheduleServiceServer) UpdateRecurringJournal(context.Context, *UpdateRecurringJournalRequest) (*RecurringJournal, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateRecurringJournal not implemented")
+}
 func (UnimplementedScheduleServiceServer) SetRecurringJournalActive(context.Context, *SetActiveRequest) (*RecurringJournal, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetRecurringJournalActive not implemented")
 }
@@ -5102,6 +5133,9 @@ func (UnimplementedScheduleServiceServer) ListFixedAssets(context.Context, *empt
 }
 func (UnimplementedScheduleServiceServer) CreateFixedAsset(context.Context, *FixedAssetInput) (*FixedAsset, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateFixedAsset not implemented")
+}
+func (UnimplementedScheduleServiceServer) UpdateFixedAsset(context.Context, *UpdateFixedAssetRequest) (*FixedAsset, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateFixedAsset not implemented")
 }
 func (UnimplementedScheduleServiceServer) SetFixedAssetActive(context.Context, *SetActiveRequest) (*FixedAsset, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetFixedAssetActive not implemented")
@@ -5165,6 +5199,24 @@ func _ScheduleService_CreateRecurringJournal_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ScheduleServiceServer).CreateRecurringJournal(ctx, req.(*RecurringJournalInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_UpdateRecurringJournal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRecurringJournalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).UpdateRecurringJournal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_UpdateRecurringJournal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).UpdateRecurringJournal(ctx, req.(*UpdateRecurringJournalRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5241,6 +5293,24 @@ func _ScheduleService_CreateFixedAsset_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ScheduleService_UpdateFixedAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFixedAssetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).UpdateFixedAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_UpdateFixedAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).UpdateFixedAsset(ctx, req.(*UpdateFixedAssetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ScheduleService_SetFixedAssetActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetActiveRequest)
 	if err := dec(in); err != nil {
@@ -5311,6 +5381,10 @@ var ScheduleService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ScheduleService_CreateRecurringJournal_Handler,
 		},
 		{
+			MethodName: "UpdateRecurringJournal",
+			Handler:    _ScheduleService_UpdateRecurringJournal_Handler,
+		},
+		{
 			MethodName: "SetRecurringJournalActive",
 			Handler:    _ScheduleService_SetRecurringJournalActive_Handler,
 		},
@@ -5325,6 +5399,10 @@ var ScheduleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateFixedAsset",
 			Handler:    _ScheduleService_CreateFixedAsset_Handler,
+		},
+		{
+			MethodName: "UpdateFixedAsset",
+			Handler:    _ScheduleService_UpdateFixedAsset_Handler,
 		},
 		{
 			MethodName: "SetFixedAssetActive",
@@ -5346,6 +5424,7 @@ var ScheduleService_ServiceDesc = grpc.ServiceDesc{
 const (
 	DocumentService_ListVendors_FullMethodName       = "/white.finance.v1.DocumentService/ListVendors"
 	DocumentService_SaveVendor_FullMethodName        = "/white.finance.v1.DocumentService/SaveVendor"
+	DocumentService_DeleteVendor_FullMethodName      = "/white.finance.v1.DocumentService/DeleteVendor"
 	DocumentService_ListDocuments_FullMethodName     = "/white.finance.v1.DocumentService/ListDocuments"
 	DocumentService_GetDocument_FullMethodName       = "/white.finance.v1.DocumentService/GetDocument"
 	DocumentService_CreateDocument_FullMethodName    = "/white.finance.v1.DocumentService/CreateDocument"
@@ -5365,6 +5444,8 @@ const (
 type DocumentServiceClient interface {
 	ListVendors(ctx context.Context, in *ListVendorsRequest, opts ...grpc.CallOption) (*ListVendorsResponse, error)
 	SaveVendor(ctx context.Context, in *VendorInput, opts ...grpc.CallOption) (*Vendor, error)
+	// Refused once a document uses the vendor; deactivate it instead.
+	DeleteVendor(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListDocuments(ctx context.Context, in *ListDocumentsRequest, opts ...grpc.CallOption) (*ListDocumentsResponse, error)
 	GetDocument(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*FinanceDocument, error)
 	CreateDocument(ctx context.Context, in *DocumentInput, opts ...grpc.CallOption) (*FinanceDocument, error)
@@ -5405,6 +5486,16 @@ func (c *documentServiceClient) SaveVendor(ctx context.Context, in *VendorInput,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Vendor)
 	err := c.cc.Invoke(ctx, DocumentService_SaveVendor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) DeleteVendor(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, DocumentService_DeleteVendor_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -5509,6 +5600,8 @@ func (c *documentServiceClient) RenderDocumentPdf(ctx context.Context, in *IdReq
 type DocumentServiceServer interface {
 	ListVendors(context.Context, *ListVendorsRequest) (*ListVendorsResponse, error)
 	SaveVendor(context.Context, *VendorInput) (*Vendor, error)
+	// Refused once a document uses the vendor; deactivate it instead.
+	DeleteVendor(context.Context, *IdRequest) (*emptypb.Empty, error)
 	ListDocuments(context.Context, *ListDocumentsRequest) (*ListDocumentsResponse, error)
 	GetDocument(context.Context, *IdRequest) (*FinanceDocument, error)
 	CreateDocument(context.Context, *DocumentInput) (*FinanceDocument, error)
@@ -5540,6 +5633,9 @@ func (UnimplementedDocumentServiceServer) ListVendors(context.Context, *ListVend
 }
 func (UnimplementedDocumentServiceServer) SaveVendor(context.Context, *VendorInput) (*Vendor, error) {
 	return nil, status.Error(codes.Unimplemented, "method SaveVendor not implemented")
+}
+func (UnimplementedDocumentServiceServer) DeleteVendor(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteVendor not implemented")
 }
 func (UnimplementedDocumentServiceServer) ListDocuments(context.Context, *ListDocumentsRequest) (*ListDocumentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListDocuments not implemented")
@@ -5621,6 +5717,24 @@ func _DocumentService_SaveVendor_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DocumentServiceServer).SaveVendor(ctx, req.(*VendorInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_DeleteVendor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).DeleteVendor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_DeleteVendor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).DeleteVendor(ctx, req.(*IdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5803,6 +5917,10 @@ var DocumentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DocumentService_SaveVendor_Handler,
 		},
 		{
+			MethodName: "DeleteVendor",
+			Handler:    _DocumentService_DeleteVendor_Handler,
+		},
+		{
 			MethodName: "ListDocuments",
 			Handler:    _DocumentService_ListDocuments_Handler,
 		},
@@ -5844,11 +5962,21 @@ var DocumentService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	TaxSetupService_ListTaxCodes_FullMethodName    = "/white.finance.v1.TaxSetupService/ListTaxCodes"
-	TaxSetupService_SaveTaxCode_FullMethodName     = "/white.finance.v1.TaxSetupService/SaveTaxCode"
-	TaxSetupService_ListChargeTypes_FullMethodName = "/white.finance.v1.TaxSetupService/ListChargeTypes"
-	TaxSetupService_SaveChargeType_FullMethodName  = "/white.finance.v1.TaxSetupService/SaveChargeType"
-	TaxSetupService_GetTaxRegister_FullMethodName  = "/white.finance.v1.TaxSetupService/GetTaxRegister"
+	TaxSetupService_ListTaxCodes_FullMethodName         = "/white.finance.v1.TaxSetupService/ListTaxCodes"
+	TaxSetupService_SaveTaxCode_FullMethodName          = "/white.finance.v1.TaxSetupService/SaveTaxCode"
+	TaxSetupService_DeleteTaxCode_FullMethodName        = "/white.finance.v1.TaxSetupService/DeleteTaxCode"
+	TaxSetupService_DeleteChargeType_FullMethodName     = "/white.finance.v1.TaxSetupService/DeleteChargeType"
+	TaxSetupService_DeleteFiscalPosition_FullMethodName = "/white.finance.v1.TaxSetupService/DeleteFiscalPosition"
+	TaxSetupService_DeletePartyProfile_FullMethodName   = "/white.finance.v1.TaxSetupService/DeletePartyProfile"
+	TaxSetupService_ListChargeTypes_FullMethodName      = "/white.finance.v1.TaxSetupService/ListChargeTypes"
+	TaxSetupService_SaveChargeType_FullMethodName       = "/white.finance.v1.TaxSetupService/SaveChargeType"
+	TaxSetupService_GetTaxRegister_FullMethodName       = "/white.finance.v1.TaxSetupService/GetTaxRegister"
+	TaxSetupService_ExportTaxData_FullMethodName        = "/white.finance.v1.TaxSetupService/ExportTaxData"
+	TaxSetupService_ListFiscalPositions_FullMethodName  = "/white.finance.v1.TaxSetupService/ListFiscalPositions"
+	TaxSetupService_SaveFiscalPosition_FullMethodName   = "/white.finance.v1.TaxSetupService/SaveFiscalPosition"
+	TaxSetupService_ListPartyProfiles_FullMethodName    = "/white.finance.v1.TaxSetupService/ListPartyProfiles"
+	TaxSetupService_SavePartyProfile_FullMethodName     = "/white.finance.v1.TaxSetupService/SavePartyProfile"
+	TaxSetupService_CreateCreditNote_FullMethodName     = "/white.finance.v1.TaxSetupService/CreateCreditNote"
 )
 
 // TaxSetupServiceClient is the client API for TaxSetupService service.
@@ -5860,9 +5988,24 @@ type TaxSetupServiceClient interface {
 	ListTaxCodes(ctx context.Context, in *ListTaxMasterRequest, opts ...grpc.CallOption) (*ListTaxCodesResponse, error)
 	// finance.approve: a change here decides how future documents post.
 	SaveTaxCode(ctx context.Context, in *TaxCode, opts ...grpc.CallOption) (*TaxCode, error)
+	// Master rows are refused while anything still refers to them.
+	DeleteTaxCode(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteChargeType(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteFiscalPosition(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeletePartyProfile(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListChargeTypes(ctx context.Context, in *ListTaxMasterRequest, opts ...grpc.CallOption) (*ListChargeTypesResponse, error)
 	SaveChargeType(ctx context.Context, in *ChargeType, opts ...grpc.CallOption) (*ChargeType, error)
 	GetTaxRegister(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*TaxRegister, error)
+	// CSV for the DJP templates: efaktur (output VAT), bupot-keluar (PPh we held
+	// back from vendors), bupot-masuk (PPh clients held back from us).
+	ExportTaxData(ctx context.Context, in *TaxExportRequest, opts ...grpc.CallOption) (*TaxExportFile, error)
+	ListFiscalPositions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListFiscalPositionsResponse, error)
+	SaveFiscalPosition(ctx context.Context, in *FiscalPosition, opts ...grpc.CallOption) (*FiscalPosition, error)
+	ListPartyProfiles(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPartyProfilesResponse, error)
+	SavePartyProfile(ctx context.Context, in *PartyTaxProfile, opts ...grpc.CallOption) (*PartyTaxProfile, error)
+	// finance.approve. Reverses part or all of a posted invoice's journal and
+	// lowers what the party owes.
+	CreateCreditNote(ctx context.Context, in *CreditNoteRequest, opts ...grpc.CallOption) (*Invoice, error)
 }
 
 type taxSetupServiceClient struct {
@@ -5887,6 +6030,46 @@ func (c *taxSetupServiceClient) SaveTaxCode(ctx context.Context, in *TaxCode, op
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TaxCode)
 	err := c.cc.Invoke(ctx, TaxSetupService_SaveTaxCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) DeleteTaxCode(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TaxSetupService_DeleteTaxCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) DeleteChargeType(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TaxSetupService_DeleteChargeType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) DeleteFiscalPosition(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TaxSetupService_DeleteFiscalPosition_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) DeletePartyProfile(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TaxSetupService_DeletePartyProfile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -5923,6 +6106,66 @@ func (c *taxSetupServiceClient) GetTaxRegister(ctx context.Context, in *PeriodRe
 	return out, nil
 }
 
+func (c *taxSetupServiceClient) ExportTaxData(ctx context.Context, in *TaxExportRequest, opts ...grpc.CallOption) (*TaxExportFile, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TaxExportFile)
+	err := c.cc.Invoke(ctx, TaxSetupService_ExportTaxData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) ListFiscalPositions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListFiscalPositionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFiscalPositionsResponse)
+	err := c.cc.Invoke(ctx, TaxSetupService_ListFiscalPositions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) SaveFiscalPosition(ctx context.Context, in *FiscalPosition, opts ...grpc.CallOption) (*FiscalPosition, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FiscalPosition)
+	err := c.cc.Invoke(ctx, TaxSetupService_SaveFiscalPosition_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) ListPartyProfiles(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPartyProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPartyProfilesResponse)
+	err := c.cc.Invoke(ctx, TaxSetupService_ListPartyProfiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) SavePartyProfile(ctx context.Context, in *PartyTaxProfile, opts ...grpc.CallOption) (*PartyTaxProfile, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PartyTaxProfile)
+	err := c.cc.Invoke(ctx, TaxSetupService_SavePartyProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taxSetupServiceClient) CreateCreditNote(ctx context.Context, in *CreditNoteRequest, opts ...grpc.CallOption) (*Invoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Invoice)
+	err := c.cc.Invoke(ctx, TaxSetupService_CreateCreditNote_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TaxSetupServiceServer is the server API for TaxSetupService service.
 // All implementations must embed UnimplementedTaxSetupServiceServer
 // for forward compatibility.
@@ -5932,9 +6175,24 @@ type TaxSetupServiceServer interface {
 	ListTaxCodes(context.Context, *ListTaxMasterRequest) (*ListTaxCodesResponse, error)
 	// finance.approve: a change here decides how future documents post.
 	SaveTaxCode(context.Context, *TaxCode) (*TaxCode, error)
+	// Master rows are refused while anything still refers to them.
+	DeleteTaxCode(context.Context, *IdRequest) (*emptypb.Empty, error)
+	DeleteChargeType(context.Context, *IdRequest) (*emptypb.Empty, error)
+	DeleteFiscalPosition(context.Context, *IdRequest) (*emptypb.Empty, error)
+	DeletePartyProfile(context.Context, *IdRequest) (*emptypb.Empty, error)
 	ListChargeTypes(context.Context, *ListTaxMasterRequest) (*ListChargeTypesResponse, error)
 	SaveChargeType(context.Context, *ChargeType) (*ChargeType, error)
 	GetTaxRegister(context.Context, *PeriodRequest) (*TaxRegister, error)
+	// CSV for the DJP templates: efaktur (output VAT), bupot-keluar (PPh we held
+	// back from vendors), bupot-masuk (PPh clients held back from us).
+	ExportTaxData(context.Context, *TaxExportRequest) (*TaxExportFile, error)
+	ListFiscalPositions(context.Context, *emptypb.Empty) (*ListFiscalPositionsResponse, error)
+	SaveFiscalPosition(context.Context, *FiscalPosition) (*FiscalPosition, error)
+	ListPartyProfiles(context.Context, *emptypb.Empty) (*ListPartyProfilesResponse, error)
+	SavePartyProfile(context.Context, *PartyTaxProfile) (*PartyTaxProfile, error)
+	// finance.approve. Reverses part or all of a posted invoice's journal and
+	// lowers what the party owes.
+	CreateCreditNote(context.Context, *CreditNoteRequest) (*Invoice, error)
 	mustEmbedUnimplementedTaxSetupServiceServer()
 }
 
@@ -5951,6 +6209,18 @@ func (UnimplementedTaxSetupServiceServer) ListTaxCodes(context.Context, *ListTax
 func (UnimplementedTaxSetupServiceServer) SaveTaxCode(context.Context, *TaxCode) (*TaxCode, error) {
 	return nil, status.Error(codes.Unimplemented, "method SaveTaxCode not implemented")
 }
+func (UnimplementedTaxSetupServiceServer) DeleteTaxCode(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteTaxCode not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) DeleteChargeType(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteChargeType not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) DeleteFiscalPosition(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFiscalPosition not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) DeletePartyProfile(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePartyProfile not implemented")
+}
 func (UnimplementedTaxSetupServiceServer) ListChargeTypes(context.Context, *ListTaxMasterRequest) (*ListChargeTypesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListChargeTypes not implemented")
 }
@@ -5959,6 +6229,24 @@ func (UnimplementedTaxSetupServiceServer) SaveChargeType(context.Context, *Charg
 }
 func (UnimplementedTaxSetupServiceServer) GetTaxRegister(context.Context, *PeriodRequest) (*TaxRegister, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTaxRegister not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) ExportTaxData(context.Context, *TaxExportRequest) (*TaxExportFile, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExportTaxData not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) ListFiscalPositions(context.Context, *emptypb.Empty) (*ListFiscalPositionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFiscalPositions not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) SaveFiscalPosition(context.Context, *FiscalPosition) (*FiscalPosition, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveFiscalPosition not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) ListPartyProfiles(context.Context, *emptypb.Empty) (*ListPartyProfilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPartyProfiles not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) SavePartyProfile(context.Context, *PartyTaxProfile) (*PartyTaxProfile, error) {
+	return nil, status.Error(codes.Unimplemented, "method SavePartyProfile not implemented")
+}
+func (UnimplementedTaxSetupServiceServer) CreateCreditNote(context.Context, *CreditNoteRequest) (*Invoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCreditNote not implemented")
 }
 func (UnimplementedTaxSetupServiceServer) mustEmbedUnimplementedTaxSetupServiceServer() {}
 func (UnimplementedTaxSetupServiceServer) testEmbeddedByValue()                         {}
@@ -6017,6 +6305,78 @@ func _TaxSetupService_SaveTaxCode_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TaxSetupService_DeleteTaxCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).DeleteTaxCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_DeleteTaxCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).DeleteTaxCode(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_DeleteChargeType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).DeleteChargeType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_DeleteChargeType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).DeleteChargeType(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_DeleteFiscalPosition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).DeleteFiscalPosition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_DeleteFiscalPosition_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).DeleteFiscalPosition(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_DeletePartyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).DeletePartyProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_DeletePartyProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).DeletePartyProfile(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _TaxSetupService_ListChargeTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListTaxMasterRequest)
 	if err := dec(in); err != nil {
@@ -6071,6 +6431,114 @@ func _TaxSetupService_GetTaxRegister_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TaxSetupService_ExportTaxData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaxExportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).ExportTaxData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_ExportTaxData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).ExportTaxData(ctx, req.(*TaxExportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_ListFiscalPositions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).ListFiscalPositions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_ListFiscalPositions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).ListFiscalPositions(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_SaveFiscalPosition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FiscalPosition)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).SaveFiscalPosition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_SaveFiscalPosition_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).SaveFiscalPosition(ctx, req.(*FiscalPosition))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_ListPartyProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).ListPartyProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_ListPartyProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).ListPartyProfiles(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_SavePartyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PartyTaxProfile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).SavePartyProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_SavePartyProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).SavePartyProfile(ctx, req.(*PartyTaxProfile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaxSetupService_CreateCreditNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreditNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaxSetupServiceServer).CreateCreditNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TaxSetupService_CreateCreditNote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaxSetupServiceServer).CreateCreditNote(ctx, req.(*CreditNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TaxSetupService_ServiceDesc is the grpc.ServiceDesc for TaxSetupService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -6087,6 +6555,22 @@ var TaxSetupService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TaxSetupService_SaveTaxCode_Handler,
 		},
 		{
+			MethodName: "DeleteTaxCode",
+			Handler:    _TaxSetupService_DeleteTaxCode_Handler,
+		},
+		{
+			MethodName: "DeleteChargeType",
+			Handler:    _TaxSetupService_DeleteChargeType_Handler,
+		},
+		{
+			MethodName: "DeleteFiscalPosition",
+			Handler:    _TaxSetupService_DeleteFiscalPosition_Handler,
+		},
+		{
+			MethodName: "DeletePartyProfile",
+			Handler:    _TaxSetupService_DeletePartyProfile_Handler,
+		},
+		{
 			MethodName: "ListChargeTypes",
 			Handler:    _TaxSetupService_ListChargeTypes_Handler,
 		},
@@ -6097,6 +6581,30 @@ var TaxSetupService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTaxRegister",
 			Handler:    _TaxSetupService_GetTaxRegister_Handler,
+		},
+		{
+			MethodName: "ExportTaxData",
+			Handler:    _TaxSetupService_ExportTaxData_Handler,
+		},
+		{
+			MethodName: "ListFiscalPositions",
+			Handler:    _TaxSetupService_ListFiscalPositions_Handler,
+		},
+		{
+			MethodName: "SaveFiscalPosition",
+			Handler:    _TaxSetupService_SaveFiscalPosition_Handler,
+		},
+		{
+			MethodName: "ListPartyProfiles",
+			Handler:    _TaxSetupService_ListPartyProfiles_Handler,
+		},
+		{
+			MethodName: "SavePartyProfile",
+			Handler:    _TaxSetupService_SavePartyProfile_Handler,
+		},
+		{
+			MethodName: "CreateCreditNote",
+			Handler:    _TaxSetupService_CreateCreditNote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

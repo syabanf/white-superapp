@@ -90,7 +90,7 @@ export function QuotationView({ q, party }: { q: Quotation; party: DocumentParty
         <DocTotals>
           <Line label={s.subtotal} value={q.subtotal} />
           <Line label={`${s.discountNominal} ${q.discountPercent}%`} value={`-${q.discountNominal}`} muted />
-          {q.usePpn ? <Line label={`${s.ppnNominal} ${q.ppnPercent}%`} value={q.ppnNominal} muted /> : null}
+          {q.usePpn ? <Line label={q.taxName || `${s.ppnNominal} ${q.ppnPercent}%`} value={q.ppnNominal} muted /> : null}
           <div className="mt-1 border-t pt-2.5 text-base font-semibold">
             <Line label={s.total} value={q.total} />
           </div>

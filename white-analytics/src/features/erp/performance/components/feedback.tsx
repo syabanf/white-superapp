@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { StatusKind } from "@/components/dashboard/status-badge";
 import type { ColMeta } from "@/components/dashboard/data-table";
 import { ErpDataTable } from "@/features/erp/shared/data-table";
+import { matchesText } from "@/features/erp/shared/list-filter";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { ErpEmpty } from "@/features/erp/shared/states";
 import { useErpAction } from "@/features/erp/shared/client";
@@ -236,6 +237,7 @@ export function FeedbackCycleDetail({
   const [adding, setAdding] = React.useState(false);
   const [peers, setPeers] = React.useState("2");
   const [openId, setOpenId] = React.useState<string | null>(null);
+  const [assignQuery, setAssignQuery] = React.useState("");
 
   const columns: ColumnDef<Assignment, unknown>[] = [
     { id: "employee", accessorFn: (a) => a.employeeName, header: f.reviewee },
@@ -345,7 +347,15 @@ export function FeedbackCycleDetail({
       </Card>
 
       <Section title={f.assignments}>
-        <ErpDataTable columns={columns} data={assignments} emptyMessage={f.noAssignments} getRowId={(a) => a.id} />
+        <ErpDataTable
+          columns={columns}
+          data={assignments.filter((a) => matchesText(assignQuery, a.employeeName, a.reviewerName, a.status))}
+          emptyMessage={f.noAssignments}
+          getRowId={(a) => a.id}
+          toolbar={
+            <Input aria-label={f.searchAssignments} placeholder={f.searchAssignments} className="w-full sm:w-64" value={assignQuery} onChange={(e) => setAssignQuery(e.target.value)} />
+          }
+        />
       </Section>
 
       <Section title={f.summaries}>

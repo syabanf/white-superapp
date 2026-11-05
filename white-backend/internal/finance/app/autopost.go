@@ -94,6 +94,9 @@ func (a *AutoPost) SalesInvoiceIssued(ctx context.Context, p domain.SalesInvoice
 		if err := tx.InsertInvoice(ctx, inv); err != nil {
 			return err
 		}
+		if err := a.tagSalesTax(ctx, tx, inv, p.TaxCode); err != nil {
+			return err
+		}
 		_, err = ledgers.postInvoiceJournal(ctx, tx, inv, p.IssuedBy)
 		return err
 	})
@@ -105,6 +108,25 @@ func (a *AutoPost) SalesInvoiceIssued(ctx context.Context, p domain.SalesInvoice
 		return nil, err
 	}
 	return a.Store.GetInvoice(ctx, inv.ID)
+}
+
+// tagSalesTax books a sales invoice's PPN under the code the quotation chose. An
+// unknown code leaves the mapping's PPN line, so the invoice still posts.
+func (a *AutoPost) tagSalesTax(ctx context.Context, tx domain.Store, inv domain.Invoice, code string) error {
+	if code == "" || inv.TaxAmount <= 0 {
+		return nil
+	}
+	t, err := tx.GetTaxCodeByCode(ctx, code)
+	if err != nil || t == nil || t.AccountSaleID == "" {
+		return err
+	}
+	dt := domain.DocTax{TaxID: t.ID, Code: t.Code, Name: t.Name, Kind: t.Kind, Rate: t.Rate, ReportCode: t.ReportCode, AccountID: t.AccountSaleID, CashBasis: t.CashBasis, TransitionAccountID: t.TransitionAccountID, Amount: inv.TaxAmount,
+		Base: domain.MulDiv(inv.Subtotal, domain.Money(t.BaseNumerator), domain.Money(max(1, t.BaseDenominator)))}
+	postings, err := taxPostings([]domain.DocTax{dt}, domain.KindAR)
+	if err != nil {
+		return err
+	}
+	return insertPostings(ctx, tx, inv.ID, postings)
 }
 
 // SalesPaymentRecorded records one AR receipt per sales payment against

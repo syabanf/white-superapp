@@ -104,6 +104,8 @@ type SalesInvoiceIssued struct {
 	TotalAmount   Money  `json:"totalAmount"`
 	Description   string `json:"description,omitempty"`
 	IssuedBy      string `json:"issuedBy,omitempty"`
+	// TaxCode is the master code the quotation chose; empty for a typed rate.
+	TaxCode string `json:"taxCode,omitempty"`
 }
 
 // SalesPaymentRecorded is the payload of white.sales.payment.recorded.

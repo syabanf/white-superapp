@@ -145,15 +145,32 @@ func (l *Logbook) CreateTemplate(ctx context.Context, in TemplateInput) (*domain
 	if !a.HRWrite && !a.HeadOf[dept] {
 		return nil, apperr.New(apperr.Unauthorized, msgDeptForbidden)
 	}
+	t := domain.LogbookTemplate{ID: newID(), DepartmentID: dept, IsActive: true, CreatedBy: a.by()}
+	if err := fillTemplate(&t, in); err != nil {
+		return nil, err
+	}
+	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
+		if err := tx.InsertTemplate(ctx, t); err != nil {
+			return err
+		}
+		return insertTemplateItems(ctx, tx, t.Items)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return l.loadTemplate(ctx, t.ID)
+}
+
+// fillTemplate validates the name, frequency and checklist and copies them onto t.
+func fillTemplate(t *domain.LogbookTemplate, in TemplateInput) error {
 	freq := in.Frequency
 	if freq == "" {
 		freq = "daily"
 	}
 	if !slices.Contains(domain.LogbookFrequencies, freq) {
-		return nil, apperr.Field("frequency", "Frekuensi template tidak dikenal")
+		return apperr.Field("frequency", "Frekuensi template tidak dikenal")
 	}
-	t := domain.LogbookTemplate{ID: newID(), DepartmentID: dept, Name: strings.TrimSpace(in.Name), Description: trimToNil(in.Description),
-		Frequency: freq, IsActive: true, CreatedBy: a.by()}
+	t.Name, t.Description, t.Frequency, t.Items = strings.TrimSpace(in.Name), trimToNil(in.Description), freq, nil
 	for _, it := range in.Items {
 		title := strings.TrimSpace(it.Title)
 		if title == "" {
@@ -167,29 +184,66 @@ func (l *Logbook) CreateTemplate(ctx context.Context, in TemplateInput) (*domain
 			Weight: domain.TemplateItemWeight(it.Weight), IsRequired: required, SortOrder: len(t.Items)})
 	}
 	if len(t.Items) == 0 {
-		return nil, apperr.New(apperr.Validation, "Minimal satu checklist item harus diisi")
+		return apperr.New(apperr.Validation, "Minimal satu checklist item harus diisi")
 	}
-	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
-		if err := tx.InsertTemplate(ctx, t); err != nil {
+	return nil
+}
+
+func insertTemplateItems(ctx context.Context, tx domain.Store, items []domain.LogbookTemplateItem) error {
+	for _, it := range items {
+		if err := tx.InsertTemplateItem(ctx, it); err != nil {
 			return err
 		}
-		for _, it := range t.Items {
-			if err := tx.InsertTemplateItem(ctx, it); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
 	}
-	out, err := l.Store.GetTemplate(ctx, t.ID)
+	return nil
+}
+
+func (l *Logbook) loadTemplate(ctx context.Context, id string) (*domain.LogbookTemplate, error) {
+	out, err := l.Store.GetTemplate(ctx, id)
 	if out != nil {
 		if ppl := l.directory(ctx); ppl != nil {
 			out.DepartmentName = ppl.depts[out.DepartmentID].Name
 		}
 	}
 	return out, err
+}
+
+// UpdateTemplate changes a template for future entries. Past entries hold their
+// own copy of the checklist, so replacing the items leaves them untouched.
+func (l *Logbook) UpdateTemplate(ctx context.Context, id string, in TemplateInput) (*domain.LogbookTemplate, error) {
+	a, err := l.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	t, err := l.Store.GetTemplate(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if t == nil {
+		return nil, apperr.New(apperr.NotFound, msgTemplateGone)
+	}
+	if !a.HRWrite && !a.HeadOf[t.DepartmentID] {
+		return nil, apperr.New(apperr.Unauthorized, msgDeptForbidden)
+	}
+	if strings.TrimSpace(in.Name) == "" {
+		return nil, apperr.New(apperr.Validation, "department_id dan nama template wajib diisi")
+	}
+	if err := fillTemplate(t, in); err != nil {
+		return nil, err
+	}
+	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
+		if err := tx.UpdateTemplate(ctx, *t); err != nil {
+			return err
+		}
+		if err := tx.DeleteTemplateItems(ctx, id); err != nil {
+			return err
+		}
+		return insertTemplateItems(ctx, tx, t.Items)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return l.loadTemplate(ctx, id)
 }
 
 // DeleteTemplate archives a template entries use, else deletes it.

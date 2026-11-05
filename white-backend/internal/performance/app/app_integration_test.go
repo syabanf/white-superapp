@@ -356,6 +356,17 @@ func TestLogbookFlow(t *testing.T) {
 	if tpl.DepartmentID != deptSocial || tpl.DepartmentName != "Social Media" || len(tpl.Items) != 2 {
 		t.Fatalf("%+v", tpl)
 	}
+	renamed, err := f.logbook.UpdateTemplate(hana, tpl.ID, app.TemplateInput{Name: "Checklist pagi", Frequency: "weekly", Items: []app.TemplateItemInput{{Title: "Cek DM klien", Weight: fp(2)}, {Title: "Posting sesuai jadwal"}, {Title: "Balas komentar"}}})
+	must(t, err)
+	if renamed.Name != "Checklist pagi" || renamed.Frequency != "weekly" || len(renamed.Items) != 3 || renamed.DepartmentID != deptSocial {
+		t.Fatalf("%+v", renamed)
+	}
+	_, err = f.logbook.UpdateTemplate(hana, tpl.ID, app.TemplateInput{Name: "Kosong"})
+	if err == nil {
+		t.Fatal("a template without items saved")
+	}
+	tpl, err = f.logbook.UpdateTemplate(hana, tpl.ID, app.TemplateInput{Name: "Checklist harian", Items: []app.TemplateItemInput{{Title: "Cek DM klien", Weight: fp(2)}, {Title: "Posting sesuai jadwal"}}})
+	must(t, err)
 	tpls, err := f.logbook.ListTemplates(hrAdmin, deptSocial, false)
 	must(t, err)
 	if len(tpls) != 1 || tpls[0].DepartmentName != "Social Media" {

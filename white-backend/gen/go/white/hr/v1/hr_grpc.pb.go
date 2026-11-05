@@ -3773,6 +3773,7 @@ const (
 	PayrollService_GetPayslipPdf_FullMethodName         = "/white.hr.v1.PayrollService/GetPayslipPdf"
 	PayrollService_ListPayrollAdditions_FullMethodName  = "/white.hr.v1.PayrollService/ListPayrollAdditions"
 	PayrollService_CreatePayrollAddition_FullMethodName = "/white.hr.v1.PayrollService/CreatePayrollAddition"
+	PayrollService_UpdatePayrollAddition_FullMethodName = "/white.hr.v1.PayrollService/UpdatePayrollAddition"
 	PayrollService_DeletePayrollAddition_FullMethodName = "/white.hr.v1.PayrollService/DeletePayrollAddition"
 	PayrollService_ListLoans_FullMethodName             = "/white.hr.v1.PayrollService/ListLoans"
 	PayrollService_GetLoan_FullMethodName               = "/white.hr.v1.PayrollService/GetLoan"
@@ -3807,6 +3808,8 @@ type PayrollServiceClient interface {
 	// One-off taxable additions (bonus, incentive) paid with a period's run.
 	ListPayrollAdditions(ctx context.Context, in *ListPayrollAdditionsRequest, opts ...grpc.CallOption) (*ListPayrollAdditionsResponse, error)
 	CreatePayrollAddition(ctx context.Context, in *PayrollAdditionInput, opts ...grpc.CallOption) (*PayrollAddition, error)
+	// Corrects the amount or label. A wrong employee or month is delete and re-create.
+	UpdatePayrollAddition(ctx context.Context, in *UpdatePayrollAdditionRequest, opts ...grpc.CallOption) (*PayrollAddition, error)
 	DeletePayrollAddition(ctx context.Context, in *PayrollAdditionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// hr.payroll or hr.approve: everyone's; otherwise own loans.
 	ListLoans(ctx context.Context, in *ListLoansRequest, opts ...grpc.CallOption) (*ListLoansResponse, error)
@@ -3997,6 +4000,16 @@ func (c *payrollServiceClient) CreatePayrollAddition(ctx context.Context, in *Pa
 	return out, nil
 }
 
+func (c *payrollServiceClient) UpdatePayrollAddition(ctx context.Context, in *UpdatePayrollAdditionRequest, opts ...grpc.CallOption) (*PayrollAddition, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PayrollAddition)
+	err := c.cc.Invoke(ctx, PayrollService_UpdatePayrollAddition_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *payrollServiceClient) DeletePayrollAddition(ctx context.Context, in *PayrollAdditionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
@@ -4083,6 +4096,8 @@ type PayrollServiceServer interface {
 	// One-off taxable additions (bonus, incentive) paid with a period's run.
 	ListPayrollAdditions(context.Context, *ListPayrollAdditionsRequest) (*ListPayrollAdditionsResponse, error)
 	CreatePayrollAddition(context.Context, *PayrollAdditionInput) (*PayrollAddition, error)
+	// Corrects the amount or label. A wrong employee or month is delete and re-create.
+	UpdatePayrollAddition(context.Context, *UpdatePayrollAdditionRequest) (*PayrollAddition, error)
 	DeletePayrollAddition(context.Context, *PayrollAdditionRequest) (*emptypb.Empty, error)
 	// hr.payroll or hr.approve: everyone's; otherwise own loans.
 	ListLoans(context.Context, *ListLoansRequest) (*ListLoansResponse, error)
@@ -4153,6 +4168,9 @@ func (UnimplementedPayrollServiceServer) ListPayrollAdditions(context.Context, *
 }
 func (UnimplementedPayrollServiceServer) CreatePayrollAddition(context.Context, *PayrollAdditionInput) (*PayrollAddition, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreatePayrollAddition not implemented")
+}
+func (UnimplementedPayrollServiceServer) UpdatePayrollAddition(context.Context, *UpdatePayrollAdditionRequest) (*PayrollAddition, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePayrollAddition not implemented")
 }
 func (UnimplementedPayrollServiceServer) DeletePayrollAddition(context.Context, *PayrollAdditionRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeletePayrollAddition not implemented")
@@ -4499,6 +4517,24 @@ func _PayrollService_CreatePayrollAddition_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PayrollService_UpdatePayrollAddition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePayrollAdditionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PayrollServiceServer).UpdatePayrollAddition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PayrollService_UpdatePayrollAddition_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PayrollServiceServer).UpdatePayrollAddition(ctx, req.(*UpdatePayrollAdditionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PayrollService_DeletePayrollAddition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PayrollAdditionRequest)
 	if err := dec(in); err != nil {
@@ -4681,6 +4717,10 @@ var PayrollService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePayrollAddition",
 			Handler:    _PayrollService_CreatePayrollAddition_Handler,
+		},
+		{
+			MethodName: "UpdatePayrollAddition",
+			Handler:    _PayrollService_UpdatePayrollAddition_Handler,
 		},
 		{
 			MethodName: "DeletePayrollAddition",

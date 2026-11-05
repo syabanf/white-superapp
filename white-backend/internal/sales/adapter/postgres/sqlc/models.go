@@ -565,6 +565,8 @@ type SalesQuotation struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	DeletedAt         *time.Time
+	TaxCode           string
+	TaxName           string
 }
 
 type SalesQuotationItem struct {

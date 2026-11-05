@@ -31,34 +31,38 @@ func (s *Schedules) ListRecurring(ctx context.Context) ([]domain.RecurringJourna
 	return s.Store.ListRecurringJournals(ctx)
 }
 
-func (s *Schedules) CreateRecurring(ctx context.Context, userID string, in RecurringInput) (*domain.RecurringJournal, error) {
+// checkRecurring validates the input and returns its first run and end date.
+func (s *Schedules) checkRecurring(ctx context.Context, in *RecurringInput) (start, end string, err error) {
 	in.Name = trim(in.Name)
 	v := validate.New().Required("name", in.Name, "Nama wajib diisi")
 	if in.Frequency != domain.FreqMonthly && in.Frequency != domain.FreqQuarterly && in.Frequency != domain.FreqYearly {
 		v.Add("frequency", "Frekuensi tidak valid")
 	}
 	if err := v.Err(); err != nil {
-		return nil, err
+		return "", "", err
 	}
-	start, err := parseDay("start_date", in.StartDate)
-	if err != nil {
-		return nil, err
+	if start, err = parseDay("start_date", in.StartDate); err != nil {
+		return "", "", err
 	}
-	end, err := optionalDay("end_date", in.EndDate)
-	if err != nil {
-		return nil, err
+	if end, err = optionalDay("end_date", in.EndDate); err != nil {
+		return "", "", err
 	}
 	if end != "" && end < start {
-		return nil, apperr.Field("end_date", "Tanggal selesai harus setelah tanggal mulai")
+		return "", "", apperr.Field("end_date", "Tanggal selesai harus setelah tanggal mulai")
 	}
 	if err := domain.ValidateBalanced(in.Lines); err != nil {
-		return nil, err
+		return "", "", err
 	}
 	accountIDs := make([]string, len(in.Lines))
 	for i, l := range in.Lines {
 		accountIDs[i] = l.AccountID
 	}
-	if err := checkAccounts(ctx, s.Store, accountIDs, "Akun COA wajib diisi", "Akun jurnal harus postable (bukan header)"); err != nil {
+	return start, end, checkAccounts(ctx, s.Store, accountIDs, "Akun COA wajib diisi", "Akun jurnal harus postable (bukan header)")
+}
+
+func (s *Schedules) CreateRecurring(ctx context.Context, userID string, in RecurringInput) (*domain.RecurringJournal, error) {
+	start, end, err := s.checkRecurring(ctx, &in)
+	if err != nil {
 		return nil, err
 	}
 	first, _ := time.Parse(time.DateOnly, start)
@@ -68,6 +72,32 @@ func (s *Schedules) CreateRecurring(ctx context.Context, userID string, in Recur
 		return nil, err
 	}
 	return s.Store.GetRecurringJournal(ctx, r.ID)
+}
+
+// UpdateRecurring changes a schedule from its next run onward. Journals already
+// posted stay as they are, and a schedule that has run cannot move backward,
+// because that would post a period twice.
+func (s *Schedules) UpdateRecurring(ctx context.Context, userID, id string, in RecurringInput) (*domain.RecurringJournal, error) {
+	r, err := s.Store.GetRecurringJournal(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if r == nil {
+		return nil, domain.NotFound("Jurnal berulang tidak ditemukan")
+	}
+	start, end, err := s.checkRecurring(ctx, &in)
+	if err != nil {
+		return nil, err
+	}
+	if r.LastEntryID != "" && start < r.NextRun {
+		return nil, apperr.Field("start_date", "Jurnal ini sudah berjalan, jadwal berikutnya tidak bisa mundur")
+	}
+	first, _ := time.Parse(time.DateOnly, start)
+	r.Name, r.Description, r.Frequency, r.AnchorDay, r.NextRun, r.EndDate, r.Lines = in.Name, trim(in.Description), in.Frequency, first.Day(), start, end, in.Lines
+	if err := s.Store.UpdateRecurringJournal(ctx, *r, userID); err != nil {
+		return nil, err
+	}
+	return s.Store.GetRecurringJournal(ctx, id)
 }
 
 func (s *Schedules) SetRecurringActive(ctx context.Context, userID, id string, active bool) (*domain.RecurringJournal, error) {
@@ -100,7 +130,8 @@ func (s *Schedules) ListAssets(ctx context.Context) ([]domain.FixedAsset, error)
 	return s.Store.ListFixedAssets(ctx, false)
 }
 
-func (s *Schedules) CreateAsset(ctx context.Context, userID string, in AssetInput) (*domain.FixedAsset, error) {
+// checkAsset validates the input and returns its acquisition date.
+func (s *Schedules) checkAsset(ctx context.Context, in *AssetInput) (string, error) {
 	in.Name = trim(in.Name)
 	v := validate.New().Required("name", in.Name, "Nama aset wajib diisi")
 	if in.Cost <= 0 {
@@ -119,13 +150,18 @@ func (s *Schedules) CreateAsset(ctx context.Context, userID string, in AssetInpu
 		v.Add("accum_account_id", "Pilih akun akumulasi penyusutan")
 	}
 	if err := v.Err(); err != nil {
-		return nil, err
+		return "", err
 	}
 	day, err := parseDay("acquired_on", in.AcquiredOn)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	if err := checkAccounts(ctx, s.Store, []string{in.ExpenseAccountID, in.AccumAccountID}, "Akun COA wajib diisi", "Akun harus postable (bukan header)"); err != nil {
+	return day, checkAccounts(ctx, s.Store, []string{in.ExpenseAccountID, in.AccumAccountID}, "Akun COA wajib diisi", "Akun harus postable (bukan header)")
+}
+
+func (s *Schedules) CreateAsset(ctx context.Context, userID string, in AssetInput) (*domain.FixedAsset, error) {
+	day, err := s.checkAsset(ctx, &in)
+	if err != nil {
 		return nil, err
 	}
 	a := domain.FixedAsset{ID: ids.New(), Name: in.Name, AcquiredOn: day, Cost: in.Cost, Salvage: in.Salvage, LifeMonths: in.LifeMonths,
@@ -134,6 +170,30 @@ func (s *Schedules) CreateAsset(ctx context.Context, userID string, in AssetInpu
 		return nil, err
 	}
 	return s.Store.GetFixedAsset(ctx, a.ID)
+}
+
+// UpdateAsset corrects an asset. Once depreciation has posted, changing the cost,
+// salvage, life or date would make posted journals disagree with the schedule.
+func (s *Schedules) UpdateAsset(ctx context.Context, userID, id string, in AssetInput) (*domain.FixedAsset, error) {
+	a, err := s.Store.GetFixedAsset(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if a == nil {
+		return nil, domain.NotFound("Aset tidak ditemukan")
+	}
+	day, err := s.checkAsset(ctx, &in)
+	if err != nil {
+		return nil, err
+	}
+	if a.DepreciatedMonths > 0 && (day != a.AcquiredOn || in.Cost != a.Cost || in.Salvage != a.Salvage || in.LifeMonths != a.LifeMonths) {
+		return nil, domain.Conflict("Aset yang sudah disusutkan hanya bisa diubah nama dan akunnya")
+	}
+	a.Name, a.AcquiredOn, a.Cost, a.Salvage, a.LifeMonths, a.ExpenseAccountID, a.AccumAccountID = in.Name, day, in.Cost, in.Salvage, in.LifeMonths, in.ExpenseAccountID, in.AccumAccountID
+	if err := s.Store.UpdateFixedAsset(ctx, *a, userID); err != nil {
+		return nil, err
+	}
+	return s.Store.GetFixedAsset(ctx, id)
 }
 
 func (s *Schedules) SetAssetActive(ctx context.Context, userID, id string, active bool) (*domain.FixedAsset, error) {

@@ -1233,6 +1233,15 @@ func (s *Store) InsertRecurringJournal(ctx context.Context, r domain.RecurringJo
 		AnchorDay: int32(r.AnchorDay), NextRun: day(r.NextRun), EndDate: dayp(r.EndDate), Lines: lines, By: sp(r.CreatedBy)}))
 }
 
+func (s *Store) UpdateRecurringJournal(ctx context.Context, r domain.RecurringJournal, by string) error {
+	lines, err := json.Marshal(r.Lines)
+	if err != nil {
+		return err
+	}
+	return s.q.UpdateRecurringJournal(ctx, sqlc.UpdateRecurringJournalParams{ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency,
+		AnchorDay: int32(r.AnchorDay), NextRun: day(r.NextRun), EndDate: dayp(r.EndDate), Lines: lines, By: sp(by)})
+}
+
 func (s *Store) UpdateRecurringRun(ctx context.Context, r domain.RecurringJournal) error {
 	return s.q.UpdateRecurringRun(ctx, sqlc.UpdateRecurringRunParams{ID: r.ID, NextRun: day(r.NextRun), IsActive: r.IsActive, LastEntryID: sp(r.LastEntryID), LastError: r.LastError})
 }
@@ -1272,6 +1281,11 @@ func (s *Store) GetFixedAsset(ctx context.Context, id string) (*domain.FixedAsse
 func (s *Store) InsertFixedAsset(ctx context.Context, a domain.FixedAsset) error {
 	return wrap(s.q.InsertFixedAsset(ctx, sqlc.InsertFixedAssetParams{ID: a.ID, Name: a.Name, AcquiredOn: day(a.AcquiredOn), Cost: a.Cost, Salvage: a.Salvage,
 		LifeMonths: int32(a.LifeMonths), ExpenseAccountID: a.ExpenseAccountID, AccumAccountID: a.AccumAccountID, By: sp(a.CreatedBy)}))
+}
+
+func (s *Store) UpdateFixedAsset(ctx context.Context, a domain.FixedAsset, by string) error {
+	return s.q.UpdateFixedAsset(ctx, sqlc.UpdateFixedAssetParams{ID: a.ID, Name: a.Name, AcquiredOn: day(a.AcquiredOn), Cost: a.Cost, Salvage: a.Salvage,
+		LifeMonths: int32(a.LifeMonths), ExpenseAccountID: a.ExpenseAccountID, AccumAccountID: a.AccumAccountID, By: sp(by)})
 }
 
 func (s *Store) UpdateFixedAssetRun(ctx context.Context, a domain.FixedAsset) error {
@@ -1419,7 +1433,13 @@ func (s *Store) DeleteDocument(ctx context.Context, id string) error {
 func toTaxCode(r sqlc.FinanceTaxCode) domain.TaxCode {
 	return domain.TaxCode{ID: r.ID, Code: r.Code, Name: r.Name, Kind: r.Kind, Scope: r.Scope, Rate: r.Rate, BaseNumerator: int(r.BaseNumerator), BaseDenominator: int(r.BaseDenominator),
 		PriceIncluded: r.PriceIncluded, AccountSaleID: str(r.AccountSaleID), AccountPurchaseID: str(r.AccountPurchaseID), ReportCode: r.ReportCode, ValidFrom: dsp(r.ValidFrom), ValidTo: dsp(r.ValidTo),
-		IsDefaultSale: r.IsDefaultSale, IsDefaultPurchase: r.IsDefaultPurchase, IsActive: r.IsActive, Notes: r.Notes}
+		IsDefaultSale: r.IsDefaultSale, IsDefaultPurchase: r.IsDefaultPurchase, IsActive: r.IsActive, Notes: r.Notes, CashBasis: r.CashBasis, TransitionAccountID: str(r.TransitionAccountID), Brackets: brackets(r.Brackets)}
+}
+
+func brackets(raw []byte) []domain.TaxBracket {
+	var out []domain.TaxBracket
+	_ = json.Unmarshal(raw, &out) // Written by SaveTaxCode only.
+	return out
 }
 
 func activeParam(activeOnly bool) *bool {
@@ -1441,6 +1461,13 @@ func (s *Store) GetTaxCode(ctx context.Context, id string) (*domain.TaxCode, err
 
 // SaveTaxCode keeps one default per side.
 func (s *Store) SaveTaxCode(ctx context.Context, t domain.TaxCode) error {
+	if t.Brackets == nil {
+		t.Brackets = []domain.TaxBracket{}
+	}
+	steps, err := json.Marshal(t.Brackets)
+	if err != nil {
+		return err
+	}
 	return s.WithTx(ctx, func(tx domain.Store) error {
 		st := tx.(*Store)
 		if t.IsDefaultSale {
@@ -1455,7 +1482,7 @@ func (s *Store) SaveTaxCode(ctx context.Context, t domain.TaxCode) error {
 		}
 		return wrap(st.q.UpsertTaxCode(ctx, sqlc.UpsertTaxCodeParams{ID: t.ID, Code: t.Code, Name: t.Name, Kind: t.Kind, Scope: t.Scope, Rate: t.Rate, BaseNumerator: int32(t.BaseNumerator), BaseDenominator: int32(t.BaseDenominator),
 			PriceIncluded: t.PriceIncluded, AccountSaleID: sp(t.AccountSaleID), AccountPurchaseID: sp(t.AccountPurchaseID), ReportCode: t.ReportCode, ValidFrom: dayp(t.ValidFrom), ValidTo: dayp(t.ValidTo),
-			IsDefaultSale: t.IsDefaultSale, IsDefaultPurchase: t.IsDefaultPurchase, IsActive: t.IsActive, Notes: t.Notes, By: sp(t.UpdatedBy)}))
+			IsDefaultSale: t.IsDefaultSale, IsDefaultPurchase: t.IsDefaultPurchase, IsActive: t.IsActive, Notes: t.Notes, Brackets: steps, CashBasis: t.CashBasis, TransitionAccountID: sp(t.TransitionAccountID), By: sp(t.UpdatedBy)}))
 	})
 }
 
@@ -1481,13 +1508,13 @@ func (s *Store) SaveChargeType(ctx context.Context, c domain.ChargeType) error {
 
 func (s *Store) InsertInvoicePosting(ctx context.Context, p domain.InvoicePosting) error {
 	return wrap(s.q.InsertInvoicePosting(ctx, sqlc.InsertInvoicePostingParams{ID: ids.New(), InvoiceID: p.InvoiceID, SortOrder: int32(p.SortOrder), AccountID: p.AccountID, EntrySide: p.Side, Amount: p.Amount, Memo: p.Memo,
-		TaxCode: p.TaxCode, TaxName: p.TaxName, TaxKind: p.TaxKind, TaxBase: p.TaxBase}))
+		TaxCode: p.TaxCode, TaxName: p.TaxName, TaxKind: p.TaxKind, TaxBase: p.TaxBase, TaxID: p.TaxID, TaxRate: p.TaxRate, ReportCode: p.ReportCode, CashBasis: p.CashBasis, FinalAccountID: sp(p.FinalAccountID)}))
 }
 
 func (s *Store) ListInvoicePostings(ctx context.Context, invoiceID string) ([]domain.InvoicePosting, error) {
 	rows, err := s.q.ListInvoicePostings(ctx, invoiceID)
 	return mapAll(rows, func(r sqlc.FinanceInvoicePosting) domain.InvoicePosting {
-		return domain.InvoicePosting{ID: r.ID, InvoiceID: r.InvoiceID, SortOrder: int(r.SortOrder), AccountID: r.AccountID, Side: r.EntrySide, Amount: r.Amount, Memo: r.Memo, TaxCode: r.TaxCode, TaxName: r.TaxName, TaxKind: r.TaxKind, TaxBase: r.TaxBase}
+		return domain.InvoicePosting{ID: r.ID, InvoiceID: r.InvoiceID, SortOrder: int(r.SortOrder), AccountID: r.AccountID, Side: r.EntrySide, Amount: r.Amount, Memo: r.Memo, TaxCode: r.TaxCode, TaxName: r.TaxName, TaxKind: r.TaxKind, TaxBase: r.TaxBase, TaxID: r.TaxID, TaxRate: r.TaxRate, ReportCode: r.ReportCode, CashBasis: r.CashBasis, FinalAccountID: str(r.FinalAccountID)}
 	}), err
 }
 
@@ -1508,8 +1535,122 @@ func (s *Store) TaxRegister(ctx context.Context, from, to string) ([]domain.TaxR
 	if err != nil {
 		return nil, err
 	}
+	// Credit notes on untagged invoices already sit in the ledger with no code.
 	for _, r := range untagged {
-		out = append(out, domain.TaxRegisterRow{Kind: r.Kind, TaxKind: domain.TaxVAT, InvoiceCount: int(r.InvoiceCount), Base: r.Base, Amount: r.Amount})
+		merged := false
+		for i := range out {
+			if out[i].Kind == r.Kind && out[i].TaxCode == "" {
+				out[i].InvoiceCount += int(r.InvoiceCount)
+				out[i].Base += r.Base
+				out[i].Amount += r.Amount
+				merged = true
+			}
+		}
+		if !merged {
+			out = append(out, domain.TaxRegisterRow{Kind: r.Kind, TaxKind: domain.TaxVAT, InvoiceCount: int(r.InvoiceCount), Base: r.Base, Amount: r.Amount})
+		}
 	}
 	return out, nil
+}
+
+func (s *Store) GetTaxCodeByCode(ctx context.Context, code string) (*domain.TaxCode, error) {
+	r, err := s.q.GetTaxCodeByCode(ctx, code)
+	return one(r, err, toTaxCode)
+}
+
+func (s *Store) DeleteInvoicePostings(ctx context.Context, invoiceID string) error {
+	return s.q.DeleteInvoicePostings(ctx, invoiceID)
+}
+
+func (s *Store) InsertTaxMove(ctx context.Context, m domain.TaxMove) error {
+	return wrap(s.q.InsertTaxMove(ctx, sqlc.InsertTaxMoveParams{ID: ids.New(), Kind: m.Kind, SourceType: m.SourceType, SourceID: m.SourceID, InvoiceID: m.InvoiceID, TaxCode: m.TaxCode, TaxName: m.TaxName, TaxKind: m.TaxKind,
+		TaxRate: m.TaxRate, ReportCode: m.ReportCode, MoveDate: day(m.Date), Base: m.Base, Amount: m.Amount}))
+}
+
+func (s *Store) TaxExportRows(ctx context.Context, kind, taxKind, from, to string) ([]domain.TaxExportRow, error) {
+	rows, err := s.q.TaxExportRows(ctx, sqlc.TaxExportRowsParams{Kind: kind, TaxKind: taxKind, DateFrom: day(from), DateTo: day(to)})
+	return mapAll(rows, func(r sqlc.TaxExportRowsRow) domain.TaxExportRow {
+		return domain.TaxExportRow{Date: ds(r.MoveDate), TaxCode: r.TaxCode, TaxName: r.TaxName, TaxRate: r.TaxRate, ReportCode: r.ReportCode, Base: r.Base, Amount: r.Amount, InvoiceNo: r.InvoiceNo, Reference: r.Reference,
+			Party: r.PartyName, Subtotal: r.Subtotal, Description: r.Description, NPWP: r.Npwp, Address: r.Address}
+	}), err
+}
+
+func toFiscalPosition(r sqlc.FinanceFiscalPosition) domain.FiscalPosition {
+	f := domain.FiscalPosition{ID: r.ID, Name: r.Name, IsActive: r.IsActive, Notes: r.Notes}
+	_ = json.Unmarshal(r.Rules, &f.Rules) // Written by SaveFiscalPosition or the seed.
+	return f
+}
+
+func (s *Store) ListFiscalPositions(ctx context.Context) ([]domain.FiscalPosition, error) {
+	rows, err := s.q.ListFiscalPositions(ctx)
+	return mapAll(rows, toFiscalPosition), err
+}
+
+func (s *Store) GetFiscalPosition(ctx context.Context, id string) (*domain.FiscalPosition, error) {
+	r, err := s.q.GetFiscalPosition(ctx, id)
+	return one(r, err, toFiscalPosition)
+}
+
+func (s *Store) SaveFiscalPosition(ctx context.Context, f domain.FiscalPosition) error {
+	if f.Rules == nil {
+		f.Rules = []domain.FiscalRule{}
+	}
+	rules, err := json.Marshal(f.Rules)
+	if err != nil {
+		return err
+	}
+	return wrap(s.q.UpsertFiscalPosition(ctx, sqlc.UpsertFiscalPositionParams{ID: f.ID, Name: f.Name, Rules: rules, IsActive: f.IsActive, Notes: f.Notes, By: sp(f.UpdatedBy)}))
+}
+
+func toPartyProfile(r sqlc.FinancePartyTaxProfile) domain.PartyProfile {
+	return domain.PartyProfile{ID: r.ID, Side: r.Side, Name: r.Name, NPWP: r.Npwp, Address: r.Address, IsPKP: r.IsPkp, FiscalPositionID: str(r.FiscalPositionID), Notes: r.Notes}
+}
+
+func (s *Store) ListPartyProfiles(ctx context.Context) ([]domain.PartyProfile, error) {
+	rows, err := s.q.ListPartyProfiles(ctx)
+	return mapAll(rows, toPartyProfile), err
+}
+
+func (s *Store) GetPartyProfile(ctx context.Context, side, name string) (*domain.PartyProfile, error) {
+	r, err := s.q.GetPartyProfile(ctx, sqlc.GetPartyProfileParams{Side: side, Lower: name})
+	return one(r, err, toPartyProfile)
+}
+
+func (s *Store) SavePartyProfile(ctx context.Context, p domain.PartyProfile) error {
+	return wrap(s.q.UpsertPartyProfile(ctx, sqlc.UpsertPartyProfileParams{ID: p.ID, Side: p.Side, Name: p.Name, Npwp: p.NPWP, Address: p.Address, IsPkp: p.IsPKP, FiscalPositionID: sp(p.FiscalPositionID), Notes: p.Notes, By: sp(p.UpdatedBy)}))
+}
+
+func (s *Store) VendorInUse(ctx context.Context, id string) (bool, error) {
+	return s.q.VendorInUse(ctx, sp(id))
+}
+
+func (s *Store) DeleteVendor(ctx context.Context, id string) error { return s.q.DeleteVendor(ctx, id) }
+
+func (s *Store) TaxCodeInUse(ctx context.Context, id, code string) (bool, error) {
+	used, err := s.q.TaxCodeInUse(ctx, sqlc.TaxCodeInUseParams{ID: id, Code: code})
+	return used != nil && *used, err
+}
+
+func (s *Store) DeleteTaxCode(ctx context.Context, id string) error {
+	return s.q.DeleteTaxCode(ctx, id)
+}
+
+func (s *Store) ChargeTypeInUse(ctx context.Context, id string) (bool, error) {
+	return s.q.ChargeTypeInUse(ctx, id)
+}
+
+func (s *Store) DeleteChargeType(ctx context.Context, id string) error {
+	return s.q.DeleteChargeType(ctx, id)
+}
+
+func (s *Store) FiscalPositionInUse(ctx context.Context, id string) (bool, error) {
+	return s.q.FiscalPositionInUse(ctx, sp(id))
+}
+
+func (s *Store) DeleteFiscalPosition(ctx context.Context, id string) error {
+	return s.q.DeleteFiscalPosition(ctx, id)
+}
+
+func (s *Store) DeletePartyProfile(ctx context.Context, id string) error {
+	return s.q.DeletePartyProfile(ctx, id)
 }

@@ -214,7 +214,7 @@ func catalogPB(c domain.CatalogItem) *salesv1.CatalogItem {
 }
 
 func quotationPB(q domain.Quotation) *salesv1.Quotation {
-	out := &salesv1.Quotation{Id: q.ID, DealId: q.DealID, DealTitle: q.DealTitle, ClientName: q.ClientName, QuoteNumber: q.QuoteNumber, Version: int32(q.Version), ParentQuotationId: str(q.ParentQuotationID), Status: q.Status, UsePpn: q.UsePpn, PpnPercent: q.PpnPercent, Subtotal: q.Subtotal.String(), DiscountPercent: q.DiscountPercent, DiscountNominal: q.DiscountNominal.String(), PpnNominal: q.PpnNominal.String(), Total: q.Total.String(), Notes: str(q.Notes), ValidUntil: domain.FormatDay(q.ValidUntil), ApprovalStatus: q.ApprovalStatus, ApprovalRequestId: str(q.ApprovalRequestID), GeneratedBy: str(q.GeneratedBy), SentAt: tsPtr(q.SentAt), CreatedAt: ts(q.CreatedAt), UpdatedAt: ts(q.UpdatedAt)}
+	out := &salesv1.Quotation{Id: q.ID, DealId: q.DealID, DealTitle: q.DealTitle, ClientName: q.ClientName, QuoteNumber: q.QuoteNumber, Version: int32(q.Version), ParentQuotationId: str(q.ParentQuotationID), Status: q.Status, TaxCode: q.TaxCode, TaxName: q.TaxName, UsePpn: q.UsePpn, PpnPercent: q.PpnPercent, Subtotal: q.Subtotal.String(), DiscountPercent: q.DiscountPercent, DiscountNominal: q.DiscountNominal.String(), PpnNominal: q.PpnNominal.String(), Total: q.Total.String(), Notes: str(q.Notes), ValidUntil: domain.FormatDay(q.ValidUntil), ApprovalStatus: q.ApprovalStatus, ApprovalRequestId: str(q.ApprovalRequestID), GeneratedBy: str(q.GeneratedBy), SentAt: tsPtr(q.SentAt), CreatedAt: ts(q.CreatedAt), UpdatedAt: ts(q.UpdatedAt)}
 	for _, it := range q.Items {
 		out.Items = append(out.Items, &salesv1.QuotationItem{Id: it.ID, ItemType: it.ItemType, CatalogId: str(it.CatalogID), Description: it.Description, Scope: it.Scope, Unit: it.Unit, Qty: it.Qty, UnitPrice: it.UnitPrice.String(), LineTotal: it.LineTotal.String()})
 	}
@@ -238,7 +238,7 @@ func quotationsPB(qs []domain.Quotation) []*salesv1.Quotation {
 }
 
 func quotationInput(r *salesv1.QuotationInput) app.QuotationInput {
-	in := app.QuotationInput{ID: r.Id, DealID: r.DealId, UsePpn: r.UsePpn, PpnPercent: r.PpnPercent, DiscountPercent: r.DiscountPercent, Notes: r.Notes, ValidUntil: r.ValidUntil}
+	in := app.QuotationInput{TaxCode: r.TaxCode, ID: r.Id, DealID: r.DealId, UsePpn: r.UsePpn, PpnPercent: r.PpnPercent, DiscountPercent: r.DiscountPercent, Notes: r.Notes, ValidUntil: r.ValidUntil}
 	for _, it := range r.Items {
 		in.Items = append(in.Items, app.QuotationItemInput{ItemType: it.ItemType, CatalogID: it.CatalogId, Description: it.Description, Scope: it.Scope, Unit: it.Unit, Qty: it.Qty, UnitPrice: it.UnitPrice})
 	}

@@ -28,6 +28,15 @@ func (q *Queries) DeleteContractTemplate(ctx context.Context, id string) error {
 	return err
 }
 
+const deletePitchDeck = `-- name: DeletePitchDeck :exec
+DELETE FROM sales.pitch_decks WHERE id = $1
+`
+
+func (q *Queries) DeletePitchDeck(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deletePitchDeck, id)
+	return err
+}
+
 const getContract = `-- name: GetContract :one
 SELECT id, contract_number, template_id, quotation_id, deal_id, type, title, client_name, body, status, start_date, end_date, sign_token, sent_at, signed_at, signer_name, signer_ip, signer_user_agent, signature_png, activated_at, ended_at, cancelled_at, cancel_reason, created_by, updated_by, created_at, updated_at FROM sales.contracts WHERE id = $1
 `

@@ -2,6 +2,8 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  FiscalPosition,
+  PartyTaxProfile,
   ChargeType,
   TaxCode,
   TaxRegister,
@@ -289,4 +291,12 @@ export async function listChargeTypes(activeOnly = false) {
 
 export function getTaxRegister(dateFrom?: string, dateTo?: string) {
   return gatewayFetch<TaxRegister>(`${F}/reports/tax-register${qs({ dateFrom, dateTo })}`);
+}
+
+export async function listFiscalPositions() {
+  return (await gatewayFetch<{ positions?: FiscalPosition[] }>(`${F}/fiscal-positions`)).positions ?? [];
+}
+
+export async function listPartyProfiles() {
+  return (await gatewayFetch<{ profiles?: PartyTaxProfile[] }>(`${F}/party-tax-profiles`)).profiles ?? [];
 }

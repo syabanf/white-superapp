@@ -123,7 +123,7 @@ export function InvoicesTable({ invoices, caps, showDeal = true, finance = false
       toolbar={
         showDeal ? (
           <>
-            {finance ? <SearchFilter placeholder={s.searchPh} /> : null}
+            <SearchFilter placeholder={s.searchPh} />
             <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={opts(INVOICE_STATUS)} />
             <DateRangeFilter placeholder={s.issuedRange} />
             <ResetFilters params={["q", "status", "from", "to"]} />

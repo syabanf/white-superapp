@@ -2260,6 +2260,51 @@ func local_request_LogbookService_CreateTemplate_0(ctx context.Context, marshale
 	return msg, metadata, err
 }
 
+func request_LogbookService_UpdateTemplate_0(ctx context.Context, marshaler runtime.Marshaler, client LogbookServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateTemplateRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Input); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.UpdateTemplate(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_LogbookService_UpdateTemplate_0(ctx context.Context, marshaler runtime.Marshaler, server LogbookServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateTemplateRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq.Input); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.UpdateTemplate(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 func request_LogbookService_DeleteTemplate_0(ctx context.Context, marshaler runtime.Marshaler, client LogbookServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq IdRequest
@@ -4615,6 +4660,26 @@ func RegisterLogbookServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 		forward_LogbookService_CreateTemplate_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPatch, pattern_LogbookService_UpdateTemplate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.performance.v1.LogbookService/UpdateTemplate", runtime.WithHTTPPathPattern("/v1/performance/logbook/templates/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_LogbookService_UpdateTemplate_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_LogbookService_UpdateTemplate_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodDelete, pattern_LogbookService_DeleteTemplate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -6607,6 +6672,23 @@ func RegisterLogbookServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 		forward_LogbookService_CreateTemplate_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPatch, pattern_LogbookService_UpdateTemplate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.performance.v1.LogbookService/UpdateTemplate", runtime.WithHTTPPathPattern("/v1/performance/logbook/templates/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_LogbookService_UpdateTemplate_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_LogbookService_UpdateTemplate_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodDelete, pattern_LogbookService_DeleteTemplate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -6767,6 +6849,7 @@ var (
 	pattern_LogbookService_GetLogbookMe_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "performance", "logbook", "me"}, ""))
 	pattern_LogbookService_ListTemplates_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "performance", "logbook", "templates"}, ""))
 	pattern_LogbookService_CreateTemplate_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "performance", "logbook", "templates"}, ""))
+	pattern_LogbookService_UpdateTemplate_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "performance", "logbook", "templates", "id"}, ""))
 	pattern_LogbookService_DeleteTemplate_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "performance", "logbook", "templates", "id"}, ""))
 	pattern_LogbookService_ListEntries_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "performance", "logbook", "entries"}, ""))
 	pattern_LogbookService_GetEntry_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "performance", "logbook", "entries", "id"}, ""))
@@ -6782,6 +6865,7 @@ var (
 	forward_LogbookService_GetLogbookMe_0    = runtime.ForwardResponseMessage
 	forward_LogbookService_ListTemplates_0   = runtime.ForwardResponseMessage
 	forward_LogbookService_CreateTemplate_0  = runtime.ForwardResponseMessage
+	forward_LogbookService_UpdateTemplate_0  = runtime.ForwardResponseMessage
 	forward_LogbookService_DeleteTemplate_0  = runtime.ForwardResponseMessage
 	forward_LogbookService_ListEntries_0     = runtime.ForwardResponseMessage
 	forward_LogbookService_GetEntry_0        = runtime.ForwardResponseMessage

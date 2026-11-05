@@ -6525,6 +6525,31 @@
         ]
       }
     },
+    "/v1/finance/charge-types/{id}": {
+      "delete": {
+        "operationId": "TaxSetupService_DeleteChargeType",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
     "/v1/finance/dashboard": {
       "get": {
         "operationId": "ReportService_GetDashboard",
@@ -7292,6 +7317,71 @@
         ]
       }
     },
+    "/v1/finance/fiscal-positions": {
+      "get": {
+        "operationId": "TaxSetupService_ListFiscalPositions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFiscalPositionsResponse"
+            }
+          }
+        },
+        "tags": [
+          "TaxSetupService"
+        ]
+      },
+      "post": {
+        "operationId": "TaxSetupService_SaveFiscalPosition",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FiscalPosition"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1FiscalPosition"
+            }
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
+    "/v1/finance/fiscal-positions/{id}": {
+      "delete": {
+        "operationId": "TaxSetupService_DeleteFiscalPosition",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
     "/v1/finance/fiscal-years": {
       "get": {
         "operationId": "FiscalService_ListFiscalYears",
@@ -7540,6 +7630,37 @@
         "tags": [
           "ScheduleService"
         ]
+      },
+      "patch": {
+        "summary": "After the first depreciation only the name and the accounts can change.",
+        "operationId": "ScheduleService_UpdateFixedAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FixedAsset"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1FixedAssetInput"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
       }
     },
     "/v1/finance/fixed-assets/{id}:active": {
@@ -7571,6 +7692,39 @@
         ],
         "tags": [
           "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{invoiceId}:credit-note": {
+      "post": {
+        "summary": "finance.approve. Reverses part or all of a posted invoice's journal and\nlowers what the party owes.",
+        "operationId": "TaxSetupService_CreateCreditNote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteFinanceV1Invoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TaxSetupServiceCreateCreditNoteBody"
+            }
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
         ]
       }
     },
@@ -7970,6 +8124,71 @@
         ]
       }
     },
+    "/v1/finance/party-tax-profiles": {
+      "get": {
+        "operationId": "TaxSetupService_ListPartyProfiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPartyProfilesResponse"
+            }
+          }
+        },
+        "tags": [
+          "TaxSetupService"
+        ]
+      },
+      "post": {
+        "operationId": "TaxSetupService_SavePartyProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PartyTaxProfile"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1PartyTaxProfile"
+            }
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
+    "/v1/finance/party-tax-profiles/{id}": {
+      "delete": {
+        "operationId": "TaxSetupService_DeletePartyProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
     "/v1/finance/posting-logs": {
       "get": {
         "summary": "Results of automatic posting from payroll, sales and reimbursements.",
@@ -8349,6 +8568,36 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      },
+      "patch": {
+        "operationId": "ScheduleService_UpdateRecurringJournal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RecurringJournal"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RecurringJournalInput"
+            }
           }
         ],
         "tags": [
@@ -9244,6 +9493,43 @@
         ]
       }
     },
+    "/v1/finance/reports/tax-export": {
+      "get": {
+        "summary": "CSV for the DJP templates: efaktur (output VAT), bupot-keluar (PPh we held\nback from vendors), bupot-masuk (PPh clients held back from us).",
+        "operationId": "TaxSetupService_ExportTaxData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TaxExportFile"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
     "/v1/finance/reports/tax-register": {
       "get": {
         "operationId": "TaxSetupService_GetTaxRegister",
@@ -9377,6 +9663,32 @@
         ]
       }
     },
+    "/v1/finance/tax-codes/{id}": {
+      "delete": {
+        "summary": "Master rows are refused while anything still refers to them.",
+        "operationId": "TaxSetupService_DeleteTaxCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TaxSetupService"
+        ]
+      }
+    },
     "/v1/finance/vendors": {
       "get": {
         "operationId": "DocumentService_ListVendors",
@@ -9424,6 +9736,32 @@
             "schema": {
               "$ref": "#/definitions/v1VendorInput"
             }
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      }
+    },
+    "/v1/finance/vendors/{id}": {
+      "delete": {
+        "summary": "Refused once a document uses the vendor; deactivate it instead.",
+        "operationId": "DocumentService_DeleteVendor",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -12504,6 +12842,37 @@
         "tags": [
           "PayrollService"
         ]
+      },
+      "patch": {
+        "summary": "Corrects the amount or label. A wrong employee or month is delete and re-create.",
+        "operationId": "PayrollService_UpdatePayrollAddition",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PayrollAddition"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "additionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PayrollServiceUpdatePayrollAdditionBody"
+            }
+          }
+        ],
+        "tags": [
+          "PayrollService"
+        ]
       }
     },
     "/v1/hr/payroll/runs": {
@@ -15316,6 +15685,37 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "LogbookService"
+        ]
+      },
+      "patch": {
+        "summary": "Past entries keep their own copy of the checklist.",
+        "operationId": "LogbookService_UpdateTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LogbookTemplate"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateTemplateRequest"
+            }
           }
         ],
         "tags": [
@@ -21657,6 +22057,29 @@
         "tags": [
           "PitchDeckService"
         ]
+      },
+      "delete": {
+        "operationId": "PitchDeckService_DeletePitchDeck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PitchDeckService"
+        ]
       }
     },
     "/v1/sales/quotations": {
@@ -24162,6 +24585,17 @@
         }
       }
     },
+    "PayrollServiceUpdatePayrollAdditionBody": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
     "PeopleServiceLinkEmployeeUserBody": {
       "type": "object",
       "properties": {
@@ -24762,6 +25196,10 @@
             "type": "object",
             "$ref": "#/definitions/v1QuotationTermInput"
           }
+        },
+        "taxCode": {
+          "type": "string",
+          "description": "Finance VAT code; empty uses the sales default."
         }
       }
     },
@@ -24849,6 +25287,10 @@
             "type": "object",
             "$ref": "#/definitions/v1QuotationTermInput"
           }
+        },
+        "taxCode": {
+          "type": "string",
+          "description": "Finance VAT code; empty uses the sales default."
         }
       }
     },
@@ -25279,6 +25721,21 @@
         },
         "clearKpiContribution": {
           "type": "boolean"
+        }
+      }
+    },
+    "TaxSetupServiceCreateCreditNoteBody": {
+      "type": "object",
+      "properties": {
+        "noteDate": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "description": "What the party no longer owes, tax included. Empty credits the outstanding amount."
+        },
+        "reason": {
+          "type": "string"
         }
       }
     },
@@ -34032,6 +34489,42 @@
         }
       }
     },
+    "v1FiscalPosition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FiscalRuleMsg"
+          }
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "v1FiscalRuleMsg": {
+      "type": "object",
+      "properties": {
+        "fromTaxId": {
+          "type": "string"
+        },
+        "toTaxId": {
+          "type": "string",
+          "description": "Empty removes the tax."
+        }
+      }
+    },
     "v1FiscalYear": {
       "type": "object",
       "properties": {
@@ -36725,6 +37218,13 @@
         },
         "clientId": {
           "type": "string"
+        },
+        "taxIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Master tax codes; they replace a typed tax_amount."
         }
       }
     },
@@ -38650,6 +39150,18 @@
         }
       }
     },
+    "v1ListFiscalPositionsResponse": {
+      "type": "object",
+      "properties": {
+        "positions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FiscalPosition"
+          }
+        }
+      }
+    },
     "v1ListFiscalYearsResponse": {
       "type": "object",
       "properties": {
@@ -39049,6 +39561,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1Owner"
+          }
+        }
+      }
+    },
+    "v1ListPartyProfilesResponse": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PartyTaxProfile"
           }
         }
       }
@@ -42117,6 +42641,36 @@
         }
       }
     },
+    "v1PartyTaxProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string",
+          "description": "B2B or SUPPLIER."
+        },
+        "name": {
+          "type": "string"
+        },
+        "npwp": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "isPkp": {
+          "type": "boolean"
+        },
+        "fiscalPositionId": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
     "v1PayClaimsRequest": {
       "type": "object",
       "properties": {
@@ -44089,6 +44643,13 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "taxCode": {
+          "type": "string",
+          "description": "Finance tax code copied at save; ppn_percent is its effective rate."
+        },
+        "taxName": {
+          "type": "string"
         }
       }
     },
@@ -48356,6 +48917,18 @@
         }
       }
     },
+    "v1TaxBracketMsg": {
+      "type": "object",
+      "properties": {
+        "upTo": {
+          "type": "string",
+          "description": "Top of the step on the whole base; zero is no limit."
+        },
+        "rate": {
+          "type": "string"
+        }
+      }
+    },
     "v1TaxCode": {
       "type": "object",
       "properties": {
@@ -48417,6 +48990,35 @@
         },
         "notes": {
           "type": "string"
+        },
+        "brackets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TaxBracketMsg"
+          }
+        },
+        "cashBasis": {
+          "type": "boolean",
+          "description": "VAT recognized on payment, parked on transition_account_id until then."
+        },
+        "transitionAccountId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TaxExportFile": {
+      "type": "object",
+      "properties": {
+        "fileName": {
+          "type": "string"
+        },
+        "contentType": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string",
+          "format": "byte"
         }
       }
     },
@@ -49700,6 +50302,17 @@
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "withholdingAmount": {
+          "type": "string",
+          "description": "Held back from the payment: subtotal plus tax minus total."
+        },
+        "taxIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Set on a single invoice read, for the edit form."
         }
       }
     },

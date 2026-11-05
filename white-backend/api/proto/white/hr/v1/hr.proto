@@ -1405,6 +1405,10 @@ service PayrollService {
   rpc CreatePayrollAddition(PayrollAdditionInput) returns (PayrollAddition) {
     option (google.api.http) = {post: "/v1/hr/payroll/additions" body: "*"};
   }
+  // Corrects the amount or label. A wrong employee or month is delete and re-create.
+  rpc UpdatePayrollAddition(UpdatePayrollAdditionRequest) returns (PayrollAddition) {
+    option (google.api.http) = {patch: "/v1/hr/payroll/additions/{addition_id}" body: "*"};
+  }
   rpc DeletePayrollAddition(PayrollAdditionRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/v1/hr/payroll/additions/{addition_id}"};
   }
@@ -1680,6 +1684,12 @@ message PayrollAdditionInput {
   // Optional: default the first period whose run is missing or not yet approved.
   int32 period_month = 4;
   int32 period_year = 5;
+}
+
+message UpdatePayrollAdditionRequest {
+  string addition_id = 1;
+  string amount = 2;
+  string label = 3;
 }
 
 message PayrollAdditionRequest {

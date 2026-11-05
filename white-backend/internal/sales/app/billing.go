@@ -224,6 +224,7 @@ func (b *Billing) IssueInvoice(ctx context.Context, actor Actor, id string) (*do
 // issuedPayload is the finance contract (finance/domain.SalesInvoiceIssued).
 func (b *Billing) issuedPayload(ctx context.Context, inv domain.Invoice, actor Actor, now time.Time) (salesevents.InvoiceIssued, error) {
 	var tax domain.Money
+	taxCode := ""
 	if inv.QuotationID != nil {
 		qt, err := b.Store.GetQuotation(ctx, *inv.QuotationID)
 		if err != nil {
@@ -231,12 +232,13 @@ func (b *Billing) issuedPayload(ctx context.Context, inv domain.Invoice, actor A
 		}
 		if qt != nil && qt.UsePpn && qt.Total > 0 {
 			tax = domain.Money(roundDiv(int64(inv.Amount)*int64(qt.PpnNominal), int64(qt.Total)))
+			taxCode = qt.TaxCode
 		}
 	}
 	p := salesevents.InvoiceIssued{InvoiceID: inv.ID, InvoiceNumber: inv.InvoiceNumber, DealID: inv.DealID, CustomerName: inv.ClientName,
 		IssueDate: now.In(domain.Jakarta).Format("2006-01-02"), DueDate: domain.FormatDay(inv.DueDate),
 		Subtotal: (inv.Amount - tax).String(), TaxAmount: tax.String(), TotalAmount: inv.Amount.String(),
-		Description: inv.Label + " · " + inv.DealTitle, IssuedBy: actor.UserID}
+		Description: inv.Label + " · " + inv.DealTitle, IssuedBy: actor.UserID, TaxCode: taxCode}
 	if ob, err := b.Store.GetOnboardingByDeal(ctx, inv.DealID); err != nil {
 		return p, err
 	} else if ob != nil {

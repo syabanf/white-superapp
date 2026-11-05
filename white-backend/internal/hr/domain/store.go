@@ -68,6 +68,7 @@ type Store interface {
 	ListPayrollAdditions(ctx context.Context, month, year int, employeeID string) ([]PayrollAddition, error)
 	GetPayrollAddition(ctx context.Context, id string) (*PayrollAddition, error)
 	InsertPayrollAddition(ctx context.Context, a PayrollAddition) error
+	UpdatePayrollAddition(ctx context.Context, a PayrollAddition) error
 	DeletePayrollAddition(ctx context.Context, id string) (bool, error)
 	SumPayrollAdditions(ctx context.Context, employeeID string, month, year int) (float64, error)
 	ListLoans(ctx context.Context, employeeID, status string) ([]Loan, error)

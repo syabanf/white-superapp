@@ -63,9 +63,9 @@ SELECT * FROM sales.quotation_terms WHERE quotation_id = ANY(sqlc.arg('ids')::te
 INSERT INTO sales.quotations (id, deal_id, quote_number, version, parent_quotation_id, status, use_ppn, ppn_percent,
     subtotal, discount_percent, discount_nominal, ppn_nominal, total, notes, valid_until, approval_status,
     approval_request_id, generated_by, sent_at, decided_at, superseded_at, expiry_reminded_at,
-    created_by, updated_by, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
-ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, use_ppn = EXCLUDED.use_ppn, ppn_percent = EXCLUDED.ppn_percent,
+    created_by, updated_by, created_at, updated_at, tax_code, tax_name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, use_ppn = EXCLUDED.use_ppn, ppn_percent = EXCLUDED.ppn_percent, tax_code = EXCLUDED.tax_code, tax_name = EXCLUDED.tax_name,
     subtotal = EXCLUDED.subtotal, discount_percent = EXCLUDED.discount_percent, discount_nominal = EXCLUDED.discount_nominal,
     ppn_nominal = EXCLUDED.ppn_nominal, total = EXCLUDED.total, notes = EXCLUDED.notes, valid_until = EXCLUDED.valid_until,
     approval_status = EXCLUDED.approval_status, approval_request_id = EXCLUDED.approval_request_id,

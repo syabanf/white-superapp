@@ -463,6 +463,10 @@ export async function generatePitchDeckAction(input: {
   return send<PitchDeck>("/pitch-decks", "POST", input);
 }
 
+export async function deletePitchDeckAction(deckId: string) {
+  return send("/pitch-decks/" + encodeURIComponent(deckId), "DELETE");
+}
+
 export async function saveCaseStudyAction(input: CaseStudy) {
   if (!input.title.trim() || !input.clientName.trim()) return fail(ss.required, "VALIDATION");
   return send<CaseStudy>("/case-studies", "POST", input);

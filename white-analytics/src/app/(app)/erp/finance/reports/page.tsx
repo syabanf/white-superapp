@@ -15,6 +15,7 @@ import { ErpEmpty, ErpLoadError } from "@/features/erp/shared/states";
 import { SearchSelectFilter } from "@/features/erp/shared/url-filters";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
 import { LedgerTable } from "@/features/erp/finance/components/ledger-table";
+import { TaxExportButtons } from "@/features/erp/finance/components/tax-export";
 import {
   BalanceHealthView,
   BalanceSheetView,
@@ -121,7 +122,14 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
     }
     case "tax-register": {
       const res = await load(() => getTaxRegister(from, to));
-      body = res.error ? <ErpLoadError error={res.error} /> : <TaxRegisterView data={res.data} />;
+      body = res.error ? (
+        <ErpLoadError error={res.error} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          <TaxExportButtons from={from} to={to} />
+          <TaxRegisterView data={res.data} />
+        </div>
+      );
       break;
     }
     case "budget-vs-actual": {

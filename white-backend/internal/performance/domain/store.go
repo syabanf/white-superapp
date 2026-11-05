@@ -130,6 +130,8 @@ type LogbookStore interface {
 	GetTemplate(ctx context.Context, id string) (*LogbookTemplate, error)
 	InsertTemplate(ctx context.Context, t LogbookTemplate) error
 	InsertTemplateItem(ctx context.Context, it LogbookTemplateItem) error
+	UpdateTemplate(ctx context.Context, t LogbookTemplate) error
+	DeleteTemplateItems(ctx context.Context, templateID string) error
 	CountTemplateEntries(ctx context.Context, templateID string) (int, error)
 	ArchiveTemplate(ctx context.Context, id string) error
 	DeleteTemplate(ctx context.Context, id string) error

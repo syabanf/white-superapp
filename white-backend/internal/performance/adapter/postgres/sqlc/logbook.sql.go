@@ -122,6 +122,15 @@ func (q *Queries) DeleteTemplate(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteTemplateItems = `-- name: DeleteTemplateItems :exec
+DELETE FROM performance.logbook_template_items WHERE template_id = $1
+`
+
+func (q *Queries) DeleteTemplateItems(ctx context.Context, templateID string) error {
+	_, err := q.db.Exec(ctx, deleteTemplateItems, templateID)
+	return err
+}
+
 const getEntry = `-- name: GetEntry :one
 SELECT e.id, e.template_id, e.department_id, e.employee_id, e.entry_date, e.title, e.status, e.completion_percentage, e.kpi_score, e.notes, e.submitted_by, e.submitted_at, e.reviewed_by, e.reviewed_at, e.review_notes, e.created_by, e.created_at, e.updated_at, t.name AS template_name, t.frequency
 FROM performance.logbook_entries e
@@ -636,6 +645,27 @@ func (q *Queries) UpdateEntryItem(ctx context.Context, arg UpdateEntryItemParams
 		arg.CheckedBy,
 		arg.CheckedAt,
 		arg.Notes,
+	)
+	return err
+}
+
+const updateTemplate = `-- name: UpdateTemplate :exec
+UPDATE performance.logbook_templates SET name = $2, description = $3, frequency = $4 WHERE id = $1
+`
+
+type UpdateTemplateParams struct {
+	ID          string
+	Name        string
+	Description *string
+	Frequency   string
+}
+
+func (q *Queries) UpdateTemplate(ctx context.Context, arg UpdateTemplateParams) error {
+	_, err := q.db.Exec(ctx, updateTemplate,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Frequency,
 	)
 	return err
 }

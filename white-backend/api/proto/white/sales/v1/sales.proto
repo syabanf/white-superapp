@@ -795,6 +795,9 @@ message Quotation {
   google.protobuf.Timestamp sent_at = 23;
   google.protobuf.Timestamp created_at = 24;
   google.protobuf.Timestamp updated_at = 25;
+  // Finance tax code copied at save; ppn_percent is its effective rate.
+  string tax_code = 26;
+  string tax_name = 27;
 }
 
 message QuotationItemInput {
@@ -825,6 +828,8 @@ message QuotationInput {
   string valid_until = 7;
   repeated QuotationItemInput items = 8;
   repeated QuotationTermInput terms = 9;
+  // Finance VAT code; empty uses the sales default.
+  string tax_code = 10;
 }
 
 message ListQuotationsRequest {
@@ -1869,6 +1874,9 @@ service PitchDeckService {
   }
   // Internal: PPTX bytes for the gateway.
   rpc GetPitchDeckFile(IdRequest) returns (File);
+  rpc DeletePitchDeck(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/sales/pitch-decks/{id}"};
+  }
   rpc ListCaseStudies(google.protobuf.Empty) returns (ListCaseStudiesResponse) {
     option (google.api.http) = {get: "/v1/sales/case-studies"};
   }

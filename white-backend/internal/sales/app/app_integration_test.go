@@ -559,6 +559,12 @@ func TestDecksForecastAndJobs(t *testing.T) {
 	if d1.Version != 1 || d3.Version != 2 || d2.Version != 1 || !bytes.HasPrefix(d1.File, []byte("PK")) || d1.Model != app.MockModel {
 		t.Fatalf("decks v%d v%d v%d", d1.Version, d2.Version, d3.Version)
 	}
+	if err := e.svc.Decks.Delete(ctx, d2.ID); err != nil {
+		t.Fatal(err)
+	}
+	if left := must(e.svc.Decks.List(ctx, "", lead.ID)); len(left) != 0 {
+		t.Fatalf("deleted deck still listed: %d", len(left))
+	}
 	kinds := map[string]int{}
 	for _, s := range d1.Slides {
 		kinds[s.Kind]++

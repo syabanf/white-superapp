@@ -189,7 +189,7 @@ func (q *Queries) GetCatalogItem(ctx context.Context, id string) (SalesServiceCa
 }
 
 const getQuotation = `-- name: GetQuotation :one
-SELECT q.id, q.deal_id, q.quote_number, q.version, q.parent_quotation_id, q.status, q.use_ppn, q.ppn_percent, q.subtotal, q.discount_percent, q.discount_nominal, q.ppn_nominal, q.total, q.notes, q.valid_until, q.approval_status, q.approval_request_id, q.generated_by, q.sent_at, q.decided_at, q.superseded_at, q.expiry_reminded_at, q.created_by, q.updated_by, q.created_at, q.updated_at, q.deleted_at, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
+SELECT q.id, q.deal_id, q.quote_number, q.version, q.parent_quotation_id, q.status, q.use_ppn, q.ppn_percent, q.subtotal, q.discount_percent, q.discount_nominal, q.ppn_nominal, q.total, q.notes, q.valid_until, q.approval_status, q.approval_request_id, q.generated_by, q.sent_at, q.decided_at, q.superseded_at, q.expiry_reminded_at, q.created_by, q.updated_by, q.created_at, q.updated_at, q.deleted_at, q.tax_code, q.tax_name, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
        coalesce(d.owner_user_id, '')::text AS owner_user_id
 FROM sales.quotations q
 JOIN sales.deals d ON d.id = q.deal_id
@@ -236,6 +236,8 @@ func (q *Queries) GetQuotation(ctx context.Context, id string) (GetQuotationRow,
 		&i.SalesQuotation.CreatedAt,
 		&i.SalesQuotation.UpdatedAt,
 		&i.SalesQuotation.DeletedAt,
+		&i.SalesQuotation.TaxCode,
+		&i.SalesQuotation.TaxName,
 		&i.DealTitle,
 		&i.ClientName,
 		&i.OwnerUserID,
@@ -690,7 +692,7 @@ func (q *Queries) ListQuotationTerms(ctx context.Context, ids []string) ([]Sales
 }
 
 const listQuotations = `-- name: ListQuotations :many
-SELECT q.id, q.deal_id, q.quote_number, q.version, q.parent_quotation_id, q.status, q.use_ppn, q.ppn_percent, q.subtotal, q.discount_percent, q.discount_nominal, q.ppn_nominal, q.total, q.notes, q.valid_until, q.approval_status, q.approval_request_id, q.generated_by, q.sent_at, q.decided_at, q.superseded_at, q.expiry_reminded_at, q.created_by, q.updated_by, q.created_at, q.updated_at, q.deleted_at, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
+SELECT q.id, q.deal_id, q.quote_number, q.version, q.parent_quotation_id, q.status, q.use_ppn, q.ppn_percent, q.subtotal, q.discount_percent, q.discount_nominal, q.ppn_nominal, q.total, q.notes, q.valid_until, q.approval_status, q.approval_request_id, q.generated_by, q.sent_at, q.decided_at, q.superseded_at, q.expiry_reminded_at, q.created_by, q.updated_by, q.created_at, q.updated_at, q.deleted_at, q.tax_code, q.tax_name, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
        coalesce(d.owner_user_id, '')::text AS owner_user_id
 FROM sales.quotations q
 JOIN sales.deals d ON d.id = q.deal_id
@@ -753,6 +755,8 @@ func (q *Queries) ListQuotations(ctx context.Context, arg ListQuotationsParams) 
 			&i.SalesQuotation.CreatedAt,
 			&i.SalesQuotation.UpdatedAt,
 			&i.SalesQuotation.DeletedAt,
+			&i.SalesQuotation.TaxCode,
+			&i.SalesQuotation.TaxName,
 			&i.DealTitle,
 			&i.ClientName,
 			&i.OwnerUserID,
@@ -950,9 +954,9 @@ const upsertQuotation = `-- name: UpsertQuotation :exec
 INSERT INTO sales.quotations (id, deal_id, quote_number, version, parent_quotation_id, status, use_ppn, ppn_percent,
     subtotal, discount_percent, discount_nominal, ppn_nominal, total, notes, valid_until, approval_status,
     approval_request_id, generated_by, sent_at, decided_at, superseded_at, expiry_reminded_at,
-    created_by, updated_by, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
-ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, use_ppn = EXCLUDED.use_ppn, ppn_percent = EXCLUDED.ppn_percent,
+    created_by, updated_by, created_at, updated_at, tax_code, tax_name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, use_ppn = EXCLUDED.use_ppn, ppn_percent = EXCLUDED.ppn_percent, tax_code = EXCLUDED.tax_code, tax_name = EXCLUDED.tax_name,
     subtotal = EXCLUDED.subtotal, discount_percent = EXCLUDED.discount_percent, discount_nominal = EXCLUDED.discount_nominal,
     ppn_nominal = EXCLUDED.ppn_nominal, total = EXCLUDED.total, notes = EXCLUDED.notes, valid_until = EXCLUDED.valid_until,
     approval_status = EXCLUDED.approval_status, approval_request_id = EXCLUDED.approval_request_id,
@@ -987,6 +991,8 @@ type UpsertQuotationParams struct {
 	UpdatedBy         *string
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
+	TaxCode           string
+	TaxName           string
 }
 
 func (q *Queries) UpsertQuotation(ctx context.Context, arg UpsertQuotationParams) error {
@@ -1017,6 +1023,8 @@ func (q *Queries) UpsertQuotation(ctx context.Context, arg UpsertQuotationParams
 		arg.UpdatedBy,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.TaxCode,
+		arg.TaxName,
 	)
 	return err
 }

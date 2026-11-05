@@ -13,7 +13,7 @@ import { ErpDataTable } from "@/features/erp/shared/data-table";
 import { DownloadButton } from "@/features/erp/shared/download-button";
 import { Money } from "@/features/erp/shared/money-display";
 import { DatePicker } from "@/features/erp/shared/period-picker";
-import { SelectFilter } from "@/features/erp/shared/url-filters";
+import { SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import {
@@ -79,6 +79,7 @@ export function QuotationsTable({ quotations, caps, deals }: { quotations: Quota
       exportName="quotation"
       toolbar={
         <>
+          <SearchFilter placeholder={s.searchPh} />
           <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={opts(QUOTATION_STATUS)} />
           {caps.write ? (
             <div className="flex gap-2">

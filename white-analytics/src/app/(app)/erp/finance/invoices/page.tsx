@@ -11,6 +11,7 @@ import { listInvoiceFollowups, listInvoices } from "@/features/erp/sales/queries
 import { load, sp1 } from "@/features/erp/shared/load";
 import { formatRupiah, sumMoney } from "@/features/erp/shared/money";
 import { ErpLoadError } from "@/features/erp/shared/states";
+import { matchesText } from "@/features/erp/shared/list-filter";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
 
 const s = fs.salesInvoices;
@@ -39,7 +40,7 @@ export default async function FinanceInvoicesPage(props: PageProps<"/erp/finance
       <>
         {header}
         {tabs}
-        {queue.error ? <ErpLoadError error={queue.error} /> : <FollowupQueue rows={queue.data.followups ?? []} canWrite={caps.finance} whatsappEnabled={queue.data.whatsappEnabled} />}
+        {queue.error ? <ErpLoadError error={queue.error} /> : <FollowupQueue rows={(queue.data.followups ?? []).filter((f) => matchesText(sp1(sp.q), f.invoiceNumber, f.clientName) && (!sp1(sp.status) || f.status === sp1(sp.status)) && (!sp1(sp.stage) || String(f.stage) === sp1(sp.stage)))} canWrite={caps.finance} whatsappEnabled={queue.data.whatsappEnabled} />}
       </>
     );
   }

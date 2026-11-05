@@ -108,6 +108,10 @@ func wire(pool *pgxpool.Pool, d pkgapp.Deps) (*wiring, error) {
 	if err != nil {
 		return nil, err
 	}
+	financeConn, err := dial("FINANCE_ADDR", "localhost:9007")
+	if err != nil {
+		return nil, err
+	}
 	clk := clock.Real{}
 	identity := clients.NewIdentity(identityConn, config.Env("SALES_SERVICE_TOKEN", ""))
 	w.integrations = clients.NewIntegrations(integrationsConn, clk)
@@ -118,6 +122,7 @@ func wire(pool *pgxpool.Pool, d pkgapp.Deps) (*wiring, error) {
 		Notifier:  identity,
 		Directory: identity,
 		Clients:   identity,
+		Taxes:     clients.NewTaxes(financeConn),
 		AI:        openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
 		WhatsApp:  wagateway.New(config.Env("WA_GATEWAY_URL", ""), config.Env("WA_GATEWAY_TOKEN", ""), nil),
 		Files:     storage.NewLocal(config.Env("SALES_UPLOAD_DIR", "")),

@@ -6,6 +6,7 @@ import { financePerms } from "@/features/erp/finance/perms";
 import { listVendors } from "@/features/erp/finance/queries";
 import { fs } from "@/features/erp/finance/strings";
 import { OfflineNotice } from "@/features/erp/offline-notice";
+import { matchesActive } from "@/features/erp/shared/list-filter";
 import { load, sp1 } from "@/features/erp/shared/load";
 import { ErpLoadError } from "@/features/erp/shared/states";
 
@@ -22,7 +23,7 @@ export default async function VendorsPage(props: PageProps<"/erp/finance/vendors
   return (
     <>
       {header}
-      {res.error ? <ErpLoadError error={res.error} /> : <VendorsTable vendors={res.data} canWrite={canWrite} />}
+      {res.error ? <ErpLoadError error={res.error} /> : <VendorsTable vendors={res.data.filter((v) => matchesActive(sp1(sp.status), v.isActive))} canWrite={canWrite} />}
     </>
   );
 }

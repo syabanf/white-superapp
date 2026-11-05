@@ -242,6 +242,8 @@ export type Quotation = {
   status: string;
   usePpn: boolean;
   ppnPercent: number;
+  taxCode: string;
+  taxName: string;
   subtotal: string;
   discountPercent: number;
   discountNominal: string;
@@ -262,6 +264,7 @@ export type Quotation = {
 export type QuotationInput = {
   usePpn: boolean;
   ppnPercent: number;
+  taxCode: string;
   discountPercent: number;
   notes: string;
   validUntil: string;

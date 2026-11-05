@@ -71,6 +71,12 @@ SELECT * FROM finance.recurring_journals WHERE is_active AND next_run <= sqlc.ar
 INSERT INTO finance.recurring_journals (id, name, description, frequency, anchor_day, next_run, end_date, lines, created_by, updated_by)
 VALUES ($1, $2, $3, $4, $5, $6, sqlc.narg(end_date), $7, sqlc.narg(by), sqlc.narg(by));
 
+-- name: UpdateRecurringJournal :exec
+UPDATE finance.recurring_journals
+   SET name = $2, description = $3, frequency = $4, anchor_day = $5, next_run = $6, end_date = sqlc.narg(end_date), lines = $7,
+       last_error = '', updated_by = sqlc.narg(by), updated_at = now()
+ WHERE id = $1;
+
 -- name: UpdateRecurringRun :exec
 UPDATE finance.recurring_journals
    SET next_run = $2, is_active = $3, last_entry_id = sqlc.narg(last_entry_id), last_error = $4, updated_at = now()
@@ -94,6 +100,12 @@ SELECT f.*, x.name AS expense_account_name, a.name AS accum_account_name
 -- name: InsertFixedAsset :exec
 INSERT INTO finance.fixed_assets (id, name, acquired_on, cost, salvage, life_months, expense_account_id, accum_account_id, created_by, updated_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, sqlc.narg(by), sqlc.narg(by));
+
+-- name: UpdateFixedAsset :exec
+UPDATE finance.fixed_assets
+   SET name = $2, acquired_on = $3, cost = $4, salvage = $5, life_months = $6, expense_account_id = $7, accum_account_id = $8,
+       last_error = '', updated_by = sqlc.narg(by), updated_at = now()
+ WHERE id = $1;
 
 -- name: UpdateFixedAssetRun :exec
 UPDATE finance.fixed_assets

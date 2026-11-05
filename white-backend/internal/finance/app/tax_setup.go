@@ -58,6 +58,15 @@ func (s *TaxSetup) SaveTaxCode(ctx context.Context, userID string, t domain.TaxC
 	if t.BaseNumerator <= 0 || t.BaseDenominator <= 0 || t.BaseNumerator > t.BaseDenominator {
 		v.Add("base_numerator", "Porsi DPP harus di antara 0 dan 1, misalnya 11/12")
 	}
+	if !domain.ValidBrackets(t.Brackets) {
+		v.Add("brackets", "Batas tarif bertingkat harus naik dan langkah terakhir tanpa batas")
+	}
+	if t.CashBasis && (t.Kind != domain.TaxVAT || t.TransitionAccountID == "") {
+		v.Add("transition_account_id", "PPN berbasis kas perlu akun transisi dan hanya untuk PPN")
+	}
+	if t.PriceIncluded && len(t.Brackets) > 0 {
+		v.Add("brackets", "Tarif bertingkat tidak bisa dipakai pada harga termasuk pajak")
+	}
 	if t.PriceIncluded && t.Kind != domain.TaxVAT {
 		v.Add("price_included", "Hanya PPN yang bisa termasuk dalam harga")
 	}
@@ -84,7 +93,7 @@ func (s *TaxSetup) SaveTaxCode(ctx context.Context, userID string, t domain.TaxC
 			return nil, apperr.Field("account_sale_id", "Kode pajak aktif perlu akun posting")
 		}
 	}
-	if err := s.checkPostable(ctx, t.AccountSaleID, t.AccountPurchaseID); err != nil {
+	if err := s.checkPostable(ctx, t.AccountSaleID, t.AccountPurchaseID, t.TransitionAccountID); err != nil {
 		return nil, err
 	}
 	if t.ID == "" {

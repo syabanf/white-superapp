@@ -3,7 +3,7 @@
 import { Section } from "@/components/dashboard/page-header";
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CalendarPlus, MessageSquare, Plus, Send, Trash2, X } from "lucide-react";
+import { CalendarPlus, MessageSquare, Pencil, Plus, Send, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import {
   createEntryAction,
   createTemplateAction,
+  updateTemplateAction,
   deleteEntryAction,
   deleteTemplateAction,
   reviewEntryAction,
@@ -367,6 +368,7 @@ export function TemplatesTab({
 }) {
   const { run } = useErpAction();
   const [creating, setCreating] = React.useState(false);
+  const [editing, setEditing] = React.useState<LogbookTemplate | null>(null);
   return (
     <div className="flex flex-col gap-(--gap-inner)">
       {canManage ? (
@@ -388,22 +390,27 @@ export function TemplatesTab({
                   </p>
                 </div>
                 {canManage ? (
-                  <ConfirmAction
-                    trigger={
-                      <Button variant="ghost" size="icon-xs" aria-label={sp.common.delete}>
-                        <Trash2 />
-                      </Button>
-                    }
-                    title={sp.common.confirmDelete}
-                    description={sp.common.confirmDeleteBody}
-                    confirmLabel={sp.common.delete}
-                    destructive
-                    onConfirm={() =>
-                      run(() => deleteTemplateAction(t.id), {
-                        onOk: (r) => toast.success(r.archived ? l.templateArchived : l.templateDeleted),
-                      })
-                    }
-                  />
+                  <span className="flex gap-0.5">
+                    <Button variant="ghost" size="icon-xs" aria-label={l.editTemplate} onClick={() => setEditing(t)}>
+                      <Pencil />
+                    </Button>
+                    <ConfirmAction
+                      trigger={
+                        <Button variant="ghost" size="icon-xs" aria-label={sp.common.delete}>
+                          <Trash2 />
+                        </Button>
+                      }
+                      title={sp.common.confirmDelete}
+                      description={sp.common.confirmDeleteBody}
+                      confirmLabel={sp.common.delete}
+                      destructive
+                      onConfirm={() =>
+                        run(() => deleteTemplateAction(t.id), {
+                          onOk: (r) => toast.success(r.archived ? l.templateArchived : l.templateDeleted),
+                        })
+                      }
+                    />
+                  </span>
                 ) : null}
               </div>
               {t.description ? <p className="text-xs text-muted-foreground">{t.description}</p> : null}
@@ -421,19 +428,22 @@ export function TemplatesTab({
         </div>
       )}
       {creating ? <TemplateDialog departments={departments} defaultDept={defaultDept} onClose={() => setCreating(false)} /> : null}
+      {editing ? <TemplateDialog template={editing} departments={departments} defaultDept={editing.departmentId} onClose={() => setEditing(null)} /> : null}
     </div>
   );
 }
 
-function TemplateDialog({ departments, defaultDept, onClose }: { departments: Department[]; defaultDept: string; onClose: () => void }) {
+function TemplateDialog({ template, departments, defaultDept, onClose }: { template?: LogbookTemplate; departments: Department[]; defaultDept: string; onClose: () => void }) {
   const { pending, run } = useErpAction();
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
   const [form, setForm] = React.useState({
     departmentId: defaultDept,
-    name: "",
-    description: "",
-    frequency: "daily" as Frequency,
-    items: [{ title: "", weight: "1", isRequired: true }],
+    name: template?.name ?? "",
+    description: template?.description ?? "",
+    frequency: template?.frequency ?? ("daily" as Frequency),
+    items: template
+      ? [...template.items].sort((a, b) => a.sortOrder - b.sortOrder).map((it) => ({ title: it.title, weight: String(it.weight), isRequired: it.isRequired }))
+      : [{ title: "", weight: "1", isRequired: true }],
   });
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((p) => ({ ...p, [k]: v }));
   const setItem = (i: number, p: Partial<(typeof form.items)[number]>) =>
@@ -448,23 +458,24 @@ function TemplateDialog({ departments, defaultDept, onClose }: { departments: De
           className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
+            const input = {
+              departmentId: form.departmentId,
+              name: form.name,
+              description: form.description || undefined,
+              frequency: form.frequency,
+              items: form.items
+                .filter((it) => it.title.trim())
+                .map((it) => ({ title: it.title, weight: Number(it.weight) || 1, isRequired: it.isRequired })),
+            };
             run(
-              () =>
-                createTemplateAction({
-                  departmentId: form.departmentId,
-                  name: form.name,
-                  description: form.description || undefined,
-                  frequency: form.frequency,
-                  items: form.items
-                    .filter((it) => it.title.trim())
-                    .map((it) => ({ title: it.title, weight: Number(it.weight) || 1, isRequired: it.isRequired })),
-                }),
+              () => (template ? updateTemplateAction(template.id, input) : createTemplateAction(input)),
               { success: l.templateSaved, onOk: onClose, onFail: (r) => setErrors(r.fieldErrors ?? {}) },
             );
           }}
         >
           <DialogHeader>
-            <DialogTitle>{l.newTemplate}</DialogTitle>
+            <DialogTitle>{template ? l.editTemplate : l.newTemplate}</DialogTitle>
+            {template ? <DialogDescription>{l.editTemplateHint}</DialogDescription> : null}
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormRow label={sp.common.department} error={errors.departmentId?.[0]}>

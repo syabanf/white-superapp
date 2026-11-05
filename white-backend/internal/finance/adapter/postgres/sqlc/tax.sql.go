@@ -12,6 +12,17 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
 )
 
+const chargeTypeInUse = `-- name: ChargeTypeInUse :one
+SELECT EXISTS (SELECT 1 FROM finance.documents WHERE charges @> jsonb_build_array(jsonb_build_object('chargeId', $1::text)))
+`
+
+func (q *Queries) ChargeTypeInUse(ctx context.Context, id string) (bool, error) {
+	row := q.db.QueryRow(ctx, chargeTypeInUse, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const clearDefaultPurchaseTax = `-- name: ClearDefaultPurchaseTax :exec
 UPDATE finance.tax_codes SET is_default_purchase = false WHERE id <> $1
 `
@@ -30,6 +41,51 @@ func (q *Queries) ClearDefaultSaleTax(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteChargeType = `-- name: DeleteChargeType :exec
+DELETE FROM finance.charge_types WHERE id = $1
+`
+
+func (q *Queries) DeleteChargeType(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteChargeType, id)
+	return err
+}
+
+const deleteFiscalPosition = `-- name: DeleteFiscalPosition :exec
+DELETE FROM finance.fiscal_positions WHERE id = $1
+`
+
+func (q *Queries) DeleteFiscalPosition(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteFiscalPosition, id)
+	return err
+}
+
+const deleteInvoicePostings = `-- name: DeleteInvoicePostings :exec
+DELETE FROM finance.invoice_postings WHERE invoice_id = $1
+`
+
+func (q *Queries) DeleteInvoicePostings(ctx context.Context, invoiceID string) error {
+	_, err := q.db.Exec(ctx, deleteInvoicePostings, invoiceID)
+	return err
+}
+
+const deletePartyProfile = `-- name: DeletePartyProfile :exec
+DELETE FROM finance.party_tax_profiles WHERE id = $1
+`
+
+func (q *Queries) DeletePartyProfile(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deletePartyProfile, id)
+	return err
+}
+
+const deleteTaxCode = `-- name: DeleteTaxCode :exec
+DELETE FROM finance.tax_codes WHERE id = $1
+`
+
+func (q *Queries) DeleteTaxCode(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteTaxCode, id)
+	return err
+}
+
 const documentCountByInvoice = `-- name: DocumentCountByInvoice :one
 SELECT count(*)::int FROM finance.documents WHERE ledger_invoice_id = $1
 `
@@ -39,6 +95,17 @@ func (q *Queries) DocumentCountByInvoice(ctx context.Context, ledgerInvoiceID *s
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const fiscalPositionInUse = `-- name: FiscalPositionInUse :one
+SELECT EXISTS (SELECT 1 FROM finance.party_tax_profiles WHERE fiscal_position_id = $1)
+`
+
+func (q *Queries) FiscalPositionInUse(ctx context.Context, fiscalPositionID *string) (bool, error) {
+	row := q.db.QueryRow(ctx, fiscalPositionInUse, fiscalPositionID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const getChargeType = `-- name: GetChargeType :one
@@ -68,8 +135,54 @@ func (q *Queries) GetChargeType(ctx context.Context, id string) (FinanceChargeTy
 	return i, err
 }
 
+const getFiscalPosition = `-- name: GetFiscalPosition :one
+SELECT id, name, rules, is_active, notes, updated_at, updated_by FROM finance.fiscal_positions WHERE id = $1
+`
+
+func (q *Queries) GetFiscalPosition(ctx context.Context, id string) (FinanceFiscalPosition, error) {
+	row := q.db.QueryRow(ctx, getFiscalPosition, id)
+	var i FinanceFiscalPosition
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Rules,
+		&i.IsActive,
+		&i.Notes,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const getPartyProfile = `-- name: GetPartyProfile :one
+SELECT id, side, name, npwp, address, is_pkp, fiscal_position_id, notes, updated_at, updated_by FROM finance.party_tax_profiles WHERE side = $1 AND lower(name) = lower($2)
+`
+
+type GetPartyProfileParams struct {
+	Side  string
+	Lower string
+}
+
+func (q *Queries) GetPartyProfile(ctx context.Context, arg GetPartyProfileParams) (FinancePartyTaxProfile, error) {
+	row := q.db.QueryRow(ctx, getPartyProfile, arg.Side, arg.Lower)
+	var i FinancePartyTaxProfile
+	err := row.Scan(
+		&i.ID,
+		&i.Side,
+		&i.Name,
+		&i.Npwp,
+		&i.Address,
+		&i.IsPkp,
+		&i.FiscalPositionID,
+		&i.Notes,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
 const getTaxCode = `-- name: GetTaxCode :one
-SELECT id, code, name, kind, scope, rate, base_numerator, base_denominator, price_included, account_sale_id, account_purchase_id, report_code, valid_from, valid_to, is_default_sale, is_default_purchase, is_active, notes, created_at, updated_at, updated_by FROM finance.tax_codes WHERE id = $1
+SELECT id, code, name, kind, scope, rate, base_numerator, base_denominator, price_included, account_sale_id, account_purchase_id, report_code, valid_from, valid_to, is_default_sale, is_default_purchase, is_active, notes, created_at, updated_at, updated_by, brackets, cash_basis, transition_account_id FROM finance.tax_codes WHERE id = $1
 `
 
 func (q *Queries) GetTaxCode(ctx context.Context, id string) (FinanceTaxCode, error) {
@@ -97,27 +210,71 @@ func (q *Queries) GetTaxCode(ctx context.Context, id string) (FinanceTaxCode, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.UpdatedBy,
+		&i.Brackets,
+		&i.CashBasis,
+		&i.TransitionAccountID,
+	)
+	return i, err
+}
+
+const getTaxCodeByCode = `-- name: GetTaxCodeByCode :one
+SELECT id, code, name, kind, scope, rate, base_numerator, base_denominator, price_included, account_sale_id, account_purchase_id, report_code, valid_from, valid_to, is_default_sale, is_default_purchase, is_active, notes, created_at, updated_at, updated_by, brackets, cash_basis, transition_account_id FROM finance.tax_codes WHERE code = $1
+`
+
+func (q *Queries) GetTaxCodeByCode(ctx context.Context, code string) (FinanceTaxCode, error) {
+	row := q.db.QueryRow(ctx, getTaxCodeByCode, code)
+	var i FinanceTaxCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.Kind,
+		&i.Scope,
+		&i.Rate,
+		&i.BaseNumerator,
+		&i.BaseDenominator,
+		&i.PriceIncluded,
+		&i.AccountSaleID,
+		&i.AccountPurchaseID,
+		&i.ReportCode,
+		&i.ValidFrom,
+		&i.ValidTo,
+		&i.IsDefaultSale,
+		&i.IsDefaultPurchase,
+		&i.IsActive,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+		&i.Brackets,
+		&i.CashBasis,
+		&i.TransitionAccountID,
 	)
 	return i, err
 }
 
 const insertInvoicePosting = `-- name: InsertInvoicePosting :exec
-INSERT INTO finance.invoice_postings (id, invoice_id, sort_order, account_id, entry_side, amount, memo, tax_code, tax_name, tax_kind, tax_base)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+INSERT INTO finance.invoice_postings (id, invoice_id, sort_order, account_id, entry_side, amount, memo, tax_code, tax_name, tax_kind, tax_base, tax_id, tax_rate, report_code, cash_basis, final_account_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 `
 
 type InsertInvoicePostingParams struct {
-	ID        string
-	InvoiceID string
-	SortOrder int32
-	AccountID string
-	EntrySide string
-	Amount    domain.Money
-	Memo      string
-	TaxCode   string
-	TaxName   string
-	TaxKind   string
-	TaxBase   domain.Money
+	ID             string
+	InvoiceID      string
+	SortOrder      int32
+	AccountID      string
+	EntrySide      string
+	Amount         domain.Money
+	Memo           string
+	TaxCode        string
+	TaxName        string
+	TaxKind        string
+	TaxBase        domain.Money
+	TaxID          string
+	TaxRate        domain.Money
+	ReportCode     string
+	CashBasis      bool
+	FinalAccountID *string
 }
 
 func (q *Queries) InsertInvoicePosting(ctx context.Context, arg InsertInvoicePostingParams) error {
@@ -133,6 +290,52 @@ func (q *Queries) InsertInvoicePosting(ctx context.Context, arg InsertInvoicePos
 		arg.TaxName,
 		arg.TaxKind,
 		arg.TaxBase,
+		arg.TaxID,
+		arg.TaxRate,
+		arg.ReportCode,
+		arg.CashBasis,
+		arg.FinalAccountID,
+	)
+	return err
+}
+
+const insertTaxMove = `-- name: InsertTaxMove :exec
+INSERT INTO finance.tax_moves (id, kind, source_type, source_id, invoice_id, tax_code, tax_name, tax_kind, tax_rate, report_code, move_date, base, amount)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+ON CONFLICT (source_type, source_id, tax_code) DO NOTHING
+`
+
+type InsertTaxMoveParams struct {
+	ID         string
+	Kind       string
+	SourceType string
+	SourceID   string
+	InvoiceID  string
+	TaxCode    string
+	TaxName    string
+	TaxKind    string
+	TaxRate    domain.Money
+	ReportCode string
+	MoveDate   time.Time
+	Base       domain.Money
+	Amount     domain.Money
+}
+
+func (q *Queries) InsertTaxMove(ctx context.Context, arg InsertTaxMoveParams) error {
+	_, err := q.db.Exec(ctx, insertTaxMove,
+		arg.ID,
+		arg.Kind,
+		arg.SourceType,
+		arg.SourceID,
+		arg.InvoiceID,
+		arg.TaxCode,
+		arg.TaxName,
+		arg.TaxKind,
+		arg.TaxRate,
+		arg.ReportCode,
+		arg.MoveDate,
+		arg.Base,
+		arg.Amount,
 	)
 	return err
 }
@@ -179,8 +382,40 @@ func (q *Queries) ListChargeTypes(ctx context.Context, active *bool) ([]FinanceC
 	return items, nil
 }
 
+const listFiscalPositions = `-- name: ListFiscalPositions :many
+SELECT id, name, rules, is_active, notes, updated_at, updated_by FROM finance.fiscal_positions ORDER BY is_active DESC, name
+`
+
+func (q *Queries) ListFiscalPositions(ctx context.Context) ([]FinanceFiscalPosition, error) {
+	rows, err := q.db.Query(ctx, listFiscalPositions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FinanceFiscalPosition{}
+	for rows.Next() {
+		var i FinanceFiscalPosition
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Rules,
+			&i.IsActive,
+			&i.Notes,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listInvoicePostings = `-- name: ListInvoicePostings :many
-SELECT id, invoice_id, sort_order, account_id, entry_side, amount, memo, tax_code, tax_name, tax_kind, tax_base FROM finance.invoice_postings WHERE invoice_id = $1 ORDER BY sort_order
+SELECT id, invoice_id, sort_order, account_id, entry_side, amount, memo, tax_code, tax_name, tax_kind, tax_base, tax_id, tax_rate, report_code, cash_basis, final_account_id FROM finance.invoice_postings WHERE invoice_id = $1 ORDER BY sort_order
 `
 
 func (q *Queries) ListInvoicePostings(ctx context.Context, invoiceID string) ([]FinanceInvoicePosting, error) {
@@ -204,6 +439,46 @@ func (q *Queries) ListInvoicePostings(ctx context.Context, invoiceID string) ([]
 			&i.TaxName,
 			&i.TaxKind,
 			&i.TaxBase,
+			&i.TaxID,
+			&i.TaxRate,
+			&i.ReportCode,
+			&i.CashBasis,
+			&i.FinalAccountID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPartyProfiles = `-- name: ListPartyProfiles :many
+SELECT id, side, name, npwp, address, is_pkp, fiscal_position_id, notes, updated_at, updated_by FROM finance.party_tax_profiles ORDER BY side, name
+`
+
+func (q *Queries) ListPartyProfiles(ctx context.Context) ([]FinancePartyTaxProfile, error) {
+	rows, err := q.db.Query(ctx, listPartyProfiles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FinancePartyTaxProfile{}
+	for rows.Next() {
+		var i FinancePartyTaxProfile
+		if err := rows.Scan(
+			&i.ID,
+			&i.Side,
+			&i.Name,
+			&i.Npwp,
+			&i.Address,
+			&i.IsPkp,
+			&i.FiscalPositionID,
+			&i.Notes,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -216,7 +491,7 @@ func (q *Queries) ListInvoicePostings(ctx context.Context, invoiceID string) ([]
 }
 
 const listTaxCodes = `-- name: ListTaxCodes :many
-SELECT id, code, name, kind, scope, rate, base_numerator, base_denominator, price_included, account_sale_id, account_purchase_id, report_code, valid_from, valid_to, is_default_sale, is_default_purchase, is_active, notes, created_at, updated_at, updated_by FROM finance.tax_codes
+SELECT id, code, name, kind, scope, rate, base_numerator, base_denominator, price_included, account_sale_id, account_purchase_id, report_code, valid_from, valid_to, is_default_sale, is_default_purchase, is_active, notes, created_at, updated_at, updated_by, brackets, cash_basis, transition_account_id FROM finance.tax_codes
  WHERE ($1::boolean IS NULL OR is_active = $1)
  ORDER BY is_active DESC, kind DESC, code
 `
@@ -252,6 +527,105 @@ func (q *Queries) ListTaxCodes(ctx context.Context, active *bool) ([]FinanceTaxC
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.UpdatedBy,
+			&i.Brackets,
+			&i.CashBasis,
+			&i.TransitionAccountID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const taxCodeInUse = `-- name: TaxCodeInUse :one
+SELECT EXISTS (SELECT 1 FROM finance.invoice_postings ip WHERE ip.tax_id = $1::text)
+    OR EXISTS (SELECT 1 FROM finance.tax_moves tm WHERE tm.tax_code = $2::text)
+    OR EXISTS (SELECT 1 FROM finance.documents WHERE taxes @> jsonb_build_array(jsonb_build_object('taxId', $1::text)))
+    OR EXISTS (SELECT 1 FROM finance.fiscal_positions
+                WHERE rules @> jsonb_build_array(jsonb_build_object('fromTaxId', $1::text))
+                   OR rules @> jsonb_build_array(jsonb_build_object('toTaxId', $1::text)))
+`
+
+type TaxCodeInUseParams struct {
+	ID   string
+	Code string
+}
+
+func (q *Queries) TaxCodeInUse(ctx context.Context, arg TaxCodeInUseParams) (*bool, error) {
+	row := q.db.QueryRow(ctx, taxCodeInUse, arg.ID, arg.Code)
+	var column_1 *bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const taxExportRows = `-- name: TaxExportRows :many
+SELECT m.move_date, m.tax_code, m.tax_name, m.tax_rate, m.report_code, m.base, m.amount, i.invoice_no, i.reference, i.party_name, i.subtotal, i.description,
+       coalesce(p.npwp, '')::text AS npwp, coalesce(p.address, '')::text AS address
+  FROM finance.tax_moves m
+  JOIN finance.invoices i ON i.id = m.invoice_id
+  LEFT JOIN finance.party_tax_profiles p ON p.side = CASE WHEN m.kind = 'AR' THEN 'B2B' ELSE 'SUPPLIER' END AND lower(p.name) = lower(i.party_name)
+ WHERE m.kind = $1 AND m.tax_kind = $2 AND m.source_type IN ('INVOICE', 'CASH')
+   AND m.move_date BETWEEN $3::date AND $4::date
+ ORDER BY m.move_date, i.invoice_no
+`
+
+type TaxExportRowsParams struct {
+	Kind     string
+	TaxKind  string
+	DateFrom time.Time
+	DateTo   time.Time
+}
+
+type TaxExportRowsRow struct {
+	MoveDate    time.Time
+	TaxCode     string
+	TaxName     string
+	TaxRate     domain.Money
+	ReportCode  string
+	Base        domain.Money
+	Amount      domain.Money
+	InvoiceNo   string
+	Reference   string
+	PartyName   string
+	Subtotal    domain.Money
+	Description string
+	Npwp        string
+	Address     string
+}
+
+func (q *Queries) TaxExportRows(ctx context.Context, arg TaxExportRowsParams) ([]TaxExportRowsRow, error) {
+	rows, err := q.db.Query(ctx, taxExportRows,
+		arg.Kind,
+		arg.TaxKind,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []TaxExportRowsRow{}
+	for rows.Next() {
+		var i TaxExportRowsRow
+		if err := rows.Scan(
+			&i.MoveDate,
+			&i.TaxCode,
+			&i.TaxName,
+			&i.TaxRate,
+			&i.ReportCode,
+			&i.Base,
+			&i.Amount,
+			&i.InvoiceNo,
+			&i.Reference,
+			&i.PartyName,
+			&i.Subtotal,
+			&i.Description,
+			&i.Npwp,
+			&i.Address,
 		); err != nil {
 			return nil, err
 		}
@@ -264,13 +638,11 @@ func (q *Queries) ListTaxCodes(ctx context.Context, active *bool) ([]FinanceTaxC
 }
 
 const taxRegister = `-- name: TaxRegister :many
-SELECT i.kind, p.tax_code, p.tax_name, p.tax_kind, count(DISTINCT i.id)::int AS invoice_count, sum(p.tax_base)::numeric AS base, sum(p.amount)::numeric AS amount
-  FROM finance.invoice_postings p
-  JOIN finance.invoices i ON i.id = p.invoice_id
- WHERE p.tax_code <> '' AND i.status = 'POSTED' AND i.deleted_at IS NULL
-   AND i.invoice_date BETWEEN $1::date AND $2::date
- GROUP BY i.kind, p.tax_code, p.tax_name, p.tax_kind
- ORDER BY i.kind, p.tax_kind DESC, p.tax_code
+SELECT kind, tax_code, tax_name, tax_kind, count(DISTINCT invoice_id)::int AS invoice_count, sum(base)::numeric AS base, sum(amount)::numeric AS amount
+  FROM finance.tax_moves
+ WHERE move_date BETWEEN $1::date AND $2::date
+ GROUP BY kind, tax_code, tax_name, tax_kind
+ ORDER BY kind, tax_kind DESC, tax_code
 `
 
 type TaxRegisterParams struct {
@@ -406,35 +778,98 @@ func (q *Queries) UpsertChargeType(ctx context.Context, arg UpsertChargeTypePara
 	return err
 }
 
+const upsertFiscalPosition = `-- name: UpsertFiscalPosition :exec
+INSERT INTO finance.fiscal_positions (id, name, rules, is_active, notes, updated_by) VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, rules = EXCLUDED.rules, is_active = EXCLUDED.is_active, notes = EXCLUDED.notes, updated_by = EXCLUDED.updated_by, updated_at = now()
+`
+
+type UpsertFiscalPositionParams struct {
+	ID       string
+	Name     string
+	Rules    []byte
+	IsActive bool
+	Notes    string
+	By       *string
+}
+
+func (q *Queries) UpsertFiscalPosition(ctx context.Context, arg UpsertFiscalPositionParams) error {
+	_, err := q.db.Exec(ctx, upsertFiscalPosition,
+		arg.ID,
+		arg.Name,
+		arg.Rules,
+		arg.IsActive,
+		arg.Notes,
+		arg.By,
+	)
+	return err
+}
+
+const upsertPartyProfile = `-- name: UpsertPartyProfile :exec
+INSERT INTO finance.party_tax_profiles (id, side, name, npwp, address, is_pkp, fiscal_position_id, notes, updated_by) VALUES ($1, $2, $3, $4, $5, $6, $8, $7, $9)
+ON CONFLICT (id) DO UPDATE SET side = EXCLUDED.side, name = EXCLUDED.name, npwp = EXCLUDED.npwp, address = EXCLUDED.address, is_pkp = EXCLUDED.is_pkp, fiscal_position_id = EXCLUDED.fiscal_position_id,
+  notes = EXCLUDED.notes, updated_by = EXCLUDED.updated_by, updated_at = now()
+`
+
+type UpsertPartyProfileParams struct {
+	ID               string
+	Side             string
+	Name             string
+	Npwp             string
+	Address          string
+	IsPkp            bool
+	Notes            string
+	FiscalPositionID *string
+	By               *string
+}
+
+func (q *Queries) UpsertPartyProfile(ctx context.Context, arg UpsertPartyProfileParams) error {
+	_, err := q.db.Exec(ctx, upsertPartyProfile,
+		arg.ID,
+		arg.Side,
+		arg.Name,
+		arg.Npwp,
+		arg.Address,
+		arg.IsPkp,
+		arg.Notes,
+		arg.FiscalPositionID,
+		arg.By,
+	)
+	return err
+}
+
 const upsertTaxCode = `-- name: UpsertTaxCode :exec
-INSERT INTO finance.tax_codes (id, code, name, kind, scope, rate, base_numerator, base_denominator, price_included, account_sale_id, account_purchase_id, report_code, valid_from, valid_to, is_default_sale, is_default_purchase, is_active, notes, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $15, $16, $10, $17, $18, $11, $12, $13, $14, $19)
+INSERT INTO finance.tax_codes (id, code, name, kind, scope, rate, base_numerator, base_denominator, price_included, account_sale_id, account_purchase_id, report_code, valid_from, valid_to, is_default_sale, is_default_purchase, is_active, notes, brackets, cash_basis, transition_account_id, updated_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $17, $18, $10, $19, $20, $11, $12, $13, $14, $15, $16, $21, $22)
 ON CONFLICT (id) DO UPDATE SET code = EXCLUDED.code, name = EXCLUDED.name, kind = EXCLUDED.kind, scope = EXCLUDED.scope, rate = EXCLUDED.rate, base_numerator = EXCLUDED.base_numerator,
   base_denominator = EXCLUDED.base_denominator, price_included = EXCLUDED.price_included, account_sale_id = EXCLUDED.account_sale_id, account_purchase_id = EXCLUDED.account_purchase_id,
   report_code = EXCLUDED.report_code, valid_from = EXCLUDED.valid_from, valid_to = EXCLUDED.valid_to, is_default_sale = EXCLUDED.is_default_sale, is_default_purchase = EXCLUDED.is_default_purchase,
-  is_active = EXCLUDED.is_active, notes = EXCLUDED.notes, updated_by = EXCLUDED.updated_by, updated_at = now()
+  is_active = EXCLUDED.is_active, notes = EXCLUDED.notes, brackets = EXCLUDED.brackets, cash_basis = EXCLUDED.cash_basis, transition_account_id = EXCLUDED.transition_account_id,
+  updated_by = EXCLUDED.updated_by, updated_at = now()
 `
 
 type UpsertTaxCodeParams struct {
-	ID                string
-	Code              string
-	Name              string
-	Kind              string
-	Scope             string
-	Rate              domain.Money
-	BaseNumerator     int32
-	BaseDenominator   int32
-	PriceIncluded     bool
-	ReportCode        string
-	IsDefaultSale     bool
-	IsDefaultPurchase bool
-	IsActive          bool
-	Notes             string
-	AccountSaleID     *string
-	AccountPurchaseID *string
-	ValidFrom         *time.Time
-	ValidTo           *time.Time
-	By                *string
+	ID                  string
+	Code                string
+	Name                string
+	Kind                string
+	Scope               string
+	Rate                domain.Money
+	BaseNumerator       int32
+	BaseDenominator     int32
+	PriceIncluded       bool
+	ReportCode          string
+	IsDefaultSale       bool
+	IsDefaultPurchase   bool
+	IsActive            bool
+	Notes               string
+	Brackets            []byte
+	CashBasis           bool
+	AccountSaleID       *string
+	AccountPurchaseID   *string
+	ValidFrom           *time.Time
+	ValidTo             *time.Time
+	TransitionAccountID *string
+	By                  *string
 }
 
 func (q *Queries) UpsertTaxCode(ctx context.Context, arg UpsertTaxCodeParams) error {
@@ -453,10 +888,13 @@ func (q *Queries) UpsertTaxCode(ctx context.Context, arg UpsertTaxCodeParams) er
 		arg.IsDefaultPurchase,
 		arg.IsActive,
 		arg.Notes,
+		arg.Brackets,
+		arg.CashBasis,
 		arg.AccountSaleID,
 		arg.AccountPurchaseID,
 		arg.ValidFrom,
 		arg.ValidTo,
+		arg.TransitionAccountID,
 		arg.By,
 	)
 	return err

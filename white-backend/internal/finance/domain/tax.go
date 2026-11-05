@@ -37,6 +37,11 @@ type TaxCode struct {
 	IsDefaultSale, IsDefaultPurchase bool
 	IsActive                         bool
 	Notes, UpdatedBy                 string
+	// Brackets replace the flat rate when present.
+	Brackets []TaxBracket
+	// CashBasis holds VAT on TransitionAccountID until the invoice is paid.
+	CashBasis           bool
+	TransitionAccountID string
 }
 
 // ScopeFits reports whether a tax or charge can be used on a side.
@@ -72,19 +77,107 @@ func (c ChargeType) AccountFor(side string) string {
 	return c.AccountPurchaseID
 }
 
+// TaxBracket is one step of a progressive rate. UpTo is the top of the step on
+// the whole base; zero means no limit.
+type TaxBracket struct {
+	UpTo Money `json:"upTo"`
+	Rate Money `json:"rate"`
+}
+
+// ProgressiveTax charges each slice of the base at its own step's rate.
+func ProgressiveTax(base Money, brackets []TaxBracket) Money {
+	var tax, floor Money
+	for _, b := range brackets {
+		top := b.UpTo
+		if top == 0 || top > base {
+			top = base
+		}
+		if top > floor {
+			tax += mulHundredths(top-floor, b.Rate)
+			floor = top
+		}
+	}
+	return tax
+}
+
+// ValidBrackets requires rising limits and an open last step.
+func ValidBrackets(brackets []TaxBracket) bool {
+	var last Money
+	for i, b := range brackets {
+		if b.Rate < 0 || b.Rate > Rupiah(100) {
+			return false
+		}
+		if i == len(brackets)-1 {
+			return b.UpTo == 0
+		}
+		if b.UpTo <= last {
+			return false
+		}
+		last = b.UpTo
+	}
+	return true
+}
+
+// FiscalRule swaps a tax for a party: an empty target removes it.
+type FiscalRule struct {
+	FromTaxID string `json:"fromTaxId"`
+	ToTaxID   string `json:"toTaxId"`
+}
+
+// FiscalPosition is a named set of tax swaps assigned to parties.
+type FiscalPosition struct {
+	ID, Name, Notes, UpdatedBy string
+	Rules                      []FiscalRule
+	IsActive                   bool
+}
+
+// PartyProfile is the tax identity of a client or vendor, matched by name
+// because invoices hold the party as text.
+type PartyProfile struct {
+	ID, Side, Name, NPWP, Address, FiscalPositionID, Notes, UpdatedBy string
+	IsPKP                                                             bool
+}
+
+// TaxMove is one signed line of the tax ledger.
+type TaxMove struct {
+	Kind, SourceType, SourceID, InvoiceID, TaxCode, TaxName, TaxKind, ReportCode, Date string
+	TaxRate, Base, Amount                                                              Money
+}
+
+// Tax move sources.
+const (
+	MoveInvoice    = "INVOICE"
+	MoveCreditNote = "CREDIT_NOTE"
+	MoveCash       = "CASH"
+	MoveCashVoid   = "CASH_VOID"
+)
+
+// TaxExportRow is a tax ledger line with the invoice and the party's identity.
+type TaxExportRow struct {
+	Date, TaxCode, TaxName, ReportCode, InvoiceNo, Reference, Party, Description, NPWP, Address string
+	TaxRate, Base, Amount, Subtotal                                                             Money
+}
+
+// MulDiv is a*b/c rounded half up.
+func MulDiv(a, b, c Money) Money { return mulDiv(int64(a), int64(b), int64(c)) }
+
 // DocTax is the copy of a tax on a document, with its result.
 type DocTax struct {
-	TaxID           string `json:"taxId"`
-	Code            string `json:"code"`
-	Name            string `json:"name"`
-	Kind            string `json:"kind"`
-	Rate            Money  `json:"rate"`
-	BaseNumerator   int    `json:"baseNumerator"`
-	BaseDenominator int    `json:"baseDenominator"`
-	PriceIncluded   bool   `json:"priceIncluded"`
-	AccountID       string `json:"accountId"`
-	Base            Money  `json:"base"`
-	Amount          Money  `json:"amount"`
+	TaxID               string       `json:"taxId"`
+	Code                string       `json:"code"`
+	Name                string       `json:"name"`
+	Kind                string       `json:"kind"`
+	Rate                Money        `json:"rate"`
+	BaseNumerator       int          `json:"baseNumerator"`
+	BaseDenominator     int          `json:"baseDenominator"`
+	PriceIncluded       bool         `json:"priceIncluded"`
+	AccountID           string       `json:"accountId"`
+	ReportCode          string       `json:"reportCode,omitempty"`
+	Brackets            []TaxBracket `json:"brackets,omitempty"`
+	CashBasis           bool         `json:"cashBasis,omitempty"`
+	TransitionAccountID string       `json:"transitionAccountId,omitempty"`
+	Base                Money        `json:"base"`
+	Amount              Money        `json:"amount"`
 }
 
 // DocCharge is the copy of a charge on a document. Amount is signed: a
@@ -127,6 +220,10 @@ type InvoicePosting struct {
 	SortOrder                            int
 	TaxCode, TaxName, TaxKind            string
 	TaxBase                              Money
+	TaxID, ReportCode, FinalAccountID    string
+	TaxRate                              Money
+	// CashBasis parks the tax on the transition account until payment.
+	CashBasis bool
 }
 
 // TaxRegisterRow is one tax code in a period, per payable or receivable side.
@@ -141,11 +238,28 @@ type TaxRepo interface {
 	ListTaxCodes(ctx context.Context, activeOnly bool) ([]TaxCode, error)
 	GetTaxCode(ctx context.Context, id string) (*TaxCode, error)
 	SaveTaxCode(ctx context.Context, t TaxCode) error
+	TaxCodeInUse(ctx context.Context, id, code string) (bool, error)
+	DeleteTaxCode(ctx context.Context, id string) error
 	ListChargeTypes(ctx context.Context, activeOnly bool) ([]ChargeType, error)
 	GetChargeType(ctx context.Context, id string) (*ChargeType, error)
 	SaveChargeType(ctx context.Context, c ChargeType) error
+	ChargeTypeInUse(ctx context.Context, id string) (bool, error)
+	DeleteChargeType(ctx context.Context, id string) error
 	InsertInvoicePosting(ctx context.Context, p InvoicePosting) error
 	ListInvoicePostings(ctx context.Context, invoiceID string) ([]InvoicePosting, error)
 	IsDocumentInvoice(ctx context.Context, invoiceID string) (bool, error)
 	TaxRegister(ctx context.Context, from, to string) ([]TaxRegisterRow, error)
+	GetTaxCodeByCode(ctx context.Context, code string) (*TaxCode, error)
+	DeleteInvoicePostings(ctx context.Context, invoiceID string) error
+	InsertTaxMove(ctx context.Context, m TaxMove) error
+	TaxExportRows(ctx context.Context, kind, taxKind, from, to string) ([]TaxExportRow, error)
+	ListFiscalPositions(ctx context.Context) ([]FiscalPosition, error)
+	GetFiscalPosition(ctx context.Context, id string) (*FiscalPosition, error)
+	SaveFiscalPosition(ctx context.Context, f FiscalPosition) error
+	FiscalPositionInUse(ctx context.Context, id string) (bool, error)
+	DeleteFiscalPosition(ctx context.Context, id string) error
+	ListPartyProfiles(ctx context.Context) ([]PartyProfile, error)
+	GetPartyProfile(ctx context.Context, side, name string) (*PartyProfile, error)
+	SavePartyProfile(ctx context.Context, p PartyProfile) error
+	DeletePartyProfile(ctx context.Context, id string) error
 }

@@ -336,6 +336,14 @@ func (s *Store) InsertTemplateItem(ctx context.Context, it domain.LogbookTemplat
 		Description: it.Description, Weight: it.Weight, IsRequired: it.IsRequired, SortOrder: int32(it.SortOrder)})
 }
 
+func (s *Store) UpdateTemplate(ctx context.Context, t domain.LogbookTemplate) error {
+	return s.q.UpdateTemplate(ctx, sqlc.UpdateTemplateParams{ID: t.ID, Name: t.Name, Description: t.Description, Frequency: t.Frequency})
+}
+
+func (s *Store) DeleteTemplateItems(ctx context.Context, templateID string) error {
+	return s.q.DeleteTemplateItems(ctx, templateID)
+}
+
 func (s *Store) CountTemplateEntries(ctx context.Context, templateID string) (int, error) {
 	n, err := s.q.CountTemplateEntries(ctx, templateID)
 	return int(n), err

@@ -4626,6 +4626,7 @@ const (
 	PitchDeckService_GetPitchDeck_FullMethodName      = "/white.sales.v1.PitchDeckService/GetPitchDeck"
 	PitchDeckService_GeneratePitchDeck_FullMethodName = "/white.sales.v1.PitchDeckService/GeneratePitchDeck"
 	PitchDeckService_GetPitchDeckFile_FullMethodName  = "/white.sales.v1.PitchDeckService/GetPitchDeckFile"
+	PitchDeckService_DeletePitchDeck_FullMethodName   = "/white.sales.v1.PitchDeckService/DeletePitchDeck"
 	PitchDeckService_ListCaseStudies_FullMethodName   = "/white.sales.v1.PitchDeckService/ListCaseStudies"
 	PitchDeckService_SaveCaseStudy_FullMethodName     = "/white.sales.v1.PitchDeckService/SaveCaseStudy"
 	PitchDeckService_DeleteCaseStudy_FullMethodName   = "/white.sales.v1.PitchDeckService/DeleteCaseStudy"
@@ -4640,6 +4641,7 @@ type PitchDeckServiceClient interface {
 	GeneratePitchDeck(ctx context.Context, in *GeneratePitchDeckRequest, opts ...grpc.CallOption) (*PitchDeck, error)
 	// Internal: PPTX bytes for the gateway.
 	GetPitchDeckFile(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*File, error)
+	DeletePitchDeck(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListCaseStudies(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCaseStudiesResponse, error)
 	// ADMIN.
 	SaveCaseStudy(ctx context.Context, in *CaseStudy, opts ...grpc.CallOption) (*CaseStudy, error)
@@ -4694,6 +4696,16 @@ func (c *pitchDeckServiceClient) GetPitchDeckFile(ctx context.Context, in *IdReq
 	return out, nil
 }
 
+func (c *pitchDeckServiceClient) DeletePitchDeck(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, PitchDeckService_DeletePitchDeck_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *pitchDeckServiceClient) ListCaseStudies(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListCaseStudiesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCaseStudiesResponse)
@@ -4733,6 +4745,7 @@ type PitchDeckServiceServer interface {
 	GeneratePitchDeck(context.Context, *GeneratePitchDeckRequest) (*PitchDeck, error)
 	// Internal: PPTX bytes for the gateway.
 	GetPitchDeckFile(context.Context, *IdRequest) (*File, error)
+	DeletePitchDeck(context.Context, *IdRequest) (*emptypb.Empty, error)
 	ListCaseStudies(context.Context, *emptypb.Empty) (*ListCaseStudiesResponse, error)
 	// ADMIN.
 	SaveCaseStudy(context.Context, *CaseStudy) (*CaseStudy, error)
@@ -4758,6 +4771,9 @@ func (UnimplementedPitchDeckServiceServer) GeneratePitchDeck(context.Context, *G
 }
 func (UnimplementedPitchDeckServiceServer) GetPitchDeckFile(context.Context, *IdRequest) (*File, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPitchDeckFile not implemented")
+}
+func (UnimplementedPitchDeckServiceServer) DeletePitchDeck(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePitchDeck not implemented")
 }
 func (UnimplementedPitchDeckServiceServer) ListCaseStudies(context.Context, *emptypb.Empty) (*ListCaseStudiesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCaseStudies not implemented")
@@ -4861,6 +4877,24 @@ func _PitchDeckService_GetPitchDeckFile_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PitchDeckService_DeletePitchDeck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PitchDeckServiceServer).DeletePitchDeck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PitchDeckService_DeletePitchDeck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PitchDeckServiceServer).DeletePitchDeck(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PitchDeckService_ListCaseStudies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -4937,6 +4971,10 @@ var PitchDeckService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPitchDeckFile",
 			Handler:    _PitchDeckService_GetPitchDeckFile_Handler,
+		},
+		{
+			MethodName: "DeletePitchDeck",
+			Handler:    _PitchDeckService_DeletePitchDeck_Handler,
 		},
 		{
 			MethodName: "ListCaseStudies",

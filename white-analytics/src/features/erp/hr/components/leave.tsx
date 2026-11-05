@@ -302,7 +302,7 @@ export function LeaveForm({
   );
 }
 
-export function BalancesTable({ rows }: { rows: { employee: EmployeeOption; balance: LeaveBalance }[] }) {
+export function BalancesTable({ rows, employees }: { rows: { employee: EmployeeOption; balance: LeaveBalance }[]; employees: EmployeeOption[] }) {
   const b = th.balance;
   const columns: ColumnDef<(typeof rows)[number], unknown>[] = [
     {
@@ -328,5 +328,18 @@ export function BalancesTable({ rows }: { rows: { employee: EmployeeOption; bala
     { id: "unpaid", accessorFn: (r) => r.balance.unpaidLeaveUsed, header: b.unpaid, meta: { align: "right" } },
     { id: "pending", accessorFn: (r) => r.balance.pendingDays, header: b.pending, meta: { align: "right" } },
   ];
-  return <ErpDataTable columns={columns} data={rows} exportName="saldo-cuti" getRowId={(r) => r.employee.id} />;
+  return (
+    <ErpDataTable
+      columns={columns}
+      data={rows}
+      exportName="saldo-cuti"
+      getRowId={(r) => r.employee.id}
+      toolbar={
+        <>
+          <PeopleFilters departments={[]} employees={employees} />
+          <ResetFilters params={["employee"]} />
+        </>
+      }
+    />
+  );
 }

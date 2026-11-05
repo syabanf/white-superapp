@@ -171,6 +171,16 @@ type FinanceFiscalPeriod struct {
 	UpdatedAt    time.Time
 }
 
+type FinanceFiscalPosition struct {
+	ID        string
+	Name      string
+	Rules     []byte
+	IsActive  bool
+	Notes     string
+	UpdatedAt time.Time
+	UpdatedBy *string
+}
+
 type FinanceFiscalYear struct {
 	ID        string
 	Code      string
@@ -235,17 +245,22 @@ type FinanceInvoice struct {
 }
 
 type FinanceInvoicePosting struct {
-	ID        string
-	InvoiceID string
-	SortOrder int32
-	AccountID string
-	EntrySide string
-	Amount    domain.Money
-	Memo      string
-	TaxCode   string
-	TaxName   string
-	TaxKind   string
-	TaxBase   domain.Money
+	ID             string
+	InvoiceID      string
+	SortOrder      int32
+	AccountID      string
+	EntrySide      string
+	Amount         domain.Money
+	Memo           string
+	TaxCode        string
+	TaxName        string
+	TaxKind        string
+	TaxBase        domain.Money
+	TaxID          string
+	TaxRate        domain.Money
+	ReportCode     string
+	CashBasis      bool
+	FinalAccountID *string
 }
 
 type FinanceJournalEntry struct {
@@ -306,6 +321,19 @@ type FinanceJournalMappingLine struct {
 	AmountSource string
 	SortOrder    int32
 	IsRequired   bool
+}
+
+type FinancePartyTaxProfile struct {
+	ID               string
+	Side             string
+	Name             string
+	Npwp             string
+	Address          string
+	IsPkp            bool
+	FiscalPositionID *string
+	Notes            string
+	UpdatedAt        time.Time
+	UpdatedBy        *string
 }
 
 type FinancePayment struct {
@@ -465,27 +493,46 @@ type FinanceReimbursementReceipt struct {
 }
 
 type FinanceTaxCode struct {
-	ID                string
-	Code              string
-	Name              string
-	Kind              string
-	Scope             string
-	Rate              domain.Money
-	BaseNumerator     int32
-	BaseDenominator   int32
-	PriceIncluded     bool
-	AccountSaleID     *string
-	AccountPurchaseID *string
-	ReportCode        string
-	ValidFrom         *time.Time
-	ValidTo           *time.Time
-	IsDefaultSale     bool
-	IsDefaultPurchase bool
-	IsActive          bool
-	Notes             string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	UpdatedBy         *string
+	ID                  string
+	Code                string
+	Name                string
+	Kind                string
+	Scope               string
+	Rate                domain.Money
+	BaseNumerator       int32
+	BaseDenominator     int32
+	PriceIncluded       bool
+	AccountSaleID       *string
+	AccountPurchaseID   *string
+	ReportCode          string
+	ValidFrom           *time.Time
+	ValidTo             *time.Time
+	IsDefaultSale       bool
+	IsDefaultPurchase   bool
+	IsActive            bool
+	Notes               string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	UpdatedBy           *string
+	Brackets            []byte
+	CashBasis           bool
+	TransitionAccountID *string
+}
+
+type FinanceTaxMove struct {
+	ID         string
+	Kind       string
+	SourceType string
+	SourceID   string
+	InvoiceID  string
+	TaxCode    string
+	TaxName    string
+	TaxKind    string
+	TaxRate    domain.Money
+	ReportCode string
+	MoveDate   time.Time
+	Base       domain.Money
+	Amount     domain.Money
 }
 
 type FinanceVendor struct {

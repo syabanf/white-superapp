@@ -217,6 +217,23 @@ func (s *scheduleServer) CreateRecurringJournal(ctx context.Context, r *financev
 	return recurringPB(out), nil
 }
 
+func (s *scheduleServer) UpdateRecurringJournal(ctx context.Context, r *financev1.UpdateRecurringJournalRequest) (*financev1.RecurringJournal, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	in := r.GetInput()
+	lines, err := linesFrom(in.GetLines())
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.svc.Schedules.UpdateRecurring(ctx, p.UserID, r.Id, app.RecurringInput{Name: in.GetName(), Description: in.GetDescription(), Frequency: in.GetFrequency(), StartDate: in.GetStartDate(), EndDate: in.GetEndDate(), Lines: lines})
+	if err != nil {
+		return nil, err
+	}
+	return recurringPB(out), nil
+}
+
 func (s *scheduleServer) SetRecurringJournalActive(ctx context.Context, r *financev1.SetActiveRequest) (*financev1.RecurringJournal, error) {
 	p, err := approve(ctx)
 	if err != nil {
@@ -256,19 +273,43 @@ func (s *scheduleServer) CreateFixedAsset(ctx context.Context, r *financev1.Fixe
 	if err != nil {
 		return nil, err
 	}
-	cost, err := money("cost", r.Cost)
+	in, err := assetInput(r)
 	if err != nil {
 		return nil, err
 	}
-	salvage, err := money("salvage", orZero(r.Salvage))
-	if err != nil {
-		return nil, err
-	}
-	out, err := s.svc.Schedules.CreateAsset(ctx, p.UserID, app.AssetInput{Name: r.Name, AcquiredOn: r.AcquiredOn, Cost: cost, Salvage: salvage, LifeMonths: int(r.LifeMonths), ExpenseAccountID: r.ExpenseAccountId, AccumAccountID: r.AccumAccountId})
+	out, err := s.svc.Schedules.CreateAsset(ctx, p.UserID, in)
 	if err != nil {
 		return nil, err
 	}
 	return assetPB(out), nil
+}
+
+func (s *scheduleServer) UpdateFixedAsset(ctx context.Context, r *financev1.UpdateFixedAssetRequest) (*financev1.FixedAsset, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	in, err := assetInput(r.GetInput())
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.svc.Schedules.UpdateAsset(ctx, p.UserID, r.Id, in)
+	if err != nil {
+		return nil, err
+	}
+	return assetPB(out), nil
+}
+
+func assetInput(r *financev1.FixedAssetInput) (app.AssetInput, error) {
+	cost, err := money("cost", r.GetCost())
+	if err != nil {
+		return app.AssetInput{}, err
+	}
+	salvage, err := money("salvage", orZero(r.GetSalvage()))
+	if err != nil {
+		return app.AssetInput{}, err
+	}
+	return app.AssetInput{Name: r.GetName(), AcquiredOn: r.GetAcquiredOn(), Cost: cost, Salvage: salvage, LifeMonths: int(r.GetLifeMonths()), ExpenseAccountID: r.GetExpenseAccountId(), AccumAccountID: r.GetAccumAccountId()}, nil
 }
 
 func orZero(s string) string {

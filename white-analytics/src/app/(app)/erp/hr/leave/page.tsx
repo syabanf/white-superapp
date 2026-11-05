@@ -30,12 +30,12 @@ export default async function LeavePage(props: PageProps<"/erp/hr/leave">) {
     const year = new Date().getFullYear();
     // No bulk endpoint: one balance read per active employee.
     const rows = await Promise.all(
-      (employees.data ?? []).map(async (employee) => {
+      (employees.data ?? []).filter((e) => !sp1(sp.employee) || e.id === sp1(sp.employee)).map(async (employee) => {
         const res = await load(() => getLeaveBalance(employee.id, year));
         return res.data ? { employee, balance: res.data } : null;
       }),
     );
-    body = <BalancesTable rows={rows.filter((r) => r !== null)} />;
+    body = <BalancesTable rows={rows.filter((r) => r !== null)} employees={employees.data ?? []} />;
   } else {
     const approvals = tab === "approvals";
     const page = spInt(sp.page, 1);

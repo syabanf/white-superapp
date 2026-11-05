@@ -642,6 +642,7 @@ type BankingRepo interface {
 	GetRecurringJournal(ctx context.Context, id string) (*RecurringJournal, error)
 	DueRecurringJournals(ctx context.Context, today string) ([]RecurringJournal, error)
 	InsertRecurringJournal(ctx context.Context, r RecurringJournal) error
+	UpdateRecurringJournal(ctx context.Context, r RecurringJournal, by string) error
 	UpdateRecurringRun(ctx context.Context, r RecurringJournal) error
 	SetRecurringActive(ctx context.Context, id string, active bool, by string) error
 	DeleteRecurringJournal(ctx context.Context, id string) error
@@ -649,6 +650,7 @@ type BankingRepo interface {
 	ListFixedAssets(ctx context.Context, activeOnly bool) ([]FixedAsset, error)
 	GetFixedAsset(ctx context.Context, id string) (*FixedAsset, error)
 	InsertFixedAsset(ctx context.Context, a FixedAsset) error
+	UpdateFixedAsset(ctx context.Context, a FixedAsset, by string) error
 	UpdateFixedAssetRun(ctx context.Context, a FixedAsset) error
 	SetFixedAssetActive(ctx context.Context, id string, active bool, by string) error
 	DeleteFixedAsset(ctx context.Context, id string) error

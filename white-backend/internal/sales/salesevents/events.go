@@ -26,6 +26,8 @@ type InvoiceIssued struct {
 	TotalAmount string `json:"totalAmount"`
 	Description string `json:"description,omitempty"`
 	IssuedBy    string `json:"issuedBy,omitempty"`
+	// TaxCode is the finance code the quotation chose; empty for a typed rate.
+	TaxCode string `json:"taxCode,omitempty"`
 }
 
 // PaymentRecorded is published on events.SalesPaymentRecorded for a

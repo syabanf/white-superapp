@@ -7,7 +7,7 @@ import { DateFilter } from "@/features/erp/shared/period-picker";
 import { ErpLoadError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
 import { financePerms } from "../perms";
-import { getAging, listInvoices, listOpenInvoices, listPayments, listPostableAccounts, listSubsidiaryParties } from "../queries";
+import { getAging, listInvoices, listOpenInvoices, listPayments, listPostableAccounts, listSubsidiaryParties, listTaxCodes } from "../queries";
 import type { LedgerKind } from "../types";
 import { fs } from "../strings";
 import { InvoicesTable } from "./invoices";
@@ -78,7 +78,7 @@ export async function LedgerKindPage({
     );
   }
 
-  const [res, accounts, parties] = await Promise.all([
+  const [res, accounts, parties, taxes] = await Promise.all([
     load(() =>
       listInvoices(kind, {
         search: sp1(sp.q),
@@ -93,6 +93,7 @@ export async function LedgerKindPage({
     ),
     perms.canWrite ? load(listPostableAccounts) : null,
     load(() => listSubsidiaryParties(kind)),
+    perms.canWrite ? load(() => listTaxCodes(true)) : null,
   ]);
   return (
     <>
@@ -106,6 +107,7 @@ export async function LedgerKindPage({
           invoices={res.data.invoices}
           page={{ page, pageSize, total: res.data.total }}
           accounts={accounts?.data ?? []}
+          taxes={taxes?.data ?? []}
           parties={(parties.data ?? []).map((p) => p.partyName)}
           perms={perms}
         />

@@ -591,3 +591,7 @@ func (s *Store) MarkSLABreaches(ctx context.Context, before time.Time) ([]domain
 	rows, err := s.q.MarkSLABreaches(ctx, &before)
 	return many(rows, err, toConversation)
 }
+
+func (s *Store) DeletePitchDeck(ctx context.Context, id string) error {
+	return s.q.DeletePitchDeck(ctx, id)
+}

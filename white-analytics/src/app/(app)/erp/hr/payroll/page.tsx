@@ -70,7 +70,7 @@ async function Body({ tab, sp, perms }: { tab: string; sp: SP; perms: ReturnType
     case "additions": {
       const { ym, month, year } = monthParam(sp1(sp.month));
       const [list, emps] = await Promise.all([
-        load(() => listPayrollAdditions({ periodMonth: month, periodYear: year })),
+        load(() => listPayrollAdditions({ periodMonth: month, periodYear: year, employeeId: sp1(sp.employee) })),
         load(listEmployeeOptions),
       ]);
       return (
@@ -85,7 +85,7 @@ async function Body({ tab, sp, perms }: { tab: string; sp: SP; perms: ReturnType
       );
     }
     case "loans": {
-      const [list, emps] = await Promise.all([load(() => listLoans({ status: sp1(sp.status) })), load(listEmployeeOptions)]);
+      const [list, emps] = await Promise.all([load(() => listLoans({ status: sp1(sp.status), employeeId: sp1(sp.employee) })), load(listEmployeeOptions)]);
       return list.data ? (
         <LoansTable loans={list.data} employees={emps.data ?? []} canWrite={perms.payroll} canDecide={perms.approve} />
       ) : (

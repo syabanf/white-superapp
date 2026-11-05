@@ -179,6 +179,9 @@ func (d *Document) Recalculate() {
 		num, den := t.ratio()
 		t.Base = mulDiv(int64(dpp), num, den)
 		t.Amount = mulHundredths(t.Base, t.Rate)
+		if len(t.Brackets) > 0 {
+			t.Amount = ProgressiveTax(t.Base, t.Brackets)
+		}
 		// With nothing changing the price, included VAT is exactly what came out.
 		if t.PriceIncluded && t.Kind == TaxVAT && d.Discount == 0 && taxable == 0 {
 			t.Amount = gross - d.Subtotal
@@ -200,6 +203,8 @@ type DocumentRepo interface {
 	ListVendors(ctx context.Context, query string, activeOnly bool) ([]Vendor, error)
 	GetVendor(ctx context.Context, id string) (*Vendor, error)
 	SaveVendor(ctx context.Context, v Vendor) error
+	VendorInUse(ctx context.Context, id string) (bool, error)
+	DeleteVendor(ctx context.Context, id string) error
 	ListDocuments(ctx context.Context, f DocumentFilter) ([]Document, int, error)
 	GetDocument(ctx context.Context, id string) (*Document, error)
 	InsertDocument(ctx context.Context, d Document) error

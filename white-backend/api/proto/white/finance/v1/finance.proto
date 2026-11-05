@@ -885,6 +885,10 @@ message Invoice {
   string journal_entry_id = 22;
   optional google.protobuf.Timestamp posted_at = 23;
   google.protobuf.Timestamp created_at = 24;
+  // Held back from the payment: subtotal plus tax minus total.
+  string withholding_amount = 25;
+  // Set on a single invoice read, for the edit form.
+  repeated string tax_ids = 26;
 }
 
 message InvoiceInput {
@@ -897,6 +901,8 @@ message InvoiceInput {
   string tax_amount = 7;
   string description = 8;
   string client_id = 9;
+  // Master tax codes; they replace a typed tax_amount.
+  repeated string tax_ids = 10;
 }
 
 message UpdateInvoiceRequest {
@@ -1967,6 +1973,9 @@ service ScheduleService {
   rpc CreateRecurringJournal(RecurringJournalInput) returns (RecurringJournal) {
     option (google.api.http) = {post: "/v1/finance/recurring-journals" body: "*"};
   }
+  rpc UpdateRecurringJournal(UpdateRecurringJournalRequest) returns (RecurringJournal) {
+    option (google.api.http) = {patch: "/v1/finance/recurring-journals/{id}" body: "input"};
+  }
   rpc SetRecurringJournalActive(SetActiveRequest) returns (RecurringJournal) {
     option (google.api.http) = {post: "/v1/finance/recurring-journals/{id}:active" body: "*"};
   }
@@ -1978,6 +1987,10 @@ service ScheduleService {
   }
   rpc CreateFixedAsset(FixedAssetInput) returns (FixedAsset) {
     option (google.api.http) = {post: "/v1/finance/fixed-assets" body: "*"};
+  }
+  // After the first depreciation only the name and the accounts can change.
+  rpc UpdateFixedAsset(UpdateFixedAssetRequest) returns (FixedAsset) {
+    option (google.api.http) = {patch: "/v1/finance/fixed-assets/{id}" body: "input"};
   }
   rpc SetFixedAssetActive(SetActiveRequest) returns (FixedAsset) {
     option (google.api.http) = {post: "/v1/finance/fixed-assets/{id}:active" body: "*"};
@@ -1998,6 +2011,10 @@ service DocumentService {
   }
   rpc SaveVendor(VendorInput) returns (Vendor) {
     option (google.api.http) = {post: "/v1/finance/vendors" body: "*"};
+  }
+  // Refused once a document uses the vendor; deactivate it instead.
+  rpc DeleteVendor(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/vendors/{id}"};
   }
   rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse) {
     option (google.api.http) = {get: "/v1/finance/documents"};
@@ -2042,6 +2059,19 @@ service TaxSetupService {
   rpc SaveTaxCode(TaxCode) returns (TaxCode) {
     option (google.api.http) = {post: "/v1/finance/tax-codes" body: "*"};
   }
+  // Master rows are refused while anything still refers to them.
+  rpc DeleteTaxCode(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/tax-codes/{id}"};
+  }
+  rpc DeleteChargeType(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/charge-types/{id}"};
+  }
+  rpc DeleteFiscalPosition(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/fiscal-positions/{id}"};
+  }
+  rpc DeletePartyProfile(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/party-tax-profiles/{id}"};
+  }
   rpc ListChargeTypes(ListTaxMasterRequest) returns (ListChargeTypesResponse) {
     option (google.api.http) = {get: "/v1/finance/charge-types"};
   }
@@ -2050,6 +2080,28 @@ service TaxSetupService {
   }
   rpc GetTaxRegister(PeriodRequest) returns (TaxRegister) {
     option (google.api.http) = {get: "/v1/finance/reports/tax-register"};
+  }
+  // CSV for the DJP templates: efaktur (output VAT), bupot-keluar (PPh we held
+  // back from vendors), bupot-masuk (PPh clients held back from us).
+  rpc ExportTaxData(TaxExportRequest) returns (TaxExportFile) {
+    option (google.api.http) = {get: "/v1/finance/reports/tax-export"};
+  }
+  rpc ListFiscalPositions(google.protobuf.Empty) returns (ListFiscalPositionsResponse) {
+    option (google.api.http) = {get: "/v1/finance/fiscal-positions"};
+  }
+  rpc SaveFiscalPosition(FiscalPosition) returns (FiscalPosition) {
+    option (google.api.http) = {post: "/v1/finance/fiscal-positions" body: "*"};
+  }
+  rpc ListPartyProfiles(google.protobuf.Empty) returns (ListPartyProfilesResponse) {
+    option (google.api.http) = {get: "/v1/finance/party-tax-profiles"};
+  }
+  rpc SavePartyProfile(PartyTaxProfile) returns (PartyTaxProfile) {
+    option (google.api.http) = {post: "/v1/finance/party-tax-profiles" body: "*"};
+  }
+  // finance.approve. Reverses part or all of a posted invoice's journal and
+  // lowers what the party owes.
+  rpc CreateCreditNote(CreditNoteRequest) returns (Invoice) {
+    option (google.api.http) = {post: "/v1/finance/invoices/{invoice_id}:credit-note" body: "*"};
   }
 }
 
@@ -2303,6 +2355,14 @@ message RecurringJournalInput {
   string start_date = 4;
   string end_date = 5;
   repeated JournalLineInput lines = 6;
+}
+message UpdateRecurringJournalRequest {
+  string id = 1;
+  RecurringJournalInput input = 2;
+}
+message UpdateFixedAssetRequest {
+  string id = 1;
+  FixedAssetInput input = 2;
 }
 message ListRecurringJournalsResponse {
   repeated RecurringJournal journals = 1;
@@ -2605,6 +2665,15 @@ message TaxCode {
   bool is_default_purchase = 16;
   bool is_active = 17;
   string notes = 18;
+  repeated TaxBracketMsg brackets = 19;
+  // VAT recognized on payment, parked on transition_account_id until then.
+  bool cash_basis = 20;
+  string transition_account_id = 21;
+}
+message TaxBracketMsg {
+  // Top of the step on the whole base; zero is no limit.
+  string up_to = 1;
+  string rate = 2;
 }
 message ChargeType {
   // Empty creates a charge.
@@ -2654,4 +2723,51 @@ message TaxRegister {
   string withheld_by_clients = 7;
   // PPh we held back from vendors, payable to the state.
   string withheld_from_vendors = 8;
+}
+
+message FiscalRuleMsg {
+  string from_tax_id = 1;
+  // Empty removes the tax.
+  string to_tax_id = 2;
+}
+message FiscalPosition {
+  string id = 1;
+  string name = 2;
+  repeated FiscalRuleMsg rules = 3;
+  bool is_active = 4;
+  string notes = 5;
+}
+message ListFiscalPositionsResponse {
+  repeated FiscalPosition positions = 1;
+}
+message PartyTaxProfile {
+  string id = 1;
+  // B2B or SUPPLIER.
+  string side = 2;
+  string name = 3;
+  string npwp = 4;
+  string address = 5;
+  bool is_pkp = 6;
+  string fiscal_position_id = 7;
+  string notes = 8;
+}
+message ListPartyProfilesResponse {
+  repeated PartyTaxProfile profiles = 1;
+}
+message TaxExportRequest {
+  string kind = 1;
+  string date_from = 2;
+  string date_to = 3;
+}
+message TaxExportFile {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
+}
+message CreditNoteRequest {
+  string invoice_id = 1;
+  string note_date = 2;
+  // What the party no longer owes, tax included. Empty credits the outstanding amount.
+  string amount = 3;
+  string reason = 4;
 }

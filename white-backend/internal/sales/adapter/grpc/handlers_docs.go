@@ -288,6 +288,13 @@ func (s *deckServer) GeneratePitchDeck(ctx context.Context, r *salesv1.GenerateP
 	return deckPB(*d), nil
 }
 
+func (s *deckServer) DeletePitchDeck(ctx context.Context, r *salesv1.IdRequest) (*emptypb.Empty, error) {
+	if _, err := writer(ctx); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, s.svc.Decks.Delete(ctx, r.Id)
+}
+
 func (s *deckServer) GetPitchDeckFile(ctx context.Context, r *salesv1.IdRequest) (*salesv1.File, error) {
 	if _, err := reader(ctx); err != nil {
 		return nil, err

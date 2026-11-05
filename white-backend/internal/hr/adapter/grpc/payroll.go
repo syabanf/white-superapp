@@ -283,6 +283,18 @@ func (h *payrollServer) CreatePayrollAddition(ctx context.Context, req *hrv1.Pay
 	return additionPB(*add), nil
 }
 
+func (h *payrollServer) UpdatePayrollAddition(ctx context.Context, req *hrv1.UpdatePayrollAdditionRequest) (*hrv1.PayrollAddition, error) {
+	a, err := h.s.actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	add, err := h.s.Payroll.UpdateAddition(ctx, a, req.AdditionId, req.Amount, req.Label)
+	if err != nil {
+		return nil, err
+	}
+	return additionPB(*add), nil
+}
+
 func (h *payrollServer) DeletePayrollAddition(ctx context.Context, req *hrv1.PayrollAdditionRequest) (*emptypb.Empty, error) {
 	a, err := h.s.actor(ctx)
 	if err != nil {

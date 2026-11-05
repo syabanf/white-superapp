@@ -4,7 +4,7 @@ import type { ChargeType, TaxCode } from "@/features/erp/finance/types";
 
 const tax = (over: Partial<TaxCode>): TaxCode => ({
   id: "t", code: "T", name: "T", kind: "VAT", scope: "BOTH", rate: "11", baseNumerator: 1, baseDenominator: 1, priceIncluded: false, accountSaleId: "", accountPurchaseId: "",
-  reportCode: "", validFrom: "", validTo: "", isDefaultSale: false, isDefaultPurchase: false, isActive: true, notes: "", ...over,
+  reportCode: "", validFrom: "", validTo: "", isDefaultSale: false, isDefaultPurchase: false, isActive: true, notes: "", cashBasis: false, transitionAccountId: "", ...over,
 });
 const charge = (over: Partial<ChargeType>): ChargeType => ({
   id: "c", code: "C", name: "C", scope: "BOTH", computation: "FIXED", value: "0", taxable: false, isDeduction: false, accountSaleId: "", accountPurchaseId: "", isActive: true, notes: "", ...over,
@@ -13,6 +13,12 @@ const items = [{ description: "x", unit: "", qty: "1", unitPrice: "10000000" }];
 
 // The same cases as internal/finance/domain/documents_test.go in the backend.
 describe("previewDocument", () => {
+  it("charges each bracket slice at its own rate", () => {
+    const brackets = [{ upTo: "1000000", rate: "5" }, { upTo: "5000000", rate: "10" }, { upTo: "0", rate: "20" }];
+    const p = previewDocument({ items, discountPercent: "0", taxIds: ["w"], charges: [] }, { taxes: [tax({ id: "w", kind: "WITHHOLDING", rate: "0", brackets })], charges: [] });
+    expect(p.withholding).toBeCloseTo(50_000 + 400_000 + 1_000_000);
+  });
+
   it("applies DPP nilai lain", () => {
     const p = previewDocument({ items, discountPercent: "0", taxIds: ["t"], charges: [] }, { taxes: [tax({ rate: "12", baseNumerator: 11, baseDenominator: 12 })], charges: [] });
     expect(p.tax).toBeCloseTo(1_100_000);

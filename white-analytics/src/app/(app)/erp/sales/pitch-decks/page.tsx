@@ -5,7 +5,7 @@ import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load, sp1 } from "@/features/erp/shared/load";
 import { ErpError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
-import { CaseStudies, DeckList, GeneratePitchDeckDialog } from "@/features/erp/sales/components/decks";
+import { CaseStudies, DeckFilter, DeckList, GeneratePitchDeckDialog } from "@/features/erp/sales/components/decks";
 import { salesCaps } from "@/features/erp/sales/lib";
 import { listCaseStudies, listDeals, listPitchDecks } from "@/features/erp/sales/queries";
 import { ss } from "@/features/erp/sales/strings";
@@ -26,12 +26,12 @@ export default async function PitchDecksPage(props: PageProps<"/erp/sales/pitch-
     const cases = await load(listCaseStudies);
     body = cases.data ? <CaseStudies items={cases.data} admin={caps.admin} /> : <ErpError message={cases.error?.message} />;
   } else {
-    const [decks, deals] = await Promise.all([load(() => listPitchDecks()), load(() => listDeals({ pageSize: 500 }))]);
+    const [decks, deals] = await Promise.all([load(() => listPitchDecks({ dealId: sp1(sp.deal) })), load(() => listDeals({ pageSize: 500 }))]);
     const allDeals = deals.data?.deals ?? [];
     const dealNames = Object.fromEntries(allDeals.map((d) => [d.id, `${d.title}`]));
     const openDeals = allDeals.filter((d) => !d.isLost).map((d) => ({ value: d.id, label: `${d.title} · ${d.clientName}` }));
     if (caps.write) actions = <GeneratePitchDeckDialog deals={openDeals} />;
-    body = decks.data ? <DeckList decks={decks.data} dealNames={dealNames} /> : <ErpError message={decks.error?.message} />;
+    body = decks.data ? <><DeckFilter dealNames={dealNames} /><DeckList decks={decks.data} dealNames={dealNames} caps={caps} /></> : <ErpError message={decks.error?.message} />;
   }
 
   return (

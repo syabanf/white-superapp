@@ -64,6 +64,9 @@ SELECT * FROM sales.pitch_decks WHERE id = $1;
 INSERT INTO sales.pitch_decks (id, deal_id, lead_id, title, version, options, slides, file, model, created_by, created_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
 
+-- name: DeletePitchDeck :exec
+DELETE FROM sales.pitch_decks WHERE id = $1;
+
 -- name: NextDeckVersion :one
 SELECT (coalesce(max(version), 0) + 1)::int FROM sales.pitch_decks
 WHERE (sqlc.narg('deal')::text IS NOT NULL AND deal_id = sqlc.narg('deal'))

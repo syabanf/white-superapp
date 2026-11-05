@@ -48,13 +48,14 @@ type QuotationTermInput struct {
 
 // QuotationPayload is quotationPayloadSchema's output.
 type QuotationPayload struct {
-	UsePpn          bool
-	PpnPercent      float64
-	DiscountPercent float64
-	Notes           *string
-	ValidUntil      *time.Time
-	Items           []QuotationLine
-	Terms           []QuotationTermInput
+	UsePpn           bool
+	PpnPercent       float64
+	TaxCode, TaxName string
+	DiscountPercent  float64
+	Notes            *string
+	ValidUntil       *time.Time
+	Items            []QuotationLine
+	Terms            []QuotationTermInput
 }
 
 // Totals is computeTotals' result.

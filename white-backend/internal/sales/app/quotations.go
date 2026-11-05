@@ -101,6 +101,7 @@ type QuotationTermInput struct {
 type QuotationInput struct {
 	ID, DealID                  string
 	UsePpn                      bool
+	TaxCode                     string
 	PpnPercent, DiscountPercent float64
 	Notes, ValidUntil           string
 	Items                       []QuotationItemInput
@@ -109,6 +110,9 @@ type QuotationInput struct {
 
 func (q *Quotes) payload(ctx context.Context, in QuotationInput) (domain.QuotationPayload, error) {
 	p := domain.QuotationPayload{UsePpn: in.UsePpn, PpnPercent: in.PpnPercent, DiscountPercent: in.DiscountPercent, Notes: domain.TrimmedOrNil(in.Notes)}
+	if err := q.applyTaxCode(ctx, in.TaxCode, &p); err != nil {
+		return p, err
+	}
 	if p.UsePpn && p.PpnPercent == 0 {
 		p.PpnPercent = 11
 	}
@@ -160,12 +164,41 @@ func (q *Quotes) payload(ctx context.Context, in QuotationInput) (domain.Quotati
 	return p, fieldErrs(domain.ValidateQuotation(p))
 }
 
+// applyTaxCode takes the rate from the finance master when PPN is on: the chosen
+// code, else the sales default. A quotation with no code keeps its typed rate, so
+// a finance outage or a default-less setup never blocks Sales.
+func (q *Quotes) applyTaxCode(ctx context.Context, code string, p *domain.QuotationPayload) error {
+	if !p.UsePpn || q.Taxes == nil {
+		return nil
+	}
+	if code != "" {
+		t, err := q.Taxes.VATByCode(ctx, code)
+		if err != nil {
+			return err
+		}
+		if t == nil {
+			return apperr.Field("taxCode", "Kode pajak tidak ditemukan atau nonaktif")
+		}
+		p.TaxCode, p.TaxName, p.PpnPercent = t.Code, t.Name, t.EffectivePercent
+		return nil
+	}
+	t, err := q.Taxes.DefaultSaleVAT(ctx)
+	if err != nil || t == nil {
+		return nil
+	}
+	if p.PpnPercent == 0 {
+		p.TaxCode, p.TaxName, p.PpnPercent = t.Code, t.Name, t.EffectivePercent
+	}
+	return nil
+}
+
 // applyPayload writes totals, items and terms onto the quotation.
 func applyPayload(qt *domain.Quotation, p domain.QuotationPayload) {
 	t := domain.ComputeTotals(&p)
 	qt.UsePpn, qt.PpnPercent, qt.DiscountPercent, qt.Notes, qt.ValidUntil = p.UsePpn, p.PpnPercent, p.DiscountPercent, p.Notes, p.ValidUntil
+	qt.TaxCode, qt.TaxName = p.TaxCode, p.TaxName
 	if !p.UsePpn {
-		qt.PpnPercent = 0
+		qt.PpnPercent, qt.TaxCode, qt.TaxName = 0, "", ""
 	}
 	qt.Subtotal, qt.DiscountNominal, qt.PpnNominal, qt.Total = t.Subtotal, t.DiscountNominal, t.PpnNominal, t.Total
 	qt.Items = make([]domain.QuotationItem, len(p.Items))
@@ -505,7 +538,8 @@ func (q *Quotes) GenerateDraft(ctx context.Context, actor Actor, dealID string, 
 		return nil, apperr.Field("startDate", "Tanggal mulai tidak valid")
 	}
 	usePpn := opts.UsePpn == nil || *opts.UsePpn
-	do := domain.DraftOptions{Tier: opts.Tier, RetainerMonths: opts.RetainerMonths, UsePpn: usePpn, PpnPercent: 11}
+	// PpnPercent stays unset here so the sales default code applies when saved.
+	do := domain.DraftOptions{Tier: opts.Tier, RetainerMonths: opts.RetainerMonths, UsePpn: usePpn}
 	if start != nil {
 		do.StartDate = *start
 	}
@@ -520,7 +554,7 @@ func (q *Quotes) GenerateDraft(ctx context.Context, actor Actor, dealID string, 
 		}
 		generatedBy = "ai"
 	}
-	in := QuotationInput{DealID: deal.ID, UsePpn: p.UsePpn, PpnPercent: p.PpnPercent, DiscountPercent: p.DiscountPercent, Notes: deref(p.Notes), ValidUntil: domain.FormatDay(p.ValidUntil)}
+	in := QuotationInput{DealID: deal.ID, UsePpn: p.UsePpn, PpnPercent: 0, DiscountPercent: p.DiscountPercent, Notes: deref(p.Notes), ValidUntil: domain.FormatDay(p.ValidUntil)}
 	for _, it := range p.Items {
 		in.Items = append(in.Items, QuotationItemInput{ItemType: it.ItemType, CatalogID: deref(it.CatalogID), Description: it.Description, Scope: it.Scope, Unit: it.Unit, Qty: it.Qty, UnitPrice: it.UnitPrice.String()})
 	}

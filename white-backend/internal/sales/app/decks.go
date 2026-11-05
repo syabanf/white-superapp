@@ -18,6 +18,10 @@ func (d *Decks) List(ctx context.Context, dealID, leadID string) ([]domain.Pitch
 	return d.Store.ListPitchDecks(ctx, dealID, leadID)
 }
 
+func (d *Decks) Delete(ctx context.Context, id string) error {
+	return d.Store.DeletePitchDeck(ctx, id)
+}
+
 func (d *Decks) Get(ctx context.Context, id string) (*domain.PitchDeck, error) {
 	deck, err := d.Store.GetPitchDeck(ctx, id)
 	if err != nil {

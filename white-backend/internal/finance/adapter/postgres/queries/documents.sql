@@ -43,3 +43,9 @@ UPDATE finance.documents
 
 -- name: DeleteDocument :exec
 DELETE FROM finance.documents WHERE id = $1;
+
+-- name: VendorInUse :one
+SELECT EXISTS (SELECT 1 FROM finance.documents WHERE vendor_id = $1);
+
+-- name: DeleteVendor :exec
+DELETE FROM finance.vendors WHERE id = $1;

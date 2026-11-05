@@ -14,7 +14,7 @@ import { useErpAction } from "@/features/erp/shared/client";
 import { ErpDataTable } from "@/features/erp/shared/data-table";
 import { DownloadButton } from "@/features/erp/shared/download-button";
 import { DatePicker } from "@/features/erp/shared/period-picker";
-import { SelectFilter } from "@/features/erp/shared/url-filters";
+import { SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
 import {
   deleteContractTemplateAction,
@@ -90,6 +90,7 @@ export function ContractsTable({
       exportName="kontrak"
       toolbar={
         <>
+          <SearchFilter placeholder={s.searchPh} />
           <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={opts(CONTRACT_STATUS)} />
           {caps.write ? <GenerateContractDialog quotations={quotations} templates={templates} initialQuotation={generateFor} /> : null}
         </>

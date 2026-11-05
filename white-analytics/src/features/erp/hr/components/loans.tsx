@@ -15,6 +15,7 @@ import { formatRupiah, parseMoney } from "@/features/erp/shared/money";
 import { MoneyInput } from "@/features/erp/shared/money-input";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { SelectFilter } from "@/features/erp/shared/url-filters";
+import { PeopleFilters } from "./list-filters";
 import { formatDate } from "@/lib/format";
 import { cancelLoanAction, createLoanAction, decideLoanAction } from "../actions";
 import { kinds, monthLabel, th } from "../strings";
@@ -145,6 +146,7 @@ export function LoansTable({
       getRowId={(r) => r.id}
       toolbar={
         <>
+          <PeopleFilters departments={[]} employees={employees} />
           <SelectFilter
             param="status"
             label={th.status}

@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useErpAction } from "@/features/erp/shared/client";
 import { DownloadButton } from "@/features/erp/shared/download-button";
 import { formatDateTime } from "@/lib/format";
-import { deleteCaseStudyAction, generatePitchDeckAction, saveCaseStudyAction } from "../actions";
+import { ResetFilters, SearchSelectFilter } from "@/features/erp/shared/url-filters";
+import { deleteCaseStudyAction, deletePitchDeckAction, generatePitchDeckAction, saveCaseStudyAction } from "../actions";
 import { fileSize } from "../lib";
 import { DECK_TONE, SERVICE_LINE, lbl, opts, ss } from "../strings";
 import type { CaseStudy, PitchDeck } from "../types";
@@ -29,7 +30,16 @@ export function DeckDownload({ deck, size = "default" }: { deck: PitchDeck; size
 }
 
 /** Deck cards, newest first; versions of the same deal stack under one title. */
-export function DeckList({ decks, dealNames }: { decks: PitchDeck[]; dealNames: Record<string, string> }) {
+export function DeckFilter({ dealNames }: { dealNames: Record<string, string> }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <SearchSelectFilter param="deal" placeholder={s.allDeals} options={Object.entries(dealNames).map(([value, label]) => ({ value, label }))} className="w-64" />
+      <ResetFilters params={["deal"]} />
+    </div>
+  );
+}
+
+export function DeckList({ decks, dealNames, caps }: { decks: PitchDeck[]; dealNames: Record<string, string>; caps: { write: boolean } }) {
   if (!decks.length) return <p className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">{s.empty}</p>;
   return (
     <div className="grid gap-(--gap) sm:grid-cols-2 xl:grid-cols-3">
@@ -51,7 +61,18 @@ export function DeckList({ decks, dealNames }: { decks: PitchDeck[]; dealNames: 
           <p className="truncate text-xs text-muted-foreground">
             {dealNames[d.dealId] ?? ss.dash} · {formatDateTime(d.createdAt)}
           </p>
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-1">
+            {caps.write ? (
+              <ConfirmAction
+                title={s.removeTitle}
+                action={() => deletePitchDeckAction(d.id)}
+                trigger={
+                  <Button size="icon-xs" variant="ghost" aria-label={s.removeTitle} className="text-destructive">
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                }
+              />
+            ) : null}
             <DeckDownload deck={d} size="xs" />
           </div>
         </Card>

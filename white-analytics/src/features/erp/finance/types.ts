@@ -794,6 +794,7 @@ export type RecurringJournal = {
   nextRun: string;
   endDate: string;
   isActive: boolean;
+  lines?: { accountId: string; entrySide: string; amount: string }[];
   total: string;
   lastEntryId: string;
   lastError: string;
@@ -810,6 +811,8 @@ export type FixedAsset = {
   depreciatedMonths: number;
   accumulated: string;
   bookValue: string;
+  expenseAccountId: string;
+  accumAccountId: string;
   expenseAccountName: string;
   accumAccountName: string;
   isActive: boolean;
@@ -914,7 +917,16 @@ export type TaxCode = {
   isDefaultPurchase: boolean;
   isActive: boolean;
   notes: string;
+  brackets?: TaxBracket[];
+  cashBasis: boolean;
+  transitionAccountId: string;
 };
+
+export type TaxBracket = { upTo: string; rate: string };
+
+export type FiscalPosition = { id: string; name: string; rules: { fromTaxId: string; toTaxId: string }[]; isActive: boolean; notes: string };
+
+export type PartyTaxProfile = { id: string; side: "B2B" | "SUPPLIER"; name: string; npwp: string; address: string; isPkp: boolean; fiscalPositionId: string; notes: string };
 
 export type ChargeType = {
   id: string;

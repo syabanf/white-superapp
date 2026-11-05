@@ -21,6 +21,15 @@ func (q *Queries) DeleteDocument(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteVendor = `-- name: DeleteVendor :exec
+DELETE FROM finance.vendors WHERE id = $1
+`
+
+func (q *Queries) DeleteVendor(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteVendor, id)
+	return err
+}
+
 const getDocument = `-- name: GetDocument :one
 SELECT id, kind, side, number, status, vendor_id, party_name, pic_name, phone, email, address, title, issue_date, due_date, external_number, notes, items, discount_percent, subtotal, discount_amount, tax_amount, total_amount, account_id, source_id, ledger_invoice_id, letterhead, reject_reason, decided_by, decided_at, created_at, created_by, updated_at, updated_by, taxes, charges, charges_amount, withholding_amount FROM finance.documents WHERE id = $1
 `
@@ -469,4 +478,15 @@ func (q *Queries) UpsertVendor(ctx context.Context, arg UpsertVendorParams) erro
 		arg.By,
 	)
 	return err
+}
+
+const vendorInUse = `-- name: VendorInUse :one
+SELECT EXISTS (SELECT 1 FROM finance.documents WHERE vendor_id = $1)
+`
+
+func (q *Queries) VendorInUse(ctx context.Context, vendorID *string) (bool, error) {
+	row := q.db.QueryRow(ctx, vendorInUse, vendorID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

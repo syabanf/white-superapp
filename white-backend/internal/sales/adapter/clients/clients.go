@@ -4,9 +4,11 @@ package clients
 
 import (
 	"context"
+	"strconv"
 	"sync"
 	"time"
 
+	financev1 "github.com/syabanf/white-superapp/white-backend/gen/go/white/finance/v1"
 	identityv1 "github.com/syabanf/white-superapp/white-backend/gen/go/white/identity/v1"
 	integrationsv1 "github.com/syabanf/white-superapp/white-backend/gen/go/white/integrations/v1"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/adapter/providers/openrouter"
@@ -134,4 +136,57 @@ func (c *Integrations) Invalidate() {
 	c.mu.Lock()
 	c.fetchedAt = time.Time{}
 	c.mu.Unlock()
+}
+
+// Taxes reads finance tax codes for quotations, with the caller's token.
+type Taxes struct {
+	client financev1.TaxSetupServiceClient
+}
+
+func NewTaxes(conn grpc.ClientConnInterface) *Taxes {
+	return &Taxes{client: financev1.NewTaxSetupServiceClient(conn)}
+}
+
+func (c *Taxes) list(ctx context.Context) ([]*financev1.TaxCode, error) {
+	res, err := c.client.ListTaxCodes(ctx, &financev1.ListTaxMasterRequest{ActiveOnly: true})
+	if err != nil {
+		return nil, grpcx.FromStatus(err)
+	}
+	return res.GetTaxes(), nil
+}
+
+func saleVAT(t *financev1.TaxCode) *app.TaxInfo {
+	rate, err := strconv.ParseFloat(t.GetRate(), 64)
+	if err != nil || t.GetBaseDenominator() <= 0 {
+		return nil
+	}
+	return &app.TaxInfo{Code: t.GetCode(), Name: t.GetName(), EffectivePercent: rate * float64(t.GetBaseNumerator()) / float64(t.GetBaseDenominator())}
+}
+
+// VATByCode returns an active VAT code usable on sales, or nil.
+func (c *Taxes) VATByCode(ctx context.Context, code string) (*app.TaxInfo, error) {
+	rows, err := c.list(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range rows {
+		if t.GetCode() == code && t.GetKind() == "VAT" && t.GetScope() != "PURCHASE" {
+			return saleVAT(t), nil
+		}
+	}
+	return nil, nil
+}
+
+// DefaultSaleVAT returns the code marked as the sales default, or nil.
+func (c *Taxes) DefaultSaleVAT(ctx context.Context) (*app.TaxInfo, error) {
+	rows, err := c.list(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range rows {
+		if t.GetIsDefaultSale() && t.GetKind() == "VAT" {
+			return saleVAT(t), nil
+		}
+	}
+	return nil, nil
 }

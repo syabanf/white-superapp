@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useErpAction } from "@/features/erp/shared/client";
+import { matchesText } from "@/features/erp/shared/list-filter";
 import { slugify, formatDateTime } from "@/lib/format";
 import { deleteFormAction, saveFormAction } from "../actions";
 import { FORM_FIELD_TYPE, LEAD_SOURCE, SUBMISSION_STATUS, TEMPERATURE, opts, ss } from "../strings";
@@ -247,45 +248,54 @@ function FormBuilder({ form, owners, close }: { form: LeadForm; owners: Option[]
 /** Submissions of one form, newest first. */
 export function SubmissionsTable({ form, submissions }: { form: LeadForm; submissions: FormSubmission[] }) {
   const keys = form.fields.map((x) => x.key);
+  const [query, setQuery] = React.useState("");
+  const [status, setStatus] = React.useState("");
+  const shown = submissions.filter((sub) => (!status || sub.status === status) && matchesText(query, ...keys.map((k) => String(sub.payload?.[k] ?? ""))));
   if (!submissions.length) return <p className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">{f.noSubmissions}</p>;
   return (
-    <div className="overflow-x-auto rounded-lg border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-xs text-muted-foreground">
-          <tr>
-            <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{ss.createdAt}</th>
-            {form.fields.map((x) => (
-              <th key={x.key} className="px-3 py-2 text-left font-medium whitespace-nowrap">
-                {x.label}
-              </th>
-            ))}
-            <th className="px-3 py-2 text-left font-medium">{ss.leads.status}</th>
-            <th className="px-3 py-2 text-left font-medium">{f.lead}</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {submissions.map((sub) => (
-            <tr key={sub.id}>
-              <td className="px-3 py-2 text-xs whitespace-nowrap text-muted-foreground tabular">{formatDateTime(sub.createdAt)}</td>
-              {keys.map((k) => (
-                <td key={k} className="max-w-56 truncate px-3 py-2">
-                  {sub.payload?.[k] == null ? "" : String(sub.payload[k])}
-                </td>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Input aria-label={f.searchSubmissions} placeholder={f.searchSubmissions} className="w-full sm:w-64" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <SimpleSelect className="w-44" value={status || "-"} onChange={(x) => setStatus(x === "-" ? "" : x)} options={[{ value: "-", label: ss.leads.status }, ...opts(SUBMISSION_STATUS)]} />
+      </div>
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-xs text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{ss.createdAt}</th>
+              {form.fields.map((x) => (
+                <th key={x.key} className="px-3 py-2 text-left font-medium whitespace-nowrap">
+                  {x.label}
+                </th>
               ))}
-              <td className="px-3 py-2" title={sub.reason || undefined}>
-                <SalesBadge value={sub.status} map={SUBMISSION_STATUS} />
-              </td>
-              <td className="px-3 py-2">
-                {sub.leadId ? (
-                  <Link href={`/erp/sales/leads/${sub.leadId}`} className="text-xs hover:underline">
-                    {ss.open}
-                  </Link>
-                ) : null}
-              </td>
+              <th className="px-3 py-2 text-left font-medium">{ss.leads.status}</th>
+              <th className="px-3 py-2 text-left font-medium">{f.lead}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y">
+            {shown.map((sub) => (
+              <tr key={sub.id}>
+                <td className="px-3 py-2 text-xs whitespace-nowrap text-muted-foreground tabular">{formatDateTime(sub.createdAt)}</td>
+                {keys.map((k) => (
+                  <td key={k} className="max-w-56 truncate px-3 py-2">
+                    {sub.payload?.[k] == null ? "" : String(sub.payload[k])}
+                  </td>
+                ))}
+                <td className="px-3 py-2" title={sub.reason || undefined}>
+                  <SalesBadge value={sub.status} map={SUBMISSION_STATUS} />
+                </td>
+                <td className="px-3 py-2">
+                  {sub.leadId ? (
+                    <Link href={`/erp/sales/leads/${sub.leadId}`} className="text-xs hover:underline">
+                      {ss.open}
+                    </Link>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

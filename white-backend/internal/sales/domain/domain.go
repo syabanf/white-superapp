@@ -244,6 +244,8 @@ type Quotation struct {
 	Status            string          `json:"status"`
 	UsePpn            bool            `json:"use_ppn"`
 	PpnPercent        float64         `json:"ppn_percent"`
+	TaxCode           string          `json:"tax_code"`
+	TaxName           string          `json:"tax_name"`
 	Subtotal          Money           `json:"subtotal"`
 	DiscountPercent   float64         `json:"discount_percent"`
 	DiscountNominal   Money           `json:"discount_nominal"`
@@ -797,6 +799,7 @@ type Store interface {
 	DeleteCaseStudy(ctx context.Context, id string) error
 	ListPitchDecks(ctx context.Context, dealID, leadID string) ([]PitchDeck, error)
 	GetPitchDeck(ctx context.Context, id string) (*PitchDeck, error)
+	DeletePitchDeck(ctx context.Context, id string) error
 	InsertPitchDeck(ctx context.Context, d PitchDeck) error
 	NextDeckVersion(ctx context.Context, dealID, leadID string) (int, error)
 

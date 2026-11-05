@@ -772,6 +772,60 @@ func (p *Payroll) CreateAddition(ctx context.Context, a Actor, in AdditionInput)
 	return &add, nil
 }
 
+// UpdateAddition corrects the amount or label while the period is still open.
+func (p *Payroll) UpdateAddition(ctx context.Context, a Actor, id, rawAmount, label string) (*domain.PayrollAddition, error) {
+	if err := require(a, authn.PermPayroll); err != nil {
+		return nil, err
+	}
+	amt, err := amount("amount", rawAmount)
+	if err != nil {
+		return nil, err
+	}
+	if amt <= 0 {
+		return nil, invalid("amount", "Nominal harus lebih dari 0.")
+	}
+	if label = strings.TrimSpace(label); label == "" {
+		return nil, invalid("label", "Keterangan wajib diisi.")
+	}
+	add, err := p.d.Store.GetPayrollAddition(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if add == nil {
+		return nil, notFound("Tambahan payroll tidak ditemukan.")
+	}
+	run, err := p.d.Store.GetPayrollRunByPeriod(ctx, add.PeriodMonth, add.PeriodYear)
+	if err != nil {
+		return nil, err
+	}
+	if run != nil && !payroll.CanCalculateRun(run.Status) {
+		return nil, conflict("Payroll periode ini sudah disetujui atau dibayar.")
+	}
+	add.Amount, add.Label = math.Round(amt*100)/100, label
+	err = p.d.Store.WithTx(ctx, func(tx domain.Store) error {
+		if err := tx.UpdatePayrollAddition(ctx, *add); err != nil {
+			return err
+		}
+		if run != nil {
+			return tx.FlagRunRecalculation(ctx, run.ID)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	rows, err := p.d.Store.ListPayrollAdditions(ctx, add.PeriodMonth, add.PeriodYear, add.EmployeeID)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range rows {
+		if r.ID == id {
+			return &r, nil
+		}
+	}
+	return add, nil
+}
+
 func (p *Payroll) DeleteAddition(ctx context.Context, a Actor, id string) error {
 	if err := require(a, authn.PermPayroll); err != nil {
 		return err

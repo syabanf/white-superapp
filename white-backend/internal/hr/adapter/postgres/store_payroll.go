@@ -303,6 +303,10 @@ func (s *Store) InsertPayrollAddition(ctx context.Context, a domain.PayrollAddit
 		PeriodYear: i32(a.PeriodYear), Amount: money(a.Amount), Label: a.Label, CreatedBy: a.CreatedBy})
 }
 
+func (s *Store) UpdatePayrollAddition(ctx context.Context, a domain.PayrollAddition) error {
+	return s.q.UpdatePayrollAddition(ctx, sqlc.UpdatePayrollAdditionParams{ID: a.ID, Amount: money(a.Amount), Label: a.Label})
+}
+
 func (s *Store) DeletePayrollAddition(ctx context.Context, id string) (bool, error) {
 	n, err := s.q.DeletePayrollAddition(ctx, id)
 	return n > 0, err

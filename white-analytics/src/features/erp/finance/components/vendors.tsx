@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Fld, FormDialog, FormFooter } from "@/features/erp/sales/components/ui";
+import { ConfirmAction, Fld, FormDialog, FormFooter } from "@/features/erp/sales/components/ui";
 import { useErpAction } from "@/features/erp/shared/client";
 import { ErpDataTable } from "@/features/erp/shared/data-table";
-import { SearchFilter } from "@/features/erp/shared/url-filters";
-import { saveVendorAction, type VendorValues } from "../actions";
+import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
+import { deleteVendorAction, saveVendorAction, type VendorValues } from "../actions";
 import { fs } from "../strings";
 import type { Vendor } from "../types";
 
@@ -100,8 +100,28 @@ export function VendorsTable({ vendors, canWrite }: { vendors: Vendor[]; canWrit
     },
     { accessorKey: "paymentTermsDays", header: s.terms, meta: { align: "right" } },
     ...(canWrite
-      ? [{ id: "actions", header: "", enableSorting: false, cell: ({ row }: { row: { original: Vendor } }) => <VendorDialog vendor={row.original} /> } satisfies ColumnDef<Vendor, unknown>]
+      ? [{ id: "actions", header: "", enableSorting: false, cell: ({ row }: { row: { original: Vendor } }) => (
+          <span className="flex justify-end gap-0.5">
+            <VendorDialog vendor={row.original} />
+            <ConfirmAction
+              title={s.remove}
+              description={s.removeHint}
+              action={() => deleteVendorAction(row.original.id)}
+              trigger={
+                <Button size="icon-xs" variant="ghost" aria-label={s.remove} className="text-destructive">
+                  <Trash2 className="size-3.5" />
+                </Button>
+              }
+            />
+          </span>
+        ) } satisfies ColumnDef<Vendor, unknown>]
       : []),
   ];
-  return <ErpDataTable columns={columns} data={vendors} getRowId={(v) => v.id} emptyMessage={s.empty} exportName="vendor" toolbar={<SearchFilter placeholder={s.search} />} />;
+  return <ErpDataTable columns={columns} data={vendors} getRowId={(v) => v.id} emptyMessage={s.empty} exportName="vendor" toolbar={
+        <>
+          <SearchFilter placeholder={s.search} />
+          <SelectFilter param="status" label={s.active} allLabel={s.allStatus} options={Object.entries(s.statuses).map(([value, label]) => ({ value, label }))} />
+          <ResetFilters params={["q", "status"]} />
+        </>
+      } />;
 }

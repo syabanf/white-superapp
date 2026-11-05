@@ -3737,6 +3737,45 @@ func local_request_PitchDeckService_GeneratePitchDeck_0(ctx context.Context, mar
 	return msg, metadata, err
 }
 
+func request_PitchDeckService_DeletePitchDeck_0(ctx context.Context, marshaler runtime.Marshaler, client PitchDeckServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq IdRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.DeletePitchDeck(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PitchDeckService_DeletePitchDeck_0(ctx context.Context, marshaler runtime.Marshaler, server PitchDeckServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq IdRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.DeletePitchDeck(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 func request_PitchDeckService_ListCaseStudies_0(ctx context.Context, marshaler runtime.Marshaler, client PitchDeckServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq emptypb.Empty
@@ -6897,6 +6936,26 @@ func RegisterPitchDeckServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		}
 		forward_PitchDeckService_GeneratePitchDeck_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodDelete, pattern_PitchDeckService_DeletePitchDeck_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.sales.v1.PitchDeckService/DeletePitchDeck", runtime.WithHTTPPathPattern("/v1/sales/pitch-decks/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PitchDeckService_DeletePitchDeck_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PitchDeckService_DeletePitchDeck_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_PitchDeckService_ListCaseStudies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -9828,6 +9887,23 @@ func RegisterPitchDeckServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		}
 		forward_PitchDeckService_GeneratePitchDeck_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodDelete, pattern_PitchDeckService_DeletePitchDeck_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.sales.v1.PitchDeckService/DeletePitchDeck", runtime.WithHTTPPathPattern("/v1/sales/pitch-decks/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PitchDeckService_DeletePitchDeck_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PitchDeckService_DeletePitchDeck_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_PitchDeckService_ListCaseStudies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -9886,6 +9962,7 @@ var (
 	pattern_PitchDeckService_ListPitchDecks_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "sales", "pitch-decks"}, ""))
 	pattern_PitchDeckService_GetPitchDeck_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "sales", "pitch-decks", "id"}, ""))
 	pattern_PitchDeckService_GeneratePitchDeck_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "sales", "pitch-decks"}, ""))
+	pattern_PitchDeckService_DeletePitchDeck_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "sales", "pitch-decks", "id"}, ""))
 	pattern_PitchDeckService_ListCaseStudies_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "sales", "case-studies"}, ""))
 	pattern_PitchDeckService_SaveCaseStudy_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "sales", "case-studies"}, ""))
 	pattern_PitchDeckService_DeleteCaseStudy_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "sales", "case-studies", "id"}, ""))
@@ -9895,6 +9972,7 @@ var (
 	forward_PitchDeckService_ListPitchDecks_0    = runtime.ForwardResponseMessage
 	forward_PitchDeckService_GetPitchDeck_0      = runtime.ForwardResponseMessage
 	forward_PitchDeckService_GeneratePitchDeck_0 = runtime.ForwardResponseMessage
+	forward_PitchDeckService_DeletePitchDeck_0   = runtime.ForwardResponseMessage
 	forward_PitchDeckService_ListCaseStudies_0   = runtime.ForwardResponseMessage
 	forward_PitchDeckService_SaveCaseStudy_0     = runtime.ForwardResponseMessage
 	forward_PitchDeckService_DeleteCaseStudy_0   = runtime.ForwardResponseMessage

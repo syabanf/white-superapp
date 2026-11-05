@@ -8,6 +8,8 @@ import { runGateway, zodFieldErrors } from "@/features/erp/shared/action";
 import { fs } from "./strings";
 import type {
   ChargeType,
+  FiscalPosition,
+  PartyTaxProfile,
   TaxCode,
   DocumentItem,
   DocumentKind,
@@ -370,6 +372,7 @@ const invoiceSchema = z.object({
   taxAmount: money,
   description: z.string().max(500),
   clientId: z.string(),
+  taxIds: z.array(z.string()),
 });
 
 export async function saveInvoiceAction(kind: LedgerKind, invoiceId: string | null, input: z.input<typeof invoiceSchema>) {
@@ -380,6 +383,17 @@ export async function saveInvoiceAction(kind: LedgerKind, invoiceId: string | nu
       ? gatewayFetch(`${base(kind)}/invoices/${id(invoiceId)}`, json("PATCH", p.data))
       : gatewayFetch(`${base(kind)}/invoices`, json("POST", p.data)),
   );
+  revalidatePath(pagePath(kind));
+  return res;
+}
+
+/** The master codes a draft uses; the list rows do not carry them. */
+export async function getInvoiceTaxIdsAction(kind: LedgerKind, invoiceId: string) {
+  return runGateway(async () => (await gatewayFetch<{ taxIds?: string[] }>(`${base(kind)}/invoices/${id(invoiceId)}`)).taxIds ?? []);
+}
+
+export async function createCreditNoteAction(kind: LedgerKind, invoiceId: string, input: { noteDate: string; amount: string; reason: string }) {
+  const res = await runGateway(() => gatewayFetch(`${F}/invoices/${id(invoiceId)}:credit-note`, json("POST", input)));
   revalidatePath(pagePath(kind));
   return res;
 }
@@ -602,15 +616,20 @@ export type RecurringValues = {
   amount: string;
 };
 
+const recurringBody = ({ debitAccountId, creditAccountId, amount, ...rest }: RecurringValues) => ({
+  ...rest,
+  lines: [
+    { accountId: debitAccountId, entrySide: "ENTRY_SIDE_DEBIT", amount },
+    { accountId: creditAccountId, entrySide: "ENTRY_SIDE_CREDIT", amount },
+  ],
+});
+
 export async function createRecurringAction(v: RecurringValues) {
-  const { debitAccountId, creditAccountId, amount, ...rest } = v;
-  return scheduleAction<RecurringJournal>("recurring-journals", "POST", {
-    ...rest,
-    lines: [
-      { accountId: debitAccountId, entrySide: "ENTRY_SIDE_DEBIT", amount },
-      { accountId: creditAccountId, entrySide: "ENTRY_SIDE_CREDIT", amount },
-    ],
-  });
+  return scheduleAction<RecurringJournal>("recurring-journals", "POST", recurringBody(v));
+}
+
+export async function updateRecurringAction(recurringId: string, v: RecurringValues) {
+  return scheduleAction<RecurringJournal>(`recurring-journals/${id(recurringId)}`, "PATCH", recurringBody(v));
 }
 
 export async function setRecurringActiveAction(recurringId: string, active: boolean) {
@@ -633,6 +652,10 @@ export type AssetValues = {
 
 export async function createAssetAction(v: AssetValues) {
   return scheduleAction<FixedAsset>("fixed-assets", "POST", v);
+}
+
+export async function updateAssetAction(assetId: string, v: AssetValues) {
+  return scheduleAction<FixedAsset>(`fixed-assets/${id(assetId)}`, "PATCH", v);
 }
 
 export async function setAssetActiveAction(assetId: string, active: boolean) {
@@ -662,6 +685,12 @@ export type VendorValues = Omit<Vendor, "id"> & { id?: string };
 
 export async function saveVendorAction(input: VendorValues) {
   const res = await runGateway(() => gatewayFetch<Vendor>(`${F}/vendors`, json("POST", input)));
+  revalidatePath(`${ROOT}/vendors`);
+  return res;
+}
+
+export async function deleteVendorAction(vendorId: string) {
+  const res = await runGateway(() => gatewayFetch(`${F}/vendors/${id(vendorId)}`, json("DELETE")));
   revalidatePath(`${ROOT}/vendors`);
   return res;
 }
@@ -725,6 +754,36 @@ export async function saveTaxCodeAction(input: TaxCode) {
   const res = await runGateway(() => gatewayFetch<TaxCode>(`${F}/tax-codes`, json("POST", input)));
   revalidatePath(`${ROOT}/tax-setup`);
   return res;
+}
+
+async function taxMasterAction<T>(path: string, method: string, body?: unknown): Promise<ActionResult<T>> {
+  const res = await runGateway(() => gatewayFetch<T>(`${F}/${path}`, json(method, body)));
+  revalidatePath(`${ROOT}/tax-setup`);
+  return res;
+}
+
+export async function deleteTaxCodeAction(taxId: string) {
+  return taxMasterAction(`tax-codes/${id(taxId)}`, "DELETE");
+}
+
+export async function deleteChargeTypeAction(chargeId: string) {
+  return taxMasterAction(`charge-types/${id(chargeId)}`, "DELETE");
+}
+
+export async function saveFiscalPositionAction(input: FiscalPosition) {
+  return taxMasterAction<FiscalPosition>("fiscal-positions", "POST", input);
+}
+
+export async function deleteFiscalPositionAction(positionId: string) {
+  return taxMasterAction(`fiscal-positions/${id(positionId)}`, "DELETE");
+}
+
+export async function savePartyProfileAction(input: PartyTaxProfile) {
+  return taxMasterAction<PartyTaxProfile>("party-tax-profiles", "POST", input);
+}
+
+export async function deletePartyProfileAction(profileId: string) {
+  return taxMasterAction(`party-tax-profiles/${id(profileId)}`, "DELETE");
 }
 
 export async function saveChargeTypeAction(input: ChargeType) {

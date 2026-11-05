@@ -737,7 +737,11 @@ func (l ledger) getInvoice(ctx context.Context, req *financev1.IdRequest) (*fina
 	if err != nil {
 		return nil, err
 	}
-	return l.invoice(inv), nil
+	out := l.invoice(inv)
+	if out.TaxIds, err = l.svc.Ledgers.InvoiceTaxIDs(ctx, inv.ID); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (l ledger) createInvoice(ctx context.Context, req *financev1.InvoiceInput) (*financev1.Invoice, error) {

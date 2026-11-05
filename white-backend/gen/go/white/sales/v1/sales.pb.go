@@ -4832,12 +4832,15 @@ type Quotation struct {
 	ApprovalStatus    string `protobuf:"bytes,18,opt,name=approval_status,json=approvalStatus,proto3" json:"approval_status,omitempty"`
 	ApprovalRequestId string `protobuf:"bytes,19,opt,name=approval_request_id,json=approvalRequestId,proto3" json:"approval_request_id,omitempty"`
 	// "ai", "template" or empty for manual quotations.
-	GeneratedBy   string                 `protobuf:"bytes,20,opt,name=generated_by,json=generatedBy,proto3" json:"generated_by,omitempty"`
-	Items         []*QuotationItem       `protobuf:"bytes,21,rep,name=items,proto3" json:"items,omitempty"`
-	Terms         []*QuotationTerm       `protobuf:"bytes,22,rep,name=terms,proto3" json:"terms,omitempty"`
-	SentAt        *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	GeneratedBy string                 `protobuf:"bytes,20,opt,name=generated_by,json=generatedBy,proto3" json:"generated_by,omitempty"`
+	Items       []*QuotationItem       `protobuf:"bytes,21,rep,name=items,proto3" json:"items,omitempty"`
+	Terms       []*QuotationTerm       `protobuf:"bytes,22,rep,name=terms,proto3" json:"terms,omitempty"`
+	SentAt      *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Finance tax code copied at save; ppn_percent is its effective rate.
+	TaxCode       string `protobuf:"bytes,26,opt,name=tax_code,json=taxCode,proto3" json:"tax_code,omitempty"`
+	TaxName       string `protobuf:"bytes,27,opt,name=tax_name,json=taxName,proto3" json:"tax_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5047,6 +5050,20 @@ func (x *Quotation) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Quotation) GetTaxCode() string {
+	if x != nil {
+		return x.TaxCode
+	}
+	return ""
+}
+
+func (x *Quotation) GetTaxName() string {
+	if x != nil {
+		return x.TaxName
+	}
+	return ""
+}
+
 type QuotationItemInput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ItemType      string                 `protobuf:"bytes,1,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"`
@@ -5212,8 +5229,10 @@ type QuotationInput struct {
 	ValidUntil      string                `protobuf:"bytes,7,opt,name=valid_until,json=validUntil,proto3" json:"valid_until,omitempty"`
 	Items           []*QuotationItemInput `protobuf:"bytes,8,rep,name=items,proto3" json:"items,omitempty"`
 	Terms           []*QuotationTermInput `protobuf:"bytes,9,rep,name=terms,proto3" json:"terms,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Finance VAT code; empty uses the sales default.
+	TaxCode       string `protobuf:"bytes,10,opt,name=tax_code,json=taxCode,proto3" json:"tax_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *QuotationInput) Reset() {
@@ -5307,6 +5326,13 @@ func (x *QuotationInput) GetTerms() []*QuotationTermInput {
 		return x.Terms
 	}
 	return nil
+}
+
+func (x *QuotationInput) GetTaxCode() string {
+	if x != nil {
+		return x.TaxCode
+	}
+	return ""
 }
 
 type ListQuotationsRequest struct {
@@ -15874,7 +15900,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12\x18\n" +
 	"\apercent\x18\x03 \x01(\x01R\apercent\x12\x19\n" +
 	"\bdue_date\x18\x04 \x01(\tR\adueDate\x12\x16\n" +
-	"\x06amount\x18\x05 \x01(\tR\x06amount\"\xa4\a\n" +
+	"\x06amount\x18\x05 \x01(\tR\x06amount\"\xda\a\n" +
 	"\tQuotation\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\adeal_id\x18\x02 \x01(\tR\x06dealId\x12\x1d\n" +
@@ -15908,7 +15934,9 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x18 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x19 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xcd\x01\n" +
+	"updated_at\x18\x19 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x19\n" +
+	"\btax_code\x18\x1a \x01(\tR\ataxCode\x12\x19\n" +
+	"\btax_name\x18\x1b \x01(\tR\ataxName\"\xcd\x01\n" +
 	"\x12QuotationItemInput\x12\x1b\n" +
 	"\titem_type\x18\x01 \x01(\tR\bitemType\x12\x1d\n" +
 	"\n" +
@@ -15922,7 +15950,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x12QuotationTermInput\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12\x18\n" +
 	"\apercent\x18\x02 \x01(\x01R\apercent\x12\x19\n" +
-	"\bdue_date\x18\x03 \x01(\tR\adueDate\"\xc9\x02\n" +
+	"\bdue_date\x18\x03 \x01(\tR\adueDate\"\xe4\x02\n" +
 	"\x0eQuotationInput\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\adeal_id\x18\x02 \x01(\tR\x06dealId\x12\x17\n" +
@@ -15934,7 +15962,9 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\vvalid_until\x18\a \x01(\tR\n" +
 	"validUntil\x128\n" +
 	"\x05items\x18\b \x03(\v2\".white.sales.v1.QuotationItemInputR\x05items\x128\n" +
-	"\x05terms\x18\t \x03(\v2\".white.sales.v1.QuotationTermInputR\x05terms\"^\n" +
+	"\x05terms\x18\t \x03(\v2\".white.sales.v1.QuotationTermInputR\x05terms\x12\x19\n" +
+	"\btax_code\x18\n" +
+	" \x01(\tR\ataxCode\"^\n" +
 	"\x15ListQuotationsRequest\x12\x17\n" +
 	"\adeal_id\x18\x01 \x01(\tR\x06dealId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x14\n" +
@@ -16979,12 +17009,13 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x11SetContractStatus\x12(.white.sales.v1.SetContractStatusRequest\x1a\x18.white.sales.v1.Contract\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/sales/contracts/{id}:status\x12S\n" +
 	"\x11RenderContractPdf\x12(.white.sales.v1.RenderContractPdfRequest\x1a\x14.white.sales.v1.File\x12\x86\x01\n" +
 	"\x11GetPublicContract\x12%.white.sales.v1.PublicContractRequest\x1a\x1e.white.sales.v1.PublicContract\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/public/sales/contracts/{token}\x12\x93\x01\n" +
-	"\x12SignPublicContract\x12).white.sales.v1.SignPublicContractRequest\x1a\x1e.white.sales.v1.PublicContract\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/v1/public/sales/contracts/{token}:sign2\x86\x06\n" +
+	"\x12SignPublicContract\x12).white.sales.v1.SignPublicContractRequest\x1a\x1e.white.sales.v1.PublicContract\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/v1/public/sales/contracts/{token}:sign2\xf0\x06\n" +
 	"\x10PitchDeckService\x12~\n" +
 	"\x0eListPitchDecks\x12%.white.sales.v1.ListPitchDecksRequest\x1a&.white.sales.v1.ListPitchDecksResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/sales/pitch-decks\x12h\n" +
 	"\fGetPitchDeck\x12\x19.white.sales.v1.IdRequest\x1a\x19.white.sales.v1.PitchDeck\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/sales/pitch-decks/{id}\x12z\n" +
 	"\x11GeneratePitchDeck\x12(.white.sales.v1.GeneratePitchDeckRequest\x1a\x19.white.sales.v1.PitchDeck\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/sales/pitch-decks\x12C\n" +
-	"\x10GetPitchDeckFile\x12\x19.white.sales.v1.IdRequest\x1a\x14.white.sales.v1.File\x12r\n" +
+	"\x10GetPitchDeckFile\x12\x19.white.sales.v1.IdRequest\x1a\x14.white.sales.v1.File\x12h\n" +
+	"\x0fDeletePitchDeck\x12\x19.white.sales.v1.IdRequest\x1a\x16.google.protobuf.Empty\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/sales/pitch-decks/{id}\x12r\n" +
 	"\x0fListCaseStudies\x12\x16.google.protobuf.Empty\x1a'.white.sales.v1.ListCaseStudiesResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/sales/case-studies\x12h\n" +
 	"\rSaveCaseStudy\x12\x19.white.sales.v1.CaseStudy\x1a\x19.white.sales.v1.CaseStudy\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/v1/sales/case-studies\x12i\n" +
 	"\x0fDeleteCaseStudy\x12\x19.white.sales.v1.IdRequest\x1a\x16.google.protobuf.Empty\"#\x82\xd3\xe4\x93\x02\x1d*\x1b/v1/sales/case-studies/{id}2\xd6\v\n" +
@@ -17542,175 +17573,177 @@ var file_white_sales_v1_sales_proto_depIdxs = []int32{
 	1,   // 307: white.sales.v1.PitchDeckService.GetPitchDeck:input_type -> white.sales.v1.IdRequest
 	150, // 308: white.sales.v1.PitchDeckService.GeneratePitchDeck:input_type -> white.sales.v1.GeneratePitchDeckRequest
 	1,   // 309: white.sales.v1.PitchDeckService.GetPitchDeckFile:input_type -> white.sales.v1.IdRequest
-	198, // 310: white.sales.v1.PitchDeckService.ListCaseStudies:input_type -> google.protobuf.Empty
-	151, // 311: white.sales.v1.PitchDeckService.SaveCaseStudy:input_type -> white.sales.v1.CaseStudy
-	1,   // 312: white.sales.v1.PitchDeckService.DeleteCaseStudy:input_type -> white.sales.v1.IdRequest
-	156, // 313: white.sales.v1.OnboardingService.ListOnboardings:input_type -> white.sales.v1.ListOnboardingsRequest
-	1,   // 314: white.sales.v1.OnboardingService.GetOnboarding:input_type -> white.sales.v1.IdRequest
-	158, // 315: white.sales.v1.OnboardingService.StartOnboarding:input_type -> white.sales.v1.StartOnboardingRequest
-	159, // 316: white.sales.v1.OnboardingService.UpdateOnboardingItem:input_type -> white.sales.v1.UpdateOnboardingItemRequest
-	160, // 317: white.sales.v1.OnboardingService.CreateMarketingClient:input_type -> white.sales.v1.CreateMarketingClientRequest
-	198, // 318: white.sales.v1.OnboardingService.ListOnboardingTemplates:input_type -> google.protobuf.Empty
-	162, // 319: white.sales.v1.OnboardingService.SaveOnboardingTemplate:input_type -> white.sales.v1.OnboardingTemplate
-	1,   // 320: white.sales.v1.OnboardingService.GetOnboardingAsset:input_type -> white.sales.v1.IdRequest
-	164, // 321: white.sales.v1.OnboardingService.GetPublicOnboarding:input_type -> white.sales.v1.PublicOnboardingRequest
-	167, // 322: white.sales.v1.OnboardingService.SubmitPublicBrief:input_type -> white.sales.v1.SubmitPublicBriefRequest
-	168, // 323: white.sales.v1.OnboardingService.UploadPublicAsset:input_type -> white.sales.v1.UploadPublicAssetRequest
-	174, // 324: white.sales.v1.ChatService.ListConversations:input_type -> white.sales.v1.ListConversationsRequest
-	1,   // 325: white.sales.v1.ChatService.GetConversation:input_type -> white.sales.v1.IdRequest
-	176, // 326: white.sales.v1.ChatService.ReplyConversation:input_type -> white.sales.v1.ReplyConversationRequest
-	177, // 327: white.sales.v1.ChatService.ConversationAction:input_type -> white.sales.v1.ConversationActionRequest
-	178, // 328: white.sales.v1.ChatService.AddConversationNote:input_type -> white.sales.v1.AddConversationNoteRequest
-	1,   // 329: white.sales.v1.ChatService.AnalyzeConversation:input_type -> white.sales.v1.IdRequest
-	198, // 330: white.sales.v1.ChatService.ListReplyTemplates:input_type -> google.protobuf.Empty
-	179, // 331: white.sales.v1.ChatService.SaveReplyTemplate:input_type -> white.sales.v1.ReplyTemplate
-	1,   // 332: white.sales.v1.ChatService.DeleteReplyTemplate:input_type -> white.sales.v1.IdRequest
-	198, // 333: white.sales.v1.ChatService.GetChatbotSettings:input_type -> google.protobuf.Empty
-	181, // 334: white.sales.v1.ChatService.SaveChatbotSettings:input_type -> white.sales.v1.ChatbotSettings
-	182, // 335: white.sales.v1.ChatService.StartPublicChat:input_type -> white.sales.v1.StartPublicChatRequest
-	184, // 336: white.sales.v1.ChatService.SendPublicChat:input_type -> white.sales.v1.SendPublicChatRequest
-	185, // 337: white.sales.v1.ChatService.PollPublicChat:input_type -> white.sales.v1.PollPublicChatRequest
-	187, // 338: white.sales.v1.ChatService.ReceiveWhatsApp:input_type -> white.sales.v1.ReceiveWhatsAppRequest
-	7,   // 339: white.sales.v1.LeadService.ListLeads:output_type -> white.sales.v1.ListLeadsResponse
-	8,   // 340: white.sales.v1.LeadService.GetLead:output_type -> white.sales.v1.LeadDetail
-	4,   // 341: white.sales.v1.LeadService.CreateLead:output_type -> white.sales.v1.Lead
-	4,   // 342: white.sales.v1.LeadService.UpdateLead:output_type -> white.sales.v1.Lead
-	198, // 343: white.sales.v1.LeadService.DeleteLead:output_type -> google.protobuf.Empty
-	11,  // 344: white.sales.v1.LeadService.ImportLeads:output_type -> white.sales.v1.ImportLeadsResponse
-	13,  // 345: white.sales.v1.LeadService.ListOwners:output_type -> white.sales.v1.ListOwnersResponse
-	17,  // 346: white.sales.v1.LeadService.ListAccounts:output_type -> white.sales.v1.ListAccountsResponse
-	18,  // 347: white.sales.v1.LeadService.GetAccount:output_type -> white.sales.v1.AccountDetail
-	14,  // 348: white.sales.v1.LeadService.CreateAccount:output_type -> white.sales.v1.Account
-	14,  // 349: white.sales.v1.LeadService.UpdateAccount:output_type -> white.sales.v1.Account
-	198, // 350: white.sales.v1.LeadService.DeleteAccount:output_type -> google.protobuf.Empty
-	22,  // 351: white.sales.v1.LeadService.ListContacts:output_type -> white.sales.v1.ListContactsResponse
-	19,  // 352: white.sales.v1.LeadService.CreateContact:output_type -> white.sales.v1.Contact
-	19,  // 353: white.sales.v1.LeadService.UpdateContact:output_type -> white.sales.v1.Contact
-	198, // 354: white.sales.v1.LeadService.DeleteContact:output_type -> google.protobuf.Empty
-	25,  // 355: white.sales.v1.LeadService.ListCustomFields:output_type -> white.sales.v1.ListCustomFieldsResponse
-	23,  // 356: white.sales.v1.LeadService.SaveCustomField:output_type -> white.sales.v1.CustomField
-	198, // 357: white.sales.v1.LeadService.DeleteCustomField:output_type -> google.protobuf.Empty
-	28,  // 358: white.sales.v1.PipelineService.ListPipelines:output_type -> white.sales.v1.ListPipelinesResponse
-	27,  // 359: white.sales.v1.PipelineService.SavePipeline:output_type -> white.sales.v1.Pipeline
-	26,  // 360: white.sales.v1.PipelineService.SaveStage:output_type -> white.sales.v1.Stage
-	30,  // 361: white.sales.v1.PipelineService.ListLostReasons:output_type -> white.sales.v1.ListLostReasonsResponse
-	34,  // 362: white.sales.v1.PipelineService.ListDeals:output_type -> white.sales.v1.ListDealsResponse
-	41,  // 363: white.sales.v1.PipelineService.GetDeal:output_type -> white.sales.v1.DealDetail
-	31,  // 364: white.sales.v1.PipelineService.CreateDeal:output_type -> white.sales.v1.Deal
-	31,  // 365: white.sales.v1.PipelineService.UpdateDeal:output_type -> white.sales.v1.Deal
-	198, // 366: white.sales.v1.PipelineService.DeleteDeal:output_type -> google.protobuf.Empty
-	31,  // 367: white.sales.v1.PipelineService.MoveDealStage:output_type -> white.sales.v1.Deal
-	38,  // 368: white.sales.v1.PipelineService.SetDealMembers:output_type -> white.sales.v1.SetDealMembersResponse
-	46,  // 369: white.sales.v1.PipelineService.ListActivities:output_type -> white.sales.v1.ListActivitiesResponse
-	43,  // 370: white.sales.v1.PipelineService.CreateActivity:output_type -> white.sales.v1.Activity
-	43,  // 371: white.sales.v1.PipelineService.UpdateActivity:output_type -> white.sales.v1.Activity
-	198, // 372: white.sales.v1.PipelineService.DeleteActivity:output_type -> google.protobuf.Empty
-	50,  // 373: white.sales.v1.QuotationService.ListCatalog:output_type -> white.sales.v1.ListCatalogResponse
-	48,  // 374: white.sales.v1.QuotationService.SaveCatalogItem:output_type -> white.sales.v1.CatalogItem
-	52,  // 375: white.sales.v1.QuotationService.ListRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
-	52,  // 376: white.sales.v1.QuotationService.SaveRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
-	60,  // 377: white.sales.v1.QuotationService.ListQuotations:output_type -> white.sales.v1.ListQuotationsResponse
-	55,  // 378: white.sales.v1.QuotationService.GetQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 379: white.sales.v1.QuotationService.CreateQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 380: white.sales.v1.QuotationService.UpdateQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 381: white.sales.v1.QuotationService.SetQuotationStatus:output_type -> white.sales.v1.Quotation
-	55,  // 382: white.sales.v1.QuotationService.ReviseQuotation:output_type -> white.sales.v1.Quotation
-	198, // 383: white.sales.v1.QuotationService.DeleteQuotation:output_type -> google.protobuf.Empty
-	63,  // 384: white.sales.v1.QuotationService.GenerateQuotationDraft:output_type -> white.sales.v1.GenerateQuotationDraftResponse
-	0,   // 385: white.sales.v1.QuotationService.RenderQuotationPdf:output_type -> white.sales.v1.File
-	65,  // 386: white.sales.v1.QuotationService.ListApprovalRules:output_type -> white.sales.v1.ListApprovalRulesResponse
-	64,  // 387: white.sales.v1.QuotationService.SaveApprovalRule:output_type -> white.sales.v1.ApprovalRule
-	198, // 388: white.sales.v1.QuotationService.DeleteApprovalRule:output_type -> google.protobuf.Empty
-	69,  // 389: white.sales.v1.QuotationService.ListApprovals:output_type -> white.sales.v1.ListApprovalsResponse
-	71,  // 390: white.sales.v1.QuotationService.DecideApproval:output_type -> white.sales.v1.DecideApprovalResponse
-	74,  // 391: white.sales.v1.BillingService.ListInvoices:output_type -> white.sales.v1.ListInvoicesResponse
-	72,  // 392: white.sales.v1.BillingService.GetInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 393: white.sales.v1.BillingService.SubmitInvoice:output_type -> white.sales.v1.Invoice
-	74,  // 394: white.sales.v1.BillingService.SubmitInvoicesFromTerms:output_type -> white.sales.v1.ListInvoicesResponse
-	72,  // 395: white.sales.v1.BillingService.IssueInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 396: white.sales.v1.BillingService.CancelInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 397: white.sales.v1.BillingService.UpdateInvoice:output_type -> white.sales.v1.Invoice
-	0,   // 398: white.sales.v1.BillingService.RenderInvoicePdf:output_type -> white.sales.v1.File
-	72,  // 399: white.sales.v1.BillingService.UploadInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
-	0,   // 400: white.sales.v1.BillingService.GetInvoiceFakturPajak:output_type -> white.sales.v1.File
-	72,  // 401: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
-	79,  // 402: white.sales.v1.BillingService.ListInvoiceFollowups:output_type -> white.sales.v1.ListInvoiceFollowupsResponse
-	77,  // 403: white.sales.v1.BillingService.ApproveInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
-	77,  // 404: white.sales.v1.BillingService.SkipInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
-	85,  // 405: white.sales.v1.BillingService.ListPayments:output_type -> white.sales.v1.ListPaymentsResponse
-	83,  // 406: white.sales.v1.BillingService.RecordPayment:output_type -> white.sales.v1.Payment
-	198, // 407: white.sales.v1.BillingService.DeletePayment:output_type -> google.protobuf.Empty
-	89,  // 408: white.sales.v1.InsightService.ListTargets:output_type -> white.sales.v1.ListTargetsResponse
-	89,  // 409: white.sales.v1.InsightService.SaveTargets:output_type -> white.sales.v1.ListTargetsResponse
-	93,  // 410: white.sales.v1.InsightService.GetForecast:output_type -> white.sales.v1.Forecast
-	98,  // 411: white.sales.v1.InsightService.GetFunnelReport:output_type -> white.sales.v1.FunnelReport
-	104, // 412: white.sales.v1.InsightService.GetDashboardSummary:output_type -> white.sales.v1.DashboardSummary
-	106, // 413: white.sales.v1.InsightService.GetDashboardPipeline:output_type -> white.sales.v1.DashboardPipeline
-	107, // 414: white.sales.v1.InsightService.GetDashboardSales:output_type -> white.sales.v1.DashboardSales
-	109, // 415: white.sales.v1.InsightService.GetDashboardTeam:output_type -> white.sales.v1.DashboardTeam
-	110, // 416: white.sales.v1.InsightService.GetDashboardLeads:output_type -> white.sales.v1.DashboardLeads
-	113, // 417: white.sales.v1.InsightService.GetDashboardBilling:output_type -> white.sales.v1.DashboardBilling
-	117, // 418: white.sales.v1.AutomationService.ListWorkflowRules:output_type -> white.sales.v1.ListWorkflowRulesResponse
-	116, // 419: white.sales.v1.AutomationService.SaveWorkflowRule:output_type -> white.sales.v1.WorkflowRule
-	198, // 420: white.sales.v1.AutomationService.DeleteWorkflowRule:output_type -> google.protobuf.Empty
-	119, // 421: white.sales.v1.AutomationService.ListWorkflowRuns:output_type -> white.sales.v1.ListWorkflowRunsResponse
-	121, // 422: white.sales.v1.AutomationService.ListScoringRules:output_type -> white.sales.v1.ListScoringRulesResponse
-	120, // 423: white.sales.v1.AutomationService.SaveScoringRule:output_type -> white.sales.v1.ScoringRule
-	198, // 424: white.sales.v1.AutomationService.DeleteScoringRule:output_type -> google.protobuf.Empty
-	122, // 425: white.sales.v1.AutomationService.RecalculateScores:output_type -> white.sales.v1.RecalculateScoresResponse
-	125, // 426: white.sales.v1.FormService.ListForms:output_type -> white.sales.v1.ListFormsResponse
-	124, // 427: white.sales.v1.FormService.SaveForm:output_type -> white.sales.v1.LeadForm
-	198, // 428: white.sales.v1.FormService.DeleteForm:output_type -> google.protobuf.Empty
-	127, // 429: white.sales.v1.FormService.ListFormSubmissions:output_type -> white.sales.v1.ListFormSubmissionsResponse
-	129, // 430: white.sales.v1.FormService.GetPublicForm:output_type -> white.sales.v1.PublicForm
-	132, // 431: white.sales.v1.FormService.SubmitPublicForm:output_type -> white.sales.v1.SubmitPublicFormResponse
-	134, // 432: white.sales.v1.ContractService.ListContractTemplates:output_type -> white.sales.v1.ListContractTemplatesResponse
-	133, // 433: white.sales.v1.ContractService.SaveContractTemplate:output_type -> white.sales.v1.ContractTemplate
-	198, // 434: white.sales.v1.ContractService.DeleteContractTemplate:output_type -> google.protobuf.Empty
-	137, // 435: white.sales.v1.ContractService.ListContracts:output_type -> white.sales.v1.ListContractsResponse
-	135, // 436: white.sales.v1.ContractService.GetContract:output_type -> white.sales.v1.Contract
-	135, // 437: white.sales.v1.ContractService.GenerateContract:output_type -> white.sales.v1.Contract
-	135, // 438: white.sales.v1.ContractService.UpdateContract:output_type -> white.sales.v1.Contract
-	135, // 439: white.sales.v1.ContractService.SendContract:output_type -> white.sales.v1.Contract
-	135, // 440: white.sales.v1.ContractService.SetContractStatus:output_type -> white.sales.v1.Contract
-	0,   // 441: white.sales.v1.ContractService.RenderContractPdf:output_type -> white.sales.v1.File
-	143, // 442: white.sales.v1.ContractService.GetPublicContract:output_type -> white.sales.v1.PublicContract
-	143, // 443: white.sales.v1.ContractService.SignPublicContract:output_type -> white.sales.v1.PublicContract
-	149, // 444: white.sales.v1.PitchDeckService.ListPitchDecks:output_type -> white.sales.v1.ListPitchDecksResponse
-	147, // 445: white.sales.v1.PitchDeckService.GetPitchDeck:output_type -> white.sales.v1.PitchDeck
-	147, // 446: white.sales.v1.PitchDeckService.GeneratePitchDeck:output_type -> white.sales.v1.PitchDeck
-	0,   // 447: white.sales.v1.PitchDeckService.GetPitchDeckFile:output_type -> white.sales.v1.File
-	152, // 448: white.sales.v1.PitchDeckService.ListCaseStudies:output_type -> white.sales.v1.ListCaseStudiesResponse
-	151, // 449: white.sales.v1.PitchDeckService.SaveCaseStudy:output_type -> white.sales.v1.CaseStudy
-	198, // 450: white.sales.v1.PitchDeckService.DeleteCaseStudy:output_type -> google.protobuf.Empty
-	157, // 451: white.sales.v1.OnboardingService.ListOnboardings:output_type -> white.sales.v1.ListOnboardingsResponse
-	155, // 452: white.sales.v1.OnboardingService.GetOnboarding:output_type -> white.sales.v1.Onboarding
-	155, // 453: white.sales.v1.OnboardingService.StartOnboarding:output_type -> white.sales.v1.Onboarding
-	155, // 454: white.sales.v1.OnboardingService.UpdateOnboardingItem:output_type -> white.sales.v1.Onboarding
-	155, // 455: white.sales.v1.OnboardingService.CreateMarketingClient:output_type -> white.sales.v1.Onboarding
-	163, // 456: white.sales.v1.OnboardingService.ListOnboardingTemplates:output_type -> white.sales.v1.ListOnboardingTemplatesResponse
-	162, // 457: white.sales.v1.OnboardingService.SaveOnboardingTemplate:output_type -> white.sales.v1.OnboardingTemplate
-	0,   // 458: white.sales.v1.OnboardingService.GetOnboardingAsset:output_type -> white.sales.v1.File
-	166, // 459: white.sales.v1.OnboardingService.GetPublicOnboarding:output_type -> white.sales.v1.PublicOnboarding
-	166, // 460: white.sales.v1.OnboardingService.SubmitPublicBrief:output_type -> white.sales.v1.PublicOnboarding
-	166, // 461: white.sales.v1.OnboardingService.UploadPublicAsset:output_type -> white.sales.v1.PublicOnboarding
-	175, // 462: white.sales.v1.ChatService.ListConversations:output_type -> white.sales.v1.ListConversationsResponse
-	173, // 463: white.sales.v1.ChatService.GetConversation:output_type -> white.sales.v1.ConversationDetail
-	173, // 464: white.sales.v1.ChatService.ReplyConversation:output_type -> white.sales.v1.ConversationDetail
-	169, // 465: white.sales.v1.ChatService.ConversationAction:output_type -> white.sales.v1.Conversation
-	171, // 466: white.sales.v1.ChatService.AddConversationNote:output_type -> white.sales.v1.ConversationNote
-	172, // 467: white.sales.v1.ChatService.AnalyzeConversation:output_type -> white.sales.v1.ConversationInsight
-	180, // 468: white.sales.v1.ChatService.ListReplyTemplates:output_type -> white.sales.v1.ListReplyTemplatesResponse
-	179, // 469: white.sales.v1.ChatService.SaveReplyTemplate:output_type -> white.sales.v1.ReplyTemplate
-	198, // 470: white.sales.v1.ChatService.DeleteReplyTemplate:output_type -> google.protobuf.Empty
-	181, // 471: white.sales.v1.ChatService.GetChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
-	181, // 472: white.sales.v1.ChatService.SaveChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
-	183, // 473: white.sales.v1.ChatService.StartPublicChat:output_type -> white.sales.v1.PublicChat
-	183, // 474: white.sales.v1.ChatService.SendPublicChat:output_type -> white.sales.v1.PublicChat
-	183, // 475: white.sales.v1.ChatService.PollPublicChat:output_type -> white.sales.v1.PublicChat
-	188, // 476: white.sales.v1.ChatService.ReceiveWhatsApp:output_type -> white.sales.v1.ReceiveWhatsAppResponse
-	339, // [339:477] is the sub-list for method output_type
-	201, // [201:339] is the sub-list for method input_type
+	1,   // 310: white.sales.v1.PitchDeckService.DeletePitchDeck:input_type -> white.sales.v1.IdRequest
+	198, // 311: white.sales.v1.PitchDeckService.ListCaseStudies:input_type -> google.protobuf.Empty
+	151, // 312: white.sales.v1.PitchDeckService.SaveCaseStudy:input_type -> white.sales.v1.CaseStudy
+	1,   // 313: white.sales.v1.PitchDeckService.DeleteCaseStudy:input_type -> white.sales.v1.IdRequest
+	156, // 314: white.sales.v1.OnboardingService.ListOnboardings:input_type -> white.sales.v1.ListOnboardingsRequest
+	1,   // 315: white.sales.v1.OnboardingService.GetOnboarding:input_type -> white.sales.v1.IdRequest
+	158, // 316: white.sales.v1.OnboardingService.StartOnboarding:input_type -> white.sales.v1.StartOnboardingRequest
+	159, // 317: white.sales.v1.OnboardingService.UpdateOnboardingItem:input_type -> white.sales.v1.UpdateOnboardingItemRequest
+	160, // 318: white.sales.v1.OnboardingService.CreateMarketingClient:input_type -> white.sales.v1.CreateMarketingClientRequest
+	198, // 319: white.sales.v1.OnboardingService.ListOnboardingTemplates:input_type -> google.protobuf.Empty
+	162, // 320: white.sales.v1.OnboardingService.SaveOnboardingTemplate:input_type -> white.sales.v1.OnboardingTemplate
+	1,   // 321: white.sales.v1.OnboardingService.GetOnboardingAsset:input_type -> white.sales.v1.IdRequest
+	164, // 322: white.sales.v1.OnboardingService.GetPublicOnboarding:input_type -> white.sales.v1.PublicOnboardingRequest
+	167, // 323: white.sales.v1.OnboardingService.SubmitPublicBrief:input_type -> white.sales.v1.SubmitPublicBriefRequest
+	168, // 324: white.sales.v1.OnboardingService.UploadPublicAsset:input_type -> white.sales.v1.UploadPublicAssetRequest
+	174, // 325: white.sales.v1.ChatService.ListConversations:input_type -> white.sales.v1.ListConversationsRequest
+	1,   // 326: white.sales.v1.ChatService.GetConversation:input_type -> white.sales.v1.IdRequest
+	176, // 327: white.sales.v1.ChatService.ReplyConversation:input_type -> white.sales.v1.ReplyConversationRequest
+	177, // 328: white.sales.v1.ChatService.ConversationAction:input_type -> white.sales.v1.ConversationActionRequest
+	178, // 329: white.sales.v1.ChatService.AddConversationNote:input_type -> white.sales.v1.AddConversationNoteRequest
+	1,   // 330: white.sales.v1.ChatService.AnalyzeConversation:input_type -> white.sales.v1.IdRequest
+	198, // 331: white.sales.v1.ChatService.ListReplyTemplates:input_type -> google.protobuf.Empty
+	179, // 332: white.sales.v1.ChatService.SaveReplyTemplate:input_type -> white.sales.v1.ReplyTemplate
+	1,   // 333: white.sales.v1.ChatService.DeleteReplyTemplate:input_type -> white.sales.v1.IdRequest
+	198, // 334: white.sales.v1.ChatService.GetChatbotSettings:input_type -> google.protobuf.Empty
+	181, // 335: white.sales.v1.ChatService.SaveChatbotSettings:input_type -> white.sales.v1.ChatbotSettings
+	182, // 336: white.sales.v1.ChatService.StartPublicChat:input_type -> white.sales.v1.StartPublicChatRequest
+	184, // 337: white.sales.v1.ChatService.SendPublicChat:input_type -> white.sales.v1.SendPublicChatRequest
+	185, // 338: white.sales.v1.ChatService.PollPublicChat:input_type -> white.sales.v1.PollPublicChatRequest
+	187, // 339: white.sales.v1.ChatService.ReceiveWhatsApp:input_type -> white.sales.v1.ReceiveWhatsAppRequest
+	7,   // 340: white.sales.v1.LeadService.ListLeads:output_type -> white.sales.v1.ListLeadsResponse
+	8,   // 341: white.sales.v1.LeadService.GetLead:output_type -> white.sales.v1.LeadDetail
+	4,   // 342: white.sales.v1.LeadService.CreateLead:output_type -> white.sales.v1.Lead
+	4,   // 343: white.sales.v1.LeadService.UpdateLead:output_type -> white.sales.v1.Lead
+	198, // 344: white.sales.v1.LeadService.DeleteLead:output_type -> google.protobuf.Empty
+	11,  // 345: white.sales.v1.LeadService.ImportLeads:output_type -> white.sales.v1.ImportLeadsResponse
+	13,  // 346: white.sales.v1.LeadService.ListOwners:output_type -> white.sales.v1.ListOwnersResponse
+	17,  // 347: white.sales.v1.LeadService.ListAccounts:output_type -> white.sales.v1.ListAccountsResponse
+	18,  // 348: white.sales.v1.LeadService.GetAccount:output_type -> white.sales.v1.AccountDetail
+	14,  // 349: white.sales.v1.LeadService.CreateAccount:output_type -> white.sales.v1.Account
+	14,  // 350: white.sales.v1.LeadService.UpdateAccount:output_type -> white.sales.v1.Account
+	198, // 351: white.sales.v1.LeadService.DeleteAccount:output_type -> google.protobuf.Empty
+	22,  // 352: white.sales.v1.LeadService.ListContacts:output_type -> white.sales.v1.ListContactsResponse
+	19,  // 353: white.sales.v1.LeadService.CreateContact:output_type -> white.sales.v1.Contact
+	19,  // 354: white.sales.v1.LeadService.UpdateContact:output_type -> white.sales.v1.Contact
+	198, // 355: white.sales.v1.LeadService.DeleteContact:output_type -> google.protobuf.Empty
+	25,  // 356: white.sales.v1.LeadService.ListCustomFields:output_type -> white.sales.v1.ListCustomFieldsResponse
+	23,  // 357: white.sales.v1.LeadService.SaveCustomField:output_type -> white.sales.v1.CustomField
+	198, // 358: white.sales.v1.LeadService.DeleteCustomField:output_type -> google.protobuf.Empty
+	28,  // 359: white.sales.v1.PipelineService.ListPipelines:output_type -> white.sales.v1.ListPipelinesResponse
+	27,  // 360: white.sales.v1.PipelineService.SavePipeline:output_type -> white.sales.v1.Pipeline
+	26,  // 361: white.sales.v1.PipelineService.SaveStage:output_type -> white.sales.v1.Stage
+	30,  // 362: white.sales.v1.PipelineService.ListLostReasons:output_type -> white.sales.v1.ListLostReasonsResponse
+	34,  // 363: white.sales.v1.PipelineService.ListDeals:output_type -> white.sales.v1.ListDealsResponse
+	41,  // 364: white.sales.v1.PipelineService.GetDeal:output_type -> white.sales.v1.DealDetail
+	31,  // 365: white.sales.v1.PipelineService.CreateDeal:output_type -> white.sales.v1.Deal
+	31,  // 366: white.sales.v1.PipelineService.UpdateDeal:output_type -> white.sales.v1.Deal
+	198, // 367: white.sales.v1.PipelineService.DeleteDeal:output_type -> google.protobuf.Empty
+	31,  // 368: white.sales.v1.PipelineService.MoveDealStage:output_type -> white.sales.v1.Deal
+	38,  // 369: white.sales.v1.PipelineService.SetDealMembers:output_type -> white.sales.v1.SetDealMembersResponse
+	46,  // 370: white.sales.v1.PipelineService.ListActivities:output_type -> white.sales.v1.ListActivitiesResponse
+	43,  // 371: white.sales.v1.PipelineService.CreateActivity:output_type -> white.sales.v1.Activity
+	43,  // 372: white.sales.v1.PipelineService.UpdateActivity:output_type -> white.sales.v1.Activity
+	198, // 373: white.sales.v1.PipelineService.DeleteActivity:output_type -> google.protobuf.Empty
+	50,  // 374: white.sales.v1.QuotationService.ListCatalog:output_type -> white.sales.v1.ListCatalogResponse
+	48,  // 375: white.sales.v1.QuotationService.SaveCatalogItem:output_type -> white.sales.v1.CatalogItem
+	52,  // 376: white.sales.v1.QuotationService.ListRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
+	52,  // 377: white.sales.v1.QuotationService.SaveRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
+	60,  // 378: white.sales.v1.QuotationService.ListQuotations:output_type -> white.sales.v1.ListQuotationsResponse
+	55,  // 379: white.sales.v1.QuotationService.GetQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 380: white.sales.v1.QuotationService.CreateQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 381: white.sales.v1.QuotationService.UpdateQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 382: white.sales.v1.QuotationService.SetQuotationStatus:output_type -> white.sales.v1.Quotation
+	55,  // 383: white.sales.v1.QuotationService.ReviseQuotation:output_type -> white.sales.v1.Quotation
+	198, // 384: white.sales.v1.QuotationService.DeleteQuotation:output_type -> google.protobuf.Empty
+	63,  // 385: white.sales.v1.QuotationService.GenerateQuotationDraft:output_type -> white.sales.v1.GenerateQuotationDraftResponse
+	0,   // 386: white.sales.v1.QuotationService.RenderQuotationPdf:output_type -> white.sales.v1.File
+	65,  // 387: white.sales.v1.QuotationService.ListApprovalRules:output_type -> white.sales.v1.ListApprovalRulesResponse
+	64,  // 388: white.sales.v1.QuotationService.SaveApprovalRule:output_type -> white.sales.v1.ApprovalRule
+	198, // 389: white.sales.v1.QuotationService.DeleteApprovalRule:output_type -> google.protobuf.Empty
+	69,  // 390: white.sales.v1.QuotationService.ListApprovals:output_type -> white.sales.v1.ListApprovalsResponse
+	71,  // 391: white.sales.v1.QuotationService.DecideApproval:output_type -> white.sales.v1.DecideApprovalResponse
+	74,  // 392: white.sales.v1.BillingService.ListInvoices:output_type -> white.sales.v1.ListInvoicesResponse
+	72,  // 393: white.sales.v1.BillingService.GetInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 394: white.sales.v1.BillingService.SubmitInvoice:output_type -> white.sales.v1.Invoice
+	74,  // 395: white.sales.v1.BillingService.SubmitInvoicesFromTerms:output_type -> white.sales.v1.ListInvoicesResponse
+	72,  // 396: white.sales.v1.BillingService.IssueInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 397: white.sales.v1.BillingService.CancelInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 398: white.sales.v1.BillingService.UpdateInvoice:output_type -> white.sales.v1.Invoice
+	0,   // 399: white.sales.v1.BillingService.RenderInvoicePdf:output_type -> white.sales.v1.File
+	72,  // 400: white.sales.v1.BillingService.UploadInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
+	0,   // 401: white.sales.v1.BillingService.GetInvoiceFakturPajak:output_type -> white.sales.v1.File
+	72,  // 402: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
+	79,  // 403: white.sales.v1.BillingService.ListInvoiceFollowups:output_type -> white.sales.v1.ListInvoiceFollowupsResponse
+	77,  // 404: white.sales.v1.BillingService.ApproveInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
+	77,  // 405: white.sales.v1.BillingService.SkipInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
+	85,  // 406: white.sales.v1.BillingService.ListPayments:output_type -> white.sales.v1.ListPaymentsResponse
+	83,  // 407: white.sales.v1.BillingService.RecordPayment:output_type -> white.sales.v1.Payment
+	198, // 408: white.sales.v1.BillingService.DeletePayment:output_type -> google.protobuf.Empty
+	89,  // 409: white.sales.v1.InsightService.ListTargets:output_type -> white.sales.v1.ListTargetsResponse
+	89,  // 410: white.sales.v1.InsightService.SaveTargets:output_type -> white.sales.v1.ListTargetsResponse
+	93,  // 411: white.sales.v1.InsightService.GetForecast:output_type -> white.sales.v1.Forecast
+	98,  // 412: white.sales.v1.InsightService.GetFunnelReport:output_type -> white.sales.v1.FunnelReport
+	104, // 413: white.sales.v1.InsightService.GetDashboardSummary:output_type -> white.sales.v1.DashboardSummary
+	106, // 414: white.sales.v1.InsightService.GetDashboardPipeline:output_type -> white.sales.v1.DashboardPipeline
+	107, // 415: white.sales.v1.InsightService.GetDashboardSales:output_type -> white.sales.v1.DashboardSales
+	109, // 416: white.sales.v1.InsightService.GetDashboardTeam:output_type -> white.sales.v1.DashboardTeam
+	110, // 417: white.sales.v1.InsightService.GetDashboardLeads:output_type -> white.sales.v1.DashboardLeads
+	113, // 418: white.sales.v1.InsightService.GetDashboardBilling:output_type -> white.sales.v1.DashboardBilling
+	117, // 419: white.sales.v1.AutomationService.ListWorkflowRules:output_type -> white.sales.v1.ListWorkflowRulesResponse
+	116, // 420: white.sales.v1.AutomationService.SaveWorkflowRule:output_type -> white.sales.v1.WorkflowRule
+	198, // 421: white.sales.v1.AutomationService.DeleteWorkflowRule:output_type -> google.protobuf.Empty
+	119, // 422: white.sales.v1.AutomationService.ListWorkflowRuns:output_type -> white.sales.v1.ListWorkflowRunsResponse
+	121, // 423: white.sales.v1.AutomationService.ListScoringRules:output_type -> white.sales.v1.ListScoringRulesResponse
+	120, // 424: white.sales.v1.AutomationService.SaveScoringRule:output_type -> white.sales.v1.ScoringRule
+	198, // 425: white.sales.v1.AutomationService.DeleteScoringRule:output_type -> google.protobuf.Empty
+	122, // 426: white.sales.v1.AutomationService.RecalculateScores:output_type -> white.sales.v1.RecalculateScoresResponse
+	125, // 427: white.sales.v1.FormService.ListForms:output_type -> white.sales.v1.ListFormsResponse
+	124, // 428: white.sales.v1.FormService.SaveForm:output_type -> white.sales.v1.LeadForm
+	198, // 429: white.sales.v1.FormService.DeleteForm:output_type -> google.protobuf.Empty
+	127, // 430: white.sales.v1.FormService.ListFormSubmissions:output_type -> white.sales.v1.ListFormSubmissionsResponse
+	129, // 431: white.sales.v1.FormService.GetPublicForm:output_type -> white.sales.v1.PublicForm
+	132, // 432: white.sales.v1.FormService.SubmitPublicForm:output_type -> white.sales.v1.SubmitPublicFormResponse
+	134, // 433: white.sales.v1.ContractService.ListContractTemplates:output_type -> white.sales.v1.ListContractTemplatesResponse
+	133, // 434: white.sales.v1.ContractService.SaveContractTemplate:output_type -> white.sales.v1.ContractTemplate
+	198, // 435: white.sales.v1.ContractService.DeleteContractTemplate:output_type -> google.protobuf.Empty
+	137, // 436: white.sales.v1.ContractService.ListContracts:output_type -> white.sales.v1.ListContractsResponse
+	135, // 437: white.sales.v1.ContractService.GetContract:output_type -> white.sales.v1.Contract
+	135, // 438: white.sales.v1.ContractService.GenerateContract:output_type -> white.sales.v1.Contract
+	135, // 439: white.sales.v1.ContractService.UpdateContract:output_type -> white.sales.v1.Contract
+	135, // 440: white.sales.v1.ContractService.SendContract:output_type -> white.sales.v1.Contract
+	135, // 441: white.sales.v1.ContractService.SetContractStatus:output_type -> white.sales.v1.Contract
+	0,   // 442: white.sales.v1.ContractService.RenderContractPdf:output_type -> white.sales.v1.File
+	143, // 443: white.sales.v1.ContractService.GetPublicContract:output_type -> white.sales.v1.PublicContract
+	143, // 444: white.sales.v1.ContractService.SignPublicContract:output_type -> white.sales.v1.PublicContract
+	149, // 445: white.sales.v1.PitchDeckService.ListPitchDecks:output_type -> white.sales.v1.ListPitchDecksResponse
+	147, // 446: white.sales.v1.PitchDeckService.GetPitchDeck:output_type -> white.sales.v1.PitchDeck
+	147, // 447: white.sales.v1.PitchDeckService.GeneratePitchDeck:output_type -> white.sales.v1.PitchDeck
+	0,   // 448: white.sales.v1.PitchDeckService.GetPitchDeckFile:output_type -> white.sales.v1.File
+	198, // 449: white.sales.v1.PitchDeckService.DeletePitchDeck:output_type -> google.protobuf.Empty
+	152, // 450: white.sales.v1.PitchDeckService.ListCaseStudies:output_type -> white.sales.v1.ListCaseStudiesResponse
+	151, // 451: white.sales.v1.PitchDeckService.SaveCaseStudy:output_type -> white.sales.v1.CaseStudy
+	198, // 452: white.sales.v1.PitchDeckService.DeleteCaseStudy:output_type -> google.protobuf.Empty
+	157, // 453: white.sales.v1.OnboardingService.ListOnboardings:output_type -> white.sales.v1.ListOnboardingsResponse
+	155, // 454: white.sales.v1.OnboardingService.GetOnboarding:output_type -> white.sales.v1.Onboarding
+	155, // 455: white.sales.v1.OnboardingService.StartOnboarding:output_type -> white.sales.v1.Onboarding
+	155, // 456: white.sales.v1.OnboardingService.UpdateOnboardingItem:output_type -> white.sales.v1.Onboarding
+	155, // 457: white.sales.v1.OnboardingService.CreateMarketingClient:output_type -> white.sales.v1.Onboarding
+	163, // 458: white.sales.v1.OnboardingService.ListOnboardingTemplates:output_type -> white.sales.v1.ListOnboardingTemplatesResponse
+	162, // 459: white.sales.v1.OnboardingService.SaveOnboardingTemplate:output_type -> white.sales.v1.OnboardingTemplate
+	0,   // 460: white.sales.v1.OnboardingService.GetOnboardingAsset:output_type -> white.sales.v1.File
+	166, // 461: white.sales.v1.OnboardingService.GetPublicOnboarding:output_type -> white.sales.v1.PublicOnboarding
+	166, // 462: white.sales.v1.OnboardingService.SubmitPublicBrief:output_type -> white.sales.v1.PublicOnboarding
+	166, // 463: white.sales.v1.OnboardingService.UploadPublicAsset:output_type -> white.sales.v1.PublicOnboarding
+	175, // 464: white.sales.v1.ChatService.ListConversations:output_type -> white.sales.v1.ListConversationsResponse
+	173, // 465: white.sales.v1.ChatService.GetConversation:output_type -> white.sales.v1.ConversationDetail
+	173, // 466: white.sales.v1.ChatService.ReplyConversation:output_type -> white.sales.v1.ConversationDetail
+	169, // 467: white.sales.v1.ChatService.ConversationAction:output_type -> white.sales.v1.Conversation
+	171, // 468: white.sales.v1.ChatService.AddConversationNote:output_type -> white.sales.v1.ConversationNote
+	172, // 469: white.sales.v1.ChatService.AnalyzeConversation:output_type -> white.sales.v1.ConversationInsight
+	180, // 470: white.sales.v1.ChatService.ListReplyTemplates:output_type -> white.sales.v1.ListReplyTemplatesResponse
+	179, // 471: white.sales.v1.ChatService.SaveReplyTemplate:output_type -> white.sales.v1.ReplyTemplate
+	198, // 472: white.sales.v1.ChatService.DeleteReplyTemplate:output_type -> google.protobuf.Empty
+	181, // 473: white.sales.v1.ChatService.GetChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
+	181, // 474: white.sales.v1.ChatService.SaveChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
+	183, // 475: white.sales.v1.ChatService.StartPublicChat:output_type -> white.sales.v1.PublicChat
+	183, // 476: white.sales.v1.ChatService.SendPublicChat:output_type -> white.sales.v1.PublicChat
+	183, // 477: white.sales.v1.ChatService.PollPublicChat:output_type -> white.sales.v1.PublicChat
+	188, // 478: white.sales.v1.ChatService.ReceiveWhatsApp:output_type -> white.sales.v1.ReceiveWhatsAppResponse
+	340, // [340:479] is the sub-list for method output_type
+	201, // [201:340] is the sub-list for method input_type
 	201, // [201:201] is the sub-list for extension type_name
 	201, // [201:201] is the sub-list for extension extendee
 	0,   // [0:201] is the sub-list for field type_name

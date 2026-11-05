@@ -5,6 +5,7 @@ import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load, sp1 } from "@/features/erp/shared/load";
 import { ErpError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
+import { matchesText } from "@/features/erp/shared/list-filter";
 import { ContractTemplates, ContractsTable } from "@/features/erp/sales/components/contracts";
 import { salesCaps } from "@/features/erp/sales/lib";
 import { listContractTemplates, listContracts, listQuotations } from "@/features/erp/sales/queries";
@@ -35,7 +36,7 @@ export default async function ContractsPage(props: PageProps<"/erp/sales/contrac
     ]);
     body = contracts.data ? (
       <ContractsTable
-        contracts={contracts.data}
+        contracts={(contracts.data).filter((c) => matchesText(sp1(sp.q), c.contractNumber, c.clientName))}
         caps={caps}
         quotations={accepted?.data ?? []}
         templates={templates.data?.templates ?? []}

@@ -105,6 +105,8 @@ type InvoiceInput struct {
 	Subtotal, TaxAmount                                                          domain.Money
 	// Withholding comes off what the party pays, so off the invoice's total.
 	Withholding domain.Money
+	// TaxIDs picks master tax codes; they replace a typed TaxAmount.
+	TaxIDs []string
 }
 
 func (l *Ledgers) normalizeInvoice(ctx context.Context, in *InvoiceInput) error {
@@ -147,8 +149,42 @@ func (l *Ledgers) nextNo(ctx context.Context, s domain.Store, prefix string) (st
 }
 
 // CreateInvoice saves a DRAFT invoice.
+// applyInvoiceTaxes computes the amounts of chosen tax codes on a typed invoice.
+// A price-included code takes the tax out of the typed subtotal.
+func (l *Ledgers) applyInvoiceTaxes(ctx context.Context, kind string, in *InvoiceInput) ([]domain.InvoicePosting, error) {
+	if len(in.TaxIDs) == 0 {
+		return nil, nil
+	}
+	side := domain.SideSupplier
+	if kind == domain.KindAR {
+		side = domain.SideB2B
+	}
+	taxes, err := resolveTaxes(ctx, l.Store, in.TaxIDs, side, in.InvoiceDate, in.PartyName)
+	if err != nil {
+		return nil, err
+	}
+	doc := domain.Document{Items: []domain.DocItem{{Qty: domain.Rupiah(1), UnitPrice: in.Subtotal}}, Taxes: taxes}
+	doc.Recalculate()
+	in.Subtotal, in.TaxAmount, in.Withholding = doc.Total-doc.Tax, doc.Tax, doc.Withholding
+	return taxPostings(doc.Taxes, kind)
+}
+
+func insertPostings(ctx context.Context, tx domain.Store, invoiceID string, postings []domain.InvoicePosting) error {
+	for _, p := range postings {
+		p.InvoiceID = invoiceID
+		if err := tx.InsertInvoicePosting(ctx, p); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (l *Ledgers) CreateInvoice(ctx context.Context, kind, userID string, in InvoiceInput) (*domain.Invoice, error) {
 	if err := l.normalizeInvoice(ctx, &in); err != nil {
+		return nil, err
+	}
+	postings, err := l.applyInvoiceTaxes(ctx, kind, &in)
+	if err != nil {
 		return nil, err
 	}
 	inv := domain.Invoice{
@@ -156,13 +192,16 @@ func (l *Ledgers) CreateInvoice(ctx context.Context, kind, userID string, in Inv
 		AccountID: in.AccountID, Currency: "IDR", Subtotal: in.Subtotal, TaxAmount: in.TaxAmount, TotalAmount: in.Subtotal + in.TaxAmount - in.Withholding,
 		Status: domain.StatusDraft, Description: in.Description, ClientID: in.ClientID, CreatedBy: userID,
 	}
-	err := l.Store.WithTx(ctx, func(tx domain.Store) error {
+	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
 		no, err := l.nextNo(ctx, tx, kinds[kind].invoicePrefix)
 		if err != nil {
 			return err
 		}
 		inv.InvoiceNo = no
-		return tx.InsertInvoice(ctx, inv)
+		if err := tx.InsertInvoice(ctx, inv); err != nil {
+			return err
+		}
+		return insertPostings(ctx, tx, inv.ID, postings)
 	})
 	if err != nil {
 		return nil, err
@@ -205,10 +244,23 @@ func (l *Ledgers) UpdateInvoice(ctx context.Context, kind, userID, id string, in
 	if err := l.normalizeInvoice(ctx, &in); err != nil {
 		return nil, err
 	}
+	postings, err := l.applyInvoiceTaxes(ctx, kind, &in)
+	if err != nil {
+		return nil, err
+	}
 	inv.InvoiceDate, inv.DueDate, inv.PartyName, inv.Reference = in.InvoiceDate, in.DueDate, in.PartyName, in.Reference
-	inv.AccountID, inv.Subtotal, inv.TaxAmount, inv.TotalAmount = in.AccountID, in.Subtotal, in.TaxAmount, in.Subtotal+in.TaxAmount
+	inv.AccountID, inv.Subtotal, inv.TaxAmount, inv.TotalAmount = in.AccountID, in.Subtotal, in.TaxAmount, in.Subtotal+in.TaxAmount-in.Withholding
 	inv.Description, inv.ClientID = in.Description, in.ClientID
-	if err := l.Store.UpdateInvoice(ctx, *inv, userID); err != nil {
+	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
+		if err := tx.UpdateInvoice(ctx, *inv, userID); err != nil {
+			return err
+		}
+		if err := tx.DeleteInvoicePostings(ctx, id); err != nil {
+			return err
+		}
+		return insertPostings(ctx, tx, id, postings)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return l.Store.GetInvoice(ctx, id)
@@ -271,6 +323,15 @@ func (l *Ledgers) postInvoiceJournal(ctx context.Context, tx domain.Store, inv d
 	extras, err := tx.ListInvoicePostings(ctx, inv.ID)
 	if err != nil {
 		return domain.PostResult{}, err
+	}
+	for _, p := range extras {
+		if p.TaxCode == "" || p.CashBasis {
+			continue
+		}
+		if err := tx.InsertTaxMove(ctx, domain.TaxMove{Kind: inv.Kind, SourceType: domain.MoveInvoice, SourceID: inv.ID, InvoiceID: inv.ID, TaxCode: p.TaxCode, TaxName: p.TaxName, TaxKind: p.TaxKind,
+			TaxRate: p.TaxRate, ReportCode: p.ReportCode, Date: inv.InvoiceDate, Base: p.TaxBase, Amount: p.Amount}); err != nil {
+			return domain.PostResult{}, err
+		}
 	}
 	res, err := PostFromMapping(ctx, tx, l.invoicePost(inv, userID, extras))
 	if err != nil || res.EntryID == "" {
@@ -459,7 +520,11 @@ func (l *Ledgers) CreatePayment(ctx context.Context, kind, userID string, in Pay
 	if err != nil {
 		return nil, err
 	}
-	return l.paymentResult(ctx, p.ID, invoiceIDs, domain.Summarize(res))
+	note := domain.Summarize(res)
+	if extra := l.recognizeCashTaxes(ctx, p, userID, false); extra != "" {
+		note += "; " + extra
+	}
+	return l.paymentResult(ctx, p.ID, invoiceIDs, note)
 }
 
 func (l *Ledgers) postPaymentJournal(ctx context.Context, p domain.Payment, userID string) (domain.PostResult, error) {
@@ -515,6 +580,9 @@ func (l *Ledgers) VoidPayment(ctx context.Context, kind, userID, id, reason stri
 	if err := domain.EvaluatePaymentVoid(found, status, reason, cfg.label); err != nil {
 		return nil, err
 	}
+	if p.Method == methodCreditNote {
+		return nil, domain.Conflict("Credit note tidak bisa dibatalkan. Buat tagihan baru bila perlu.")
+	}
 	if len([]rune(reason)) > 500 {
 		return nil, apperr.Field("reason", "Alasan void maksimal 500 karakter")
 	}
@@ -522,6 +590,9 @@ func (l *Ledgers) VoidPayment(ctx context.Context, kind, userID, id, reason stri
 		return nil, err
 	}
 	note := l.reversePaymentJournal(ctx, *p, cfg, userID, reason)
+	if extra := l.recognizeCashTaxes(ctx, *p, userID, true); extra != "" {
+		note += "; " + extra
+	}
 	invoiceIDs := make([]string, len(p.Allocations))
 	for i, a := range p.Allocations {
 		invoiceIDs[i] = a.InvoiceID

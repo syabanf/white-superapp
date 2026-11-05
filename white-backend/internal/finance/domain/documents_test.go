@@ -89,3 +89,23 @@ func TestDocTransition(t *testing.T) {
 		}
 	}
 }
+
+func TestProgressiveTax(t *testing.T) {
+	steps := []TaxBracket{{UpTo: Rupiah(60_000_000), Rate: Rupiah(5)}, {UpTo: Rupiah(250_000_000), Rate: Rupiah(15)}, {Rate: Rupiah(25)}}
+	for base, want := range map[int64]int64{0: 0, 10_000_000: 500_000, 60_000_000: 3_000_000, 100_000_000: 9_000_000, 300_000_000: 44_000_000} {
+		if got := ProgressiveTax(Rupiah(base), steps); got != Rupiah(want) {
+			t.Errorf("base %d = %d", base, got)
+		}
+	}
+	if !ValidBrackets(steps) {
+		t.Fatal("rising steps with an open top are valid")
+	}
+	if ValidBrackets([]TaxBracket{{UpTo: Rupiah(10), Rate: 1}, {UpTo: Rupiah(5), Rate: 1}, {Rate: 1}}) || ValidBrackets([]TaxBracket{{UpTo: Rupiah(10), Rate: 1}}) {
+		t.Fatal("falling steps or a capped top are invalid")
+	}
+	d := Document{Items: []DocItem{{Qty: Rupiah(1), UnitPrice: Rupiah(100_000_000)}}, Taxes: []DocTax{{Kind: TaxWithholding, Rate: Rupiah(25), BaseNumerator: 1, BaseDenominator: 1, Brackets: steps}}}
+	d.Recalculate()
+	if d.Withholding != Rupiah(9_000_000) {
+		t.Fatalf("withholding %d", d.Withholding)
+	}
+}

@@ -1418,6 +1418,10 @@ service LogbookService {
   rpc CreateTemplate(CreateTemplateRequest) returns (LogbookTemplate) {
     option (google.api.http) = {post: "/v1/performance/logbook/templates" body: "*"};
   }
+  // Past entries keep their own copy of the checklist.
+  rpc UpdateTemplate(UpdateTemplateRequest) returns (LogbookTemplate) {
+    option (google.api.http) = {patch: "/v1/performance/logbook/templates/{id}" body: "input"};
+  }
   rpc DeleteTemplate(IdRequest) returns (DeleteTemplateResponse) {
     option (google.api.http) = {delete: "/v1/performance/logbook/templates/{id}"};
   }
@@ -1497,6 +1501,11 @@ message CreateTemplateRequest {
     optional bool is_required = 4;
   }
   repeated Item items = 5;
+}
+
+message UpdateTemplateRequest {
+  string id = 1;
+  CreateTemplateRequest input = 2;
 }
 
 message DeleteTemplateResponse {

@@ -62,6 +62,18 @@ type ClientInput struct {
 	Name, Slug, WebsiteURL, Industry string
 }
 
+// TaxInfo is a finance VAT code as a quotation uses it.
+type TaxInfo struct {
+	Code, Name       string
+	EffectivePercent float64
+}
+
+// TaxCodes reads the finance tax master. Nil leaves quotations on a typed rate.
+type TaxCodes interface {
+	VATByCode(ctx context.Context, code string) (*TaxInfo, error)
+	DefaultSaleVAT(ctx context.Context) (*TaxInfo, error)
+}
+
 // MarketingClients creates clients through identity ClientService.
 type MarketingClients interface {
 	CreateClient(ctx context.Context, in ClientInput) (string, error)
@@ -133,6 +145,7 @@ type Deps struct {
 	AI        AI
 	WhatsApp  WhatsApp
 	Files     Files
+	Taxes     TaxCodes
 	Renderer  Renderer
 	Logger    *slog.Logger
 }

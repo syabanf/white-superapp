@@ -341,6 +341,10 @@ export async function createPayrollAdditionAction(input: z.input<typeof addition
   return send(`${H}/payroll/additions`, "POST", v.data);
 }
 
+export async function updatePayrollAdditionAction(id: string, input: { amount: string; label: string }) {
+  return send(`${H}/payroll/additions/${id}`, "PATCH", input);
+}
+
 export async function deletePayrollAdditionAction(id: string) {
   return send(`${H}/payroll/additions/${id}`, "DELETE");
 }

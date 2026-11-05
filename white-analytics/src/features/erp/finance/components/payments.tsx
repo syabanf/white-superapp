@@ -242,7 +242,7 @@ export function PaymentsTable({ kind, payments, page, perms }: { kind: LedgerKin
       accessorFn: (r) => r.method,
       cell: ({ row }) => (
         <span className="text-xs">
-          {iv.methods[row.original.method] ?? row.original.method}
+          {iv.methods[row.original.method] ?? iv.methodLabels[row.original.method] ?? row.original.method}
           {row.original.cashAccountName ? <span className="block text-muted-foreground">{row.original.cashAccountName}</span> : null}
         </span>
       ),
@@ -272,7 +272,7 @@ export function PaymentsTable({ kind, payments, page, perms }: { kind: LedgerKin
                 <Link href={`/erp/finance/journals/${p.journalEntryId}`}>{iv.journal}</Link>
               </Button>
             ) : null}
-            {perms.canApprove && p.status === "POSTED" ? (
+            {perms.canApprove && p.status === "POSTED" && p.method !== "credit_note" ? (
               <ReasonAction
                 trigger={
                   <Button size="xs" variant="ghost" className="text-destructive">

@@ -3,6 +3,22 @@ import type { ChargeType, TaxCode } from "./types";
 
 const num = (v: string | number | undefined) => Number(v) || 0;
 
+/** Tax of one code on a base: its DPP share, then the flat rate or the brackets. */
+export function taxOn(t: TaxCode, base: number) {
+  const share = t.baseDenominator > 0 ? (base * t.baseNumerator) / t.baseDenominator : base;
+  if (!t.brackets?.length) return (share * num(t.rate)) / 100;
+  let tax = 0;
+  let floor = 0;
+  for (const b of t.brackets) {
+    const top = num(b.upTo) === 0 || num(b.upTo) > share ? share : num(b.upTo);
+    if (top > floor) {
+      tax += ((top - floor) * num(b.rate)) / 100;
+      floor = top;
+    }
+  }
+  return tax;
+}
+
 /**
  * What the form shows while typing, in the same order as the backend's
  * Document.Recalculate: lines, included VAT out, discount, taxable charges, tax
@@ -27,7 +43,7 @@ export function previewDocument(v: Pick<DocumentValues, "items" | "discountPerce
     else untaxed += amount;
   }
   const dpp = after + taxable;
-  const of = (kind: TaxCode["kind"]) => taxes.filter((t) => t.kind === kind).reduce((sum, t) => sum + (dpp * ratio(t) * num(t.rate)) / 100, 0);
+  const of = (kind: TaxCode["kind"]) => taxes.filter((t) => t.kind === kind).reduce((sum, t) => sum + taxOn(t, dpp), 0);
   const tax = of("VAT");
   return { subtotal, tax, withholding: of("WITHHOLDING"), total: dpp + tax + untaxed };
 }

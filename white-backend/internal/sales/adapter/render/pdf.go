@@ -430,7 +430,11 @@ func (r Renderer) QuotationPDF(q domain.Quotation, deal domain.Deal, ownerName s
 		tot = append(tot, [2]string{"Diskon " + domain.FormatNumber(q.DiscountPercent, 2) + "%", "-" + q.DiscountNominal.Rupiah()})
 	}
 	if q.UsePpn {
-		tot = append(tot, [2]string{"PPN " + domain.FormatNumber(q.PpnPercent, 2) + "%", q.PpnNominal.Rupiah()})
+		label := q.TaxName
+		if label == "" {
+			label = "PPN " + domain.FormatNumber(q.PpnPercent, 2) + "%"
+		}
+		tot = append(tot, [2]string{label, q.PpnNominal.Rupiah()})
 	}
 	tot = append(tot, [2]string{"Total", q.Total.Rupiah()})
 	d.totals(tot)

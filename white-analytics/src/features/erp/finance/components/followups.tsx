@@ -12,6 +12,7 @@ import { ConfirmAction, Fld, FormDialog, FormFooter } from "@/features/erp/sales
 import type { InvoiceFollowup } from "@/features/erp/sales/types";
 import { useErpAction } from "@/features/erp/shared/client";
 import { ErpDataTable } from "@/features/erp/shared/data-table";
+import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { fs } from "../strings";
 
@@ -105,7 +106,20 @@ export function FollowupQueue({ rows, canWrite, whatsappEnabled }: { rows: Invoi
     <>
       <p className="text-sm text-muted-foreground">{s.hint}</p>
       {whatsappEnabled ? null : <p className="rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-sm">{s.waOff}</p>}
-      <ErpDataTable columns={columns} data={rows} getRowId={(r) => r.id} emptyMessage={s.empty} />
+      <ErpDataTable
+        columns={columns}
+        data={rows}
+        getRowId={(r) => r.id}
+        emptyMessage={s.empty}
+        toolbar={
+          <>
+            <SearchFilter placeholder={s.search} />
+            <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={Object.entries(s.statuses).map(([value, label]) => ({ value, label: String(label) }))} />
+            <SelectFilter param="stage" label={s.stage} allLabel={s.stage} options={Object.entries(s.stages).map(([value, label]) => ({ value, label: String(label) }))} />
+            <ResetFilters params={["q", "status", "stage"]} />
+          </>
+        }
+      />
     </>
   );
 }
