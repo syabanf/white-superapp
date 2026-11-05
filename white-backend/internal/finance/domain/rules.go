@@ -390,7 +390,7 @@ func HasOpenPeriod(periods []PeriodInput) bool {
 }
 
 // CloseBlockers lists why a period cannot be closed.
-func CloseBlockers(periodName, status string, yearActive bool, draftCount int) []string {
+func CloseBlockers(periodName, status string, yearActive bool, draftCount, pendingPostings int) []string {
 	blockers := []string{}
 	if status == PeriodClosed {
 		blockers = append(blockers, "Period "+periodName+" sudah CLOSED")
@@ -400,6 +400,9 @@ func CloseBlockers(periodName, status string, yearActive bool, draftCount int) [
 	}
 	if draftCount > 0 {
 		blockers = append(blockers, fmt.Sprintf("Masih ada %d jurnal DRAFT. Posting atau hapus dulu sebelum closing.", draftCount))
+	}
+	if pendingPostings > 0 {
+		blockers = append(blockers, fmt.Sprintf("Masih ada %d transaksi belum berjurnal di periode ini. Selesaikan dulu di log posting.", pendingPostings))
 	}
 	return blockers
 }

@@ -366,8 +366,8 @@ func TestAnalysisAndInsight(t *testing.T) {
 	j := app.NewJournals(h.deps)
 	for _, in := range []app.EntryInput{
 		{EntryDate: "2026-10-01", Post: true, Lines: []domain.Line{line(h.id("1102001"), domain.Debit, 1_000_000), line(h.id("3101001"), domain.Credit, 1_000_000)}},
-		{EntryDate: "2026-10-02", Post: true, Lines: []domain.Line{line(h.id("1103001"), domain.Debit, 600_000), line(h.id("4101001"), domain.Credit, 600_000)}},
-		{EntryDate: "2026-10-03", Post: true, Lines: []domain.Line{line(h.id("6301001"), domain.Debit, 300_000), line(h.id("2101001"), domain.Credit, 300_000)}},
+		{EntryDate: "2026-10-02", IsRecon: true, Post: true, Lines: []domain.Line{line(h.id("1103001"), domain.Debit, 600_000), line(h.id("4101001"), domain.Credit, 600_000)}},
+		{EntryDate: "2026-10-03", IsRecon: true, Post: true, Lines: []domain.Line{line(h.id("6301001"), domain.Debit, 300_000), line(h.id("2101001"), domain.Credit, 300_000)}},
 		{EntryDate: "2026-10-04", Post: true, Lines: []domain.Line{line(h.id("5101001"), domain.Debit, 120_000), line(h.id("1102001"), domain.Credit, 120_000)}},
 	} {
 		_, err := j.Create(h.ctx, "u1", in)

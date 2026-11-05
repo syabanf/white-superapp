@@ -101,7 +101,7 @@ func TestValidateFiscalYear(t *testing.T) {
 			t.Errorf("case %d: got %q, want %q", i, got, c.want)
 		}
 	}
-	if b := CloseBlockers("Jan", "CLOSED", false, 2); len(b) != 3 || b[2] != "Masih ada 2 jurnal DRAFT. Posting atau hapus dulu sebelum closing." {
+	if b := CloseBlockers("Jan", "CLOSED", false, 2, 0); len(b) != 3 || b[2] != "Masih ada 2 jurnal DRAFT. Posting atau hapus dulu sebelum closing." {
 		t.Fatalf("blockers %v", b)
 	}
 	ps := MonthlyPeriods(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 12, 31, 0, 0, 0, 0, time.UTC))

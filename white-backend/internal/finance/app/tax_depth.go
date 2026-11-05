@@ -261,8 +261,8 @@ func creditNoteMoves(ctx context.Context, tx domain.Store, inv domain.Invoice, e
 
 // recognizeCashTaxes moves cash basis VAT from the transition account to its final
 // account in proportion to what the payment settled, and enters the tax ledger on
-// the payment date. A void reverses it. Like the payment journal it runs after the
-// payment commits, so a failure comes back as a note for Finance to correct.
+// the payment date. A void reverses it. A failure comes back as a note: manual
+// payments treat it as a refusal, Sales payments keep it for Finance to correct.
 func (l *Ledgers) recognizeCashTaxes(ctx context.Context, p domain.Payment, userID string, void bool) string {
 	source, sign := domain.MoveCash, domain.Money(1)
 	if void {

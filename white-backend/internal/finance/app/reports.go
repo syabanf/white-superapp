@@ -361,3 +361,62 @@ func topExpenses(rows []domain.AccountBalance, n int) []NameValue {
 	}
 	return out
 }
+
+// SubledgerRow compares one ledger's open invoices with its control accounts.
+type SubledgerRow struct {
+	Kind                     string
+	Accounts                 []domain.AccountBalance
+	GeneralLedger, Subledger domain.Money
+	UnjournaledCount         int
+	UnjournaledAmount        domain.Money
+	// Opening and Recon explain a difference. They stay unsubtracted, because an
+	// opening balance may already cover invoices still open in the subledger.
+	Opening, Recon domain.Money
+}
+
+// Difference is what the two records disagree on.
+func (r SubledgerRow) Difference() domain.Money { return r.GeneralLedger - r.Subledger }
+
+// SubledgerRecon ties receivables and payables to the general ledger. Opening
+// balances and recon journals sit only in the ledger, so a difference is a
+// question for Finance to answer.
+func (r *Reports) SubledgerRecon(ctx context.Context) ([]SubledgerRow, int, error) {
+	control, err := controlAccounts(ctx, r.Store)
+	if err != nil {
+		return nil, 0, err
+	}
+	balances, err := r.Store.AccountBalances(ctx, domain.BalanceWindow{AsOf: "9999-12-31"})
+	if err != nil {
+		return nil, 0, err
+	}
+	totals, err := r.Store.SubledgerTotals(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	rows := []SubledgerRow{}
+	for _, kind := range []string{domain.KindAR, domain.KindAP} {
+		row := SubledgerRow{Kind: kind}
+		accountIDs := []string{}
+		for _, b := range balances {
+			if control[b.ID] == kind {
+				row.Accounts = append(row.Accounts, b)
+				row.GeneralLedger += b.Balance
+				accountIDs = append(accountIDs, b.ID)
+			}
+		}
+		if row.Opening, row.Recon, err = r.Store.ControlAdjustments(ctx, accountIDs); err != nil {
+			return nil, 0, err
+		}
+		if kind == domain.KindAP { // A payable's balance is credit minus debit.
+			row.Opening, row.Recon = -row.Opening, -row.Recon
+		}
+		for _, t := range totals {
+			if t.Kind == kind {
+				row.Subledger, row.UnjournaledCount, row.UnjournaledAmount = t.Outstanding, t.UnjournaledCount, t.UnjournaledAmount
+			}
+		}
+		rows = append(rows, row)
+	}
+	pending, err := r.Store.PendingPostings(ctx, "0001-01-01", "9999-12-31")
+	return rows, pending, err
+}

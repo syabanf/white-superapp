@@ -752,7 +752,7 @@ SELECT i.party_name,
           WHERE pa.invoice_id = i.id AND p.deleted_at IS NULL AND p.status = 'POSTED'), 0), 0))::numeric AS outstanding,
        count(*)::int AS invoice_count
   FROM finance.invoices i
- WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1
+ WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1 AND i.journal_entry_id IS NOT NULL
  GROUP BY i.party_name
  ORDER BY i.party_name
 `

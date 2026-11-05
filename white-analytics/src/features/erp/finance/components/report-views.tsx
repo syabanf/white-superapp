@@ -21,6 +21,7 @@ export const REPORTS = [
   { key: "general-ledger", label: r.generalLedger, icon: BookOpen },
   { key: "subsidiary-ledger", label: r.subsidiaryLedger, icon: Users },
   { key: "project-profit", label: fs.projects.profitTitle, icon: Target },
+  { key: "subledger-recon", label: fs.subledgerRecon.title, icon: Scale },
   { key: "tax-register", label: r.taxRegister, icon: Percent },
   { key: "budget-vs-actual", label: r.budgetVsActual, icon: Target },
   { key: "equity-changes", label: r.equityChanges, icon: Scale },

@@ -328,24 +328,50 @@ func (l *Ledgers) postInvoiceJournal(ctx context.Context, tx domain.Store, inv d
 	if err != nil {
 		return domain.PostResult{}, err
 	}
+	res, err := PostFromMapping(ctx, tx, l.invoicePost(inv, userID, extras))
+	if err != nil || res.EntryID == "" {
+		return res, err
+	}
+	if err := insertInvoiceTaxMoves(ctx, tx, inv, extras); err != nil {
+		return res, err
+	}
+	return res, tx.SetInvoiceJournal(ctx, inv.ID, res.EntryID)
+}
+
+// insertInvoiceTaxMoves enters the tax ledger once the invoice has its journal,
+// so the register and the exports always agree with the books.
+func insertInvoiceTaxMoves(ctx context.Context, tx domain.Store, inv domain.Invoice, extras []domain.InvoicePosting) error {
 	for _, p := range extras {
 		if p.TaxCode == "" || p.CashBasis {
 			continue
 		}
 		if err := tx.InsertTaxMove(ctx, domain.TaxMove{Kind: inv.Kind, SourceType: domain.MoveInvoice, SourceID: inv.ID, InvoiceID: inv.ID, TaxCode: p.TaxCode, TaxName: p.TaxName, TaxKind: p.TaxKind,
 			TaxRate: p.TaxRate, ReportCode: p.ReportCode, Date: inv.InvoiceDate, Base: p.TaxBase, Amount: p.Amount}); err != nil {
-			return domain.PostResult{}, err
+			return err
 		}
 	}
-	res, err := PostFromMapping(ctx, tx, l.invoicePost(inv, userID, extras))
-	if err != nil || res.EntryID == "" {
-		return res, err
-	}
-	return res, tx.SetInvoiceJournal(ctx, inv.ID, res.EntryID)
+	return nil
 }
 
-// PostInvoice moves DRAFT -> POSTED and posts its journal. The invoice
-// stays POSTED when the mapping is not ready; the note says why.
+// on is the same service inside a transaction.
+func (l *Ledgers) on(tx domain.Store) *Ledgers {
+	d := l.Deps
+	d.Store = tx
+	return NewLedgers(d)
+}
+
+// needJournal refuses a manual transaction whose journal could not post, which
+// rolls it back. A record without its journal would split the subledger from the
+// general ledger.
+func needJournal(res domain.PostResult) error {
+	if res.EntryID == "" {
+		return domain.Conflict("Jurnal tidak bisa diposting: " + res.Reason)
+	}
+	return nil
+}
+
+// PostInvoice moves DRAFT -> POSTED together with its journal. A journal that
+// cannot post, for a closed period or an incomplete mapping, refuses the whole step.
 func (l *Ledgers) PostInvoice(ctx context.Context, kind, userID, id string) (*domain.Invoice, string, error) {
 	inv, err := l.GetInvoice(ctx, kind, id)
 	if err != nil {
@@ -359,8 +385,10 @@ func (l *Ledgers) PostInvoice(ctx context.Context, kind, userID, id string) (*do
 		if err := tx.MarkInvoicePosted(ctx, id, userID, l.now()); err != nil {
 			return err
 		}
-		res, err = l.postInvoiceJournal(ctx, tx, *inv, userID)
-		return err
+		if res, err = l.postInvoiceJournal(ctx, tx, *inv, userID); err != nil {
+			return err
+		}
+		return needJournal(res)
 	})
 	if err != nil {
 		return nil, "", err
@@ -369,7 +397,8 @@ func (l *Ledgers) PostInvoice(ctx context.Context, kind, userID, id string) (*do
 	return inv, domain.Summarize(res), err
 }
 
-// OpenInvoices are POSTED invoices with an outstanding amount.
+// OpenInvoices are POSTED invoices with an outstanding amount. One still waiting
+// for its journal is not in the books yet, so it stays out of the balance.
 func (l *Ledgers) OpenInvoices(ctx context.Context, kind string) ([]domain.Invoice, error) {
 	rows, _, err := l.Store.ListInvoices(ctx, domain.InvoiceFilter{Kind: kind, Status: domain.StatusPosted, Limit: 1000})
 	if err != nil {
@@ -377,7 +406,7 @@ func (l *Ledgers) OpenInvoices(ctx context.Context, kind string) ([]domain.Invoi
 	}
 	out := []domain.Invoice{}
 	for _, r := range rows {
-		if r.Outstanding() > 0 {
+		if r.Outstanding() > 0 && r.JournalEntryID != "" {
 			out = append(out, r)
 		}
 	}
@@ -469,6 +498,29 @@ func (l *Ledgers) CreatePayment(ctx context.Context, kind, userID string, in Pay
 			return nil, domain.Bad("Akun kas/bank tidak valid")
 		}
 	}
+	// Sales already took this money, so its event cannot be refused. It records
+	// the payment and leaves the journal to the posting log when it cannot post.
+	if in.SalesPaymentID != "" {
+		return l.recordSalesPayment(ctx, kind, userID, in)
+	}
+	var p domain.Payment
+	var invoiceIDs []string
+	var note string
+	err := l.Store.WithTx(ctx, func(tx domain.Store) error {
+		var err error
+		if p, invoiceIDs, err = l.insertPayment(ctx, tx, kind, userID, in); err != nil {
+			return err
+		}
+		note, err = l.postPaymentStrict(ctx, tx, p, userID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return l.paymentResult(ctx, p.ID, invoiceIDs, note)
+}
+
+func (l *Ledgers) recordSalesPayment(ctx context.Context, kind, userID string, in PaymentInput) (*PaymentResult, error) {
 	var p domain.Payment
 	var invoiceIDs []string
 	err := l.Store.WithTx(ctx, func(tx domain.Store) error {
@@ -479,7 +531,31 @@ func (l *Ledgers) CreatePayment(ctx context.Context, kind, userID string, in Pay
 	if err != nil {
 		return nil, err
 	}
-	return l.finishPayment(ctx, p, invoiceIDs, userID)
+	res, err := l.postPaymentJournal(ctx, l.Store, p, userID)
+	if err != nil {
+		return nil, err
+	}
+	note := domain.Summarize(res)
+	if extra := l.recognizeCashTaxes(ctx, p, userID, false); extra != "" {
+		note += "; " + extra
+	}
+	return l.paymentResult(ctx, p.ID, invoiceIDs, note)
+}
+
+// postPaymentStrict posts the payment's journal and cash basis VAT inside the
+// caller's transaction; any failure rolls the payment back.
+func (l *Ledgers) postPaymentStrict(ctx context.Context, tx domain.Store, p domain.Payment, userID string) (string, error) {
+	res, err := l.postPaymentJournal(ctx, tx, p, userID)
+	if err != nil {
+		return "", err
+	}
+	if err := needJournal(res); err != nil {
+		return "", err
+	}
+	if extra := l.on(tx).recognizeCashTaxes(ctx, p, userID, false); extra != "" {
+		return "", domain.Conflict(extra)
+	}
+	return domain.Summarize(res), nil
 }
 
 // insertPayment validates the allocations and stores the payment. The caller
@@ -512,6 +588,12 @@ func (l *Ledgers) insertPayment(ctx context.Context, tx domain.Store, kind, user
 		if inv.Status != domain.StatusPosted {
 			return p, nil, domain.Bad("Hanya invoice POSTED yang bisa dibayar")
 		}
+		if inv.JournalEntryID == "" && in.SalesPaymentID == "" {
+			return p, nil, domain.Conflict("Tagihan " + inv.InvoiceNo + " belum berjurnal. Selesaikan dulu di log posting.")
+		}
+		if day < inv.InvoiceDate && in.SalesPaymentID == "" {
+			return p, nil, apperr.Field("payment_date", "Tanggal pembayaran tidak boleh sebelum tanggal tagihan")
+		}
 		if a.Amount <= 0 {
 			return p, nil, domain.Bad("Amount pembayaran harus > 0")
 		}
@@ -534,21 +616,7 @@ func (l *Ledgers) insertPayment(ctx context.Context, tx domain.Store, kind, user
 	return p, invoiceIDs, tx.InsertPayment(ctx, p)
 }
 
-// finishPayment posts the journal after the commit (NüHabit does too) and
-// recognizes any cash basis VAT.
-func (l *Ledgers) finishPayment(ctx context.Context, p domain.Payment, invoiceIDs []string, userID string) (*PaymentResult, error) {
-	res, err := l.postPaymentJournal(ctx, p, userID)
-	if err != nil {
-		return nil, err
-	}
-	note := domain.Summarize(res)
-	if extra := l.recognizeCashTaxes(ctx, p, userID, false); extra != "" {
-		note += "; " + extra
-	}
-	return l.paymentResult(ctx, p.ID, invoiceIDs, note)
-}
-
-func (l *Ledgers) postPaymentJournal(ctx context.Context, p domain.Payment, userID string) (domain.PostResult, error) {
+func (l *Ledgers) postPaymentJournal(ctx context.Context, s domain.Store, p domain.Payment, userID string) (domain.PostResult, error) {
 	cfg := kinds[p.Kind]
 	post := MappingPost{
 		UserID: userID, EventCode: cfg.paymentEvent, DocumentType: DocPayment, DocumentID: p.ID, DocumentLabel: p.PaymentNo,
@@ -558,11 +626,11 @@ func (l *Ledgers) postPaymentJournal(ctx context.Context, p domain.Payment, user
 	if p.CashAccountID != "" {
 		post.Overrides = map[string]string{"CASH": p.CashAccountID}
 	}
-	res, err := PostFromMapping(ctx, l.Store, post)
+	res, err := PostFromMapping(ctx, s, post)
 	if err != nil || res.EntryID == "" {
 		return res, err
 	}
-	return res, l.Store.SetPaymentJournal(ctx, p.ID, res.EntryID)
+	return res, s.SetPaymentJournal(ctx, p.ID, res.EntryID)
 }
 
 func (l *Ledgers) paymentResult(ctx context.Context, paymentID string, invoiceIDs []string, note string) (*PaymentResult, error) {
@@ -607,12 +675,23 @@ func (l *Ledgers) VoidPayment(ctx context.Context, kind, userID, id, reason stri
 	if len([]rune(reason)) > 500 {
 		return nil, apperr.Field("reason", "Alasan void maksimal 500 karakter")
 	}
-	if err := l.Store.VoidPayment(ctx, id, reason, userID); err != nil {
+	var note string
+	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
+		if err := tx.VoidPayment(ctx, id, reason, userID); err != nil {
+			return err
+		}
+		t := l.on(tx)
+		var err error
+		if note, err = t.reversePaymentJournal(ctx, *p, cfg, userID, reason); err != nil {
+			return err
+		}
+		if extra := t.recognizeCashTaxes(ctx, *p, userID, true); extra != "" {
+			return domain.Conflict(extra)
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
-	}
-	note := l.reversePaymentJournal(ctx, *p, cfg, userID, reason)
-	if extra := l.recognizeCashTaxes(ctx, *p, userID, true); extra != "" {
-		note += "; " + extra
 	}
 	invoiceIDs := make([]string, len(p.Allocations))
 	for i, a := range p.Allocations {
@@ -621,21 +700,20 @@ func (l *Ledgers) VoidPayment(ctx context.Context, kind, userID, id, reason stri
 	return l.paymentResult(ctx, id, invoiceIDs, note)
 }
 
-// reversePaymentJournal: a draft journal is deleted, a posted one gets a
-// reversing entry. Failures become the note.
-func (l *Ledgers) reversePaymentJournal(ctx context.Context, p domain.Payment, cfg kindConfig, userID, reason string) string {
+// reversePaymentJournal: a draft journal is deleted, a posted one gets a reversing
+// AUTO entry dated today. A payment that never got its journal only drops its
+// pending posting, so a retry cannot book a voided payment. Any failure refuses
+// the void.
+func (l *Ledgers) reversePaymentJournal(ctx context.Context, p domain.Payment, cfg kindConfig, userID, reason string) (string, error) {
 	entry, err := l.Store.FindEntryBySource(ctx, cfg.paymentEvent, p.ID)
 	if err != nil {
-		return "jurnal pembalik gagal: " + apperr.As(err).Message
+		return "", err
 	}
 	if entry == nil {
-		return "tidak ada jurnal pembayaran untuk dibalik"
+		return "tidak ada jurnal pembayaran untuk dibalik", l.Store.DeletePostingLog(ctx, cfg.paymentEvent, p.ID)
 	}
 	if entry.Status != domain.StatusPosted {
-		if err := l.Store.SoftDeleteJournalEntry(ctx, entry.ID, userID); err != nil {
-			return "jurnal pembalik gagal: " + apperr.As(err).Message
-		}
-		return "jurnal draft pembayaran dihapus"
+		return "jurnal draft pembayaran dihapus", l.Store.SoftDeleteJournalEntry(ctx, entry.ID, userID)
 	}
 	_, err = createEntry(ctx, l.Store, NewEntry{
 		UserID: userID, EntryDate: l.today(), Description: "Void " + strings.ToLower(cfg.docLabel) + " " + p.PaymentNo + ": " + reason,
@@ -643,12 +721,9 @@ func (l *Ledgers) reversePaymentJournal(ctx context.Context, p domain.Payment, c
 		SourceModule: cfg.module, SourceEventCode: cfg.paymentEvent + "_VOID", SourceDocumentType: DocPayment, SourceDocumentID: p.ID,
 	})
 	if err != nil {
-		if l.Logger != nil {
-			l.Logger.Error("payment void reversal failed", "payment", p.ID, "err", err)
-		}
-		return "jurnal pembalik gagal: " + apperr.As(err).Message
+		return "", domain.Conflict("Jurnal pembalik tidak bisa diposting: " + apperr.As(err).Message)
 	}
-	return "jurnal pembalik diposting"
+	return "jurnal pembalik diposting", nil
 }
 
 // ─── Subsidiary ledger ──────────────────────────────────────

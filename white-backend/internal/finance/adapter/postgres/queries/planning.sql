@@ -98,3 +98,39 @@ UPDATE finance.advances SET status = 'VOID', void_reason = $2 WHERE id = $1;
 
 -- name: InsertAdvanceApplication :exec
 INSERT INTO finance.advance_applications (payment_id, advance_id) VALUES ($1, $2);
+
+-- name: DeletePostingLog :exec
+DELETE FROM finance.posting_logs WHERE event_code = $1 AND document_id = $2;
+
+-- name: PendingPostings :one
+SELECT count(*)::int FROM finance.posting_logs
+ WHERE status IN ('draft', 'skipped')
+   AND (request->>'entryDate')::date >= sqlc.arg(date_from)::date
+   AND (request->>'entryDate')::date <= sqlc.arg(date_to)::date;
+
+-- name: SubledgerTotals :many
+SELECT i.kind,
+       COALESCE(SUM(i.total_amount - COALESCE(pa.allocated, 0)) FILTER (WHERE i.journal_entry_id IS NOT NULL), 0)::numeric AS outstanding,
+       (count(*) FILTER (WHERE i.journal_entry_id IS NULL))::int AS unjournaled_count,
+       COALESCE(SUM(i.total_amount) FILTER (WHERE i.journal_entry_id IS NULL), 0)::numeric AS unjournaled_amount
+  FROM finance.invoices i
+  LEFT JOIN LATERAL (
+    SELECT SUM(a.amount) AS allocated FROM finance.payment_allocations a
+      JOIN finance.payments p ON p.id = a.payment_id
+     WHERE a.invoice_id = i.id AND p.status = 'POSTED' AND p.deleted_at IS NULL) pa ON true
+ WHERE i.deleted_at IS NULL AND i.status = 'POSTED'
+ GROUP BY i.kind;
+
+-- name: ControlAdjustments :one
+-- What sits on control accounts without an invoice: the latest opening balance
+-- and posted recon journals, as debit minus credit.
+WITH latest AS (
+  SELECT MAX(entry_date) AS day FROM finance.journal_entries
+   WHERE deleted_at IS NULL AND status = 'POSTED' AND entry_type = 'OPENING'
+)
+SELECT COALESCE(SUM(CASE WHEN l.entry_side = 'DEBIT' THEN l.amount ELSE -l.amount END) FILTER (WHERE e.entry_type = 'OPENING' AND e.entry_date = latest.day), 0)::numeric AS opening,
+       COALESCE(SUM(CASE WHEN l.entry_side = 'DEBIT' THEN l.amount ELSE -l.amount END) FILTER (WHERE e.is_recon AND e.entry_type <> 'OPENING'), 0)::numeric AS recon
+  FROM finance.journal_entry_lines l
+  JOIN finance.journal_entries e ON e.id = l.entry_id
+  CROSS JOIN latest
+ WHERE e.deleted_at IS NULL AND e.status = 'POSTED' AND l.account_id = ANY(sqlc.arg(account_ids)::text[]);

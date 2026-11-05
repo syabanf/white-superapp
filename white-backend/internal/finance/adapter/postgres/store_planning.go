@@ -127,3 +127,24 @@ func (s *Store) VoidAdvance(ctx context.Context, id, reason string) error {
 func (s *Store) InsertAdvanceApplication(ctx context.Context, paymentID, advanceID string) error {
 	return s.q.InsertAdvanceApplication(ctx, sqlc.InsertAdvanceApplicationParams{PaymentID: paymentID, AdvanceID: advanceID})
 }
+
+func (s *Store) DeletePostingLog(ctx context.Context, eventCode, documentID string) error {
+	return s.q.DeletePostingLog(ctx, sqlc.DeletePostingLogParams{EventCode: eventCode, DocumentID: documentID})
+}
+
+func (s *Store) PendingPostings(ctx context.Context, from, to string) (int, error) {
+	n, err := s.q.PendingPostings(ctx, sqlc.PendingPostingsParams{DateFrom: day(from), DateTo: day(to)})
+	return int(n), err
+}
+
+func (s *Store) SubledgerTotals(ctx context.Context) ([]domain.SubledgerTotal, error) {
+	rows, err := s.q.SubledgerTotals(ctx)
+	return mapAll(rows, func(r sqlc.SubledgerTotalsRow) domain.SubledgerTotal {
+		return domain.SubledgerTotal{Kind: r.Kind, Outstanding: r.Outstanding, UnjournaledCount: int(r.UnjournaledCount), UnjournaledAmount: r.UnjournaledAmount}
+	}), err
+}
+
+func (s *Store) ControlAdjustments(ctx context.Context, accountIDs []string) (domain.Money, domain.Money, error) {
+	r, err := s.q.ControlAdjustments(ctx, accountIDs)
+	return r.Opening, r.Recon, err
+}

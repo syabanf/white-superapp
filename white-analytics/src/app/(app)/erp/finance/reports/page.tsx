@@ -17,6 +17,7 @@ import { UrlTabs } from "@/features/erp/shared/url-tabs";
 import { LedgerTable } from "@/features/erp/finance/components/ledger-table";
 import { TaxExportButtons } from "@/features/erp/finance/components/tax-export";
 import { ProjectProfitView } from "@/features/erp/finance/components/project-profit";
+import { SubledgerReconView } from "@/features/erp/finance/components/subledger-recon";
 import {
   BalanceHealthView,
   BalanceSheetView,
@@ -38,6 +39,7 @@ import {
   getClientEconomics,
   getEquityChanges,
   getProjectProfit,
+  getSubledgerRecon,
   getTaxRegister,
   getCashFlow,
   getGeneralLedger,
@@ -68,7 +70,7 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
   const filters =
     report === "trial-balance" || report === "balance-sheet" || report === "balance-health" ? (
       <DateFilter param="asOf" label={fs.asOf} />
-    ) : report ? (
+    ) : report && report !== "subledger-recon" ? (
       <DateRangeFilter />
     ) : null;
 
@@ -120,6 +122,11 @@ export default async function ReportsPage(props: PageProps<"/erp/finance/reports
     case "income-statement": {
       const res = await load(() => getIncomeStatement(from, to));
       body = res.error ? <ErpLoadError error={res.error} /> : <IncomeStatementView data={res.data} />;
+      break;
+    }
+    case "subledger-recon": {
+      const res = await load(getSubledgerRecon);
+      body = res.error ? <ErpLoadError error={res.error} /> : <SubledgerReconView data={res.data} />;
       break;
     }
     case "project-profit": {

@@ -56,6 +56,8 @@ var chart = []coaRow{
 	{"2104002", "Hutang Tapera", domain.TypeLiability, "OPERATING", false, false},
 	{"2105000", "Pendapatan Diterima di Muka", domain.TypeLiability, "", false, false},
 	{"2105001", "Uang Muka Klien", domain.TypeLiability, "OPERATING", false, false},
+	{"2106000", "Biaya Yang Masih Harus Dibayar", domain.TypeLiability, "", false, false},
+	{"2106001", "Biaya Yang Masih Harus Dibayar", domain.TypeLiability, "OPERATING", false, false},
 	{"3000000", "EKUITAS", domain.TypeEquity, "", false, false},
 	{"3100000", "Modal", domain.TypeEquity, "", false, false},
 	{"3101000", "Modal Disetor", domain.TypeEquity, "", false, false},

@@ -1006,3 +1006,6 @@ export type Advance = {
   journalEntryId: string;
   voidReason: string;
 };
+
+export type SubledgerReconRow = { kind: LedgerKind; accounts?: string[]; generalLedger: string; subledger: string; difference: string; unjournaledCount?: number; unjournaledAmount: string; opening: string; recon: string };
+export type SubledgerRecon = { rows?: SubledgerReconRow[]; pendingPostings?: number };

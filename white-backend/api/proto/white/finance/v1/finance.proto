@@ -1140,6 +1140,10 @@ message GetArInvoiceBySalesInvoiceRequest {
 // ─────────────────────────────────────────────────────────────
 
 service ReportService {
+  // Open invoices against the control accounts of the general ledger.
+  rpc GetSubledgerRecon(google.protobuf.Empty) returns (SubledgerRecon) {
+    option (google.api.http) = {get: "/v1/finance/reports/subledger-recon"};
+  }
   rpc GetTrialBalance(AsOfRequest) returns (TrialBalance) {
     option (google.api.http) = {get: "/v1/finance/reports/trial-balance"};
   }
@@ -2960,4 +2964,23 @@ message ApplyAdvanceRequest {
 message VoidAdvanceRequest {
   string id = 1;
   string reason = 2;
+}
+
+message SubledgerReconRow {
+  // AR or AP.
+  string kind = 1;
+  repeated string accounts = 2;
+  string general_ledger = 3;
+  string subledger = 4;
+  string difference = 5;
+  int32 unjournaled_count = 6;
+  string unjournaled_amount = 7;
+  // These explain a difference; they are not subtracted from it.
+  string opening = 8;
+  string recon = 9;
+}
+message SubledgerRecon {
+  repeated SubledgerReconRow rows = 1;
+  // Automatic postings of any kind still waiting for a journal.
+  int32 pending_postings = 2;
 }

@@ -237,6 +237,23 @@ export const fs = {
     empty: "Belum ada follow-up.",
   },
 
+  subledgerRecon: {
+    title: "Pencocokan buku pembantu",
+    subtitle: "Saldo tagihan terbuka dibanding akun kontrol di buku besar",
+    ledger: "Buku",
+    kinds: { AR: "Piutang usaha", AP: "Hutang usaha" } as Record<string, string>,
+    noAccount: "Mapping jurnal belum punya akun kontrol",
+    generalLedger: "Buku besar",
+    subledger: "Tagihan terbuka",
+    difference: "Selisih",
+    unjournaled: "Belum berjurnal",
+    opening: "Saldo awal",
+    recon: "Jurnal koreksi",
+    note: "Selisih 0 berarti kedua catatan cocok. Saldo awal dan jurnal koreksi tidak punya tagihan, jadi keduanya bisa menjelaskan selisih. Sistem tidak mengurangkannya otomatis, karena saldo awal bisa saja sudah mencakup tagihan yang masih terbuka. Tagihan belum berjurnal tidak masuk kedua saldo.",
+    pending: (n: number) => `${n} posting otomatis masih menunggu jurnal.`,
+    openLogs: "Buka log posting",
+  },
+
   projects: {
     title: "Proyek",
     subtitle: "Tag untuk mengelompokkan transaksi per proyek dan klien. Laporan laba per proyek membaca tag ini.",
@@ -869,6 +886,8 @@ export const fs = {
     deleteDesc: "Dokumen draf ini akan dihapus.",
     method: "Metode",
     methods: { TRANSFER: "Transfer", CASH: "Tunai", GIRO: "Giro", OTHER: "Lainnya" } as Record<string, string>,
+    noJournal: "Belum berjurnal",
+    noJournalHint: "Invoice ini belum masuk buku dan saldo. Selesaikan di log posting pada menu Jurnal.",
     methodLabels: { credit_note: "Credit note", advance: "Uang muka" } as Record<string, string>,
     creditNote: "Credit note",
     creditNoteTitle: "Buat credit note",
@@ -969,6 +988,7 @@ export const fs = {
     cashCycle: "Siklus kas (DSO dikurangi DPO)",
     noHealth: "Belum cukup data untuk menghitung rasio.",
     descriptions: {
+      "subledger-recon": "Saldo tagihan terbuka dibanding akun kontrol di buku besar",
       "project-profit": "Pendapatan, biaya, dan margin per proyek atau klien",
       "tax-register": "PPN Keluaran, PPN Masukan, dan PPh potong per kode pajak",
       "budget-vs-actual": "Rencana dibanding realisasi per akun, per bulan penuh",

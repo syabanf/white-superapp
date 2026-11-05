@@ -336,6 +336,9 @@ func (b *Banking) Record(ctx context.Context, userID, lineID, counterAccountID, 
 	if counterAccountID == l.AccountID {
 		return nil, apperr.Field("counter_account_id", "Akun lawan harus berbeda dari rekening")
 	}
+	if err := checkControlLines(ctx, b.Store, []domain.Line{{AccountID: counterAccountID}}); err != nil {
+		return nil, err
+	}
 	if description = trim(description); description == "" {
 		description = l.Description
 	}

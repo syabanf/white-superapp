@@ -9782,6 +9782,23 @@
         ]
       }
     },
+    "/v1/finance/reports/subledger-recon": {
+      "get": {
+        "summary": "Open invoices against the control accounts of the general ledger.",
+        "operationId": "ReportService_GetSubledgerRecon",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SubledgerRecon"
+            }
+          }
+        },
+        "tags": [
+          "ReportService"
+        ]
+      }
+    },
     "/v1/finance/reports/subsidiary-ledger": {
       "get": {
         "operationId": "ReportService_GetSubsidiaryLedger",
@@ -49001,6 +49018,61 @@
         "daysInStage": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "v1SubledgerRecon": {
+      "type": "object",
+      "properties": {
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SubledgerReconRow"
+          }
+        },
+        "pendingPostings": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Automatic postings of any kind still waiting for a journal."
+        }
+      }
+    },
+    "v1SubledgerReconRow": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "AR or AP."
+        },
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generalLedger": {
+          "type": "string"
+        },
+        "subledger": {
+          "type": "string"
+        },
+        "difference": {
+          "type": "string"
+        },
+        "unjournaledCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "unjournaledAmount": {
+          "type": "string"
+        },
+        "opening": {
+          "type": "string",
+          "description": "These explain a difference; they are not subtracted from it."
+        },
+        "recon": {
+          "type": "string"
         }
       }
     },

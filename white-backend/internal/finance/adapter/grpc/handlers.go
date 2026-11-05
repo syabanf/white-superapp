@@ -976,6 +976,26 @@ type reportServer struct {
 	svc Services
 }
 
+func (s *reportServer) GetSubledgerRecon(ctx context.Context, _ *emptypb.Empty) (*financev1.SubledgerRecon, error) {
+	if _, err := read(ctx); err != nil {
+		return nil, err
+	}
+	rows, pending, err := s.svc.Reports.SubledgerRecon(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := &financev1.SubledgerRecon{PendingPostings: int32(pending)}
+	for _, r := range rows {
+		row := &financev1.SubledgerReconRow{Kind: r.Kind, GeneralLedger: r.GeneralLedger.String(), Subledger: r.Subledger.String(), Difference: r.Difference().String(),
+			UnjournaledCount: int32(r.UnjournaledCount), UnjournaledAmount: r.UnjournaledAmount.String(), Opening: r.Opening.String(), Recon: r.Recon.String()}
+		for _, a := range r.Accounts {
+			row.Accounts = append(row.Accounts, a.Code+" "+a.Name)
+		}
+		out.Rows = append(out.Rows, row)
+	}
+	return out, nil
+}
+
 func (s *reportServer) GetTrialBalance(ctx context.Context, req *financev1.AsOfRequest) (*financev1.TrialBalance, error) {
 	if _, err := read(ctx); err != nil {
 		return nil, err

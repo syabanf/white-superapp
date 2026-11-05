@@ -826,3 +826,142 @@ func TestAdvances(t *testing.T) {
 		t.Fatalf("%+v", paid.Invoices[0])
 	}
 }
+
+func TestManualTransactionsNeedTheirJournal(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	// September is closed on the harness, so its journal cannot post.
+	closed := "2026-09-15"
+	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: closed, PartyName: "PT T", AccountID: h.id("4101001"), Subtotal: rp(1_000)})
+	h.ok(err)
+	if _, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", inv.ID); err == nil {
+		t.Fatal("invoice posted without a journal")
+	}
+	inv, err = l.GetInvoice(h.ctx, domain.KindAR, inv.ID)
+	h.ok(err)
+	if inv.Status != domain.StatusDraft {
+		t.Fatalf("status %s", inv.Status)
+	}
+
+	open, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "PT T", AccountID: h.id("4101001"), Subtotal: rp(1_000)})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", open.ID)
+	h.ok(err)
+	pay := func(date string) (*app.PaymentResult, error) {
+		return l.CreatePayment(h.ctx, domain.KindAR, "u1", app.PaymentInput{PaymentDate: date, CashAccountID: h.id("1101001"), Allocations: []domain.Allocation{{InvoiceID: open.ID, Amount: rp(100)}}})
+	}
+	_, err = pay("2026-09-15")
+	h.wantErr(err, "Tanggal pembayaran tidak boleh sebelum tanggal tagihan")
+	rows, _, err := l.ListPayments(h.ctx, domain.PaymentFilter{Kind: domain.KindAR, Limit: 5})
+	h.ok(err)
+	if len(rows) != 0 {
+		t.Fatalf("payment left behind: %+v", rows)
+	}
+
+	// An advance applied into a closed period leaves nothing behind.
+	a, err := l.CreateAdvance(h.ctx, "u1", app.AdvanceInput{Kind: domain.KindAR, Date: today, PartyName: "PT T", CashAccountID: h.id("1101001"), AdvanceAccountID: h.id("2105001"), Amount: rp(500)})
+	h.ok(err)
+	_, err = l.ApplyAdvance(h.ctx, "u1", a.ID, open.ID, "2026-09-15", rp(100))
+	h.wantErr(err, "Tanggal pemakaian tidak boleh sebelum tanggal uang muka")
+	a, err = h.deps.Store.GetAdvance(h.ctx, a.ID)
+	h.ok(err)
+	if a.Applied != 0 {
+		t.Fatalf("applied %d", a.Applied)
+	}
+}
+
+func TestVoidRefusedWhenReversalCannotPost(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "PT V", AccountID: h.id("4101001"), Subtotal: rp(1_000)})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", inv.ID)
+	h.ok(err)
+	res, err := l.CreatePayment(h.ctx, domain.KindAR, "u1", app.PaymentInput{PaymentDate: today, CashAccountID: h.id("1101001"), Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: rp(100)}}})
+	h.ok(err)
+	october, err := h.periodFor("2026-10")
+	h.ok(err)
+	h.ok(h.deps.Store.SetPeriodStatus(h.ctx, []string{october}, domain.PeriodClosed))
+	if _, err = l.VoidPayment(h.ctx, domain.KindAR, "u1", res.Payment.ID, "Salah catat"); err == nil {
+		t.Fatal("void passed without its reversal")
+	}
+	p, err := h.deps.Store.GetPayment(h.ctx, res.Payment.ID)
+	h.ok(err)
+	if p.Status != domain.StatusPosted {
+		t.Fatalf("payment %s", p.Status)
+	}
+}
+
+func TestSalesInvoiceWaitsForItsJournal(t *testing.T) {
+	h := newHarness(t)
+	auto := app.NewAutoPost(h.deps)
+	l := app.NewLedgers(h.deps)
+	reports := app.NewReports(h.deps)
+	inv, err := auto.SalesInvoiceIssued(h.ctx, domain.SalesInvoiceIssued{InvoiceID: "late", InvoiceNumber: "INV-LATE", CustomerName: "PT W", IssueDate: "2026-09-15", Subtotal: rp(1_000), TaxAmount: rp(110), TotalAmount: rp(1_110)})
+	h.ok(err)
+	if inv.Status != domain.StatusPosted || inv.JournalEntryID != "" {
+		t.Fatalf("%+v", inv)
+	}
+	// Sales already took this money, so an early date cannot refuse the event.
+	early, err := auto.SalesPaymentRecorded(h.ctx, domain.SalesPaymentRecorded{PaymentID: "pay-early", InvoiceID: "late", Amount: rp(10), PaidOn: "2026-09-01", Method: "transfer"})
+	h.ok(err)
+	if early.Payment.JournalEntryID != "" {
+		t.Fatalf("%+v", early.Payment)
+	}
+	h.ok(h.deps.Store.DeletePostingLog(h.ctx, domain.EventSaleARReceipt, early.Payment.ID))
+	_, err = l.VoidPayment(h.ctx, domain.KindAR, "u1", early.Payment.ID, "Salah catat")
+	h.ok(err)
+	open, err := l.OpenInvoices(h.ctx, domain.KindAR)
+	h.ok(err)
+	if len(open) != 0 {
+		t.Fatalf("unjournaled invoice in the balance: %+v", open)
+	}
+	_, err = l.CreatePayment(h.ctx, domain.KindAR, "u1", app.PaymentInput{PaymentDate: today, CashAccountID: h.id("1101001"), Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: rp(10)}}})
+	h.wantErr(err, "Tagihan "+inv.InvoiceNo+" belum berjurnal. Selesaikan dulu di log posting.")
+	rows, pending, err := reports.SubledgerRecon(h.ctx)
+	h.ok(err)
+	if rows[0].Kind != domain.KindAR || rows[0].UnjournaledCount != 1 || rows[0].UnjournaledAmount != rp(1_110) || rows[0].Subledger != 0 || pending != 1 {
+		t.Fatalf("%+v pending %d", rows[0], pending)
+	}
+	september, err := h.periodFor("2026-09")
+	h.ok(err)
+	preview, err := app.NewFiscal(h.deps).ClosePreview(h.ctx, september)
+	h.ok(err)
+	blocked := false
+	for _, b := range preview.Blockers {
+		blocked = blocked || strings.Contains(b, "belum berjurnal")
+	}
+	if !blocked {
+		t.Fatalf("%+v", preview.Blockers)
+	}
+
+	// Once the period opens the daily run books it and the ledgers tie out.
+	h.ok(h.deps.Store.SetPeriodStatus(h.ctx, []string{september}, domain.PeriodOpen))
+	_, err = app.NewSchedules(h.deps).RunDue(h.ctx)
+	h.ok(err)
+	inv, err = l.GetInvoice(h.ctx, domain.KindAR, inv.ID)
+	h.ok(err)
+	if inv.JournalEntryID == "" {
+		t.Fatalf("%+v", inv)
+	}
+	rows, pending, err = reports.SubledgerRecon(h.ctx)
+	h.ok(err)
+	if rows[0].UnjournaledCount != 0 || rows[0].Subledger != rp(1_110) || rows[0].Difference() != 0 || pending != 0 {
+		t.Fatalf("%+v pending %d", rows[0], pending)
+	}
+}
+
+func TestControlAccountsStayOutOfManualEntries(t *testing.T) {
+	h := newHarness(t)
+	j := app.NewJournals(h.deps)
+	lines := []domain.Line{line(h.id("1103001"), domain.Debit, 100), line(h.id("1101001"), domain.Credit, 100)}
+	_, err := j.Create(h.ctx, "u1", app.EntryInput{EntryDate: today, Description: "Langsung ke piutang", Lines: lines})
+	h.wantErr(err, "Akun piutang atau hutang usaha diisi lewat tagihan dan pembayaran. Untuk koreksi, tandai jurnal ini sebagai koreksi (recon).")
+	_, err = j.Create(h.ctx, "u1", app.EntryInput{EntryDate: today, Description: "Koreksi saldo", IsRecon: true, Post: true, Lines: lines})
+	h.ok(err)
+	rows, _, err := app.NewReports(h.deps).SubledgerRecon(h.ctx)
+	h.ok(err)
+	if rows[0].Recon != rp(100) || rows[0].Difference() != rp(100) {
+		t.Fatalf("%+v", rows[0])
+	}
+}

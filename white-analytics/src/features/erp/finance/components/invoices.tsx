@@ -271,6 +271,11 @@ export function InvoicesTable({
         <span className="flex flex-wrap gap-1">
           <ErpStatusBadge status={row.original.status} />
           {row.original.status === "POSTED" ? <PaymentStatusBadge status={row.original.paymentStatus} /> : null}
+          {row.original.status === "POSTED" && !row.original.journalEntryId ? (
+            <span title={iv.noJournalHint} className="rounded-full border border-negative/40 px-2 py-0.5 text-xs text-negative">
+              {iv.noJournal}
+            </span>
+          ) : null}
         </span>
       ),
     },

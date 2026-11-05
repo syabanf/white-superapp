@@ -565,6 +565,10 @@ type JournalRepo interface {
 
 	UpsertPostingLog(ctx context.Context, l PostingLog) (*PostingLog, error)
 	GetPostingLog(ctx context.Context, id string) (*PostingLog, error)
+	DeletePostingLog(ctx context.Context, eventCode, documentID string) error
+	PendingPostings(ctx context.Context, from, to string) (int, error)
+	SubledgerTotals(ctx context.Context) ([]SubledgerTotal, error)
+	ControlAdjustments(ctx context.Context, accountIDs []string) (opening, recon Money, err error)
 	ListPostingLogs(ctx context.Context, status, eventCode string, limit int) ([]PostingLog, error)
 }
 

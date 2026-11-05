@@ -141,12 +141,8 @@ func (s *Schedules) runRecurringInvoice(ctx context.Context, r domain.RecurringI
 				return err
 			}
 			if r.AutoPost {
-				posted, note, err := l.PostInvoice(ctx, r.Kind, r.CreatedBy, inv.ID)
-				if err != nil {
+				if _, _, err := l.PostInvoice(ctx, r.Kind, r.CreatedBy, inv.ID); err != nil {
 					return err
-				}
-				if posted.JournalEntryID == "" {
-					return domain.Conflict(note)
 				}
 			}
 			next, err := domain.NextRunAfter(runDay, r.Frequency, r.AnchorDay)

@@ -2922,6 +2922,7 @@ var ReceivableService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	ReportService_GetSubledgerRecon_FullMethodName         = "/white.finance.v1.ReportService/GetSubledgerRecon"
 	ReportService_GetTrialBalance_FullMethodName           = "/white.finance.v1.ReportService/GetTrialBalance"
 	ReportService_GetBalanceSheet_FullMethodName           = "/white.finance.v1.ReportService/GetBalanceSheet"
 	ReportService_GetIncomeStatement_FullMethodName        = "/white.finance.v1.ReportService/GetIncomeStatement"
@@ -2947,6 +2948,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReportServiceClient interface {
+	// Open invoices against the control accounts of the general ledger.
+	GetSubledgerRecon(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SubledgerRecon, error)
 	GetTrialBalance(ctx context.Context, in *AsOfRequest, opts ...grpc.CallOption) (*TrialBalance, error)
 	GetBalanceSheet(ctx context.Context, in *AsOfRequest, opts ...grpc.CallOption) (*BalanceSheet, error)
 	GetIncomeStatement(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*IncomeStatement, error)
@@ -2977,6 +2980,16 @@ type reportServiceClient struct {
 
 func NewReportServiceClient(cc grpc.ClientConnInterface) ReportServiceClient {
 	return &reportServiceClient{cc}
+}
+
+func (c *reportServiceClient) GetSubledgerRecon(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SubledgerRecon, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubledgerRecon)
+	err := c.cc.Invoke(ctx, ReportService_GetSubledgerRecon_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *reportServiceClient) GetTrialBalance(ctx context.Context, in *AsOfRequest, opts ...grpc.CallOption) (*TrialBalance, error) {
@@ -3173,6 +3186,8 @@ func (c *reportServiceClient) GetFinanceSpend(ctx context.Context, in *FinanceAn
 // All implementations must embed UnimplementedReportServiceServer
 // for forward compatibility.
 type ReportServiceServer interface {
+	// Open invoices against the control accounts of the general ledger.
+	GetSubledgerRecon(context.Context, *emptypb.Empty) (*SubledgerRecon, error)
 	GetTrialBalance(context.Context, *AsOfRequest) (*TrialBalance, error)
 	GetBalanceSheet(context.Context, *AsOfRequest) (*BalanceSheet, error)
 	GetIncomeStatement(context.Context, *PeriodRequest) (*IncomeStatement, error)
@@ -3205,6 +3220,9 @@ type ReportServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedReportServiceServer struct{}
 
+func (UnimplementedReportServiceServer) GetSubledgerRecon(context.Context, *emptypb.Empty) (*SubledgerRecon, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSubledgerRecon not implemented")
+}
 func (UnimplementedReportServiceServer) GetTrialBalance(context.Context, *AsOfRequest) (*TrialBalance, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTrialBalance not implemented")
 }
@@ -3281,6 +3299,24 @@ func RegisterReportServiceServer(s grpc.ServiceRegistrar, srv ReportServiceServe
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&ReportService_ServiceDesc, srv)
+}
+
+func _ReportService_GetSubledgerRecon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).GetSubledgerRecon(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_GetSubledgerRecon_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).GetSubledgerRecon(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ReportService_GetTrialBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -3632,6 +3668,10 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "white.finance.v1.ReportService",
 	HandlerType: (*ReportServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetSubledgerRecon",
+			Handler:    _ReportService_GetSubledgerRecon_Handler,
+		},
 		{
 			MethodName: "GetTrialBalance",
 			Handler:    _ReportService_GetTrialBalance_Handler,

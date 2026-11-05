@@ -106,6 +106,7 @@ func (l *Ledgers) CreateAdvance(ctx context.Context, userID string, in AdvanceIn
 func (l *Ledgers) ApplyAdvance(ctx context.Context, userID, advanceID, invoiceID, date string, amount domain.Money) (*PaymentResult, error) {
 	var p domain.Payment
 	var invoiceIDs []string
+	var note string
 	err := l.Store.WithTx(ctx, func(tx domain.Store) error {
 		if err := tx.LockAdvance(ctx, advanceID); err != nil {
 			return err
@@ -133,16 +134,23 @@ func (l *Ledgers) ApplyAdvance(ctx context.Context, userID, advanceID, invoiceID
 		if !strings.EqualFold(inv.PartyName, a.PartyName) {
 			return domain.Bad("Uang muka hanya bisa dipakai untuk tagihan pihak yang sama")
 		}
+		if strings.TrimSpace(date) != "" && date < a.Date {
+			return apperr.Field("payment_date", "Tanggal pemakaian tidak boleh sebelum tanggal uang muka")
+		}
 		in := PaymentInput{PaymentDate: date, Method: methodAdvance, CashAccountID: a.AdvanceAccountID, Reference: a.AdvanceNo, Allocations: []domain.Allocation{{InvoiceID: invoiceID, Amount: amount}}}
 		if p, invoiceIDs, err = l.insertPayment(ctx, tx, a.Kind, userID, in); err != nil {
 			return err
 		}
-		return tx.InsertAdvanceApplication(ctx, p.ID, a.ID)
+		if err := tx.InsertAdvanceApplication(ctx, p.ID, a.ID); err != nil {
+			return err
+		}
+		note, err = l.postPaymentStrict(ctx, tx, p, userID)
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
-	return l.finishPayment(ctx, p, invoiceIDs, userID)
+	return l.paymentResult(ctx, p.ID, invoiceIDs, note)
 }
 
 // VoidAdvance reverses an advance nothing uses. To use part of it elsewhere,

@@ -61,6 +61,9 @@ func (s *Schedules) checkRecurring(ctx context.Context, in *RecurringInput) (sta
 	if err := checkTag(ctx, s.Store, in.TagID); err != nil {
 		return "", "", err
 	}
+	if err := checkControlLines(ctx, s.Store, in.Lines); err != nil {
+		return "", "", err
+	}
 	return start, end, checkAccounts(ctx, s.Store, accountIDs, "Akun COA wajib diisi", "Akun jurnal harus postable (bukan header)")
 }
 
@@ -244,6 +247,7 @@ func (s *Schedules) RunDue(ctx context.Context) (RunResult, error) {
 	for _, r := range due {
 		s.runRecurring(ctx, r, today, &res)
 	}
+	s.retryPendingPostings(ctx)
 	invoices, err := s.Store.DueRecurringInvoices(ctx, today)
 	if err != nil {
 		return res, err
@@ -259,6 +263,25 @@ func (s *Schedules) RunDue(ctx context.Context) (RunResult, error) {
 		s.runAsset(ctx, a, today, &res)
 	}
 	return res, nil
+}
+
+// retryPendingPostings gives Sales invoices and payments waiting for a journal
+// another chance each day, so they enter the books once their period opens.
+func (s *Schedules) retryPendingPostings(ctx context.Context) {
+	logs, err := s.Store.ListPostingLogs(ctx, domain.PostDraft, "", 200)
+	if err != nil {
+		s.recordRunError(ctx, err, "posting retry", "")
+		return
+	}
+	journals := NewJournals(s.Deps)
+	for _, log := range logs {
+		if log.DocumentType != DocInvoice && log.DocumentType != DocPayment {
+			continue
+		}
+		if _, err := journals.RetryPosting(ctx, "", log.ID); err != nil {
+			s.recordRunError(ctx, err, "posting retry", log.ID)
+		}
+	}
 }
 
 func (s *Schedules) runRecurring(ctx context.Context, r domain.RecurringJournal, today string, res *RunResult) {

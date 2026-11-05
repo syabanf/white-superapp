@@ -35,7 +35,7 @@ func (s *demo) extras(ctx context.Context) error {
 
 	for _, e := range []app.EntryInput{
 		{EntryDate: day(20), Description: "Akrual listrik dan internet " + monthNames[s.today.Month()-1], Lines: []domain.Line{
-			line("6301002", domain.Debit, 4_200_000, "Estimasi tagihan"), line("2101001", domain.Credit, 4_200_000, "Estimasi tagihan")}},
+			line("6301002", domain.Debit, 4_200_000, "Estimasi tagihan"), line("2106001", domain.Credit, 4_200_000, "Estimasi tagihan")}},
 		{EntryDate: day(22), Description: "Reklasifikasi biaya produksi konten klien", Lines: []domain.Line{
 			line("5101002", domain.Debit, 2_750_000, "Reklasifikasi"), line("6301004", domain.Credit, 2_750_000, "Reklasifikasi")}},
 		{EntryDate: day(24), Description: "Koreksi uang muka klien PT Arunika Properti", IsRecon: true, Lines: []domain.Line{

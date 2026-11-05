@@ -12,6 +12,47 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
 )
 
+const controlAdjustments = `-- name: ControlAdjustments :one
+WITH latest AS (
+  SELECT MAX(entry_date) AS day FROM finance.journal_entries
+   WHERE deleted_at IS NULL AND status = 'POSTED' AND entry_type = 'OPENING'
+)
+SELECT COALESCE(SUM(CASE WHEN l.entry_side = 'DEBIT' THEN l.amount ELSE -l.amount END) FILTER (WHERE e.entry_type = 'OPENING' AND e.entry_date = latest.day), 0)::numeric AS opening,
+       COALESCE(SUM(CASE WHEN l.entry_side = 'DEBIT' THEN l.amount ELSE -l.amount END) FILTER (WHERE e.is_recon AND e.entry_type <> 'OPENING'), 0)::numeric AS recon
+  FROM finance.journal_entry_lines l
+  JOIN finance.journal_entries e ON e.id = l.entry_id
+  CROSS JOIN latest
+ WHERE e.deleted_at IS NULL AND e.status = 'POSTED' AND l.account_id = ANY($1::text[])
+`
+
+type ControlAdjustmentsRow struct {
+	Opening domain.Money
+	Recon   domain.Money
+}
+
+// What sits on control accounts without an invoice: the latest opening balance
+// and posted recon journals, as debit minus credit.
+func (q *Queries) ControlAdjustments(ctx context.Context, accountIds []string) (ControlAdjustmentsRow, error) {
+	row := q.db.QueryRow(ctx, controlAdjustments, accountIds)
+	var i ControlAdjustmentsRow
+	err := row.Scan(&i.Opening, &i.Recon)
+	return i, err
+}
+
+const deletePostingLog = `-- name: DeletePostingLog :exec
+DELETE FROM finance.posting_logs WHERE event_code = $1 AND document_id = $2
+`
+
+type DeletePostingLogParams struct {
+	EventCode  string
+	DocumentID string
+}
+
+func (q *Queries) DeletePostingLog(ctx context.Context, arg DeletePostingLogParams) error {
+	_, err := q.db.Exec(ctx, deletePostingLog, arg.EventCode, arg.DocumentID)
+	return err
+}
+
 const deleteProjectTag = `-- name: DeleteProjectTag :exec
 DELETE FROM finance.project_tags WHERE id = $1
 `
@@ -388,6 +429,25 @@ func (q *Queries) LockAdvance(ctx context.Context, id string) error {
 	return err
 }
 
+const pendingPostings = `-- name: PendingPostings :one
+SELECT count(*)::int FROM finance.posting_logs
+ WHERE status IN ('draft', 'skipped')
+   AND (request->>'entryDate')::date >= $1::date
+   AND (request->>'entryDate')::date <= $2::date
+`
+
+type PendingPostingsParams struct {
+	DateFrom time.Time
+	DateTo   time.Time
+}
+
+func (q *Queries) PendingPostings(ctx context.Context, arg PendingPostingsParams) (int32, error) {
+	row := q.db.QueryRow(ctx, pendingPostings, arg.DateFrom, arg.DateTo)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const projectProfit = `-- name: ProjectProfit :many
 SELECT COALESCE(e.tag_id, '')::text AS tag_id, COALESCE(t.name, '')::text AS tag_name, COALESCE(t.client_name, '')::text AS client_name,
        COALESCE(SUM(CASE WHEN at.code IN ('REVENUE', 'OTHER_INCOME') THEN CASE WHEN l.entry_side = 'CREDIT' THEN l.amount ELSE -l.amount END END), 0)::numeric AS revenue,
@@ -472,6 +532,52 @@ type SetRecurringInvoiceActiveParams struct {
 func (q *Queries) SetRecurringInvoiceActive(ctx context.Context, arg SetRecurringInvoiceActiveParams) error {
 	_, err := q.db.Exec(ctx, setRecurringInvoiceActive, arg.ID, arg.IsActive, arg.By)
 	return err
+}
+
+const subledgerTotals = `-- name: SubledgerTotals :many
+SELECT i.kind,
+       COALESCE(SUM(i.total_amount - COALESCE(pa.allocated, 0)) FILTER (WHERE i.journal_entry_id IS NOT NULL), 0)::numeric AS outstanding,
+       (count(*) FILTER (WHERE i.journal_entry_id IS NULL))::int AS unjournaled_count,
+       COALESCE(SUM(i.total_amount) FILTER (WHERE i.journal_entry_id IS NULL), 0)::numeric AS unjournaled_amount
+  FROM finance.invoices i
+  LEFT JOIN LATERAL (
+    SELECT SUM(a.amount) AS allocated FROM finance.payment_allocations a
+      JOIN finance.payments p ON p.id = a.payment_id
+     WHERE a.invoice_id = i.id AND p.status = 'POSTED' AND p.deleted_at IS NULL) pa ON true
+ WHERE i.deleted_at IS NULL AND i.status = 'POSTED'
+ GROUP BY i.kind
+`
+
+type SubledgerTotalsRow struct {
+	Kind              string
+	Outstanding       domain.Money
+	UnjournaledCount  int32
+	UnjournaledAmount domain.Money
+}
+
+func (q *Queries) SubledgerTotals(ctx context.Context) ([]SubledgerTotalsRow, error) {
+	rows, err := q.db.Query(ctx, subledgerTotals)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SubledgerTotalsRow{}
+	for rows.Next() {
+		var i SubledgerTotalsRow
+		if err := rows.Scan(
+			&i.Kind,
+			&i.Outstanding,
+			&i.UnjournaledCount,
+			&i.UnjournaledAmount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateRecurringInvoiceRun = `-- name: UpdateRecurringInvoiceRun :exec

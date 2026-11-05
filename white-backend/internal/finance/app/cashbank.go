@@ -179,6 +179,9 @@ func (c *CashBank) CreateMovement(ctx context.Context, userID string, in Movemen
 	if err := checkTag(ctx, c.Store, in.TagID); err != nil {
 		return nil, err
 	}
+	if err := checkControlLines(ctx, c.Store, []domain.Line{{AccountID: offset.ID}}); err != nil {
+		return nil, err
+	}
 	entry, err := createEntry(ctx, c.Store, NewEntry{
 		TagID: in.TagID, UserID: userID, EntryDate: day, Description: desc, Post: true, SourceModule: "CASH_BANK", SourceEventCode: event, SourceDocumentType: in.Kind,
 		Lines: []domain.Line{

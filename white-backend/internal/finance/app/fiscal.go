@@ -238,7 +238,11 @@ func (f *Fiscal) ClosePreview(ctx context.Context, id string) (*ClosePreview, er
 	if err != nil {
 		return nil, err
 	}
-	blockers := domain.CloseBlockers(p.Name, p.Status, p.YearActive, p.DraftCount)
+	pending, err := f.Store.PendingPostings(ctx, p.StartDate, p.EndDate)
+	if err != nil {
+		return nil, err
+	}
+	blockers := domain.CloseBlockers(p.Name, p.Status, p.YearActive, p.DraftCount, pending)
 	return &ClosePreview{Period: *p, DraftEntries: drafts, CanClose: len(blockers) == 0, Blockers: blockers}, nil
 }
 

@@ -14,6 +14,15 @@ type ProjectProfitRow struct {
 	Revenue, Cost              Money
 }
 
+// SubledgerTotal sums one ledger's open invoices. Invoices still waiting for a
+// journal count apart, because the general ledger does not hold them yet.
+type SubledgerTotal struct {
+	Kind              string
+	Outstanding       Money
+	UnjournaledCount  int
+	UnjournaledAmount Money
+}
+
 // RecurringInvoice issues the same invoice on a schedule.
 type RecurringInvoice struct {
 	ID, Kind, Name, PartyName, ClientID, AccountID, TagID, Description string

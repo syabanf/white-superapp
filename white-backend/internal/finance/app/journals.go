@@ -98,6 +98,43 @@ func createEntry(ctx context.Context, s domain.Store, in NewEntry) (*domain.Jour
 	return out, err
 }
 
+// controlAccounts are the receivable and payable accounts of the invoice
+// mappings: the lines that carry the invoice total.
+func controlAccounts(ctx context.Context, s domain.Store) (map[string]string, error) {
+	out := map[string]string{}
+	for kind, cfg := range kinds {
+		m, err := s.GetActiveMapping(ctx, cfg.invoiceEvent)
+		if err != nil {
+			return nil, err
+		}
+		if m == nil {
+			continue
+		}
+		for _, l := range m.Template() {
+			if l.AmountSource == "TOTAL" && l.AccountID != "" {
+				out[l.AccountID] = kind
+			}
+		}
+	}
+	return out, nil
+}
+
+// checkControlLines keeps manual entries off the control accounts, so their
+// balance always comes from invoices and payments. A correction takes the
+// recon flag, which stays visible on the journal.
+func checkControlLines(ctx context.Context, s domain.Store, lines []domain.Line) error {
+	control, err := controlAccounts(ctx, s)
+	if err != nil {
+		return err
+	}
+	for _, l := range lines {
+		if _, found := control[l.AccountID]; found {
+			return apperr.Field("lines", "Akun piutang atau hutang usaha diisi lewat tagihan dan pembayaran. Untuk koreksi, tandai jurnal ini sebagai koreksi (recon).")
+		}
+	}
+	return nil
+}
+
 // ─── Manual journals ────────────────────────────────────────
 
 func (j *Journals) List(ctx context.Context, f domain.JournalFilter) ([]domain.JournalEntry, int, error) {
@@ -139,6 +176,11 @@ func (j *Journals) Create(ctx context.Context, userID string, in EntryInput) (*d
 	if err := checkTag(ctx, j.Store, in.TagID); err != nil {
 		return nil, err
 	}
+	if !in.IsRecon {
+		if err := checkControlLines(ctx, j.Store, in.Lines); err != nil {
+			return nil, err
+		}
+	}
 	return createEntry(ctx, j.Store, NewEntry{TagID: in.TagID, UserID: userID, EntryDate: in.EntryDate, Description: in.Description, IsRecon: in.IsRecon, Lines: in.Lines, Post: in.Post})
 }
 
@@ -158,6 +200,11 @@ func (j *Journals) Update(ctx context.Context, userID, id string, in EntryInput)
 	}
 	if err := checkTag(ctx, j.Store, in.TagID); err != nil {
 		return nil, err
+	}
+	if !in.IsRecon {
+		if err := checkControlLines(ctx, j.Store, in.Lines); err != nil {
+			return nil, err
+		}
 	}
 	err = j.Store.WithTx(ctx, func(tx domain.Store) error {
 		period, err := periodFor(ctx, tx, in.EntryDate, in.Lines)
@@ -342,14 +389,15 @@ func (j *Journals) RetryPosting(ctx context.Context, userID, id string) (*domain
 	if in.UserID == "" {
 		in.UserID = userID
 	}
-	res, err := PostFromMapping(ctx, j.Store, in)
+	err = j.Store.WithTx(ctx, func(tx domain.Store) error {
+		res, err := PostFromMapping(ctx, tx, in)
+		if err != nil || res.Status != domain.PostPosted {
+			return err
+		}
+		return linkJournal(ctx, tx, in.DocumentType, in.DocumentID, res.EntryID, res)
+	})
 	if err != nil {
 		return nil, err
-	}
-	if res.Status == domain.PostPosted {
-		if err := linkJournal(ctx, j.Store, in.DocumentType, in.DocumentID, res.EntryID, res); err != nil {
-			return nil, err
-		}
 	}
 	return j.Store.GetPostingLog(ctx, id)
 }
@@ -366,6 +414,17 @@ const (
 func linkJournal(ctx context.Context, s domain.Store, docType, docID, entryID string, res domain.PostResult) error {
 	switch docType {
 	case DocInvoice:
+		inv, err := s.GetInvoice(ctx, docID)
+		if err != nil || inv == nil {
+			return err
+		}
+		extras, err := s.ListInvoicePostings(ctx, docID)
+		if err != nil {
+			return err
+		}
+		if err := insertInvoiceTaxMoves(ctx, s, *inv, extras); err != nil {
+			return err
+		}
 		return s.SetInvoiceJournal(ctx, docID, entryID)
 	case DocPayment:
 		return s.SetPaymentJournal(ctx, docID, entryID)

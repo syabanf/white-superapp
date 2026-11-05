@@ -2,6 +2,7 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  SubledgerRecon,
   Advance,
   ProjectProfit,
   ProjectTag,
@@ -319,4 +320,8 @@ export async function listRecurringInvoices() {
 
 export async function listAdvances(kind: LedgerKind) {
   return (await gatewayFetch<{ advances?: Advance[] }>(`${F}/advances${qs({ kind })}`)).advances ?? [];
+}
+
+export function getSubledgerRecon() {
+  return gatewayFetch<SubledgerRecon>(`${F}/reports/subledger-recon`);
 }
