@@ -262,6 +262,13 @@ func (s *Schedules) RunDue(ctx context.Context) (RunResult, error) {
 	for _, a := range assets {
 		s.runAsset(ctx, a, today, &res)
 	}
+	deferrals, err := s.Store.ListDeferrals(ctx, true)
+	if err != nil {
+		return res, err
+	}
+	for _, d := range deferrals {
+		s.runDeferral(ctx, d, today, &res)
+	}
 	return res, nil
 }
 

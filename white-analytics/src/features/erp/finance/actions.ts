@@ -398,7 +398,7 @@ export async function getInvoiceTaxIdsAction(kind: LedgerKind, invoiceId: string
   return runGateway(async () => (await gatewayFetch<{ taxIds?: string[] }>(`${base(kind)}/invoices/${id(invoiceId)}`)).taxIds ?? []);
 }
 
-export async function createCreditNoteAction(kind: LedgerKind, invoiceId: string, input: { noteDate: string; amount: string; reason: string }) {
+export async function createCreditNoteAction(kind: LedgerKind, invoiceId: string, input: { noteDate: string; amount: string; reason: string; advanceAccountId: string }) {
   const res = await runGateway(() => gatewayFetch(`${F}/invoices/${id(invoiceId)}:credit-note`, json("POST", input)));
   revalidatePath(pagePath(kind));
   return res;
@@ -427,6 +427,9 @@ const paymentSchema = z.object({
   allocations: z
     .array(z.object({ invoiceId: z.string().min(1), amount: positive }))
     .min(1, fs.invoices.allocationRequired),
+  adjustments: z.array(z.object({ kind: z.string(), accountId: z.string(), taxId: z.string(), amount: positive, memo: z.string().max(200) })),
+  excessAmount: money,
+  excessAccountId: z.string(),
 });
 
 export async function createPaymentAction(
@@ -845,5 +848,59 @@ export async function applyAdvanceAction(kind: LedgerKind, advanceId: string, in
 export async function voidAdvanceAction(kind: LedgerKind, advanceId: string, reason: string) {
   const res = await runGateway(() => gatewayFetch<Advance>(`${F}/advances/${id(advanceId)}:void`, json("POST", { reason })));
   revalidatePath(pagePath(kind));
+  return res;
+}
+
+export async function refundAdvanceAction(kind: LedgerKind, advanceId: string, input: { refundDate: string; amount: string; cashAccountId: string; reason: string }) {
+  const res = await runGateway(() => gatewayFetch<Advance>(`${F}/advances/${id(advanceId)}:refund`, json("POST", input)));
+  revalidatePath(pagePath(kind));
+  return res;
+}
+
+export async function voidAdvanceRefundAction(kind: LedgerKind, refundId: string, reason: string) {
+  const res = await runGateway(() => gatewayFetch<Advance>(`${F}/advance-refunds/${id(refundId)}:void`, json("POST", { reason })));
+  revalidatePath(pagePath(kind));
+  return res;
+}
+
+const periodEndPath = "/erp/finance/period-end";
+
+async function periodEnd<T>(call: () => Promise<T>) {
+  const res = await runGateway(call);
+  revalidatePath(periodEndPath);
+  return res;
+}
+
+export async function createDeferralAction(input: { kind: string; name: string; partyName: string; reference: string; deferredAccountId: string; targetAccountId: string; startDate: string; months: number; amount: string }) {
+  return periodEnd(() => gatewayFetch(`${F}/deferrals`, json("POST", input)));
+}
+
+export async function setDeferralActiveAction(deferralId: string, active: boolean) {
+  return periodEnd(() => gatewayFetch(`${F}/deferrals/${id(deferralId)}:active`, json("POST", { active })));
+}
+
+export async function deleteDeferralAction(deferralId: string) {
+  return periodEnd(() => gatewayFetch(`${F}/deferrals/${id(deferralId)}`, json("DELETE")));
+}
+
+export async function remitTaxAction(input: { period: string; remitDate: string; accountId: string; cashAccountId: string; amount: string; ntpn: string; notes: string }) {
+  return periodEnd(() => gatewayFetch(`${F}/tax-remittances`, json("POST", input)));
+}
+
+export async function voidTaxRemittanceAction(remittanceId: string, reason: string) {
+  return periodEnd(() => gatewayFetch(`${F}/tax-remittances/${id(remittanceId)}:void`, json("POST", { reason })));
+}
+
+export async function closeVatAction(period: string) {
+  return periodEnd(() => gatewayFetch<{ offset: string; payable: string; compensation: string }>(`${F}/vat-closings`, json("POST", { period })));
+}
+
+export async function setSeparateApproverAction(separateApprover: boolean) {
+  return periodEnd(() => gatewayFetch(`${F}/control-settings`, json("PUT", { separateApprover })));
+}
+
+export async function writeOffInvoiceAction(invoiceId: string, input: { writeOffDate: string; amount: string; expenseAccountId: string; reason: string }) {
+  const res = await runGateway(() => gatewayFetch(`${F}/invoices/${id(invoiceId)}:write-off`, json("POST", input)));
+  revalidatePath(pagePath("AR"));
   return res;
 }

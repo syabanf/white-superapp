@@ -1129,6 +1129,10 @@ message RecordPaymentRequest {
   string method = 4;
   string paid_on = 5;
   string note = 6;
+  // Parts of amount that never reached the bank. Finance books them.
+  string bank_fee = 7;
+  string withheld = 8;
+  string withheld_tax_code = 9;
 }
 
 // ─────────────────────────────────────────────────────────────

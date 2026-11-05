@@ -81,6 +81,10 @@
       "description": "Projects a client's transactions are grouped under."
     },
     {
+      "name": "PeriodEndService",
+      "description": "Period-end work: recognition schedules, write-offs, tax payments, VAT offset and\nthe separation of duties switch. finance.approve for every change."
+    },
+    {
       "name": "AdvanceService",
       "description": "Money paid or received before the invoice. finance.approve for every change."
     },
@@ -5381,6 +5385,38 @@
         ]
       }
     },
+    "/v1/finance/advance-refunds/{id}:void": {
+      "post": {
+        "operationId": "AdvanceService_VoidAdvanceRefund",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Advance"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AdvanceServiceVoidAdvanceRefundBody"
+            }
+          }
+        ],
+        "tags": [
+          "AdvanceService"
+        ]
+      }
+    },
     "/v1/finance/advances": {
       "get": {
         "operationId": "AdvanceService_ListAdvances",
@@ -5453,6 +5489,38 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/AdvanceServiceApplyAdvanceBody"
+            }
+          }
+        ],
+        "tags": [
+          "AdvanceService"
+        ]
+      }
+    },
+    "/v1/finance/advances/{id}:refund": {
+      "post": {
+        "operationId": "AdvanceService_RefundAdvance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Advance"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AdvanceServiceRefundAdvanceBody"
             }
           }
         ],
@@ -6328,6 +6396,62 @@
         ]
       }
     },
+    "/v1/finance/audit-trail": {
+      "get": {
+        "operationId": "PeriodEndService_ListAuditTrail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListAuditTrailResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
     "/v1/finance/budgets/{year}": {
       "get": {
         "operationId": "ReportService_GetBudgetYear",
@@ -6679,6 +6803,46 @@
         ],
         "tags": [
           "TaxSetupService"
+        ]
+      }
+    },
+    "/v1/finance/control-settings": {
+      "get": {
+        "operationId": "PeriodEndService_GetControlSettings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ControlSettings"
+            }
+          }
+        },
+        "tags": [
+          "PeriodEndService"
+        ]
+      },
+      "put": {
+        "operationId": "PeriodEndService_SetControlSettings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ControlSettings"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ControlSettings"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
         ]
       }
     },
@@ -7046,6 +7210,104 @@
         ],
         "tags": [
           "ReportService"
+        ]
+      }
+    },
+    "/v1/finance/deferrals": {
+      "get": {
+        "operationId": "PeriodEndService_ListDeferrals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListDeferralsResponse"
+            }
+          }
+        },
+        "tags": [
+          "PeriodEndService"
+        ]
+      },
+      "post": {
+        "operationId": "PeriodEndService_CreateDeferral",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Deferral"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Deferral"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/deferrals/{id}": {
+      "delete": {
+        "operationId": "PeriodEndService_DeleteDeferral",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/deferrals/{id}:active": {
+      "post": {
+        "operationId": "PeriodEndService_SetDeferralActive",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PeriodEndServiceSetDeferralActiveBody"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
         ]
       }
     },
@@ -7857,6 +8119,38 @@
         ],
         "tags": [
           "TaxSetupService"
+        ]
+      }
+    },
+    "/v1/finance/invoices/{invoiceId}:write-off": {
+      "post": {
+        "operationId": "PeriodEndService_WriteOffInvoice",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteFinanceV1Invoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PeriodEndServiceWriteOffInvoiceBody"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
         ]
       }
     },
@@ -9505,6 +9799,62 @@
         ]
       }
     },
+    "/v1/finance/reports/audit-trail-export": {
+      "get": {
+        "operationId": "PeriodEndService_ExportAuditTrail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TaxExportFile"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
     "/v1/finance/reports/balance-sheet": {
       "get": {
         "operationId": "ReportService_GetBalanceSheet",
@@ -10077,6 +10427,128 @@
         ],
         "tags": [
           "TaxSetupService"
+        ]
+      }
+    },
+    "/v1/finance/tax-positions": {
+      "get": {
+        "operationId": "PeriodEndService_ListTaxPositions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTaxPositionsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "asOf",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/tax-remittances": {
+      "get": {
+        "operationId": "PeriodEndService_ListTaxRemittances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTaxRemittancesResponse"
+            }
+          }
+        },
+        "tags": [
+          "PeriodEndService"
+        ]
+      },
+      "post": {
+        "operationId": "PeriodEndService_RemitTax",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TaxRemittance"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TaxRemittance"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/tax-remittances/{id}:void": {
+      "post": {
+        "operationId": "PeriodEndService_VoidTaxRemittance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TaxRemittance"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PeriodEndServiceVoidTaxRemittanceBody"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/vat-closings": {
+      "post": {
+        "operationId": "PeriodEndService_CloseVat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1VatClosing"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CloseVatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
         ]
       }
     },
@@ -23432,7 +23904,32 @@
         }
       }
     },
+    "AdvanceServiceRefundAdvanceBody": {
+      "type": "object",
+      "properties": {
+        "refundDate": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "cashAccountId": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
     "AdvanceServiceVoidAdvanceBody": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "AdvanceServiceVoidAdvanceRefundBody": {
       "type": "object",
       "properties": {
         "reason": {
@@ -23629,6 +24126,16 @@
           "type": "string"
         },
         "note": {
+          "type": "string"
+        },
+        "bankFee": {
+          "type": "string",
+          "description": "Parts of amount that never reached the bank. Finance books them."
+        },
+        "withheld": {
+          "type": "string"
+        },
+        "withheldTaxCode": {
           "type": "string"
         }
       }
@@ -25048,6 +25555,40 @@
         }
       }
     },
+    "PeriodEndServiceSetDeferralActiveBody": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "PeriodEndServiceVoidTaxRemittanceBody": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "PeriodEndServiceWriteOffInvoiceBody": {
+      "type": "object",
+      "properties": {
+        "writeOffDate": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "description": "Empty writes off all that is outstanding."
+        },
+        "expenseAccountId": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
     "PipelineServiceMoveDealStageBody": {
       "type": "object",
       "properties": {
@@ -26157,6 +26698,10 @@
         },
         "reason": {
           "type": "string"
+        },
+        "advanceAccountId": {
+          "type": "string",
+          "description": "Holds the share of the note above the outstanding amount."
         }
       }
     },
@@ -27165,6 +27710,20 @@
         },
         "voidReason": {
           "type": "string"
+        },
+        "refunded": {
+          "type": "string"
+        },
+        "refunds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AdvanceRefund"
+          }
+        },
+        "sourcePaymentId": {
+          "type": "string",
+          "description": "The payment or credit note whose journal carries this advance. Voiding that\ndocument voids the advance."
         }
       }
     },
@@ -27193,6 +27752,39 @@
           "type": "string"
         },
         "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AdvanceRefund": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "refundNo": {
+          "type": "string"
+        },
+        "refundDate": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "cashAccountName": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "description": "POSTED or VOID."
+        },
+        "journalEntryId": {
+          "type": "string"
+        },
+        "voidReason": {
           "type": "string"
         }
       }
@@ -28222,6 +28814,44 @@
             "type": "object",
             "$ref": "#/definitions/v1CodeCount"
           }
+        }
+      }
+    },
+    "v1AuditEntry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        },
+        "actorId": {
+          "type": "string"
+        },
+        "actorName": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "docId": {
+          "type": "string"
+        },
+        "docNo": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string"
         }
       }
     },
@@ -30155,6 +30785,14 @@
         }
       }
     },
+    "v1CloseVatRequest": {
+      "type": "object",
+      "properties": {
+        "period": {
+          "type": "string"
+        }
+      }
+    },
     "v1CodeCount": {
       "type": "object",
       "properties": {
@@ -30767,6 +31405,14 @@
             "type": "string"
           },
           "description": "Placeholders the body uses that the renderer does not know."
+        }
+      }
+    },
+    "v1ControlSettings": {
+      "type": "object",
+      "properties": {
+        "separateApprover": {
+          "type": "boolean"
         }
       }
     },
@@ -32998,6 +33644,64 @@
           "type": "boolean"
         },
         "extraNotes": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Deferral": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "deferredAccountId": {
+          "type": "string"
+        },
+        "deferredAccountName": {
+          "type": "string"
+        },
+        "targetAccountId": {
+          "type": "string"
+        },
+        "targetAccountName": {
+          "type": "string"
+        },
+        "tagId": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "months": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "postedMonths": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "recognized": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "lastError": {
           "type": "string"
         }
       }
@@ -39233,6 +39937,22 @@
         }
       }
     },
+    "v1ListAuditTrailResponse": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AuditEntry"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListCandidatesResponse": {
       "type": "object",
       "properties": {
@@ -39514,6 +40234,18 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "v1ListDeferralsResponse": {
+      "type": "object",
+      "properties": {
+        "deferrals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Deferral"
+          }
         }
       }
     },
@@ -40576,6 +41308,30 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1TaxCode"
+          }
+        }
+      }
+    },
+    "v1ListTaxPositionsResponse": {
+      "type": "object",
+      "properties": {
+        "positions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TaxPosition"
+          }
+        }
+      }
+    },
+    "v1ListTaxRemittancesResponse": {
+      "type": "object",
+      "properties": {
+        "remittances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TaxRemittance"
           }
         }
       }
@@ -43250,6 +44006,54 @@
         }
       }
     },
+    "v1PaymentAdjustment": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "FEE, DISCOUNT or WITHHOLDING."
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "accountName": {
+          "type": "string"
+        },
+        "taxCode": {
+          "type": "string"
+        },
+        "taxName": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "memo": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PaymentAdjustmentInput": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "taxId": {
+          "type": "string",
+          "description": "Master tax code, for WITHHOLDING."
+        },
+        "amount": {
+          "type": "string"
+        },
+        "memo": {
+          "type": "string"
+        }
+      }
+    },
     "v1PaymentInput": {
       "type": "object",
       "properties": {
@@ -43275,6 +44079,19 @@
             "type": "object",
             "$ref": "#/definitions/v1AllocationInput"
           }
+        },
+        "adjustments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PaymentAdjustmentInput"
+          }
+        },
+        "excessAmount": {
+          "type": "string"
+        },
+        "excessAccountId": {
+          "type": "string"
         }
       }
     },
@@ -49837,6 +50654,26 @@
         }
       }
     },
+    "v1TaxPosition": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "balance": {
+          "type": "string"
+        }
+      }
+    },
     "v1TaxRegister": {
       "type": "object",
       "properties": {
@@ -49898,6 +50735,53 @@
           "type": "string"
         },
         "amount": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TaxRemittance": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "remitNo": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string"
+        },
+        "remitDate": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "accountName": {
+          "type": "string"
+        },
+        "cashAccountId": {
+          "type": "string"
+        },
+        "cashAccountName": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "ntpn": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "journalEntryId": {
+          "type": "string"
+        },
+        "voidReason": {
           "type": "string"
         }
       }
@@ -50245,6 +51129,23 @@
           "type": "string"
         },
         "content": {
+          "type": "string"
+        }
+      }
+    },
+    "v1VatClosing": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "string"
+        },
+        "payable": {
+          "type": "string"
+        },
+        "compensation": {
+          "type": "string"
+        },
+        "journalEntryId": {
           "type": "string"
         }
       }
@@ -51240,6 +52141,16 @@
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "adjustments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PaymentAdjustment"
+          }
+        },
+        "cashAmount": {
+          "type": "string"
         }
       }
     },

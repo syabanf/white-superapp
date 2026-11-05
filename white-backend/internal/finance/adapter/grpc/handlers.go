@@ -47,6 +47,7 @@ func Register(s *grpc.Server, svc Services) {
 	financev1.RegisterTaxSetupServiceServer(s, &taxServer{svc: svc})
 	financev1.RegisterProjectTagServiceServer(s, &projectTagServer{svc: svc})
 	financev1.RegisterAdvanceServiceServer(s, &advanceServer{svc: svc})
+	financev1.RegisterPeriodEndServiceServer(s, &periodEndServer{svc: svc})
 }
 
 var empty = &emptypb.Empty{}

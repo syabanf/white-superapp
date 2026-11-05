@@ -1002,7 +1002,7 @@ func (s *billingServer) RecordPayment(ctx context.Context, r *salesv1.RecordPaym
 	if err != nil {
 		return nil, err
 	}
-	p, err := s.svc.Billing.RecordPayment(ctx, a, app.PaymentInput{DealID: r.DealId, InvoiceID: r.InvoiceId, Amount: r.Amount, Method: r.Method, PaidOn: r.PaidOn, Note: r.Note})
+	p, err := s.svc.Billing.RecordPayment(ctx, a, app.PaymentInput{DealID: r.DealId, InvoiceID: r.InvoiceId, Amount: r.Amount, Method: r.Method, PaidOn: r.PaidOn, Note: r.Note, BankFee: r.BankFee, Withheld: r.Withheld, WithheldTaxCode: r.WithheldTaxCode})
 	if err != nil {
 		return nil, err
 	}

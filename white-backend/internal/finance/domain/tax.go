@@ -146,10 +146,12 @@ type TaxMove struct {
 
 // Tax move sources.
 const (
-	MoveInvoice    = "INVOICE"
-	MoveCreditNote = "CREDIT_NOTE"
-	MoveCash       = "CASH"
-	MoveCashVoid   = "CASH_VOID"
+	MoveInvoice     = "INVOICE"
+	MoveCreditNote  = "CREDIT_NOTE"
+	MoveCash        = "CASH"
+	MovePayment     = "PAYMENT"
+	MovePaymentVoid = "PAYMENT_VOID"
+	MoveCashVoid    = "CASH_VOID"
 )
 
 // TaxExportRow is a tax ledger line with the invoice and the party's identity.

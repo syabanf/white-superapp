@@ -135,11 +135,18 @@ func (l *Ledgers) InvoiceTaxIDs(ctx context.Context, invoiceID string) ([]string
 	return out, nil
 }
 
+// CreditNoteInput lowers an invoice. Amount zero credits all that is outstanding.
+// The share above the outstanding amount was already paid, so it becomes an advance
+// for the party on AdvanceAccountID.
+type CreditNoteInput struct {
+	Date, Reason, AdvanceAccountID string
+	Amount                         domain.Money
+}
+
 // CreateCreditNote lowers what a party owes on a posted invoice. It reverses the
 // invoice's journal pro rata, so every line (revenue, each tax, withholding, the
-// receivable) comes back in proportion, and it allocates like a payment without
-// cash. Amount zero credits all that is outstanding.
-func (l *Ledgers) CreateCreditNote(ctx context.Context, userID, invoiceID, date string, amount domain.Money, reason string) (*domain.Invoice, error) {
+// receivable) comes back in proportion, and it allocates like a payment without cash.
+func (l *Ledgers) CreateCreditNote(ctx context.Context, userID, invoiceID string, in CreditNoteInput) (*domain.Invoice, error) {
 	inv, err := l.Store.GetInvoice(ctx, invoiceID)
 	if err != nil {
 		return nil, err
@@ -150,18 +157,31 @@ func (l *Ledgers) CreateCreditNote(ctx context.Context, userID, invoiceID, date 
 	if inv.Status != domain.StatusPosted || inv.JournalEntryID == "" {
 		return nil, domain.Conflict("Credit note butuh tagihan yang sudah diposting dan punya jurnal")
 	}
-	if reason = trim(reason); reason == "" {
+	reason := trim(in.Reason)
+	if reason == "" {
 		return nil, apperr.Field("reason", "Alasan wajib diisi")
 	}
+	amount := in.Amount
 	if amount == 0 {
 		amount = inv.Outstanding()
 	}
-	if amount <= 0 || amount > inv.Outstanding() {
-		return nil, apperr.Field("amount", "Nilai credit note melebihi sisa tagihan")
+	credited, err := l.Store.InvoiceCredited(ctx, inv.ID)
+	if err != nil {
+		return nil, err
+	}
+	if amount <= 0 || amount > inv.TotalAmount-credited {
+		return nil, apperr.Field("amount", "Nilai credit note melebihi tagihan yang belum dikreditkan")
+	}
+	open := min(amount, inv.Outstanding())
+	paidShare := amount - open
+	if paidShare > 0 {
+		if err := l.checkAdvanceAccount(ctx, inv.Kind, in.AdvanceAccountID); err != nil {
+			return nil, err
+		}
 	}
 	day := l.today()
-	if trim(date) != "" {
-		if day, err = parseDay("note_date", date); err != nil {
+	if trim(in.Date) != "" {
+		if day, err = parseDay("note_date", in.Date); err != nil {
 			return nil, err
 		}
 	}
@@ -173,17 +193,33 @@ func (l *Ledgers) CreateCreditNote(ctx context.Context, userID, invoiceID, date 
 		return nil, domain.NotFound("Jurnal tagihan tidak ditemukan")
 	}
 	lines := reverseProRata(entry.Lines, amount, inv.TotalAmount)
+	if paidShare > 0 {
+		control, err := controlAccounts(ctx, l.Store)
+		if err != nil {
+			return nil, err
+		}
+		lines = moveToAdvance(lines, control, in.AdvanceAccountID, paidShare)
+	}
 	extras, err := l.Store.ListInvoicePostings(ctx, inv.ID)
 	if err != nil {
 		return nil, err
 	}
-	p := domain.Payment{ID: ids.New(), Kind: inv.Kind, PaymentDate: day, Method: methodCreditNote, Amount: amount, Reference: inv.InvoiceNo, Notes: reason, Status: domain.StatusPosted, PartyName: inv.PartyName, CreatedBy: userID,
-		Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: amount}}}
+	p := domain.Payment{ID: ids.New(), Kind: inv.Kind, PaymentDate: day, Method: methodCreditNote, Amount: open, Reference: inv.InvoiceNo, Notes: reason, Status: domain.StatusPosted, PartyName: inv.PartyName, CreatedBy: userID,
+		Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: open}}}
+	if paidShare > 0 {
+		p.Adjustments = []domain.PaymentAdjustment{{Kind: domain.AdjustExcess, AccountID: in.AdvanceAccountID, Amount: paidShare, Memo: "Saldo dari credit note"}}
+	}
 	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
 		if p.PaymentNo, err = l.nextNo(ctx, tx, "CN"); err != nil {
 			return err
 		}
 		if err := tx.InsertPayment(ctx, p); err != nil {
+			return err
+		}
+		if err := tx.InsertPaymentAdjustments(ctx, p.ID, p.Adjustments); err != nil {
+			return err
+		}
+		if err := l.linkExcessAdvance(ctx, tx, userID, p); err != nil {
 			return err
 		}
 		e, err := createEntry(ctx, tx, NewEntry{TagID: inv.TagID, UserID: userID, EntryDate: day, Description: "Credit note " + p.PaymentNo + " atas " + inv.InvoiceNo + ": " + reason, Lines: lines, Post: true,
@@ -194,12 +230,46 @@ func (l *Ledgers) CreateCreditNote(ctx context.Context, userID, invoiceID, date 
 		if err := tx.SetPaymentJournal(ctx, p.ID, e.ID); err != nil {
 			return err
 		}
-		return creditNoteMoves(ctx, tx, *inv, extras, p, amount)
+		if err := creditNoteMoves(ctx, tx, *inv, extras, p, amount); err != nil {
+			return err
+		}
+		if paidShare == 0 {
+			return nil
+		}
+		// Cash basis VAT on the paid share already reached its final account.
+		paid := p
+		paid.Allocations = []domain.Allocation{{InvoiceID: inv.ID, Amount: paidShare}}
+		if note := l.on(tx).recognizeCashTaxes(ctx, paid, userID, true); note != "" {
+			return domain.Conflict(note)
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 	return l.Store.GetInvoice(ctx, inv.ID)
+}
+
+// moveToAdvance points the paid share of the receivable or payable line at the
+// advance account, since that share no longer sits in the control account.
+func moveToAdvance(lines []domain.Line, control map[string]string, advanceAccountID string, share domain.Money) []domain.Line {
+	out := make([]domain.Line, 0, len(lines)+1)
+	for _, l := range lines {
+		if _, isControl := control[l.AccountID]; !isControl || share == 0 {
+			out = append(out, l)
+			continue
+		}
+		moved := min(share, l.Amount)
+		share -= moved
+		if moved < l.Amount {
+			kept := l
+			kept.Amount -= moved
+			out = append(out, kept)
+		}
+		l.AccountID, l.Amount = advanceAccountID, moved
+		out = append(out, l)
+	}
+	return out
 }
 
 // reverseProRata flips each line at amount/total and puts rounding on the last line.

@@ -1,5 +1,6 @@
 import type { DocumentValues } from "./actions";
-import type { ChargeType, TaxCode } from "./types";
+import type { ChargeType, LedgerKind, TaxCode } from "./types";
+import { parseMoney } from "@/features/erp/shared/money";
 
 const num = (v: string | number | undefined) => Number(v) || 0;
 
@@ -46,4 +47,9 @@ export function previewDocument(v: Pick<DocumentValues, "items" | "discountPerce
   const of = (kind: TaxCode["kind"]) => taxes.filter((t) => t.kind === kind).reduce((sum, t) => sum + taxOn(t, dpp), 0);
   const tax = of("VAT");
   return { subtotal, tax, withholding: of("WITHHOLDING"), total: dpp + tax + untaxed };
+}
+
+/** Only a fee on a vendor payment adds to the cash; every other adjustment lowers it. */
+export function cashMoved(kind: LedgerKind, settled: number, adjustments: { kind: string; amount: string }[]) {
+  return adjustments.reduce((sum, a) => (a.kind === "FEE" && kind === "AP" ? sum + parseMoney(a.amount) : sum - parseMoney(a.amount)), settled);
 }

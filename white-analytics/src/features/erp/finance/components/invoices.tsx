@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import { CheckCheck, Loader2, Pencil, Plus, ReceiptText, Trash2 } from "lucide-react";
+import { CheckCheck, Eraser, Loader2, Pencil, Plus, ReceiptText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import { DateRangeFilter } from "@/features/erp/shared/period-picker";
 import { ResetFilters, SearchFilter, SearchSelectFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { toast } from "@/lib/toast";
 import { Fld, FormDialog, FormFooter } from "@/features/erp/sales/components/ui";
-import { createCreditNoteAction, deleteInvoiceAction, getInvoiceTaxIdsAction, postInvoiceAction, saveInvoiceAction } from "../actions";
+import { writeOffInvoiceAction, createCreditNoteAction, deleteInvoiceAction, getInvoiceTaxIdsAction, postInvoiceAction, saveInvoiceAction } from "../actions";
 import { taxOn } from "../pricing";
 import type { Invoice, LedgerKind, PostableAccount, ProjectTag, TaxCode } from "../types";
 import { TagPicker } from "./tag-picker";
@@ -187,8 +187,38 @@ export function InvoiceDialog({
   );
 }
 
-function CreditNoteForm({ kind, invoice, close }: { kind: LedgerKind; invoice: Invoice; close: () => void }) {
-  const [v, setV] = React.useState({ noteDate: toIsoDate(new Date()), amount: invoice.outstandingAmount, reason: "" });
+function WriteOffForm({ invoice, accounts, close }: { invoice: Invoice; accounts: PostableAccount[]; close: () => void }) {
+  const [v, setV] = React.useState({ writeOffDate: toIsoDate(new Date()), amount: invoice.outstandingAmount, expenseAccountId: accounts.find((a) => a.code === "8102001")?.id ?? "", reason: "" });
+  const [errors, setErrors] = React.useState<Record<string, string[]>>();
+  const { pending, run } = useErpAction();
+  return (
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(() => writeOffInvoiceAction(invoice.id, v), { success: iv.writeOffSaved, onOk: close, onFail: (r) => setErrors(r.fieldErrors) });
+      }}
+    >
+      <Fld label={iv.writeOffAmount} htmlFor="wo-amount" error={errors?.amount}>
+        <MoneyInput id="wo-amount" value={v.amount} onChange={(x) => setV((p) => ({ ...p, amount: x }))} />
+      </Fld>
+      <Fld label={iv.writeOffDate} htmlFor="wo-date" error={errors?.write_off_date}>
+        <DatePicker id="wo-date" value={v.writeOffDate} onChange={(x) => setV((p) => ({ ...p, writeOffDate: x }))} />
+      </Fld>
+      <Fld label={iv.writeOffAccount} htmlFor="wo-account" error={errors?.expense_account_id}>
+        <AccountPicker accounts={accounts} filter={(a) => !a.isCashBank} value={v.expenseAccountId} onChange={(x) => setV((p) => ({ ...p, expenseAccountId: x }))} />
+      </Fld>
+      <Fld label={iv.writeOffReason} htmlFor="wo-reason" error={errors?.reason}>
+        <Input id="wo-reason" value={v.reason} onChange={(e) => setV((p) => ({ ...p, reason: e.target.value }))} />
+      </Fld>
+      <FormFooter onCancel={close} pending={pending} />
+    </form>
+  );
+}
+
+function CreditNoteForm({ kind, invoice, accounts, close }: { kind: LedgerKind; invoice: Invoice; accounts: PostableAccount[]; close: () => void }) {
+  const outstanding = parseMoney(invoice.outstandingAmount);
+  const [v, setV] = React.useState({ noteDate: toIsoDate(new Date()), amount: outstanding > 0 ? invoice.outstandingAmount : "", reason: "", advanceAccountId: accounts.find((a) => a.code === (kind === "AR" ? "2105001" : "1106001"))?.id ?? "" });
   const [errors, setErrors] = React.useState<Record<string, string[]>>();
   const { pending, run } = useErpAction();
   return (
@@ -202,6 +232,11 @@ function CreditNoteForm({ kind, invoice, close }: { kind: LedgerKind; invoice: I
       <Fld label={iv.creditNoteAmount} htmlFor="cn-amount" error={errors?.amount}>
         <MoneyInput id="cn-amount" value={v.amount} onChange={(x) => setV((p) => ({ ...p, amount: x }))} />
       </Fld>
+      {parseMoney(v.amount) > outstanding ? (
+        <Fld label={iv.creditNoteAdvanceAccount} htmlFor="cn-advance" error={errors?.advance_account_id} hint={iv.creditNoteAdvanceHint}>
+          <AccountPicker accounts={accounts} filter={(a) => !a.isCashBank} value={v.advanceAccountId} onChange={(x) => setV((p) => ({ ...p, advanceAccountId: x }))} />
+        </Fld>
+      ) : null}
       <Fld label={iv.creditNoteDate} htmlFor="cn-date" error={errors?.note_date}>
         <DatePicker id="cn-date" value={v.noteDate} onChange={(x) => setV((p) => ({ ...p, noteDate: x }))} />
       </Fld>
@@ -293,7 +328,7 @@ export function InvoicesTable({
                 <Link href={`/erp/finance/journals/${inv.journalEntryId}`}>{iv.journal}</Link>
               </Button>
             ) : null}
-            {inv.status === "POSTED" && inv.journalEntryId && parseMoney(inv.outstandingAmount) > 0 && perms.canApprove ? (
+            {inv.status === "POSTED" && inv.journalEntryId && perms.canApprove ? (
               <FormDialog
                 title={iv.creditNoteTitle}
                 description={iv.creditNoteHint}
@@ -303,7 +338,20 @@ export function InvoicesTable({
                   </Button>
                 }
               >
-                {(close) => <CreditNoteForm kind={kind} invoice={inv} close={close} />}
+                {(close) => <CreditNoteForm kind={kind} invoice={inv} accounts={accounts} close={close} />}
+              </FormDialog>
+            ) : null}
+            {kind === "AR" && inv.status === "POSTED" && inv.journalEntryId && parseMoney(inv.outstandingAmount) > 0 && perms.canApprove ? (
+              <FormDialog
+                title={iv.writeOffTitle}
+                description={iv.writeOffHint}
+                trigger={
+                  <Button size="xs" variant="ghost">
+                    <Eraser className="size-3.5" /> {iv.writeOff}
+                  </Button>
+                }
+              >
+                {(close) => <WriteOffForm invoice={inv} accounts={accounts} close={close} />}
               </FormDialog>
             ) : null}
             {inv.status === "DRAFT" && perms.canWrite ? (

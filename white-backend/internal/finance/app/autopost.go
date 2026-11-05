@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
+	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/ids"
 )
 
@@ -164,17 +165,29 @@ func (a *AutoPost) SalesPaymentRecorded(ctx context.Context, p domain.SalesPayme
 		return nil, fmt.Errorf("AR invoice untuk sales invoice %s belum ada", p.InvoiceID)
 	}
 	amount := min(p.Amount, inv.Outstanding())
+	accounts, err := a.Store.AccountsByCode(ctx)
+	if err != nil {
+		return nil, err
+	}
+	excessAccount := accounts[salesAdvanceAccountCode].ID
 	if amount <= 0 {
-		return nil, permanent("pembayaran %s tidak punya sisa tagihan", p.PaymentID)
+		return a.salesPaymentAdvance(ctx, p, *inv, excessAccount)
 	}
 	method := p.Method
 	if !slices.Contains(kinds[domain.KindAR].methods, method) {
 		method = "other"
 	}
-	res, err := NewLedgers(a.Deps).CreatePayment(ctx, domain.KindAR, p.RecordedBy, PaymentInput{
-		PaymentDate: p.PaidOn, Method: method, Reference: p.Reference, Notes: "via Sales " + p.PaymentID,
-		Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: amount}}, SalesPaymentID: p.PaymentID,
-	})
+	in := PaymentInput{PaymentDate: p.PaidOn, Method: method, Reference: p.Reference, Notes: "via Sales " + p.PaymentID, SalesPaymentID: p.PaymentID}
+	if excessAccount != "" {
+		in.Excess, in.ExcessAccountID = p.Amount-amount, excessAccount
+	}
+	l := NewLedgers(a.Deps)
+	in.Adjustments, amount, err = a.salesAdjustments(ctx, l, p, accounts[salesBankFeeAccountCode].ID, inv.ID, amount)
+	if err != nil {
+		return nil, err
+	}
+	in.Allocations = []domain.Allocation{{InvoiceID: inv.ID, Amount: amount}}
+	res, err := l.CreatePayment(ctx, domain.KindAR, p.RecordedBy, in)
 	var unique *domain.ErrUnique
 	if errors.As(err, &unique) {
 		existing, gerr := a.Store.GetPaymentBySalesID(ctx, p.PaymentID)
@@ -184,4 +197,76 @@ func (a *AutoPost) SalesPaymentRecorded(ctx context.Context, p domain.SalesPayme
 		return &PaymentResult{Payment: *existing}, nil
 	}
 	return res, err
+}
+
+// Default accounts for what Sales cannot pick itself.
+const (
+	salesAdvanceAccountCode = "2105001"
+	salesBankFeeAccountCode = "8101001"
+)
+
+// salesAdjustments turns the event's fee and withheld tax into adjustments. Sales
+// already took the money, so one Finance cannot accept is left out and its share
+// stays open on the invoice for Finance to settle.
+func (a *AutoPost) salesAdjustments(ctx context.Context, l *Ledgers, p domain.SalesPaymentRecorded, feeAccount, invoiceID string, amount domain.Money) ([]AdjustmentInput, domain.Money, error) {
+	var wanted []AdjustmentInput
+	if p.BankFee > 0 {
+		wanted = append(wanted, AdjustmentInput{Kind: domain.AdjustFee, AccountID: feeAccount, Amount: p.BankFee})
+	}
+	if p.Withheld > 0 {
+		t, err := a.Store.GetTaxCodeByCode(ctx, p.WithheldTaxCode)
+		if err != nil {
+			return nil, 0, err
+		}
+		taxID := ""
+		if t != nil {
+			taxID = t.ID
+		}
+		wanted = append(wanted, AdjustmentInput{Kind: domain.AdjustWithholding, TaxID: taxID, Amount: p.Withheld})
+	}
+	var kept []AdjustmentInput
+	for _, adj := range wanted {
+		trial := PaymentInput{Adjustments: append(slices.Clone(kept), adj), Allocations: []domain.Allocation{{InvoiceID: invoiceID, Amount: amount}}}
+		if _, err := l.resolveAdjustments(ctx, domain.KindAR, trial); err != nil {
+			if apperr.As(err).Code == apperr.Unknown {
+				return nil, 0, err
+			}
+			if amount > adj.Amount {
+				amount -= adj.Amount
+			}
+			continue
+		}
+		kept = append(kept, adj)
+	}
+	return kept, amount, nil
+}
+
+// salesPaymentAdvance keeps a Sales payment that reached an invoice with nothing
+// left to settle. The money is real, so it waits as an advance for the party.
+func (a *AutoPost) salesPaymentAdvance(ctx context.Context, p domain.SalesPaymentRecorded, inv domain.Invoice, advanceAccount string) (*PaymentResult, error) {
+	existing, err := a.Store.AdvanceBySalesPayment(ctx, p.PaymentID)
+	if err != nil || existing != nil {
+		return &PaymentResult{Note: "uang muka sudah tercatat"}, err
+	}
+	if advanceAccount == "" {
+		return nil, permanent("akun uang muka %s tidak ada untuk pembayaran %s", salesAdvanceAccountCode, p.PaymentID)
+	}
+	mapping, err := a.Store.GetActiveMapping(ctx, kinds[domain.KindAR].paymentEvent)
+	if err != nil {
+		return nil, err
+	}
+	cash := ""
+	if mapping != nil {
+		for _, line := range mapping.Template() {
+			if line.LineRole == "CASH" {
+				cash = line.AccountID
+			}
+		}
+	}
+	created, err := NewLedgers(a.Deps).CreateAdvance(ctx, p.RecordedBy, AdvanceInput{Kind: domain.KindAR, Date: p.PaidOn, PartyName: inv.PartyName, CashAccountID: cash, AdvanceAccountID: advanceAccount, Reference: p.Reference,
+		Notes: "Kelebihan bayar " + inv.InvoiceNo + " via Sales " + p.PaymentID, Amount: p.Amount, SalesPaymentID: p.PaymentID})
+	if err != nil {
+		return nil, err
+	}
+	return &PaymentResult{Note: "dicatat sebagai uang muka " + created.AdvanceNo}, nil
 }

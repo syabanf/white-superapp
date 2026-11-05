@@ -201,6 +201,8 @@ export const t = {
     financeInvoices: "Invoice penjualan",
     reconciliation: "Rekonsiliasi",
     taxSetup: "Master pajak & biaya",
+    periodEnd: "Tutup buku",
+    auditTrail: "Audit trail",
     purchasing: "Pengadaan",
     projects: "Proyek",
     vendors: "Vendor",

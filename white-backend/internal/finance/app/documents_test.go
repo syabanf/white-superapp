@@ -8,6 +8,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/authn"
+	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 )
 
 func item(desc string, qty, price int64) domain.DocItem {
@@ -452,17 +453,17 @@ func TestCreditNote(t *testing.T) {
 	ppn := h.vat("2103003", "1104001")
 	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "PT A", AccountID: h.id("4101001"), Subtotal: rp(10_000_000), TaxIDs: []string{ppn}})
 	h.ok(err)
-	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, "", rp(1), "x")
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, app.CreditNoteInput{Date: "", Amount: rp(1), Reason: "x"})
 	h.wantErr(err, "Credit note butuh tagihan yang sudah diposting dan punya jurnal")
 	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", inv.ID)
 	h.ok(err)
-	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, "", rp(1), " ")
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, app.CreditNoteInput{Date: "", Amount: rp(1), Reason: " "})
 	h.wantErr(err, "Alasan wajib diisi")
-	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, "", rp(99_000_000), "x")
-	h.wantErr(err, "Nilai credit note melebihi sisa tagihan")
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, app.CreditNoteInput{Date: "", Amount: rp(99_000_000), Reason: "x"})
+	h.wantErr(err, "Nilai credit note melebihi tagihan yang belum dikreditkan")
 
 	// A quarter comes back on every line.
-	after, err := l.CreateCreditNote(h.ctx, "u1", inv.ID, today, rp(2_775_000), "Revisi nilai")
+	after, err := l.CreateCreditNote(h.ctx, "u1", inv.ID, app.CreditNoteInput{Date: today, Amount: rp(2_775_000), Reason: "Revisi nilai"})
 	h.ok(err)
 	if after.Outstanding() != rp(8_325_000) {
 		t.Fatalf("outstanding %d", after.Outstanding())
@@ -485,7 +486,7 @@ func TestCreditNote(t *testing.T) {
 	_, err = l.VoidPayment(h.ctx, domain.KindAR, "u1", pays[0].ID, "salah")
 	h.wantErr(err, "Credit note tidak bisa dibatalkan. Buat tagihan baru bila perlu.")
 	// The rest closes the invoice.
-	closed, err := l.CreateCreditNote(h.ctx, "u1", inv.ID, today, 0, "Batal")
+	closed, err := l.CreateCreditNote(h.ctx, "u1", inv.ID, app.CreditNoteInput{Date: today, Amount: 0, Reason: "Batal"})
 	h.ok(err)
 	if closed.Outstanding() != 0 {
 		t.Fatalf("closed %d", closed.Outstanding())
@@ -647,7 +648,7 @@ func TestProjectProfitMatchesIncomeStatement(t *testing.T) {
 		Lines: []domain.Line{line(h.id("6301004"), domain.Debit, 500_000), line(h.id("1101001"), domain.Credit, 500_000)}})
 	h.ok(err)
 	// A credit note takes the revenue back from the same project.
-	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, today, rp(1_000_000), "Revisi nilai")
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, app.CreditNoteInput{Date: today, Amount: rp(1_000_000), Reason: "Revisi nilai"})
 	h.ok(err)
 
 	rows, from, to, err := tags.ProjectProfit(h.ctx, "2026-10-01", "2026-10-31", "")
@@ -963,5 +964,431 @@ func TestControlAccountsStayOutOfManualEntries(t *testing.T) {
 	h.ok(err)
 	if rows[0].Recon != rp(100) || rows[0].Difference() != rp(100) {
 		t.Fatalf("%+v", rows[0])
+	}
+}
+
+func settlementHarness(t *testing.T, kind, party string) (*harness, *app.Ledgers, *domain.Invoice) {
+	t.Helper()
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	in := app.InvoiceInput{InvoiceDate: today, PartyName: party, Subtotal: rp(10_000_000)}
+	if kind == domain.KindAR {
+		in.AccountID = h.id("4101001")
+	}
+	inv, err := l.CreateInvoice(h.ctx, kind, "u1", in)
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, kind, "u1", inv.ID)
+	h.ok(err)
+	inv, err = l.GetInvoice(h.ctx, kind, inv.ID)
+	h.ok(err)
+	return h, l, inv
+}
+
+func TestReceiptWithFeeAndWithheldTax(t *testing.T) {
+	h, l, inv := settlementHarness(t, domain.KindAR, "PT Potong")
+	setup := app.NewTaxSetup(h.deps)
+	pph, err := setup.SaveTaxCode(h.ctx, "u1", domain.TaxCode{Code: "PPH-2B", Name: "PPh 23 2%", Kind: domain.TaxWithholding, Scope: domain.ScopeBoth, Rate: rp(2), BaseNumerator: 1, BaseDenominator: 1, AccountSaleID: h.id("1104002"), AccountPurchaseID: h.id("2103002"), IsActive: true})
+	h.ok(err)
+	bank, fee := h.id("1102001"), h.id("8101001")
+	in := app.PaymentInput{PaymentDate: today, CashAccountID: bank, Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: inv.TotalAmount}},
+		Adjustments: []app.AdjustmentInput{{Kind: domain.AdjustFee, AccountID: fee, Amount: rp(6_500)}, {Kind: domain.AdjustWithholding, TaxID: pph.ID, Amount: rp(200_000)}}}
+	bad := in
+	bad.Adjustments = []app.AdjustmentInput{{Kind: domain.AdjustFee, AccountID: h.id("1103001"), Amount: rp(1)}}
+	_, err = l.CreatePayment(h.ctx, domain.KindAR, "u1", bad)
+	h.wantErr(err, "Akun selisih harus postable, bukan kas, dan bukan akun piutang atau hutang")
+	all := in
+	all.Adjustments = []app.AdjustmentInput{{Kind: domain.AdjustFee, AccountID: fee, Amount: inv.TotalAmount}}
+	_, err = l.CreatePayment(h.ctx, domain.KindAR, "u1", all)
+	h.wantErr(err, "Selisih tidak boleh menghabiskan seluruh nilai pembayaran")
+
+	res, err := l.CreatePayment(h.ctx, domain.KindAR, "u1", in)
+	h.ok(err)
+	if res.Invoices[0].Outstanding() != 0 || len(res.Payment.Adjustments) != 2 {
+		t.Fatalf("%+v", res)
+	}
+	e, err := app.NewJournals(h.deps).Get(h.ctx, res.Payment.JournalEntryID)
+	h.ok(err)
+	if lineOn(e, bank).Amount != rp(9_793_500) || lineOn(e, fee).Amount != rp(6_500) || lineOn(e, h.id("1104002")).Amount != rp(200_000) || lineOn(e, h.id("1103001")).Amount != rp(10_000_000) {
+		t.Fatalf("%+v", e.Lines)
+	}
+	reg, err := setup.TaxRegister(h.ctx, "2026-10-01", "2026-10-31")
+	h.ok(err)
+	if reg.WithheldByClients != rp(200_000) {
+		t.Fatalf("%+v", reg)
+	}
+	_, data, err := setup.Export(h.ctx, app.ExportBupotMasuk, "2026-10-01", "2026-10-31")
+	h.ok(err)
+	if !strings.Contains(string(data), "10000000.00") {
+		t.Fatalf("base missing: %s", data)
+	}
+
+	// A void restores the invoice, the tax ledger and the books.
+	_, err = l.VoidPayment(h.ctx, domain.KindAR, "u1", res.Payment.ID, "Salah catat")
+	h.ok(err)
+	reg, err = setup.TaxRegister(h.ctx, "2026-10-01", "2026-10-31")
+	h.ok(err)
+	_, data, err = setup.Export(h.ctx, app.ExportBupotMasuk, "2026-10-01", "2026-10-31")
+	h.ok(err)
+	if reg.WithheldByClients != 0 || strings.Contains(string(data), "10000000.00") {
+		t.Fatalf("%+v %s", reg, data)
+	}
+	bs, err := app.NewReports(h.deps).BalanceSheet(h.ctx, today)
+	h.ok(err)
+	if bs.TotalAssets != bs.TotalLiabilitiesAndEquity {
+		t.Fatalf("balance sheet off: %d vs %d", bs.TotalAssets, bs.TotalLiabilitiesAndEquity)
+	}
+	rows, _, err := app.NewReports(h.deps).SubledgerRecon(h.ctx)
+	h.ok(err)
+	if rows[0].Difference() != 0 {
+		t.Fatalf("%+v", rows[0])
+	}
+}
+
+func TestVendorPaymentWithFeeAndOverpayment(t *testing.T) {
+	h, l, inv := settlementHarness(t, domain.KindAP, "CV Lebih")
+	bank, fee, advance := h.id("1102001"), h.id("8101001"), h.id("1106001")
+	res, err := l.CreatePayment(h.ctx, domain.KindAP, "u1", app.PaymentInput{PaymentDate: today, CashAccountID: bank, Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: inv.TotalAmount}},
+		Adjustments: []app.AdjustmentInput{{Kind: domain.AdjustFee, AccountID: fee, Amount: rp(6_500)}}, Excess: rp(500_000), ExcessAccountID: advance})
+	h.ok(err)
+	e, err := app.NewJournals(h.deps).Get(h.ctx, res.Payment.JournalEntryID)
+	h.ok(err)
+	if lineOn(e, bank).Amount != rp(10_506_500) || lineOn(e, advance).Side != domain.Debit || lineOn(e, bank).Side != domain.Credit || lineOn(e, fee).Amount != rp(6_500) || lineOn(e, fee).Side != domain.Debit {
+		t.Fatalf("%+v", e.Lines)
+	}
+	rows, err := l.ListAdvances(h.ctx, domain.KindAP)
+	h.ok(err)
+	if len(rows) != 1 || rows[0].Remaining() != rp(500_000) || rows[0].PartyName != "CV Lebih" || rows[0].Reference != res.Payment.PaymentNo {
+		t.Fatalf("%+v", rows)
+	}
+}
+
+func TestAdvanceRefund(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	cash, liability := h.id("1102001"), h.id("2105001")
+	a, err := l.CreateAdvance(h.ctx, "u1", app.AdvanceInput{Kind: domain.KindAR, Date: today, PartyName: "PT Balik", CashAccountID: cash, AdvanceAccountID: liability, Amount: rp(1_000_000)})
+	h.ok(err)
+	refund := app.RefundInput{Date: today, CashAccountID: cash, Reason: "Proyek batal", Amount: rp(2_000_000)}
+	_, err = l.RefundAdvance(h.ctx, "u1", a.ID, refund)
+	h.wantErr(err, "Nilai melebihi sisa uang muka")
+	refund.Amount = rp(400_000)
+	a, err = l.RefundAdvance(h.ctx, "u1", a.ID, refund)
+	h.ok(err)
+	if a.Remaining() != rp(600_000) || a.Refunded != rp(400_000) {
+		t.Fatalf("%+v", a)
+	}
+	_, err = l.VoidAdvance(h.ctx, "u1", a.ID, "Salah catat")
+	h.wantErr(err, "Uang muka sudah dikembalikan sebagian. Batalkan pengembaliannya dulu.")
+	r := a.Refunds[0]
+	e, err := app.NewJournals(h.deps).Get(h.ctx, r.JournalEntryID)
+	h.ok(err)
+	if lineOn(e, liability).Side != domain.Debit || lineOn(e, cash).Side != domain.Credit || lineOn(e, cash).Amount != rp(400_000) {
+		t.Fatalf("%+v", e.Lines)
+	}
+	a, err = l.VoidAdvanceRefund(h.ctx, "u1", r.ID, "Salah nilai")
+	h.ok(err)
+	if a.Remaining() != rp(1_000_000) {
+		t.Fatalf("%+v", a)
+	}
+	_, err = l.VoidAdvanceRefund(h.ctx, "u1", r.ID, "Salah nilai")
+	h.wantErr(err, "Pengembalian ini sudah dibatalkan")
+	a, err = l.VoidAdvance(h.ctx, "u1", a.ID, "Salah catat")
+	h.ok(err)
+	bs, err := app.NewReports(h.deps).BalanceSheet(h.ctx, today)
+	h.ok(err)
+	if a.Status != domain.StatusVoid || bs.TotalAssets != bs.TotalLiabilitiesAndEquity {
+		t.Fatalf("%+v %d %d", a, bs.TotalAssets, bs.TotalLiabilitiesAndEquity)
+	}
+}
+
+func TestExcessSharesOneJournalAndVoidsWithPayment(t *testing.T) {
+	h, l, inv := settlementHarness(t, domain.KindAR, "PT Lebih")
+	bank, liability := h.id("1102001"), h.id("2105001")
+	res, err := l.CreatePayment(h.ctx, domain.KindAR, "u1", app.PaymentInput{PaymentDate: today, CashAccountID: bank, Excess: rp(300_000), ExcessAccountID: liability, Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: inv.TotalAmount}}})
+	h.ok(err)
+	e, err := app.NewJournals(h.deps).Get(h.ctx, res.Payment.JournalEntryID)
+	h.ok(err)
+	bankLines := 0
+	for _, ln := range e.Lines {
+		if ln.AccountID == bank {
+			bankLines++
+			if ln.Amount != inv.TotalAmount+rp(300_000) {
+				t.Fatalf("bank line %s", ln.Amount)
+			}
+		}
+	}
+	if bankLines != 1 {
+		t.Fatalf("bank lines %d: %+v", bankLines, e.Lines)
+	}
+	a, err := h.deps.Store.AdvanceBySourcePayment(h.ctx, res.Payment.ID)
+	h.ok(err)
+	if a == nil || a.Remaining() != rp(300_000) || a.JournalEntryID != e.ID {
+		t.Fatalf("advance %+v", a)
+	}
+	_, err = l.VoidAdvance(h.ctx, "u1", a.ID, "Salah catat")
+	h.wantErr(err, "Uang muka ini lahir dari "+res.Payment.PaymentNo+". Batalkan dokumen itu.")
+	a, err = l.RefundAdvance(h.ctx, "u1", a.ID, app.RefundInput{Date: today, CashAccountID: bank, Reason: "Dikembalikan", Amount: rp(100_000)})
+	h.ok(err)
+	_, err = l.VoidPayment(h.ctx, domain.KindAR, "u1", res.Payment.ID, "Salah catat")
+	h.wantErr(err, "Uang muka "+a.AdvanceNo+" dari kelebihan bayar sudah dipakai atau dikembalikan. Batalkan pemakaiannya dulu.")
+	_, err = l.VoidAdvanceRefund(h.ctx, "u1", a.Refunds[0].ID, "Salah nilai")
+	h.ok(err)
+	_, err = l.VoidPayment(h.ctx, domain.KindAR, "u1", res.Payment.ID, "Salah catat")
+	h.ok(err)
+	a, err = h.deps.Store.GetAdvance(h.ctx, a.ID)
+	h.ok(err)
+	if a.Status != domain.StatusVoid || a.Remaining() != 0 {
+		t.Fatalf("advance after void %+v", a)
+	}
+}
+
+func TestCreditNoteOnPaidInvoiceBecomesAdvance(t *testing.T) {
+	h, l, inv := settlementHarness(t, domain.KindAR, "PT Retur")
+	_, err := l.CreatePayment(h.ctx, domain.KindAR, "u1", app.PaymentInput{PaymentDate: today, CashAccountID: h.id("1102001"), Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: inv.TotalAmount}}})
+	h.ok(err)
+	in := app.CreditNoteInput{Date: today, Reason: "Retur", Amount: inv.TotalAmount / 4}
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, in)
+	h.wantErr(err, "Akun uang muka harus akun liabilitas yang postable dan bukan kas")
+	in.AdvanceAccountID = h.id("2105001")
+	after, err := l.CreateCreditNote(h.ctx, "u1", inv.ID, in)
+	h.ok(err)
+	if after.Outstanding() != 0 {
+		t.Fatalf("outstanding %s", after.Outstanding())
+	}
+	rows, err := l.ListAdvances(h.ctx, domain.KindAR)
+	h.ok(err)
+	var credit *domain.Advance
+	for i := range rows {
+		if rows[i].PartyName == "PT Retur" {
+			credit = &rows[i]
+		}
+	}
+	if credit == nil || credit.Remaining() != in.Amount || credit.JournalEntryID == "" {
+		t.Fatalf("credit %+v", credit)
+	}
+	e, err := app.NewJournals(h.deps).Get(h.ctx, credit.JournalEntryID)
+	h.ok(err)
+	for _, ln := range e.Lines {
+		if ln.AccountID == h.id("1103001") {
+			t.Fatalf("paid share must leave the receivable alone: %+v", e.Lines)
+		}
+	}
+	in.Amount = inv.TotalAmount
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, in)
+	h.wantErr(err, "Nilai credit note melebihi tagihan yang belum dikreditkan")
+}
+
+func TestSalesPaymentKeepsFeeWithheldAndExcess(t *testing.T) {
+	h := newHarness(t)
+	auto := app.NewAutoPost(h.deps)
+	inv, err := auto.SalesInvoiceIssued(h.ctx, domain.SalesInvoiceIssued{InvoiceID: "si-x", InvoiceNumber: "INV-X", CustomerName: "PT Sales", IssueDate: today, Subtotal: rp(1_000_000), TotalAmount: rp(1_000_000)})
+	h.ok(err)
+	setup := app.NewTaxSetup(h.deps)
+	_, err = setup.SaveTaxCode(h.ctx, "u1", domain.TaxCode{Code: "PPH-S", Name: "PPh 23 2%", Kind: domain.TaxWithholding, Scope: domain.ScopeBoth, Rate: rp(2), BaseNumerator: 1, BaseDenominator: 1, AccountSaleID: h.id("1104002"), AccountPurchaseID: h.id("2103002"), IsActive: true})
+	h.ok(err)
+	res, err := auto.SalesPaymentRecorded(h.ctx, domain.SalesPaymentRecorded{PaymentID: "sp-x", InvoiceID: "si-x", Amount: rp(1_050_000), PaidOn: today, Method: "transfer", BankFee: rp(6_500), Withheld: rp(20_000), WithheldTaxCode: "PPH-S"})
+	h.ok(err)
+	if len(res.Payment.Adjustments) != 3 || res.Payment.Amount != inv.TotalAmount {
+		t.Fatalf("%+v", res.Payment)
+	}
+	if got := domain.CashMoved(domain.KindAR, res.Payment.Amount, res.Payment.Adjustments); got != rp(1_023_500) {
+		t.Fatalf("cash %s", got)
+	}
+
+	// An unknown tax code leaves that share open on the invoice.
+	open, err := auto.SalesInvoiceIssued(h.ctx, domain.SalesInvoiceIssued{InvoiceID: "si-y", InvoiceNumber: "INV-Y", CustomerName: "PT Sales", IssueDate: today, Subtotal: rp(500_000), TotalAmount: rp(500_000)})
+	h.ok(err)
+	res, err = auto.SalesPaymentRecorded(h.ctx, domain.SalesPaymentRecorded{PaymentID: "sp-y", InvoiceID: "si-y", Amount: open.TotalAmount, PaidOn: today, Method: "transfer", Withheld: rp(10_000), WithheldTaxCode: "TIDAK-ADA"})
+	h.ok(err)
+	if len(res.Payment.Adjustments) != 0 || res.Payment.Amount != rp(490_000) {
+		t.Fatalf("%+v", res.Payment)
+	}
+
+	// A payment on a settled invoice waits as an advance, once.
+	for range 2 {
+		_, err = auto.SalesPaymentRecorded(h.ctx, domain.SalesPaymentRecorded{PaymentID: "sp-z", InvoiceID: "si-x", Amount: rp(25_000), PaidOn: today, Method: "transfer"})
+		h.ok(err)
+	}
+	a, err := h.deps.Store.AdvanceBySalesPayment(h.ctx, "sp-z")
+	h.ok(err)
+	if a == nil || a.Amount != rp(25_000) || a.PartyName != "PT Sales" {
+		t.Fatalf("advance %+v", a)
+	}
+}
+
+func TestDeferralRecognizesMonthByMonth(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	in := domain.Deferral{Kind: domain.DeferRevenue, Name: "Retainer Q4", DeferredAccountID: h.id("4101001"), TargetAccountID: h.id("4101001"), StartDate: "2026-10-01", Months: 3, Amount: rp(1_000_000)}
+	_, err := l.CreateDeferral(h.ctx, "u1", in)
+	h.wantErr(err, "Akun di muka tidak sesuai dengan jenis jadwal")
+	in.DeferredAccountID = h.id("2105001")
+	d, err := l.CreateDeferral(h.ctx, "u1", in)
+	h.ok(err)
+	if d.AmountFor(1)+d.AmountFor(2)+d.AmountFor(3) != rp(1_000_000) {
+		t.Fatalf("months must add up: %s %s %s", d.AmountFor(1), d.AmountFor(2), d.AmountFor(3))
+	}
+	_, err = app.NewSchedules(h.deps).RunDue(h.ctx)
+	h.ok(err)
+	after, err := h.deps.Store.GetDeferral(h.ctx, d.ID)
+	h.ok(err)
+	if after.PostedMonths != 0 {
+		// October has not ended on the harness clock.
+		t.Fatalf("%+v", after)
+	}
+	_, err = l.CreateDeferral(h.ctx, "u1", domain.Deferral{Kind: "X", Name: "n", Months: 1, Amount: rp(1), StartDate: "2026-10-01"})
+	h.wantErr(err, "Jenis jadwal tidak valid")
+
+	// November: October has ended and its period is open.
+	later := h.deps
+	later.Clock = clock.At("2026-11-05T03:00:00Z")
+	res, err := app.NewSchedules(later).RunDue(h.ctx)
+	h.ok(err)
+	after, err = h.deps.Store.GetDeferral(h.ctx, d.ID)
+	h.ok(err)
+	if res.Posted != 1 || after.PostedMonths != 1 || after.Recognized() != d.AmountFor(1) {
+		t.Fatalf("%+v %+v", res, after)
+	}
+	e, err := app.NewJournals(h.deps).Get(h.ctx, after.LastEntryID)
+	h.ok(err)
+	if lineOn(e, h.id("2105001")).Side != domain.Debit || lineOn(e, h.id("4101001")).Side != domain.Credit {
+		t.Fatalf("%+v", e.Lines)
+	}
+	err = l.DeleteDeferral(h.ctx, d.ID)
+	h.wantErr(err, "Jadwal yang sudah berjalan tidak bisa dihapus. Hentikan saja.")
+}
+
+func TestDeferralPostsPastMonths(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	d, err := l.CreateDeferral(h.ctx, "u1", domain.Deferral{Kind: domain.DeferExpense, Name: "Sewa", DeferredAccountID: h.id("1105001"), TargetAccountID: h.id("8101001"), StartDate: "2026-01-01", Months: 1, Amount: rp(100)})
+	h.ok(err)
+	res, err := app.NewSchedules(h.deps).RunDue(h.ctx)
+	h.ok(err)
+	after, err := h.deps.Store.GetDeferral(h.ctx, d.ID)
+	h.ok(err)
+	// January is not an open period here, so the run records why it stopped.
+	if res.Failed == 0 || after.PostedMonths != 0 || after.LastError == "" {
+		t.Fatalf("%+v %+v", res, after)
+	}
+}
+
+func TestWriteOffAndRecovery(t *testing.T) {
+	h, l, inv := settlementHarness(t, domain.KindAR, "PT Macet")
+	expense := h.id("8102001")
+	in := app.WriteOffInput{Date: today, ExpenseAccountID: h.id("1102001"), Reason: "Klien pailit"}
+	_, err := l.WriteOffInvoice(h.ctx, "u1", inv.ID, in)
+	h.wantErr(err, "Akun harus akun beban yang postable")
+	in.ExpenseAccountID = expense
+	after, err := l.WriteOffInvoice(h.ctx, "u1", inv.ID, in)
+	h.ok(err)
+	if after.Outstanding() != 0 {
+		t.Fatalf("outstanding %s", after.Outstanding())
+	}
+	rows, _, err := l.ListPayments(h.ctx, domain.PaymentFilter{Kind: domain.KindAR, Limit: 10})
+	h.ok(err)
+	if len(rows) != 1 || rows[0].Method != "write_off" {
+		t.Fatalf("%+v", rows)
+	}
+	e, err := app.NewJournals(h.deps).Get(h.ctx, rows[0].JournalEntryID)
+	h.ok(err)
+	if lineOn(e, expense).Amount != inv.TotalAmount || lineOn(e, expense).Side != domain.Debit {
+		t.Fatalf("%+v", e.Lines)
+	}
+	res, err := l.VoidPayment(h.ctx, domain.KindAR, "u1", rows[0].ID, "Klien membayar")
+	h.ok(err)
+	if res.Invoices[0].Outstanding() != inv.TotalAmount {
+		t.Fatalf("receivable must return: %s", res.Invoices[0].Outstanding())
+	}
+}
+
+func TestVATClosingAndRemittance(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	setup := app.NewTaxSetup(h.deps)
+	_, err := setup.SaveTaxCode(h.ctx, "u1", domain.TaxCode{Code: "PPN-T", Name: "PPN 11%", Kind: domain.TaxVAT, Scope: domain.ScopeBoth, Rate: rp(11), BaseNumerator: 1, BaseDenominator: 1, AccountSaleID: h.id("2103003"), AccountPurchaseID: h.id("1104001"), IsActive: true})
+	h.ok(err)
+	_, err = l.CloseVAT(h.ctx, "u1", "2026-13")
+	h.wantErr(err, "Masa pajak harus berformat YYYY-MM")
+	_, err = l.CloseVAT(h.ctx, "u1", "2026-10")
+	h.wantErr(err, "Tidak ada PPN untuk dikompensasi pada masa ini")
+
+	journals := app.NewJournals(h.deps)
+	bank := h.id("1102001")
+	for _, lines := range [][]domain.Line{
+		{line(bank, domain.Debit, 1_100_000), line(h.id("2103003"), domain.Credit, 1_100_000)},
+		{line(h.id("1104001"), domain.Debit, 400_000), line(bank, domain.Credit, 400_000)},
+	} {
+		_, err = journals.Create(h.ctx, "u1", app.EntryInput{EntryDate: today, Description: "PPN uji", Lines: lines, Post: true})
+		h.ok(err)
+	}
+	c, err := l.CloseVAT(h.ctx, "u1", "2026-10")
+	h.ok(err)
+	if c.Offset != rp(400_000) || c.Payable != rp(700_000) || c.Compensation != 0 {
+		t.Fatalf("%+v", c)
+	}
+	_, err = l.CloseVAT(h.ctx, "u1", "2026-10")
+	h.wantErr(err, "Tidak ada PPN untuk dikompensasi pada masa ini")
+
+	in := domain.TaxRemittance{Period: "2026-10", Date: "2026-10-31", AccountID: h.id("2103003"), CashAccountID: bank, Amount: rp(800_000), NTPN: "ABC123"}
+	_, err = l.RemitTax(h.ctx, "u1", in)
+	h.wantErr(err, "Nilai melebihi saldo hutang pajak")
+	in.Amount = rp(700_000)
+	r, err := l.RemitTax(h.ctx, "u1", in)
+	h.ok(err)
+	positions, err := l.TaxPositions(h.ctx, "2026-10-31")
+	h.ok(err)
+	for _, p := range positions {
+		if p.AccountID == h.id("2103003") && p.Balance != 0 {
+			t.Fatalf("payable left %s", p.Balance)
+		}
+	}
+	r, err = l.VoidTaxRemittance(h.ctx, "u1", r.ID, "Salah nominal")
+	h.ok(err)
+	if r.Status != domain.StatusVoid {
+		t.Fatalf("%+v", r)
+	}
+	_, err = l.VoidTaxRemittance(h.ctx, "u1", r.ID, "Salah nominal")
+	h.wantErr(err, "Setoran ini sudah dibatalkan")
+}
+
+func TestSeparateApproverBlocksOwnDraft(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	h.ok(l.SetSeparateApprover(h.ctx, "boss", true))
+	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "maker", app.InvoiceInput{InvoiceDate: today, PartyName: "PT Dua", Subtotal: rp(100), AccountID: h.id("4101001")})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "maker", inv.ID)
+	h.wantErr(err, "Pembuat dokumen tidak boleh memposting dokumennya sendiri. Minta rekan lain memeriksanya.")
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "checker", inv.ID)
+	h.ok(err)
+
+	journals := app.NewJournals(h.deps)
+	e, err := journals.Create(h.ctx, "maker", app.EntryInput{EntryDate: today, Description: "Draft", Lines: []domain.Line{line(h.id("1102001"), domain.Debit, 10), line(h.id("8101001"), domain.Credit, 10)}})
+	h.ok(err)
+	_, err = journals.Post(h.ctx, "maker", e.ID)
+	h.wantErr(err, "Pembuat dokumen tidak boleh memposting dokumennya sendiri. Minta rekan lain memeriksanya.")
+	_, err = journals.Post(h.ctx, "checker", e.ID)
+	h.ok(err)
+	_, err = journals.Create(h.ctx, "maker", app.EntryInput{EntryDate: today, Description: "Langsung", Post: true, Lines: []domain.Line{line(h.id("1102001"), domain.Debit, 10), line(h.id("8101001"), domain.Credit, 10)}})
+	h.wantErr(err, "Pembuat dokumen tidak boleh memposting dokumennya sendiri. Minta rekan lain memeriksanya.")
+}
+
+func TestAuditTrailIsAppendOnly(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	h.deps.AuditSystem(h.ctx, "RunSchedules", "doc-1", map[string]int{"posted": 1}, "selesai")
+	rows, total, err := l.ListAuditTrail(h.ctx, domain.AuditFilter{Search: "RunSched", Limit: 10})
+	h.ok(err)
+	if total != 1 || rows[0].ActorName != "Sistem" || rows[0].DocID != "doc-1" {
+		t.Fatalf("%d %+v", total, rows)
+	}
+	csv, err := l.ExportAuditTrail(h.ctx, domain.AuditFilter{})
+	h.ok(err)
+	if !strings.Contains(string(csv), "RunSchedules") {
+		t.Fatalf("%s", csv)
+	}
+	if err := h.pool.QueryRow(h.ctx, "DELETE FROM finance.audit_trail RETURNING id").Scan(new(string)); err == nil || !strings.Contains(err.Error(), "audit trail tidak bisa diubah") {
+		t.Fatalf("delete must fail: %v", err)
 	}
 }

@@ -19,6 +19,7 @@ import {
   deletePaymentAction,
   issueInvoiceAction,
   recordPaymentAction,
+  withholdingTaxesAction,
   submitInvoiceAction,
   type PaymentValues,
 } from "../actions";
@@ -346,8 +347,15 @@ function PaymentForm({ dealId, invoices, preset, close }: { dealId: string; invo
     method: "transfer",
     paidOn: toIsoDate(new Date()),
     note: "",
+    bankFee: "",
+    withheld: "",
+    withheldTaxCode: "",
   });
   const [errors, setErrors] = React.useState<FieldErrors>();
+  const [taxes, setTaxes] = React.useState<{ code: string; name: string }[]>([]);
+  React.useEffect(() => {
+    void withholdingTaxesAction().then(setTaxes);
+  }, []);
   const { pending, run } = useErpAction();
   const set = (k: keyof PaymentValues, val: string) => setV((p) => ({ ...p, [k]: val }));
   return (
@@ -386,6 +394,22 @@ function PaymentForm({ dealId, invoices, preset, close }: { dealId: string; invo
       <Fld label={s.note} htmlFor="pay-note">
         <Input id="pay-note" value={v.note ?? ""} onChange={(e) => set("note", e.target.value)} />
       </Fld>
+      {v.invoiceId ? (
+        <>
+          <Fld label={s.bankFee} htmlFor="pay-fee" error={errors?.bankFee}>
+            <MoneyInput id="pay-fee" value={v.bankFee ?? ""} onChange={(x) => set("bankFee", x)} />
+          </Fld>
+          <Fld label={s.withheld} htmlFor="pay-withheld" error={errors?.withheld}>
+            <MoneyInput id="pay-withheld" value={v.withheld ?? ""} onChange={(x) => set("withheld", x)} />
+          </Fld>
+          {v.withheld ? (
+            <Fld label={s.withheldTax} htmlFor="pay-tax" error={errors?.withheldTaxCode} className="sm:col-span-2">
+              <SimpleSelect id="pay-tax" value={v.withheldTaxCode ?? ""} onChange={(x) => set("withheldTaxCode", x)} options={taxes.map((t) => ({ value: t.code, label: t.name }))} emptyLabel={s.withheldTaxPick} />
+            </Fld>
+          ) : null}
+          <p className="text-xs text-muted-foreground sm:col-span-2">{s.settlementHint}</p>
+        </>
+      ) : null}
       <div className="sm:col-span-2">
         <FormFooter onCancel={close} pending={pending} />
       </div>

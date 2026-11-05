@@ -105,6 +105,7 @@ var chart = []coaRow{
 	{"8100000", "Beban Lain-lain", domain.TypeOtherExpense, "", false, false},
 	{"8101000", "Beban Bank", domain.TypeOtherExpense, "", false, false},
 	{"8101001", "Biaya Administrasi Bank", domain.TypeOtherExpense, "OPERATING", false, false},
+	{"8102001", "Beban Piutang Tak Tertagih", domain.TypeOtherExpense, "OPERATING", false, false},
 	{"8200000", "Pendapatan Lain-lain", domain.TypeOtherIncome, "", false, false},
 	{"8201000", "Pendapatan Bunga", domain.TypeOtherIncome, "", false, false},
 	{"8201001", "Pendapatan Bunga Bank", domain.TypeOtherIncome, "OPERATING", false, false},

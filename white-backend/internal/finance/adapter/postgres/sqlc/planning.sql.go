@@ -39,6 +39,43 @@ func (q *Queries) ControlAdjustments(ctx context.Context, accountIds []string) (
 	return i, err
 }
 
+const countAuditEntries = `-- name: CountAuditEntries :one
+SELECT count(*)::int
+  FROM finance.audit_trail
+ WHERE ($1::text IS NULL OR actor_name ILIKE '%' || $1 || '%' OR action ILIKE '%' || $1 || '%' OR doc_no ILIKE '%' || $1 || '%' OR doc_id = $1)
+   AND ($2::text IS NULL OR result = $2)
+   AND ($3::date IS NULL OR at >= $3::date)
+   AND ($4::date IS NULL OR at < $4::date + 1)
+`
+
+type CountAuditEntriesParams struct {
+	Search   *string
+	Result   *string
+	DateFrom *time.Time
+	DateTo   *time.Time
+}
+
+func (q *Queries) CountAuditEntries(ctx context.Context, arg CountAuditEntriesParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countAuditEntries,
+		arg.Search,
+		arg.Result,
+		arg.DateFrom,
+		arg.DateTo,
+	)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const deleteDeferral = `-- name: DeleteDeferral :exec
+DELETE FROM finance.deferrals WHERE id = $1
+`
+
+func (q *Queries) DeleteDeferral(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteDeferral, id)
+	return err
+}
+
 const deletePostingLog = `-- name: DeletePostingLog :exec
 DELETE FROM finance.posting_logs WHERE event_code = $1 AND document_id = $2
 `
@@ -204,8 +241,8 @@ func (q *Queries) GetRecurringInvoice(ctx context.Context, id string) (FinanceRe
 }
 
 const insertAdvance = `-- name: InsertAdvance :exec
-INSERT INTO finance.advances (id, kind, advance_no, advance_date, party_name, amount, cash_account_id, advance_account_id, reference, notes, status, journal_entry_id, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+INSERT INTO finance.advances (id, kind, advance_no, advance_date, party_name, amount, cash_account_id, advance_account_id, reference, notes, status, journal_entry_id, created_by, source_payment_id, sales_payment_id)
+VALUES ($1, $2, $3, $4, $5, $6, $11, $7, $8, $9, $10, $12, $13, $14, $15)
 `
 
 type InsertAdvanceParams struct {
@@ -215,13 +252,15 @@ type InsertAdvanceParams struct {
 	AdvanceDate      time.Time
 	PartyName        string
 	Amount           domain.Money
-	CashAccountID    string
 	AdvanceAccountID string
 	Reference        string
 	Notes            string
 	Status           string
+	CashAccountID    *string
 	JournalEntryID   *string
 	By               *string
+	SourcePaymentID  *string
+	SalesPaymentID   *string
 }
 
 func (q *Queries) InsertAdvance(ctx context.Context, arg InsertAdvanceParams) error {
@@ -232,13 +271,15 @@ func (q *Queries) InsertAdvance(ctx context.Context, arg InsertAdvanceParams) er
 		arg.AdvanceDate,
 		arg.PartyName,
 		arg.Amount,
-		arg.CashAccountID,
 		arg.AdvanceAccountID,
 		arg.Reference,
 		arg.Notes,
 		arg.Status,
+		arg.CashAccountID,
 		arg.JournalEntryID,
 		arg.By,
+		arg.SourcePaymentID,
+		arg.SalesPaymentID,
 	)
 	return err
 }
@@ -257,24 +298,287 @@ func (q *Queries) InsertAdvanceApplication(ctx context.Context, arg InsertAdvanc
 	return err
 }
 
+const insertAdvanceRefund = `-- name: InsertAdvanceRefund :exec
+INSERT INTO finance.advance_refunds (id, advance_id, refund_no, refund_date, amount, cash_account_id, reason, status, journal_entry_id, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+`
+
+type InsertAdvanceRefundParams struct {
+	ID             string
+	AdvanceID      string
+	RefundNo       string
+	RefundDate     time.Time
+	Amount         domain.Money
+	CashAccountID  string
+	Reason         string
+	Status         string
+	JournalEntryID string
+	By             *string
+}
+
+func (q *Queries) InsertAdvanceRefund(ctx context.Context, arg InsertAdvanceRefundParams) error {
+	_, err := q.db.Exec(ctx, insertAdvanceRefund,
+		arg.ID,
+		arg.AdvanceID,
+		arg.RefundNo,
+		arg.RefundDate,
+		arg.Amount,
+		arg.CashAccountID,
+		arg.Reason,
+		arg.Status,
+		arg.JournalEntryID,
+		arg.By,
+	)
+	return err
+}
+
+const insertAuditEntry = `-- name: InsertAuditEntry :exec
+INSERT INTO finance.audit_trail (id, actor_id, actor_name, action, doc_id, doc_no, result, message, request, response)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+`
+
+type InsertAuditEntryParams struct {
+	ID        string
+	ActorID   string
+	ActorName string
+	Action    string
+	DocID     string
+	DocNo     string
+	Result    string
+	Message   string
+	Request   string
+	Response  string
+}
+
+func (q *Queries) InsertAuditEntry(ctx context.Context, arg InsertAuditEntryParams) error {
+	_, err := q.db.Exec(ctx, insertAuditEntry,
+		arg.ID,
+		arg.ActorID,
+		arg.ActorName,
+		arg.Action,
+		arg.DocID,
+		arg.DocNo,
+		arg.Result,
+		arg.Message,
+		arg.Request,
+		arg.Response,
+	)
+	return err
+}
+
+const insertDeferral = `-- name: InsertDeferral :exec
+INSERT INTO finance.deferrals (id, kind, name, party_name, reference, deferred_account_id, target_account_id, tag_id, start_date, months, amount, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $11, $8, $9, $10, $12)
+`
+
+type InsertDeferralParams struct {
+	ID                string
+	Kind              string
+	Name              string
+	PartyName         string
+	Reference         string
+	DeferredAccountID string
+	TargetAccountID   string
+	StartDate         time.Time
+	Months            int32
+	Amount            domain.Money
+	TagID             *string
+	By                *string
+}
+
+func (q *Queries) InsertDeferral(ctx context.Context, arg InsertDeferralParams) error {
+	_, err := q.db.Exec(ctx, insertDeferral,
+		arg.ID,
+		arg.Kind,
+		arg.Name,
+		arg.PartyName,
+		arg.Reference,
+		arg.DeferredAccountID,
+		arg.TargetAccountID,
+		arg.StartDate,
+		arg.Months,
+		arg.Amount,
+		arg.TagID,
+		arg.By,
+	)
+	return err
+}
+
+const insertPaymentAdjustment = `-- name: InsertPaymentAdjustment :exec
+INSERT INTO finance.payment_adjustments (id, payment_id, kind, account_id, tax_code, tax_name, tax_rate, report_code, tax_base, amount, memo, sort_order)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+`
+
+type InsertPaymentAdjustmentParams struct {
+	ID         string
+	PaymentID  string
+	Kind       string
+	AccountID  string
+	TaxCode    string
+	TaxName    string
+	TaxRate    domain.Money
+	ReportCode string
+	TaxBase    domain.Money
+	Amount     domain.Money
+	Memo       string
+	SortOrder  int32
+}
+
+func (q *Queries) InsertPaymentAdjustment(ctx context.Context, arg InsertPaymentAdjustmentParams) error {
+	_, err := q.db.Exec(ctx, insertPaymentAdjustment,
+		arg.ID,
+		arg.PaymentID,
+		arg.Kind,
+		arg.AccountID,
+		arg.TaxCode,
+		arg.TaxName,
+		arg.TaxRate,
+		arg.ReportCode,
+		arg.TaxBase,
+		arg.Amount,
+		arg.Memo,
+		arg.SortOrder,
+	)
+	return err
+}
+
+const insertTaxRemittance = `-- name: InsertTaxRemittance :exec
+INSERT INTO finance.tax_remittances (id, remit_no, period, remit_date, account_id, cash_account_id, amount, ntpn, notes, status, journal_entry_id, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+`
+
+type InsertTaxRemittanceParams struct {
+	ID             string
+	RemitNo        string
+	Period         string
+	RemitDate      time.Time
+	AccountID      string
+	CashAccountID  string
+	Amount         domain.Money
+	Ntpn           string
+	Notes          string
+	Status         string
+	JournalEntryID string
+	By             *string
+}
+
+func (q *Queries) InsertTaxRemittance(ctx context.Context, arg InsertTaxRemittanceParams) error {
+	_, err := q.db.Exec(ctx, insertTaxRemittance,
+		arg.ID,
+		arg.RemitNo,
+		arg.Period,
+		arg.RemitDate,
+		arg.AccountID,
+		arg.CashAccountID,
+		arg.Amount,
+		arg.Ntpn,
+		arg.Notes,
+		arg.Status,
+		arg.JournalEntryID,
+		arg.By,
+	)
+	return err
+}
+
+const invoiceCredited = `-- name: InvoiceCredited :one
+SELECT COALESCE(SUM(x.amount + COALESCE((SELECT SUM(j.amount) FROM finance.payment_adjustments j WHERE j.payment_id = p.id AND j.kind = 'EXCESS'), 0)), 0)::numeric
+  FROM finance.payment_allocations x
+  JOIN finance.payments p ON p.id = x.payment_id
+ WHERE x.invoice_id = $1 AND p.method = 'credit_note' AND p.status = 'POSTED' AND p.deleted_at IS NULL
+`
+
+func (q *Queries) InvoiceCredited(ctx context.Context, invoiceID string) (domain.Money, error) {
+	row := q.db.QueryRow(ctx, invoiceCredited, invoiceID)
+	var column_1 domain.Money
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const listAdvanceRefunds = `-- name: ListAdvanceRefunds :many
+SELECT r.id, r.advance_id, r.refund_no, r.refund_date, r.amount, r.cash_account_id, c.name AS cash_account_name, r.reason, r.status, r.journal_entry_id, r.void_reason, r.created_by
+  FROM finance.advance_refunds r
+  JOIN finance.accounts c ON c.id = r.cash_account_id
+ WHERE ($1::text IS NULL OR r.id = $1)
+   AND ($2::text[] IS NULL OR r.advance_id = ANY($2::text[]))
+ ORDER BY r.refund_date, r.refund_no
+`
+
+type ListAdvanceRefundsParams struct {
+	ID         *string
+	AdvanceIds []string
+}
+
+type ListAdvanceRefundsRow struct {
+	ID              string
+	AdvanceID       string
+	RefundNo        string
+	RefundDate      time.Time
+	Amount          domain.Money
+	CashAccountID   string
+	CashAccountName string
+	Reason          string
+	Status          string
+	JournalEntryID  string
+	VoidReason      string
+	CreatedBy       *string
+}
+
+func (q *Queries) ListAdvanceRefunds(ctx context.Context, arg ListAdvanceRefundsParams) ([]ListAdvanceRefundsRow, error) {
+	rows, err := q.db.Query(ctx, listAdvanceRefunds, arg.ID, arg.AdvanceIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdvanceRefundsRow{}
+	for rows.Next() {
+		var i ListAdvanceRefundsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AdvanceID,
+			&i.RefundNo,
+			&i.RefundDate,
+			&i.Amount,
+			&i.CashAccountID,
+			&i.CashAccountName,
+			&i.Reason,
+			&i.Status,
+			&i.JournalEntryID,
+			&i.VoidReason,
+			&i.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAdvances = `-- name: ListAdvances :many
-SELECT a.id, a.kind, a.advance_no, a.advance_date, a.party_name, a.amount, a.cash_account_id, c.name AS cash_account_name,
-       a.advance_account_id, d.name AS advance_account_name, a.reference, a.notes, a.status, a.journal_entry_id, a.void_reason, a.created_by,
+SELECT a.id, a.kind, a.advance_no, a.advance_date, a.party_name, a.amount, a.cash_account_id, COALESCE(c.name, '')::text AS cash_account_name,
+       a.advance_account_id, d.name AS advance_account_name, a.reference, a.notes, a.status, a.journal_entry_id, a.void_reason, a.created_by, a.source_payment_id,
        COALESCE((SELECT SUM(p.amount) FROM finance.advance_applications x
                    JOIN finance.payments p ON p.id = x.payment_id
-                  WHERE x.advance_id = a.id AND p.status = 'POSTED' AND p.deleted_at IS NULL), 0)::numeric AS applied
+                  WHERE x.advance_id = a.id AND p.status = 'POSTED' AND p.deleted_at IS NULL), 0)::numeric AS applied,
+       COALESCE((SELECT SUM(r.amount) FROM finance.advance_refunds r WHERE r.advance_id = a.id AND r.status = 'POSTED'), 0)::numeric AS refunded
   FROM finance.advances a
-  JOIN finance.accounts c ON c.id = a.cash_account_id
+  LEFT JOIN finance.accounts c ON c.id = a.cash_account_id
   JOIN finance.accounts d ON d.id = a.advance_account_id
  WHERE ($1::text IS NULL OR a.id = $1)
-   AND ($2::text IS NULL OR a.kind = $2)
+   AND ($2::text IS NULL OR a.source_payment_id = $2)
+   AND ($3::text IS NULL OR a.sales_payment_id = $3)
+   AND ($4::text IS NULL OR a.kind = $4)
  ORDER BY a.advance_date DESC, a.advance_no DESC
  LIMIT 500
 `
 
 type ListAdvancesParams struct {
-	ID   *string
-	Kind *string
+	ID              *string
+	SourcePaymentID *string
+	SalesPaymentID  *string
+	Kind            *string
 }
 
 type ListAdvancesRow struct {
@@ -284,7 +588,7 @@ type ListAdvancesRow struct {
 	AdvanceDate        time.Time
 	PartyName          string
 	Amount             domain.Money
-	CashAccountID      string
+	CashAccountID      *string
 	CashAccountName    string
 	AdvanceAccountID   string
 	AdvanceAccountName string
@@ -294,11 +598,18 @@ type ListAdvancesRow struct {
 	JournalEntryID     *string
 	VoidReason         string
 	CreatedBy          *string
+	SourcePaymentID    *string
 	Applied            domain.Money
+	Refunded           domain.Money
 }
 
 func (q *Queries) ListAdvances(ctx context.Context, arg ListAdvancesParams) ([]ListAdvancesRow, error) {
-	rows, err := q.db.Query(ctx, listAdvances, arg.ID, arg.Kind)
+	rows, err := q.db.Query(ctx, listAdvances,
+		arg.ID,
+		arg.SourcePaymentID,
+		arg.SalesPaymentID,
+		arg.Kind,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +634,145 @@ func (q *Queries) ListAdvances(ctx context.Context, arg ListAdvancesParams) ([]L
 			&i.JournalEntryID,
 			&i.VoidReason,
 			&i.CreatedBy,
+			&i.SourcePaymentID,
 			&i.Applied,
+			&i.Refunded,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAuditEntries = `-- name: ListAuditEntries :many
+SELECT id, at, actor_id, actor_name, action, doc_id, doc_no, result, message, request, response
+  FROM finance.audit_trail
+ WHERE ($1::text IS NULL OR actor_name ILIKE '%' || $1 || '%' OR action ILIKE '%' || $1 || '%' OR doc_no ILIKE '%' || $1 || '%' OR doc_id = $1)
+   AND ($2::text IS NULL OR result = $2)
+   AND ($3::date IS NULL OR at >= $3::date)
+   AND ($4::date IS NULL OR at < $4::date + 1)
+ ORDER BY at DESC, id DESC
+ LIMIT $6 OFFSET $5
+`
+
+type ListAuditEntriesParams struct {
+	Search   *string
+	Result   *string
+	DateFrom *time.Time
+	DateTo   *time.Time
+	Off      int32
+	Lim      int32
+}
+
+func (q *Queries) ListAuditEntries(ctx context.Context, arg ListAuditEntriesParams) ([]FinanceAuditTrail, error) {
+	rows, err := q.db.Query(ctx, listAuditEntries,
+		arg.Search,
+		arg.Result,
+		arg.DateFrom,
+		arg.DateTo,
+		arg.Off,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FinanceAuditTrail{}
+	for rows.Next() {
+		var i FinanceAuditTrail
+		if err := rows.Scan(
+			&i.ID,
+			&i.At,
+			&i.ActorID,
+			&i.ActorName,
+			&i.Action,
+			&i.DocID,
+			&i.DocNo,
+			&i.Result,
+			&i.Message,
+			&i.Request,
+			&i.Response,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDeferrals = `-- name: ListDeferrals :many
+SELECT d.id, d.kind, d.name, d.party_name, d.reference, d.deferred_account_id, x.name AS deferred_account_name, d.target_account_id, t.name AS target_account_name,
+       d.tag_id, d.start_date, d.months, d.posted_months, d.amount, d.is_active, d.last_entry_id, d.last_error, d.created_by
+  FROM finance.deferrals d
+  JOIN finance.accounts x ON x.id = d.deferred_account_id
+  JOIN finance.accounts t ON t.id = d.target_account_id
+ WHERE ($1::text IS NULL OR d.id = $1)
+   AND ($2::bool = false OR d.is_active)
+ ORDER BY d.start_date DESC, d.name
+ LIMIT 500
+`
+
+type ListDeferralsParams struct {
+	ID         *string
+	ActiveOnly bool
+}
+
+type ListDeferralsRow struct {
+	ID                  string
+	Kind                string
+	Name                string
+	PartyName           string
+	Reference           string
+	DeferredAccountID   string
+	DeferredAccountName string
+	TargetAccountID     string
+	TargetAccountName   string
+	TagID               *string
+	StartDate           time.Time
+	Months              int32
+	PostedMonths        int32
+	Amount              domain.Money
+	IsActive            bool
+	LastEntryID         *string
+	LastError           string
+	CreatedBy           *string
+}
+
+func (q *Queries) ListDeferrals(ctx context.Context, arg ListDeferralsParams) ([]ListDeferralsRow, error) {
+	rows, err := q.db.Query(ctx, listDeferrals, arg.ID, arg.ActiveOnly)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListDeferralsRow{}
+	for rows.Next() {
+		var i ListDeferralsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Kind,
+			&i.Name,
+			&i.PartyName,
+			&i.Reference,
+			&i.DeferredAccountID,
+			&i.DeferredAccountName,
+			&i.TargetAccountID,
+			&i.TargetAccountName,
+			&i.TagID,
+			&i.StartDate,
+			&i.Months,
+			&i.PostedMonths,
+			&i.Amount,
+			&i.IsActive,
+			&i.LastEntryID,
+			&i.LastError,
+			&i.CreatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -420,6 +869,70 @@ func (q *Queries) ListRecurringInvoices(ctx context.Context) ([]FinanceRecurring
 	return items, nil
 }
 
+const listTaxRemittances = `-- name: ListTaxRemittances :many
+SELECT r.id, r.remit_no, r.period, r.remit_date, r.account_id, a.name AS account_name, r.cash_account_id, c.name AS cash_account_name, r.amount, r.ntpn, r.notes, r.status, r.journal_entry_id, r.void_reason, r.created_by
+  FROM finance.tax_remittances r
+  JOIN finance.accounts a ON a.id = r.account_id
+  JOIN finance.accounts c ON c.id = r.cash_account_id
+ WHERE ($1::text IS NULL OR r.id = $1)
+ ORDER BY r.remit_date DESC, r.remit_no DESC
+ LIMIT 500
+`
+
+type ListTaxRemittancesRow struct {
+	ID              string
+	RemitNo         string
+	Period          string
+	RemitDate       time.Time
+	AccountID       string
+	AccountName     string
+	CashAccountID   string
+	CashAccountName string
+	Amount          domain.Money
+	Ntpn            string
+	Notes           string
+	Status          string
+	JournalEntryID  string
+	VoidReason      string
+	CreatedBy       *string
+}
+
+func (q *Queries) ListTaxRemittances(ctx context.Context, id *string) ([]ListTaxRemittancesRow, error) {
+	rows, err := q.db.Query(ctx, listTaxRemittances, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTaxRemittancesRow{}
+	for rows.Next() {
+		var i ListTaxRemittancesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RemitNo,
+			&i.Period,
+			&i.RemitDate,
+			&i.AccountID,
+			&i.AccountName,
+			&i.CashAccountID,
+			&i.CashAccountName,
+			&i.Amount,
+			&i.Ntpn,
+			&i.Notes,
+			&i.Status,
+			&i.JournalEntryID,
+			&i.VoidReason,
+			&i.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockAdvance = `-- name: LockAdvance :exec
 SELECT id FROM finance.advances WHERE id = $1 FOR UPDATE
 `
@@ -427,6 +940,60 @@ SELECT id FROM finance.advances WHERE id = $1 FOR UPDATE
 func (q *Queries) LockAdvance(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, lockAdvance, id)
 	return err
+}
+
+const paymentAdjustments = `-- name: PaymentAdjustments :many
+SELECT x.payment_id, x.kind, x.account_id, a.name AS account_name, x.tax_code, x.tax_name, x.tax_rate, x.report_code, x.tax_base, x.amount, x.memo
+  FROM finance.payment_adjustments x
+  JOIN finance.accounts a ON a.id = x.account_id
+ WHERE x.payment_id = ANY($1::text[])
+ ORDER BY x.payment_id, x.sort_order
+`
+
+type PaymentAdjustmentsRow struct {
+	PaymentID   string
+	Kind        string
+	AccountID   string
+	AccountName string
+	TaxCode     string
+	TaxName     string
+	TaxRate     domain.Money
+	ReportCode  string
+	TaxBase     domain.Money
+	Amount      domain.Money
+	Memo        string
+}
+
+func (q *Queries) PaymentAdjustments(ctx context.Context, paymentIds []string) ([]PaymentAdjustmentsRow, error) {
+	rows, err := q.db.Query(ctx, paymentAdjustments, paymentIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PaymentAdjustmentsRow{}
+	for rows.Next() {
+		var i PaymentAdjustmentsRow
+		if err := rows.Scan(
+			&i.PaymentID,
+			&i.Kind,
+			&i.AccountID,
+			&i.AccountName,
+			&i.TaxCode,
+			&i.TaxName,
+			&i.TaxRate,
+			&i.ReportCode,
+			&i.TaxBase,
+			&i.Amount,
+			&i.Memo,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const pendingPostings = `-- name: PendingPostings :one
@@ -519,6 +1086,45 @@ func (q *Queries) ProjectTagInUse(ctx context.Context, id string) (*bool, error)
 	return column_1, err
 }
 
+const separateApprover = `-- name: SeparateApprover :one
+SELECT COALESCE((SELECT separate_approver FROM finance.control_settings), false)::bool
+`
+
+func (q *Queries) SeparateApprover(ctx context.Context) (bool, error) {
+	row := q.db.QueryRow(ctx, separateApprover)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const setAdvanceJournalByPayment = `-- name: SetAdvanceJournalByPayment :exec
+UPDATE finance.advances SET journal_entry_id = $2 WHERE source_payment_id = $1
+`
+
+type SetAdvanceJournalByPaymentParams struct {
+	SourcePaymentID *string
+	JournalEntryID  *string
+}
+
+func (q *Queries) SetAdvanceJournalByPayment(ctx context.Context, arg SetAdvanceJournalByPaymentParams) error {
+	_, err := q.db.Exec(ctx, setAdvanceJournalByPayment, arg.SourcePaymentID, arg.JournalEntryID)
+	return err
+}
+
+const setDeferralActive = `-- name: SetDeferralActive :exec
+UPDATE finance.deferrals SET is_active = $2 WHERE id = $1
+`
+
+type SetDeferralActiveParams struct {
+	ID       string
+	IsActive bool
+}
+
+func (q *Queries) SetDeferralActive(ctx context.Context, arg SetDeferralActiveParams) error {
+	_, err := q.db.Exec(ctx, setDeferralActive, arg.ID, arg.IsActive)
+	return err
+}
+
 const setRecurringInvoiceActive = `-- name: SetRecurringInvoiceActive :exec
 UPDATE finance.recurring_invoices SET is_active = $2, updated_by = $3, updated_at = now() WHERE id = $1
 `
@@ -531,6 +1137,21 @@ type SetRecurringInvoiceActiveParams struct {
 
 func (q *Queries) SetRecurringInvoiceActive(ctx context.Context, arg SetRecurringInvoiceActiveParams) error {
 	_, err := q.db.Exec(ctx, setRecurringInvoiceActive, arg.ID, arg.IsActive, arg.By)
+	return err
+}
+
+const setSeparateApprover = `-- name: SetSeparateApprover :exec
+INSERT INTO finance.control_settings (id, separate_approver, updated_by) VALUES (true, $1, $2)
+ON CONFLICT (id) DO UPDATE SET separate_approver = EXCLUDED.separate_approver, updated_by = EXCLUDED.updated_by, updated_at = now()
+`
+
+type SetSeparateApproverParams struct {
+	SeparateApprover bool
+	By               *string
+}
+
+func (q *Queries) SetSeparateApprover(ctx context.Context, arg SetSeparateApproverParams) error {
+	_, err := q.db.Exec(ctx, setSeparateApprover, arg.SeparateApprover, arg.By)
 	return err
 }
 
@@ -578,6 +1199,29 @@ func (q *Queries) SubledgerTotals(ctx context.Context) ([]SubledgerTotalsRow, er
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateDeferralRun = `-- name: UpdateDeferralRun :exec
+UPDATE finance.deferrals SET posted_months = $2, last_entry_id = $5, last_error = $3, is_active = $4 WHERE id = $1
+`
+
+type UpdateDeferralRunParams struct {
+	ID           string
+	PostedMonths int32
+	LastError    string
+	IsActive     bool
+	LastEntryID  *string
+}
+
+func (q *Queries) UpdateDeferralRun(ctx context.Context, arg UpdateDeferralRunParams) error {
+	_, err := q.db.Exec(ctx, updateDeferralRun,
+		arg.ID,
+		arg.PostedMonths,
+		arg.LastError,
+		arg.IsActive,
+		arg.LastEntryID,
+	)
+	return err
 }
 
 const updateRecurringInvoiceRun = `-- name: UpdateRecurringInvoiceRun :exec
@@ -703,5 +1347,33 @@ type VoidAdvanceParams struct {
 
 func (q *Queries) VoidAdvance(ctx context.Context, arg VoidAdvanceParams) error {
 	_, err := q.db.Exec(ctx, voidAdvance, arg.ID, arg.VoidReason)
+	return err
+}
+
+const voidAdvanceRefund = `-- name: VoidAdvanceRefund :exec
+UPDATE finance.advance_refunds SET status = 'VOID', void_reason = $2 WHERE id = $1
+`
+
+type VoidAdvanceRefundParams struct {
+	ID         string
+	VoidReason string
+}
+
+func (q *Queries) VoidAdvanceRefund(ctx context.Context, arg VoidAdvanceRefundParams) error {
+	_, err := q.db.Exec(ctx, voidAdvanceRefund, arg.ID, arg.VoidReason)
+	return err
+}
+
+const voidTaxRemittance = `-- name: VoidTaxRemittance :exec
+UPDATE finance.tax_remittances SET status = 'VOID', void_reason = $2 WHERE id = $1
+`
+
+type VoidTaxRemittanceParams struct {
+	ID         string
+	VoidReason string
+}
+
+func (q *Queries) VoidTaxRemittance(ctx context.Context, arg VoidTaxRemittanceParams) error {
+	_, err := q.db.Exec(ctx, voidTaxRemittance, arg.ID, arg.VoidReason)
 	return err
 }

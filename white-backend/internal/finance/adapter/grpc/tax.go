@@ -4,6 +4,7 @@ import (
 	"context"
 
 	financev1 "github.com/syabanf/white-superapp/white-backend/gen/go/white/finance/v1"
+	"github.com/syabanf/white-superapp/white-backend/internal/finance/app"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/authn"
@@ -215,7 +216,7 @@ func (s *taxServer) CreateCreditNote(ctx context.Context, r *financev1.CreditNot
 	if err != nil {
 		return nil, err
 	}
-	inv, err := s.svc.Ledgers.CreateCreditNote(ctx, p.UserID, r.InvoiceId, r.NoteDate, amount, r.Reason)
+	inv, err := s.svc.Ledgers.CreateCreditNote(ctx, p.UserID, r.InvoiceId, app.CreditNoteInput{Date: r.NoteDate, Amount: amount, Reason: r.Reason, AdvanceAccountID: r.AdvanceAccountId})
 	if err != nil {
 		return nil, err
 	}

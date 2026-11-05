@@ -42,6 +42,10 @@ type PaymentRecorded struct {
 	Method     string `json:"method,omitempty"`
 	Reference  string `json:"reference,omitempty"`
 	RecordedBy string `json:"recordedBy,omitempty"`
+	// BankFee and Withheld settle part of Amount without reaching the bank.
+	BankFee         string `json:"bankFee,omitempty"`
+	Withheld        string `json:"withheld,omitempty"`
+	WithheldTaxCode string `json:"withheldTaxCode,omitempty"`
 }
 
 // DealWon is published on events.SalesDealWon when a deal enters a won

@@ -979,6 +979,8 @@ message Payment {
   optional google.protobuf.Timestamp voided_at = 15;
   string journal_entry_id = 16;
   google.protobuf.Timestamp created_at = 17;
+  repeated PaymentAdjustment adjustments = 18;
+  string cash_amount = 19;
 }
 
 message PaymentInput {
@@ -989,6 +991,9 @@ message PaymentInput {
   string reference_number = 4;
   string notes = 5;
   repeated AllocationInput allocations = 6;
+  repeated PaymentAdjustmentInput adjustments = 7;
+  string excess_amount = 8;
+  string excess_account_id = 9;
 }
 
 message AllocationInput {
@@ -2149,6 +2154,53 @@ service ProjectTagService {
   }
 }
 
+// Period-end work: recognition schedules, write-offs, tax payments, VAT offset and
+// the separation of duties switch. finance.approve for every change.
+service PeriodEndService {
+  rpc ListDeferrals(ListDeferralsRequest) returns (ListDeferralsResponse) {
+    option (google.api.http) = {get: "/v1/finance/deferrals"};
+  }
+  rpc CreateDeferral(Deferral) returns (Deferral) {
+    option (google.api.http) = {post: "/v1/finance/deferrals" body: "*"};
+  }
+  rpc SetDeferralActive(SetDeferralActiveRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {post: "/v1/finance/deferrals/{id}:active" body: "*"};
+  }
+  rpc DeleteDeferral(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/deferrals/{id}"};
+  }
+  rpc WriteOffInvoice(WriteOffRequest) returns (Invoice) {
+    option (google.api.http) = {post: "/v1/finance/invoices/{invoice_id}:write-off" body: "*"};
+  }
+  rpc ListTaxPositions(ListTaxPositionsRequest) returns (ListTaxPositionsResponse) {
+    option (google.api.http) = {get: "/v1/finance/tax-positions"};
+  }
+  rpc ListTaxRemittances(ListTaxRemittancesRequest) returns (ListTaxRemittancesResponse) {
+    option (google.api.http) = {get: "/v1/finance/tax-remittances"};
+  }
+  rpc RemitTax(TaxRemittance) returns (TaxRemittance) {
+    option (google.api.http) = {post: "/v1/finance/tax-remittances" body: "*"};
+  }
+  rpc VoidTaxRemittance(VoidAdvanceRequest) returns (TaxRemittance) {
+    option (google.api.http) = {post: "/v1/finance/tax-remittances/{id}:void" body: "*"};
+  }
+  rpc CloseVat(CloseVatRequest) returns (VatClosing) {
+    option (google.api.http) = {post: "/v1/finance/vat-closings" body: "*"};
+  }
+  rpc ListAuditTrail(ListAuditTrailRequest) returns (ListAuditTrailResponse) {
+    option (google.api.http) = {get: "/v1/finance/audit-trail"};
+  }
+  rpc ExportAuditTrail(ListAuditTrailRequest) returns (TaxExportFile) {
+    option (google.api.http) = {get: "/v1/finance/reports/audit-trail-export"};
+  }
+  rpc GetControlSettings(ControlSettingsRequest) returns (ControlSettings) {
+    option (google.api.http) = {get: "/v1/finance/control-settings"};
+  }
+  rpc SetControlSettings(ControlSettings) returns (ControlSettings) {
+    option (google.api.http) = {put: "/v1/finance/control-settings" body: "*"};
+  }
+}
+
 // Money paid or received before the invoice. finance.approve for every change.
 service AdvanceService {
   rpc ListAdvances(ListAdvancesRequest) returns (ListAdvancesResponse) {
@@ -2159,6 +2211,12 @@ service AdvanceService {
   }
   rpc ApplyAdvance(ApplyAdvanceRequest) returns (Invoice) {
     option (google.api.http) = {post: "/v1/finance/advances/{id}:apply" body: "*"};
+  }
+  rpc RefundAdvance(RefundAdvanceRequest) returns (Advance) {
+    option (google.api.http) = {post: "/v1/finance/advances/{id}:refund" body: "*"};
+  }
+  rpc VoidAdvanceRefund(VoidAdvanceRequest) returns (Advance) {
+    option (google.api.http) = {post: "/v1/finance/advance-refunds/{id}:void" body: "*"};
   }
   rpc VoidAdvance(VoidAdvanceRequest) returns (Advance) {
     option (google.api.http) = {post: "/v1/finance/advances/{id}:void" body: "*"};
@@ -2832,6 +2890,8 @@ message CreditNoteRequest {
   // What the party no longer owes, tax included. Empty credits the outstanding amount.
   string amount = 3;
   string reason = 4;
+  // Holds the share of the note above the outstanding amount.
+  string advance_account_id = 5;
 }
 
 message ProjectTag {
@@ -2938,6 +2998,11 @@ message Advance {
   string status = 15;
   string journal_entry_id = 16;
   string void_reason = 17;
+  string refunded = 18;
+  repeated AdvanceRefund refunds = 19;
+  // The payment or credit note whose journal carries this advance. Voiding that
+  // document voids the advance.
+  string source_payment_id = 20;
 }
 message AdvanceInput {
   string kind = 1;
@@ -2983,4 +3048,150 @@ message SubledgerRecon {
   repeated SubledgerReconRow rows = 1;
   // Automatic postings of any kind still waiting for a journal.
   int32 pending_postings = 2;
+}
+
+message PaymentAdjustment {
+  // FEE, DISCOUNT or WITHHOLDING.
+  string kind = 1;
+  string account_id = 2;
+  string account_name = 3;
+  string tax_code = 4;
+  string tax_name = 5;
+  string amount = 6;
+  string memo = 7;
+}
+message PaymentAdjustmentInput {
+  string kind = 1;
+  string account_id = 2;
+  // Master tax code, for WITHHOLDING.
+  string tax_id = 3;
+  string amount = 4;
+  string memo = 5;
+}
+message AdvanceRefund {
+  string id = 1;
+  string refund_no = 2;
+  string refund_date = 3;
+  string amount = 4;
+  string cash_account_name = 5;
+  string reason = 6;
+  // POSTED or VOID.
+  string status = 7;
+  string journal_entry_id = 8;
+  string void_reason = 9;
+}
+message RefundAdvanceRequest {
+  string id = 1;
+  string refund_date = 2;
+  string amount = 3;
+  string cash_account_id = 4;
+  string reason = 5;
+}
+
+message Deferral {
+  string id = 1;
+  string kind = 2;
+  string name = 3;
+  string party_name = 4;
+  string reference = 5;
+  string deferred_account_id = 6;
+  string deferred_account_name = 7;
+  string target_account_id = 8;
+  string target_account_name = 9;
+  string tag_id = 10;
+  string start_date = 11;
+  int32 months = 12;
+  int32 posted_months = 13;
+  string amount = 14;
+  string recognized = 15;
+  bool is_active = 16;
+  string last_error = 17;
+}
+message ListDeferralsRequest {}
+message ListDeferralsResponse {
+  repeated Deferral deferrals = 1;
+}
+message SetDeferralActiveRequest {
+  string id = 1;
+  bool active = 2;
+}
+message WriteOffRequest {
+  string invoice_id = 1;
+  string write_off_date = 2;
+  // Empty writes off all that is outstanding.
+  string amount = 3;
+  string expense_account_id = 4;
+  string reason = 5;
+}
+message TaxPosition {
+  string account_id = 1;
+  string code = 2;
+  string name = 3;
+  string kind = 4;
+  string balance = 5;
+}
+message ListTaxPositionsRequest {
+  string as_of = 1;
+}
+message ListTaxPositionsResponse {
+  repeated TaxPosition positions = 1;
+}
+message TaxRemittance {
+  string id = 1;
+  string remit_no = 2;
+  string period = 3;
+  string remit_date = 4;
+  string account_id = 5;
+  string account_name = 6;
+  string cash_account_id = 7;
+  string cash_account_name = 8;
+  string amount = 9;
+  string ntpn = 10;
+  string notes = 11;
+  string status = 12;
+  string journal_entry_id = 13;
+  string void_reason = 14;
+}
+message ListTaxRemittancesRequest {}
+message ListTaxRemittancesResponse {
+  repeated TaxRemittance remittances = 1;
+}
+message CloseVatRequest {
+  string period = 1;
+}
+message VatClosing {
+  string offset = 1;
+  string payable = 2;
+  string compensation = 3;
+  string journal_entry_id = 4;
+}
+message ControlSettingsRequest {}
+message ControlSettings {
+  bool separate_approver = 1;
+}
+
+message AuditEntry {
+  string id = 1;
+  string at = 2;
+  string actor_id = 3;
+  string actor_name = 4;
+  string action = 5;
+  string doc_id = 6;
+  string doc_no = 7;
+  string result = 8;
+  string message = 9;
+  string request = 10;
+  string response = 11;
+}
+message ListAuditTrailRequest {
+  string q = 1;
+  string result = 2;
+  string date_from = 3;
+  string date_to = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+message ListAuditTrailResponse {
+  repeated AuditEntry entries = 1;
+  int32 total = 2;
 }

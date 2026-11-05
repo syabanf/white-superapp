@@ -59,6 +59,7 @@ func registerErp(ctx context.Context, mux *runtime.ServeMux, u *Upstreams) error
 			financev1.RegisterTaxSetupServiceHandler,
 			financev1.RegisterProjectTagServiceHandler,
 			financev1.RegisterAdvanceServiceHandler,
+			financev1.RegisterPeriodEndServiceHandler,
 		}},
 		{u.HR, []handlerReg{
 			hrv1.RegisterEmployeeServiceHandler,

@@ -52,7 +52,7 @@ type FinanceAdvance struct {
 	AdvanceDate      time.Time
 	PartyName        string
 	Amount           domain.Money
-	CashAccountID    string
+	CashAccountID    *string
 	AdvanceAccountID string
 	Reference        string
 	Notes            string
@@ -61,11 +61,42 @@ type FinanceAdvance struct {
 	VoidReason       string
 	CreatedAt        time.Time
 	CreatedBy        *string
+	SourcePaymentID  *string
+	SalesPaymentID   *string
 }
 
 type FinanceAdvanceApplication struct {
 	PaymentID string
 	AdvanceID string
+}
+
+type FinanceAdvanceRefund struct {
+	ID             string
+	AdvanceID      string
+	RefundNo       string
+	RefundDate     time.Time
+	Amount         domain.Money
+	CashAccountID  string
+	Reason         string
+	Status         string
+	JournalEntryID string
+	VoidReason     string
+	CreatedAt      time.Time
+	CreatedBy      *string
+}
+
+type FinanceAuditTrail struct {
+	ID        string
+	At        time.Time
+	ActorID   string
+	ActorName string
+	Action    string
+	DocID     string
+	DocNo     string
+	Result    string
+	Message   string
+	Request   string
+	Response  string
 }
 
 type FinanceBankStatement struct {
@@ -124,6 +155,33 @@ type FinanceChargeType struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	UpdatedBy         *string
+}
+
+type FinanceControlSetting struct {
+	ID               bool
+	SeparateApprover bool
+	UpdatedBy        *string
+	UpdatedAt        time.Time
+}
+
+type FinanceDeferral struct {
+	ID                string
+	Kind              string
+	Name              string
+	PartyName         string
+	Reference         string
+	DeferredAccountID string
+	TargetAccountID   string
+	TagID             *string
+	StartDate         time.Time
+	Months            int32
+	PostedMonths      int32
+	Amount            domain.Money
+	IsActive          bool
+	LastEntryID       *string
+	LastError         string
+	CreatedBy         *string
+	CreatedAt         time.Time
 }
 
 type FinanceDocument struct {
@@ -387,6 +445,21 @@ type FinancePayment struct {
 	DeletedAt       *time.Time
 }
 
+type FinancePaymentAdjustment struct {
+	ID         string
+	PaymentID  string
+	Kind       string
+	AccountID  string
+	TaxCode    string
+	TaxName    string
+	TaxRate    domain.Money
+	ReportCode string
+	TaxBase    domain.Money
+	Amount     domain.Money
+	Memo       string
+	SortOrder  int32
+}
+
 type FinancePaymentAllocation struct {
 	ID        string
 	PaymentID string
@@ -598,6 +671,23 @@ type FinanceTaxMove struct {
 	MoveDate   time.Time
 	Base       domain.Money
 	Amount     domain.Money
+}
+
+type FinanceTaxRemittance struct {
+	ID             string
+	RemitNo        string
+	Period         string
+	RemitDate      time.Time
+	AccountID      string
+	CashAccountID  string
+	Amount         domain.Money
+	Ntpn           string
+	Notes          string
+	Status         string
+	JournalEntryID string
+	VoidReason     string
+	CreatedBy      *string
+	CreatedAt      time.Time
 }
 
 type FinanceVendor struct {

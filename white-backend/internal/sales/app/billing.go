@@ -441,6 +441,8 @@ func (b *Billing) ListPayments(ctx context.Context, dealID string) ([]domain.Pay
 
 type PaymentInput struct {
 	DealID, InvoiceID, Amount, Method, PaidOn, Note string
+	// BankFee and Withheld are the parts of Amount that never reached the bank.
+	BankFee, Withheld, WithheldTaxCode string
 }
 
 // RecordPayment stores a payment and publishes white.sales.payment.recorded.
@@ -464,6 +466,7 @@ func (b *Billing) RecordPayment(ctx context.Context, actor Actor, in PaymentInpu
 	if err != nil {
 		errs["paidOn"] = "Tanggal bayar tidak valid"
 	}
+	bankFee, withheld := parseSettlement(in, amount, errs)
 	if err := fieldErrs(errs); err != nil {
 		return nil, err
 	}
@@ -491,13 +494,45 @@ func (b *Billing) RecordPayment(ctx context.Context, actor Actor, in PaymentInpu
 	// Finance books receipts against AR invoices, so only invoiced
 	// payments are published.
 	if inv != nil {
-		payload := salesevents.PaymentRecorded{PaymentID: p.ID, InvoiceID: inv.ID, Amount: amount.String(), PaidOn: p.PaidOn.Format("2006-01-02"), Method: p.Method, Reference: deref(p.Note), RecordedBy: actor.UserID}
+		payload := salesevents.PaymentRecorded{PaymentID: p.ID, InvoiceID: inv.ID, Amount: amount.String(), PaidOn: p.PaidOn.Format("2006-01-02"), Method: p.Method, Reference: deref(p.Note), RecordedBy: actor.UserID, WithheldTaxCode: in.WithheldTaxCode}
+		if bankFee > 0 {
+			payload.BankFee = bankFee.String()
+		}
+		if withheld > 0 {
+			payload.Withheld = withheld.String()
+		}
 		if err := b.publish(ctx, events.SalesPaymentRecorded, payload); err != nil {
 			return nil, err
 		}
 	}
 	b.onboarding.OnPayment(ctx, deal.ID)
 	return p, nil
+}
+
+// parseSettlement reads the parts of a payment that did not reach the bank.
+func parseSettlement(in PaymentInput, amount domain.Money, errs map[string]string) (bankFee, withheld domain.Money) {
+	read := func(field, value string) domain.Money {
+		if value == "" {
+			return 0
+		}
+		v, err := domain.ParseMoney(value)
+		if err != nil || v < 0 {
+			errs[field] = "Nominal tidak valid"
+			return 0
+		}
+		return v
+	}
+	bankFee, withheld = read("bankFee", in.BankFee), read("withheld", in.Withheld)
+	if bankFee+withheld > 0 && in.InvoiceID == "" {
+		errs["invoiceId"] = "Biaya bank dan PPh dipotong butuh invoice"
+	}
+	if withheld > 0 && in.WithheldTaxCode == "" {
+		errs["withheldTaxCode"] = "Pilih kode PPh"
+	}
+	if amount > 0 && bankFee+withheld >= amount {
+		errs["amount"] = "Biaya bank dan PPh dipotong harus lebih kecil dari nominal"
+	}
+	return bankFee, withheld
 }
 
 // DeletePayment voids a payment. Finance has no receipt reversal event

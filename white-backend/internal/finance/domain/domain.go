@@ -343,6 +343,7 @@ type Payment struct {
 	VoidReason      string
 	VoidedAt        *time.Time
 	Allocations     []Allocation
+	Adjustments     []PaymentAdjustment
 	CreatedBy       string
 	CreatedAt       time.Time
 }
@@ -565,6 +566,7 @@ type JournalRepo interface {
 
 	UpsertPostingLog(ctx context.Context, l PostingLog) (*PostingLog, error)
 	GetPostingLog(ctx context.Context, id string) (*PostingLog, error)
+	InsertPaymentAdjustments(ctx context.Context, paymentID string, adjustments []PaymentAdjustment) error
 	DeletePostingLog(ctx context.Context, eventCode, documentID string) error
 	PendingPostings(ctx context.Context, from, to string) (int, error)
 	SubledgerTotals(ctx context.Context) ([]SubledgerTotal, error)
@@ -687,6 +689,8 @@ type Store interface {
 	DocumentRepo
 	TaxRepo
 	PlanningRepo
+	PeriodEndRepo
+	AuditRepo
 	InsightRepo
 	AnalyticsRepo
 	WithTx(ctx context.Context, fn func(tx Store) error) error

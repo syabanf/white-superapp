@@ -16,6 +16,8 @@ const methodAdvance = "advance"
 type AdvanceInput struct {
 	Kind, Date, PartyName, CashAccountID, AdvanceAccountID, Reference, Notes string
 	Amount                                                                   domain.Money
+	// SalesPaymentID marks an advance a Sales payment created on its own.
+	SalesPaymentID string
 }
 
 func (l *Ledgers) ListAdvances(ctx context.Context, kind string) ([]domain.Advance, error) {
@@ -81,7 +83,7 @@ func (l *Ledgers) CreateAdvance(ctx context.Context, userID string, in AdvanceIn
 		return nil, err
 	}
 	a := domain.Advance{ID: ids.New(), Kind: in.Kind, Date: day, PartyName: in.PartyName, Amount: in.Amount, CashAccountID: in.CashAccountID, AdvanceAccountID: in.AdvanceAccountID,
-		Reference: trim(in.Reference), Notes: trim(in.Notes), Status: domain.StatusPosted, CreatedBy: userID}
+		Reference: trim(in.Reference), Notes: trim(in.Notes), Status: domain.StatusPosted, SalesPaymentID: in.SalesPaymentID, CreatedBy: userID}
 	err = l.Store.WithTx(ctx, func(tx domain.Store) error {
 		if a.AdvanceNo, err = l.nextNo(ctx, tx, "DP"); err != nil {
 			return err
@@ -117,6 +119,9 @@ func (l *Ledgers) ApplyAdvance(ctx context.Context, userID, advanceID, invoiceID
 		}
 		if a == nil {
 			return domain.NotFound("Uang muka tidak ditemukan")
+		}
+		if a.JournalEntryID == "" {
+			return domain.Conflict("Uang muka ini belum berjurnal. Selesaikan dulu di log posting.")
 		}
 		if amount <= 0 {
 			return apperr.Field("amount", "Nilai harus lebih dari 0")
@@ -173,8 +178,14 @@ func (l *Ledgers) VoidAdvance(ctx context.Context, userID, id, reason string) (*
 		if a.Status != domain.StatusPosted {
 			return domain.Conflict("Uang muka ini sudah dibatalkan")
 		}
+		if a.SourcePaymentID != "" {
+			return domain.Conflict("Uang muka ini lahir dari " + a.Reference + ". Batalkan dokumen itu.")
+		}
 		if a.Applied > 0 {
 			return domain.Conflict("Uang muka sudah dipakai tagihan. Batalkan pemakaiannya dulu.")
+		}
+		if a.Refunded > 0 {
+			return domain.Conflict("Uang muka sudah dikembalikan sebagian. Batalkan pengembaliannya dulu.")
 		}
 		_, err = createEntry(ctx, tx, NewEntry{UserID: userID, EntryDate: l.today(), Description: "Batal uang muka " + a.AdvanceNo + ": " + reason, Lines: domain.ReverseLines(advanceLines(*a), "Pembalik "+a.AdvanceNo), Post: true, EntryType: domain.EntryAuto,
 			SourceModule: kinds[a.Kind].module, SourceEventCode: "ADVANCE_VOID", SourceDocumentType: "advance", SourceDocumentID: a.ID})

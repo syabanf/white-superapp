@@ -108,6 +108,8 @@ export const erpNav: { label: string; items: NavItem[] }[] = [
           { label: e.financeReports, href: "/erp/finance/reports" },
           { label: e.fiscal, href: "/erp/finance/fiscal" },
           { label: e.taxSetup, href: "/erp/finance/tax-setup" },
+          { label: e.periodEnd, href: "/erp/finance/period-end" },
+          { label: e.auditTrail, href: "/erp/finance/audit-trail" },
         ],
       },
       { label: e.reimbursements, href: "/erp/finance/reimbursements", icon: Receipt, perm: "finance.read" },

@@ -181,6 +181,11 @@ func (j *Journals) Create(ctx context.Context, userID string, in EntryInput) (*d
 			return nil, err
 		}
 	}
+	if in.Post {
+		if err := checkSeparateApprover(ctx, j.Store, userID, userID); err != nil {
+			return nil, err
+		}
+	}
 	return createEntry(ctx, j.Store, NewEntry{TagID: in.TagID, UserID: userID, EntryDate: in.EntryDate, Description: in.Description, IsRecon: in.IsRecon, Lines: in.Lines, Post: in.Post})
 }
 
@@ -197,6 +202,11 @@ func (j *Journals) Update(ctx context.Context, userID, id string, in EntryInput)
 	}
 	if err := domain.ValidateBalanced(in.Lines); err != nil {
 		return nil, err
+	}
+	if in.Post {
+		if err := checkSeparateApprover(ctx, j.Store, existing.CreatedBy, userID); err != nil {
+			return nil, err
+		}
 	}
 	if err := checkTag(ctx, j.Store, in.TagID); err != nil {
 		return nil, err
@@ -232,6 +242,9 @@ func (j *Journals) Update(ctx context.Context, userID, id string, in EntryInput)
 func (j *Journals) Post(ctx context.Context, userID, id string) (*domain.JournalEntry, error) {
 	existing, err := j.Get(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+	if err := checkSeparateApprover(ctx, j.Store, existing.CreatedBy, userID); err != nil {
 		return nil, err
 	}
 	debit, credit := existing.Totals()
@@ -427,6 +440,13 @@ func linkJournal(ctx context.Context, s domain.Store, docType, docID, entryID st
 		}
 		return s.SetInvoiceJournal(ctx, docID, entryID)
 	case DocPayment:
+		p, err := s.GetPayment(ctx, docID)
+		if err != nil || p == nil {
+			return err
+		}
+		if err := insertAdjustmentMoves(ctx, s, *p, false); err != nil {
+			return err
+		}
 		return s.SetPaymentJournal(ctx, docID, entryID)
 	case DocReimbBatch:
 		return s.UpdateBatchJournal(ctx, docID, entryID, res.Status, res.Reason)

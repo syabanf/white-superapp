@@ -70,7 +70,8 @@ SELECT m.move_date, m.tax_code, m.tax_name, m.tax_rate, m.report_code, m.base, m
   FROM finance.tax_moves m
   JOIN finance.invoices i ON i.id = m.invoice_id
   LEFT JOIN finance.party_tax_profiles p ON p.side = CASE WHEN m.kind = 'AR' THEN 'B2B' ELSE 'SUPPLIER' END AND lower(p.name) = lower(i.party_name)
- WHERE m.kind = $1 AND m.tax_kind = $2 AND m.source_type IN ('INVOICE', 'CASH')
+ WHERE m.kind = $1 AND m.tax_kind = $2 AND m.source_type IN ('INVOICE', 'CASH', 'PAYMENT')
+   AND NOT EXISTS (SELECT 1 FROM finance.tax_moves v WHERE v.source_id = m.source_id AND v.tax_code = m.tax_code AND v.source_type IN ('CASH_VOID', 'PAYMENT_VOID'))
    AND m.move_date BETWEEN sqlc.arg(date_from)::date AND sqlc.arg(date_to)::date
  ORDER BY m.move_date, i.invoice_no;
 

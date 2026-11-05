@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { byClient } from "@/features/erp/finance/components/project-profit";
-import { previewDocument } from "@/features/erp/finance/pricing";
+import { cashMoved, previewDocument } from "@/features/erp/finance/pricing";
 import type { ChargeType, TaxCode } from "@/features/erp/finance/types";
 
 const tax = (over: Partial<TaxCode>): TaxCode => ({
@@ -54,5 +54,16 @@ describe("byClient", () => {
     expect(merged.find((r) => r.tagName === "PT A")).toMatchObject({ revenue: "150.00", cost: "50.00", profit: "100.00" });
     expect(merged.find((r) => r.tagName === "Lepas")?.profit).toBe("25.00");
     expect(merged.find((r) => r.tagName === "")?.cost).toBe("20.00");
+  });
+});
+
+describe("cashMoved", () => {
+  const fee = { kind: "FEE", amount: "6500" };
+  const pph = { kind: "WITHHOLDING", amount: "200000" };
+  it("lowers a receipt by the fee and the withheld tax", () => {
+    expect(cashMoved("AR", 10_000_000, [fee, pph])).toBe(9_793_500);
+  });
+  it("raises a vendor payment by the fee and lowers it by the withheld tax", () => {
+    expect(cashMoved("AP", 10_000_000, [fee, pph])).toBe(9_806_500);
   });
 });

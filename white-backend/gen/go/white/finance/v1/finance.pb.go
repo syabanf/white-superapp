@@ -6716,6 +6716,8 @@ type Payment struct {
 	VoidedAt        *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=voided_at,json=voidedAt,proto3,oneof" json:"voided_at,omitempty"`
 	JournalEntryId  string                 `protobuf:"bytes,16,opt,name=journal_entry_id,json=journalEntryId,proto3" json:"journal_entry_id,omitempty"`
 	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Adjustments     []*PaymentAdjustment   `protobuf:"bytes,18,rep,name=adjustments,proto3" json:"adjustments,omitempty"`
+	CashAmount      string                 `protobuf:"bytes,19,opt,name=cash_amount,json=cashAmount,proto3" json:"cash_amount,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -6869,15 +6871,32 @@ func (x *Payment) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Payment) GetAdjustments() []*PaymentAdjustment {
+	if x != nil {
+		return x.Adjustments
+	}
+	return nil
+}
+
+func (x *Payment) GetCashAmount() string {
+	if x != nil {
+		return x.CashAmount
+	}
+	return ""
+}
+
 type PaymentInput struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	PaymentDate string                 `protobuf:"bytes,1,opt,name=payment_date,json=paymentDate,proto3" json:"payment_date,omitempty"`
 	Method      string                 `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
 	// Cash or bank account; empty uses the mapping default.
-	CashAccountId   string             `protobuf:"bytes,3,opt,name=cash_account_id,json=cashAccountId,proto3" json:"cash_account_id,omitempty"`
-	ReferenceNumber string             `protobuf:"bytes,4,opt,name=reference_number,json=referenceNumber,proto3" json:"reference_number,omitempty"`
-	Notes           string             `protobuf:"bytes,5,opt,name=notes,proto3" json:"notes,omitempty"`
-	Allocations     []*AllocationInput `protobuf:"bytes,6,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	CashAccountId   string                    `protobuf:"bytes,3,opt,name=cash_account_id,json=cashAccountId,proto3" json:"cash_account_id,omitempty"`
+	ReferenceNumber string                    `protobuf:"bytes,4,opt,name=reference_number,json=referenceNumber,proto3" json:"reference_number,omitempty"`
+	Notes           string                    `protobuf:"bytes,5,opt,name=notes,proto3" json:"notes,omitempty"`
+	Allocations     []*AllocationInput        `protobuf:"bytes,6,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	Adjustments     []*PaymentAdjustmentInput `protobuf:"bytes,7,rep,name=adjustments,proto3" json:"adjustments,omitempty"`
+	ExcessAmount    string                    `protobuf:"bytes,8,opt,name=excess_amount,json=excessAmount,proto3" json:"excess_amount,omitempty"`
+	ExcessAccountId string                    `protobuf:"bytes,9,opt,name=excess_account_id,json=excessAccountId,proto3" json:"excess_account_id,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -6952,6 +6971,27 @@ func (x *PaymentInput) GetAllocations() []*AllocationInput {
 		return x.Allocations
 	}
 	return nil
+}
+
+func (x *PaymentInput) GetAdjustments() []*PaymentAdjustmentInput {
+	if x != nil {
+		return x.Adjustments
+	}
+	return nil
+}
+
+func (x *PaymentInput) GetExcessAmount() string {
+	if x != nil {
+		return x.ExcessAmount
+	}
+	return ""
+}
+
+func (x *PaymentInput) GetExcessAccountId() string {
+	if x != nil {
+		return x.ExcessAccountId
+	}
+	return ""
 }
 
 type AllocationInput struct {
@@ -18755,10 +18795,12 @@ type CreditNoteRequest struct {
 	InvoiceId string                 `protobuf:"bytes,1,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
 	NoteDate  string                 `protobuf:"bytes,2,opt,name=note_date,json=noteDate,proto3" json:"note_date,omitempty"`
 	// What the party no longer owes, tax included. Empty credits the outstanding amount.
-	Amount        string `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
-	Reason        string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Amount string `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Reason string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	// Holds the share of the note above the outstanding amount.
+	AdvanceAccountId string `protobuf:"bytes,5,opt,name=advance_account_id,json=advanceAccountId,proto3" json:"advance_account_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *CreditNoteRequest) Reset() {
@@ -18815,6 +18857,13 @@ func (x *CreditNoteRequest) GetAmount() string {
 func (x *CreditNoteRequest) GetReason() string {
 	if x != nil {
 		return x.Reason
+	}
+	return ""
+}
+
+func (x *CreditNoteRequest) GetAdvanceAccountId() string {
+	if x != nil {
+		return x.AdvanceAccountId
 	}
 	return ""
 }
@@ -19679,11 +19728,16 @@ type Advance struct {
 	Reference          string                 `protobuf:"bytes,13,opt,name=reference,proto3" json:"reference,omitempty"`
 	Notes              string                 `protobuf:"bytes,14,opt,name=notes,proto3" json:"notes,omitempty"`
 	// POSTED or VOID.
-	Status         string `protobuf:"bytes,15,opt,name=status,proto3" json:"status,omitempty"`
-	JournalEntryId string `protobuf:"bytes,16,opt,name=journal_entry_id,json=journalEntryId,proto3" json:"journal_entry_id,omitempty"`
-	VoidReason     string `protobuf:"bytes,17,opt,name=void_reason,json=voidReason,proto3" json:"void_reason,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	Status         string           `protobuf:"bytes,15,opt,name=status,proto3" json:"status,omitempty"`
+	JournalEntryId string           `protobuf:"bytes,16,opt,name=journal_entry_id,json=journalEntryId,proto3" json:"journal_entry_id,omitempty"`
+	VoidReason     string           `protobuf:"bytes,17,opt,name=void_reason,json=voidReason,proto3" json:"void_reason,omitempty"`
+	Refunded       string           `protobuf:"bytes,18,opt,name=refunded,proto3" json:"refunded,omitempty"`
+	Refunds        []*AdvanceRefund `protobuf:"bytes,19,rep,name=refunds,proto3" json:"refunds,omitempty"`
+	// The payment or credit note whose journal carries this advance. Voiding that
+	// document voids the advance.
+	SourcePaymentId string `protobuf:"bytes,20,opt,name=source_payment_id,json=sourcePaymentId,proto3" json:"source_payment_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Advance) Reset() {
@@ -19831,6 +19885,27 @@ func (x *Advance) GetJournalEntryId() string {
 func (x *Advance) GetVoidReason() string {
 	if x != nil {
 		return x.VoidReason
+	}
+	return ""
+}
+
+func (x *Advance) GetRefunded() string {
+	if x != nil {
+		return x.Refunded
+	}
+	return ""
+}
+
+func (x *Advance) GetRefunds() []*AdvanceRefund {
+	if x != nil {
+		return x.Refunds
+	}
+	return nil
+}
+
+func (x *Advance) GetSourcePaymentId() string {
+	if x != nil {
+		return x.SourcePaymentId
 	}
 	return ""
 }
@@ -20302,6 +20377,1586 @@ func (x *SubledgerRecon) GetRows() []*SubledgerReconRow {
 func (x *SubledgerRecon) GetPendingPostings() int32 {
 	if x != nil {
 		return x.PendingPostings
+	}
+	return 0
+}
+
+type PaymentAdjustment struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// FEE, DISCOUNT or WITHHOLDING.
+	Kind          string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	AccountId     string `protobuf:"bytes,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	AccountName   string `protobuf:"bytes,3,opt,name=account_name,json=accountName,proto3" json:"account_name,omitempty"`
+	TaxCode       string `protobuf:"bytes,4,opt,name=tax_code,json=taxCode,proto3" json:"tax_code,omitempty"`
+	TaxName       string `protobuf:"bytes,5,opt,name=tax_name,json=taxName,proto3" json:"tax_name,omitempty"`
+	Amount        string `protobuf:"bytes,6,opt,name=amount,proto3" json:"amount,omitempty"`
+	Memo          string `protobuf:"bytes,7,opt,name=memo,proto3" json:"memo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PaymentAdjustment) Reset() {
+	*x = PaymentAdjustment{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[244]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentAdjustment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentAdjustment) ProtoMessage() {}
+
+func (x *PaymentAdjustment) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[244]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentAdjustment.ProtoReflect.Descriptor instead.
+func (*PaymentAdjustment) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{244}
+}
+
+func (x *PaymentAdjustment) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *PaymentAdjustment) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *PaymentAdjustment) GetAccountName() string {
+	if x != nil {
+		return x.AccountName
+	}
+	return ""
+}
+
+func (x *PaymentAdjustment) GetTaxCode() string {
+	if x != nil {
+		return x.TaxCode
+	}
+	return ""
+}
+
+func (x *PaymentAdjustment) GetTaxName() string {
+	if x != nil {
+		return x.TaxName
+	}
+	return ""
+}
+
+func (x *PaymentAdjustment) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *PaymentAdjustment) GetMemo() string {
+	if x != nil {
+		return x.Memo
+	}
+	return ""
+}
+
+type PaymentAdjustmentInput struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Kind      string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	AccountId string                 `protobuf:"bytes,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	// Master tax code, for WITHHOLDING.
+	TaxId         string `protobuf:"bytes,3,opt,name=tax_id,json=taxId,proto3" json:"tax_id,omitempty"`
+	Amount        string `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	Memo          string `protobuf:"bytes,5,opt,name=memo,proto3" json:"memo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PaymentAdjustmentInput) Reset() {
+	*x = PaymentAdjustmentInput{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[245]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentAdjustmentInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentAdjustmentInput) ProtoMessage() {}
+
+func (x *PaymentAdjustmentInput) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[245]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentAdjustmentInput.ProtoReflect.Descriptor instead.
+func (*PaymentAdjustmentInput) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{245}
+}
+
+func (x *PaymentAdjustmentInput) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *PaymentAdjustmentInput) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *PaymentAdjustmentInput) GetTaxId() string {
+	if x != nil {
+		return x.TaxId
+	}
+	return ""
+}
+
+func (x *PaymentAdjustmentInput) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *PaymentAdjustmentInput) GetMemo() string {
+	if x != nil {
+		return x.Memo
+	}
+	return ""
+}
+
+type AdvanceRefund struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RefundNo        string                 `protobuf:"bytes,2,opt,name=refund_no,json=refundNo,proto3" json:"refund_no,omitempty"`
+	RefundDate      string                 `protobuf:"bytes,3,opt,name=refund_date,json=refundDate,proto3" json:"refund_date,omitempty"`
+	Amount          string                 `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	CashAccountName string                 `protobuf:"bytes,5,opt,name=cash_account_name,json=cashAccountName,proto3" json:"cash_account_name,omitempty"`
+	Reason          string                 `protobuf:"bytes,6,opt,name=reason,proto3" json:"reason,omitempty"`
+	// POSTED or VOID.
+	Status         string `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	JournalEntryId string `protobuf:"bytes,8,opt,name=journal_entry_id,json=journalEntryId,proto3" json:"journal_entry_id,omitempty"`
+	VoidReason     string `protobuf:"bytes,9,opt,name=void_reason,json=voidReason,proto3" json:"void_reason,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AdvanceRefund) Reset() {
+	*x = AdvanceRefund{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[246]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdvanceRefund) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdvanceRefund) ProtoMessage() {}
+
+func (x *AdvanceRefund) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[246]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdvanceRefund.ProtoReflect.Descriptor instead.
+func (*AdvanceRefund) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{246}
+}
+
+func (x *AdvanceRefund) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetRefundNo() string {
+	if x != nil {
+		return x.RefundNo
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetRefundDate() string {
+	if x != nil {
+		return x.RefundDate
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetCashAccountName() string {
+	if x != nil {
+		return x.CashAccountName
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetJournalEntryId() string {
+	if x != nil {
+		return x.JournalEntryId
+	}
+	return ""
+}
+
+func (x *AdvanceRefund) GetVoidReason() string {
+	if x != nil {
+		return x.VoidReason
+	}
+	return ""
+}
+
+type RefundAdvanceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RefundDate    string                 `protobuf:"bytes,2,opt,name=refund_date,json=refundDate,proto3" json:"refund_date,omitempty"`
+	Amount        string                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	CashAccountId string                 `protobuf:"bytes,4,opt,name=cash_account_id,json=cashAccountId,proto3" json:"cash_account_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefundAdvanceRequest) Reset() {
+	*x = RefundAdvanceRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[247]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefundAdvanceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefundAdvanceRequest) ProtoMessage() {}
+
+func (x *RefundAdvanceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[247]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefundAdvanceRequest.ProtoReflect.Descriptor instead.
+func (*RefundAdvanceRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{247}
+}
+
+func (x *RefundAdvanceRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RefundAdvanceRequest) GetRefundDate() string {
+	if x != nil {
+		return x.RefundDate
+	}
+	return ""
+}
+
+func (x *RefundAdvanceRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *RefundAdvanceRequest) GetCashAccountId() string {
+	if x != nil {
+		return x.CashAccountId
+	}
+	return ""
+}
+
+func (x *RefundAdvanceRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type Deferral struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Kind                string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	Name                string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	PartyName           string                 `protobuf:"bytes,4,opt,name=party_name,json=partyName,proto3" json:"party_name,omitempty"`
+	Reference           string                 `protobuf:"bytes,5,opt,name=reference,proto3" json:"reference,omitempty"`
+	DeferredAccountId   string                 `protobuf:"bytes,6,opt,name=deferred_account_id,json=deferredAccountId,proto3" json:"deferred_account_id,omitempty"`
+	DeferredAccountName string                 `protobuf:"bytes,7,opt,name=deferred_account_name,json=deferredAccountName,proto3" json:"deferred_account_name,omitempty"`
+	TargetAccountId     string                 `protobuf:"bytes,8,opt,name=target_account_id,json=targetAccountId,proto3" json:"target_account_id,omitempty"`
+	TargetAccountName   string                 `protobuf:"bytes,9,opt,name=target_account_name,json=targetAccountName,proto3" json:"target_account_name,omitempty"`
+	TagId               string                 `protobuf:"bytes,10,opt,name=tag_id,json=tagId,proto3" json:"tag_id,omitempty"`
+	StartDate           string                 `protobuf:"bytes,11,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	Months              int32                  `protobuf:"varint,12,opt,name=months,proto3" json:"months,omitempty"`
+	PostedMonths        int32                  `protobuf:"varint,13,opt,name=posted_months,json=postedMonths,proto3" json:"posted_months,omitempty"`
+	Amount              string                 `protobuf:"bytes,14,opt,name=amount,proto3" json:"amount,omitempty"`
+	Recognized          string                 `protobuf:"bytes,15,opt,name=recognized,proto3" json:"recognized,omitempty"`
+	IsActive            bool                   `protobuf:"varint,16,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	LastError           string                 `protobuf:"bytes,17,opt,name=last_error,json=lastError,proto3" json:"last_error,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *Deferral) Reset() {
+	*x = Deferral{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[248]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Deferral) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Deferral) ProtoMessage() {}
+
+func (x *Deferral) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[248]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Deferral.ProtoReflect.Descriptor instead.
+func (*Deferral) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{248}
+}
+
+func (x *Deferral) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Deferral) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *Deferral) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Deferral) GetPartyName() string {
+	if x != nil {
+		return x.PartyName
+	}
+	return ""
+}
+
+func (x *Deferral) GetReference() string {
+	if x != nil {
+		return x.Reference
+	}
+	return ""
+}
+
+func (x *Deferral) GetDeferredAccountId() string {
+	if x != nil {
+		return x.DeferredAccountId
+	}
+	return ""
+}
+
+func (x *Deferral) GetDeferredAccountName() string {
+	if x != nil {
+		return x.DeferredAccountName
+	}
+	return ""
+}
+
+func (x *Deferral) GetTargetAccountId() string {
+	if x != nil {
+		return x.TargetAccountId
+	}
+	return ""
+}
+
+func (x *Deferral) GetTargetAccountName() string {
+	if x != nil {
+		return x.TargetAccountName
+	}
+	return ""
+}
+
+func (x *Deferral) GetTagId() string {
+	if x != nil {
+		return x.TagId
+	}
+	return ""
+}
+
+func (x *Deferral) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *Deferral) GetMonths() int32 {
+	if x != nil {
+		return x.Months
+	}
+	return 0
+}
+
+func (x *Deferral) GetPostedMonths() int32 {
+	if x != nil {
+		return x.PostedMonths
+	}
+	return 0
+}
+
+func (x *Deferral) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *Deferral) GetRecognized() string {
+	if x != nil {
+		return x.Recognized
+	}
+	return ""
+}
+
+func (x *Deferral) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+func (x *Deferral) GetLastError() string {
+	if x != nil {
+		return x.LastError
+	}
+	return ""
+}
+
+type ListDeferralsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDeferralsRequest) Reset() {
+	*x = ListDeferralsRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[249]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDeferralsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDeferralsRequest) ProtoMessage() {}
+
+func (x *ListDeferralsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[249]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDeferralsRequest.ProtoReflect.Descriptor instead.
+func (*ListDeferralsRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{249}
+}
+
+type ListDeferralsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Deferrals     []*Deferral            `protobuf:"bytes,1,rep,name=deferrals,proto3" json:"deferrals,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDeferralsResponse) Reset() {
+	*x = ListDeferralsResponse{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[250]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDeferralsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDeferralsResponse) ProtoMessage() {}
+
+func (x *ListDeferralsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[250]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDeferralsResponse.ProtoReflect.Descriptor instead.
+func (*ListDeferralsResponse) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{250}
+}
+
+func (x *ListDeferralsResponse) GetDeferrals() []*Deferral {
+	if x != nil {
+		return x.Deferrals
+	}
+	return nil
+}
+
+type SetDeferralActiveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Active        bool                   `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetDeferralActiveRequest) Reset() {
+	*x = SetDeferralActiveRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[251]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetDeferralActiveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetDeferralActiveRequest) ProtoMessage() {}
+
+func (x *SetDeferralActiveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[251]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetDeferralActiveRequest.ProtoReflect.Descriptor instead.
+func (*SetDeferralActiveRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{251}
+}
+
+func (x *SetDeferralActiveRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SetDeferralActiveRequest) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+type WriteOffRequest struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	InvoiceId    string                 `protobuf:"bytes,1,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	WriteOffDate string                 `protobuf:"bytes,2,opt,name=write_off_date,json=writeOffDate,proto3" json:"write_off_date,omitempty"`
+	// Empty writes off all that is outstanding.
+	Amount           string `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	ExpenseAccountId string `protobuf:"bytes,4,opt,name=expense_account_id,json=expenseAccountId,proto3" json:"expense_account_id,omitempty"`
+	Reason           string `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *WriteOffRequest) Reset() {
+	*x = WriteOffRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[252]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WriteOffRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WriteOffRequest) ProtoMessage() {}
+
+func (x *WriteOffRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[252]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WriteOffRequest.ProtoReflect.Descriptor instead.
+func (*WriteOffRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{252}
+}
+
+func (x *WriteOffRequest) GetInvoiceId() string {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return ""
+}
+
+func (x *WriteOffRequest) GetWriteOffDate() string {
+	if x != nil {
+		return x.WriteOffDate
+	}
+	return ""
+}
+
+func (x *WriteOffRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *WriteOffRequest) GetExpenseAccountId() string {
+	if x != nil {
+		return x.ExpenseAccountId
+	}
+	return ""
+}
+
+func (x *WriteOffRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type TaxPosition struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccountId     string                 `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Kind          string                 `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
+	Balance       string                 `protobuf:"bytes,5,opt,name=balance,proto3" json:"balance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TaxPosition) Reset() {
+	*x = TaxPosition{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[253]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaxPosition) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaxPosition) ProtoMessage() {}
+
+func (x *TaxPosition) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[253]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TaxPosition.ProtoReflect.Descriptor instead.
+func (*TaxPosition) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{253}
+}
+
+func (x *TaxPosition) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *TaxPosition) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *TaxPosition) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TaxPosition) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *TaxPosition) GetBalance() string {
+	if x != nil {
+		return x.Balance
+	}
+	return ""
+}
+
+type ListTaxPositionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AsOf          string                 `protobuf:"bytes,1,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTaxPositionsRequest) Reset() {
+	*x = ListTaxPositionsRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[254]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTaxPositionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTaxPositionsRequest) ProtoMessage() {}
+
+func (x *ListTaxPositionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[254]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTaxPositionsRequest.ProtoReflect.Descriptor instead.
+func (*ListTaxPositionsRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{254}
+}
+
+func (x *ListTaxPositionsRequest) GetAsOf() string {
+	if x != nil {
+		return x.AsOf
+	}
+	return ""
+}
+
+type ListTaxPositionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Positions     []*TaxPosition         `protobuf:"bytes,1,rep,name=positions,proto3" json:"positions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTaxPositionsResponse) Reset() {
+	*x = ListTaxPositionsResponse{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[255]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTaxPositionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTaxPositionsResponse) ProtoMessage() {}
+
+func (x *ListTaxPositionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[255]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTaxPositionsResponse.ProtoReflect.Descriptor instead.
+func (*ListTaxPositionsResponse) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{255}
+}
+
+func (x *ListTaxPositionsResponse) GetPositions() []*TaxPosition {
+	if x != nil {
+		return x.Positions
+	}
+	return nil
+}
+
+type TaxRemittance struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RemitNo         string                 `protobuf:"bytes,2,opt,name=remit_no,json=remitNo,proto3" json:"remit_no,omitempty"`
+	Period          string                 `protobuf:"bytes,3,opt,name=period,proto3" json:"period,omitempty"`
+	RemitDate       string                 `protobuf:"bytes,4,opt,name=remit_date,json=remitDate,proto3" json:"remit_date,omitempty"`
+	AccountId       string                 `protobuf:"bytes,5,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	AccountName     string                 `protobuf:"bytes,6,opt,name=account_name,json=accountName,proto3" json:"account_name,omitempty"`
+	CashAccountId   string                 `protobuf:"bytes,7,opt,name=cash_account_id,json=cashAccountId,proto3" json:"cash_account_id,omitempty"`
+	CashAccountName string                 `protobuf:"bytes,8,opt,name=cash_account_name,json=cashAccountName,proto3" json:"cash_account_name,omitempty"`
+	Amount          string                 `protobuf:"bytes,9,opt,name=amount,proto3" json:"amount,omitempty"`
+	Ntpn            string                 `protobuf:"bytes,10,opt,name=ntpn,proto3" json:"ntpn,omitempty"`
+	Notes           string                 `protobuf:"bytes,11,opt,name=notes,proto3" json:"notes,omitempty"`
+	Status          string                 `protobuf:"bytes,12,opt,name=status,proto3" json:"status,omitempty"`
+	JournalEntryId  string                 `protobuf:"bytes,13,opt,name=journal_entry_id,json=journalEntryId,proto3" json:"journal_entry_id,omitempty"`
+	VoidReason      string                 `protobuf:"bytes,14,opt,name=void_reason,json=voidReason,proto3" json:"void_reason,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *TaxRemittance) Reset() {
+	*x = TaxRemittance{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[256]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaxRemittance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaxRemittance) ProtoMessage() {}
+
+func (x *TaxRemittance) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[256]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TaxRemittance.ProtoReflect.Descriptor instead.
+func (*TaxRemittance) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{256}
+}
+
+func (x *TaxRemittance) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetRemitNo() string {
+	if x != nil {
+		return x.RemitNo
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetPeriod() string {
+	if x != nil {
+		return x.Period
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetRemitDate() string {
+	if x != nil {
+		return x.RemitDate
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetAccountName() string {
+	if x != nil {
+		return x.AccountName
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetCashAccountId() string {
+	if x != nil {
+		return x.CashAccountId
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetCashAccountName() string {
+	if x != nil {
+		return x.CashAccountName
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetNtpn() string {
+	if x != nil {
+		return x.Ntpn
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetNotes() string {
+	if x != nil {
+		return x.Notes
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetJournalEntryId() string {
+	if x != nil {
+		return x.JournalEntryId
+	}
+	return ""
+}
+
+func (x *TaxRemittance) GetVoidReason() string {
+	if x != nil {
+		return x.VoidReason
+	}
+	return ""
+}
+
+type ListTaxRemittancesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTaxRemittancesRequest) Reset() {
+	*x = ListTaxRemittancesRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[257]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTaxRemittancesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTaxRemittancesRequest) ProtoMessage() {}
+
+func (x *ListTaxRemittancesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[257]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTaxRemittancesRequest.ProtoReflect.Descriptor instead.
+func (*ListTaxRemittancesRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{257}
+}
+
+type ListTaxRemittancesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Remittances   []*TaxRemittance       `protobuf:"bytes,1,rep,name=remittances,proto3" json:"remittances,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTaxRemittancesResponse) Reset() {
+	*x = ListTaxRemittancesResponse{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[258]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTaxRemittancesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTaxRemittancesResponse) ProtoMessage() {}
+
+func (x *ListTaxRemittancesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[258]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTaxRemittancesResponse.ProtoReflect.Descriptor instead.
+func (*ListTaxRemittancesResponse) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{258}
+}
+
+func (x *ListTaxRemittancesResponse) GetRemittances() []*TaxRemittance {
+	if x != nil {
+		return x.Remittances
+	}
+	return nil
+}
+
+type CloseVatRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Period        string                 `protobuf:"bytes,1,opt,name=period,proto3" json:"period,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CloseVatRequest) Reset() {
+	*x = CloseVatRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[259]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CloseVatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CloseVatRequest) ProtoMessage() {}
+
+func (x *CloseVatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[259]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CloseVatRequest.ProtoReflect.Descriptor instead.
+func (*CloseVatRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{259}
+}
+
+func (x *CloseVatRequest) GetPeriod() string {
+	if x != nil {
+		return x.Period
+	}
+	return ""
+}
+
+type VatClosing struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Offset         string                 `protobuf:"bytes,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Payable        string                 `protobuf:"bytes,2,opt,name=payable,proto3" json:"payable,omitempty"`
+	Compensation   string                 `protobuf:"bytes,3,opt,name=compensation,proto3" json:"compensation,omitempty"`
+	JournalEntryId string                 `protobuf:"bytes,4,opt,name=journal_entry_id,json=journalEntryId,proto3" json:"journal_entry_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *VatClosing) Reset() {
+	*x = VatClosing{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[260]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VatClosing) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VatClosing) ProtoMessage() {}
+
+func (x *VatClosing) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[260]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VatClosing.ProtoReflect.Descriptor instead.
+func (*VatClosing) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{260}
+}
+
+func (x *VatClosing) GetOffset() string {
+	if x != nil {
+		return x.Offset
+	}
+	return ""
+}
+
+func (x *VatClosing) GetPayable() string {
+	if x != nil {
+		return x.Payable
+	}
+	return ""
+}
+
+func (x *VatClosing) GetCompensation() string {
+	if x != nil {
+		return x.Compensation
+	}
+	return ""
+}
+
+func (x *VatClosing) GetJournalEntryId() string {
+	if x != nil {
+		return x.JournalEntryId
+	}
+	return ""
+}
+
+type ControlSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ControlSettingsRequest) Reset() {
+	*x = ControlSettingsRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[261]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ControlSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ControlSettingsRequest) ProtoMessage() {}
+
+func (x *ControlSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[261]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ControlSettingsRequest.ProtoReflect.Descriptor instead.
+func (*ControlSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{261}
+}
+
+type ControlSettings struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	SeparateApprover bool                   `protobuf:"varint,1,opt,name=separate_approver,json=separateApprover,proto3" json:"separate_approver,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ControlSettings) Reset() {
+	*x = ControlSettings{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[262]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ControlSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ControlSettings) ProtoMessage() {}
+
+func (x *ControlSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[262]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ControlSettings.ProtoReflect.Descriptor instead.
+func (*ControlSettings) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{262}
+}
+
+func (x *ControlSettings) GetSeparateApprover() bool {
+	if x != nil {
+		return x.SeparateApprover
+	}
+	return false
+}
+
+type AuditEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	At            string                 `protobuf:"bytes,2,opt,name=at,proto3" json:"at,omitempty"`
+	ActorId       string                 `protobuf:"bytes,3,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	ActorName     string                 `protobuf:"bytes,4,opt,name=actor_name,json=actorName,proto3" json:"actor_name,omitempty"`
+	Action        string                 `protobuf:"bytes,5,opt,name=action,proto3" json:"action,omitempty"`
+	DocId         string                 `protobuf:"bytes,6,opt,name=doc_id,json=docId,proto3" json:"doc_id,omitempty"`
+	DocNo         string                 `protobuf:"bytes,7,opt,name=doc_no,json=docNo,proto3" json:"doc_no,omitempty"`
+	Result        string                 `protobuf:"bytes,8,opt,name=result,proto3" json:"result,omitempty"`
+	Message       string                 `protobuf:"bytes,9,opt,name=message,proto3" json:"message,omitempty"`
+	Request       string                 `protobuf:"bytes,10,opt,name=request,proto3" json:"request,omitempty"`
+	Response      string                 `protobuf:"bytes,11,opt,name=response,proto3" json:"response,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuditEntry) Reset() {
+	*x = AuditEntry{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[263]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuditEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuditEntry) ProtoMessage() {}
+
+func (x *AuditEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[263]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuditEntry.ProtoReflect.Descriptor instead.
+func (*AuditEntry) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{263}
+}
+
+func (x *AuditEntry) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetAt() string {
+	if x != nil {
+		return x.At
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetActorId() string {
+	if x != nil {
+		return x.ActorId
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetActorName() string {
+	if x != nil {
+		return x.ActorName
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetDocId() string {
+	if x != nil {
+		return x.DocId
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetDocNo() string {
+	if x != nil {
+		return x.DocNo
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetResult() string {
+	if x != nil {
+		return x.Result
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetRequest() string {
+	if x != nil {
+		return x.Request
+	}
+	return ""
+}
+
+func (x *AuditEntry) GetResponse() string {
+	if x != nil {
+		return x.Response
+	}
+	return ""
+}
+
+type ListAuditTrailRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Q             string                 `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
+	Result        string                 `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
+	DateFrom      string                 `protobuf:"bytes,3,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo        string                 `protobuf:"bytes,4,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
+	Page          int32                  `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAuditTrailRequest) Reset() {
+	*x = ListAuditTrailRequest{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[264]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAuditTrailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAuditTrailRequest) ProtoMessage() {}
+
+func (x *ListAuditTrailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[264]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAuditTrailRequest.ProtoReflect.Descriptor instead.
+func (*ListAuditTrailRequest) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{264}
+}
+
+func (x *ListAuditTrailRequest) GetQ() string {
+	if x != nil {
+		return x.Q
+	}
+	return ""
+}
+
+func (x *ListAuditTrailRequest) GetResult() string {
+	if x != nil {
+		return x.Result
+	}
+	return ""
+}
+
+func (x *ListAuditTrailRequest) GetDateFrom() string {
+	if x != nil {
+		return x.DateFrom
+	}
+	return ""
+}
+
+func (x *ListAuditTrailRequest) GetDateTo() string {
+	if x != nil {
+		return x.DateTo
+	}
+	return ""
+}
+
+func (x *ListAuditTrailRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAuditTrailRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListAuditTrailResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*AuditEntry          `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAuditTrailResponse) Reset() {
+	*x = ListAuditTrailResponse{}
+	mi := &file_white_finance_v1_finance_proto_msgTypes[265]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAuditTrailResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAuditTrailResponse) ProtoMessage() {}
+
+func (x *ListAuditTrailResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_finance_v1_finance_proto_msgTypes[265]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAuditTrailResponse.ProtoReflect.Descriptor instead.
+func (*ListAuditTrailResponse) Descriptor() ([]byte, []int) {
+	return file_white_finance_v1_finance_proto_rawDescGZIP(), []int{265}
+}
+
+func (x *ListAuditTrailResponse) GetEntries() []*AuditEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *ListAuditTrailResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
 	}
 	return 0
 }
@@ -20944,7 +22599,7 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"invoice_id\x18\x01 \x01(\tR\tinvoiceId\x12\x1d\n" +
 	"\n" +
 	"invoice_no\x18\x02 \x01(\tR\tinvoiceNo\x12\x16\n" +
-	"\x06amount\x18\x03 \x01(\tR\x06amount\"\xbd\x05\n" +
+	"\x06amount\x18\x03 \x01(\tR\x06amount\"\xa5\x06\n" +
 	"\aPayment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x1c.white.finance.v1.LedgerKindR\x04kind\x12\x1d\n" +
@@ -20967,16 +22622,22 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\tvoided_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampH\x00R\bvoidedAt\x88\x01\x01\x12(\n" +
 	"\x10journal_entry_id\x18\x10 \x01(\tR\x0ejournalEntryId\x129\n" +
 	"\n" +
-	"created_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\f\n" +
+	"created_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12E\n" +
+	"\vadjustments\x18\x12 \x03(\v2#.white.finance.v1.PaymentAdjustmentR\vadjustments\x12\x1f\n" +
+	"\vcash_amount\x18\x13 \x01(\tR\n" +
+	"cashAmountB\f\n" +
 	"\n" +
-	"_voided_at\"\xf7\x01\n" +
+	"_voided_at\"\x94\x03\n" +
 	"\fPaymentInput\x12!\n" +
 	"\fpayment_date\x18\x01 \x01(\tR\vpaymentDate\x12\x16\n" +
 	"\x06method\x18\x02 \x01(\tR\x06method\x12&\n" +
 	"\x0fcash_account_id\x18\x03 \x01(\tR\rcashAccountId\x12)\n" +
 	"\x10reference_number\x18\x04 \x01(\tR\x0freferenceNumber\x12\x14\n" +
 	"\x05notes\x18\x05 \x01(\tR\x05notes\x12C\n" +
-	"\vallocations\x18\x06 \x03(\v2!.white.finance.v1.AllocationInputR\vallocations\"H\n" +
+	"\vallocations\x18\x06 \x03(\v2!.white.finance.v1.AllocationInputR\vallocations\x12J\n" +
+	"\vadjustments\x18\a \x03(\v2(.white.finance.v1.PaymentAdjustmentInputR\vadjustments\x12#\n" +
+	"\rexcess_amount\x18\b \x01(\tR\fexcessAmount\x12*\n" +
+	"\x11excess_account_id\x18\t \x01(\tR\x0fexcessAccountId\"H\n" +
 	"\x0fAllocationInput\x12\x1d\n" +
 	"\n" +
 	"invoice_id\x18\x01 \x01(\tR\tinvoiceId\x12\x16\n" +
@@ -22053,13 +23714,14 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\rTaxExportFile\x12\x1b\n" +
 	"\tfile_name\x18\x01 \x01(\tR\bfileName\x12!\n" +
 	"\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x12\n" +
-	"\x04data\x18\x03 \x01(\fR\x04data\"\x7f\n" +
+	"\x04data\x18\x03 \x01(\fR\x04data\"\xad\x01\n" +
 	"\x11CreditNoteRequest\x12\x1d\n" +
 	"\n" +
 	"invoice_id\x18\x01 \x01(\tR\tinvoiceId\x12\x1b\n" +
 	"\tnote_date\x18\x02 \x01(\tR\bnoteDate\x12\x16\n" +
 	"\x06amount\x18\x03 \x01(\tR\x06amount\x12\x16\n" +
-	"\x06reason\x18\x04 \x01(\tR\x06reason\"\x9d\x01\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\x12,\n" +
+	"\x12advance_account_id\x18\x05 \x01(\tR\x10advanceAccountId\"\x9d\x01\n" +
 	"\n" +
 	"ProjectTag\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -22145,7 +23807,7 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12=\n" +
 	"\x05input\x18\x02 \x01(\v2'.white.finance.v1.RecurringInvoiceInputR\x05input\"_\n" +
 	"\x1dListRecurringInvoicesResponse\x12>\n" +
-	"\binvoices\x18\x01 \x03(\v2\".white.finance.v1.RecurringInvoiceR\binvoices\"\xa9\x04\n" +
+	"\binvoices\x18\x01 \x03(\v2\".white.finance.v1.RecurringInvoiceR\binvoices\"\xac\x05\n" +
 	"\aAdvance\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x1d\n" +
@@ -22167,7 +23829,10 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\x06status\x18\x0f \x01(\tR\x06status\x12(\n" +
 	"\x10journal_entry_id\x18\x10 \x01(\tR\x0ejournalEntryId\x12\x1f\n" +
 	"\vvoid_reason\x18\x11 \x01(\tR\n" +
-	"voidReason\"\x86\x02\n" +
+	"voidReason\x12\x1a\n" +
+	"\brefunded\x18\x12 \x01(\tR\brefunded\x129\n" +
+	"\arefunds\x18\x13 \x03(\v2\x1f.white.finance.v1.AdvanceRefundR\arefunds\x12*\n" +
+	"\x11source_payment_id\x18\x14 \x01(\tR\x0fsourcePaymentId\"\x86\x02\n" +
 	"\fAdvanceInput\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12!\n" +
 	"\fadvance_date\x18\x02 \x01(\tR\vadvanceDate\x12\x1d\n" +
@@ -22205,7 +23870,148 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\x05recon\x18\t \x01(\tR\x05recon\"t\n" +
 	"\x0eSubledgerRecon\x127\n" +
 	"\x04rows\x18\x01 \x03(\v2#.white.finance.v1.SubledgerReconRowR\x04rows\x12)\n" +
-	"\x10pending_postings\x18\x02 \x01(\x05R\x0fpendingPostings*>\n" +
+	"\x10pending_postings\x18\x02 \x01(\x05R\x0fpendingPostings\"\xcb\x01\n" +
+	"\x11PaymentAdjustment\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x02 \x01(\tR\taccountId\x12!\n" +
+	"\faccount_name\x18\x03 \x01(\tR\vaccountName\x12\x19\n" +
+	"\btax_code\x18\x04 \x01(\tR\ataxCode\x12\x19\n" +
+	"\btax_name\x18\x05 \x01(\tR\ataxName\x12\x16\n" +
+	"\x06amount\x18\x06 \x01(\tR\x06amount\x12\x12\n" +
+	"\x04memo\x18\a \x01(\tR\x04memo\"\x8e\x01\n" +
+	"\x16PaymentAdjustmentInput\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x02 \x01(\tR\taccountId\x12\x15\n" +
+	"\x06tax_id\x18\x03 \x01(\tR\x05taxId\x12\x16\n" +
+	"\x06amount\x18\x04 \x01(\tR\x06amount\x12\x12\n" +
+	"\x04memo\x18\x05 \x01(\tR\x04memo\"\x9c\x02\n" +
+	"\rAdvanceRefund\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\trefund_no\x18\x02 \x01(\tR\brefundNo\x12\x1f\n" +
+	"\vrefund_date\x18\x03 \x01(\tR\n" +
+	"refundDate\x12\x16\n" +
+	"\x06amount\x18\x04 \x01(\tR\x06amount\x12*\n" +
+	"\x11cash_account_name\x18\x05 \x01(\tR\x0fcashAccountName\x12\x16\n" +
+	"\x06reason\x18\x06 \x01(\tR\x06reason\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12(\n" +
+	"\x10journal_entry_id\x18\b \x01(\tR\x0ejournalEntryId\x12\x1f\n" +
+	"\vvoid_reason\x18\t \x01(\tR\n" +
+	"voidReason\"\x9f\x01\n" +
+	"\x14RefundAdvanceRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
+	"\vrefund_date\x18\x02 \x01(\tR\n" +
+	"refundDate\x12\x16\n" +
+	"\x06amount\x18\x03 \x01(\tR\x06amount\x12&\n" +
+	"\x0fcash_account_id\x18\x04 \x01(\tR\rcashAccountId\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xa6\x04\n" +
+	"\bDeferral\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"party_name\x18\x04 \x01(\tR\tpartyName\x12\x1c\n" +
+	"\treference\x18\x05 \x01(\tR\treference\x12.\n" +
+	"\x13deferred_account_id\x18\x06 \x01(\tR\x11deferredAccountId\x122\n" +
+	"\x15deferred_account_name\x18\a \x01(\tR\x13deferredAccountName\x12*\n" +
+	"\x11target_account_id\x18\b \x01(\tR\x0ftargetAccountId\x12.\n" +
+	"\x13target_account_name\x18\t \x01(\tR\x11targetAccountName\x12\x15\n" +
+	"\x06tag_id\x18\n" +
+	" \x01(\tR\x05tagId\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\v \x01(\tR\tstartDate\x12\x16\n" +
+	"\x06months\x18\f \x01(\x05R\x06months\x12#\n" +
+	"\rposted_months\x18\r \x01(\x05R\fpostedMonths\x12\x16\n" +
+	"\x06amount\x18\x0e \x01(\tR\x06amount\x12\x1e\n" +
+	"\n" +
+	"recognized\x18\x0f \x01(\tR\n" +
+	"recognized\x12\x1b\n" +
+	"\tis_active\x18\x10 \x01(\bR\bisActive\x12\x1d\n" +
+	"\n" +
+	"last_error\x18\x11 \x01(\tR\tlastError\"\x16\n" +
+	"\x14ListDeferralsRequest\"Q\n" +
+	"\x15ListDeferralsResponse\x128\n" +
+	"\tdeferrals\x18\x01 \x03(\v2\x1a.white.finance.v1.DeferralR\tdeferrals\"B\n" +
+	"\x18SetDeferralActiveRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06active\x18\x02 \x01(\bR\x06active\"\xb4\x01\n" +
+	"\x0fWriteOffRequest\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x01 \x01(\tR\tinvoiceId\x12$\n" +
+	"\x0ewrite_off_date\x18\x02 \x01(\tR\fwriteOffDate\x12\x16\n" +
+	"\x06amount\x18\x03 \x01(\tR\x06amount\x12,\n" +
+	"\x12expense_account_id\x18\x04 \x01(\tR\x10expenseAccountId\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\x82\x01\n" +
+	"\vTaxPosition\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x01 \x01(\tR\taccountId\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
+	"\x04kind\x18\x04 \x01(\tR\x04kind\x12\x18\n" +
+	"\abalance\x18\x05 \x01(\tR\abalance\".\n" +
+	"\x17ListTaxPositionsRequest\x12\x13\n" +
+	"\x05as_of\x18\x01 \x01(\tR\x04asOf\"W\n" +
+	"\x18ListTaxPositionsResponse\x12;\n" +
+	"\tpositions\x18\x01 \x03(\v2\x1d.white.finance.v1.TaxPositionR\tpositions\"\xac\x03\n" +
+	"\rTaxRemittance\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bremit_no\x18\x02 \x01(\tR\aremitNo\x12\x16\n" +
+	"\x06period\x18\x03 \x01(\tR\x06period\x12\x1d\n" +
+	"\n" +
+	"remit_date\x18\x04 \x01(\tR\tremitDate\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x05 \x01(\tR\taccountId\x12!\n" +
+	"\faccount_name\x18\x06 \x01(\tR\vaccountName\x12&\n" +
+	"\x0fcash_account_id\x18\a \x01(\tR\rcashAccountId\x12*\n" +
+	"\x11cash_account_name\x18\b \x01(\tR\x0fcashAccountName\x12\x16\n" +
+	"\x06amount\x18\t \x01(\tR\x06amount\x12\x12\n" +
+	"\x04ntpn\x18\n" +
+	" \x01(\tR\x04ntpn\x12\x14\n" +
+	"\x05notes\x18\v \x01(\tR\x05notes\x12\x16\n" +
+	"\x06status\x18\f \x01(\tR\x06status\x12(\n" +
+	"\x10journal_entry_id\x18\r \x01(\tR\x0ejournalEntryId\x12\x1f\n" +
+	"\vvoid_reason\x18\x0e \x01(\tR\n" +
+	"voidReason\"\x1b\n" +
+	"\x19ListTaxRemittancesRequest\"_\n" +
+	"\x1aListTaxRemittancesResponse\x12A\n" +
+	"\vremittances\x18\x01 \x03(\v2\x1f.white.finance.v1.TaxRemittanceR\vremittances\")\n" +
+	"\x0fCloseVatRequest\x12\x16\n" +
+	"\x06period\x18\x01 \x01(\tR\x06period\"\x8c\x01\n" +
+	"\n" +
+	"VatClosing\x12\x16\n" +
+	"\x06offset\x18\x01 \x01(\tR\x06offset\x12\x18\n" +
+	"\apayable\x18\x02 \x01(\tR\apayable\x12\"\n" +
+	"\fcompensation\x18\x03 \x01(\tR\fcompensation\x12(\n" +
+	"\x10journal_entry_id\x18\x04 \x01(\tR\x0ejournalEntryId\"\x18\n" +
+	"\x16ControlSettingsRequest\">\n" +
+	"\x0fControlSettings\x12+\n" +
+	"\x11separate_approver\x18\x01 \x01(\bR\x10separateApprover\"\x94\x02\n" +
+	"\n" +
+	"AuditEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" +
+	"\x02at\x18\x02 \x01(\tR\x02at\x12\x19\n" +
+	"\bactor_id\x18\x03 \x01(\tR\aactorId\x12\x1d\n" +
+	"\n" +
+	"actor_name\x18\x04 \x01(\tR\tactorName\x12\x16\n" +
+	"\x06action\x18\x05 \x01(\tR\x06action\x12\x15\n" +
+	"\x06doc_id\x18\x06 \x01(\tR\x05docId\x12\x15\n" +
+	"\x06doc_no\x18\a \x01(\tR\x05docNo\x12\x16\n" +
+	"\x06result\x18\b \x01(\tR\x06result\x12\x18\n" +
+	"\amessage\x18\t \x01(\tR\amessage\x12\x18\n" +
+	"\arequest\x18\n" +
+	" \x01(\tR\arequest\x12\x1a\n" +
+	"\bresponse\x18\v \x01(\tR\bresponse\"\xa4\x01\n" +
+	"\x15ListAuditTrailRequest\x12\f\n" +
+	"\x01q\x18\x01 \x01(\tR\x01q\x12\x16\n" +
+	"\x06result\x18\x02 \x01(\tR\x06result\x12\x1b\n" +
+	"\tdate_from\x18\x03 \x01(\tR\bdateFrom\x12\x17\n" +
+	"\adate_to\x18\x04 \x01(\tR\x06dateTo\x12\x12\n" +
+	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\"f\n" +
+	"\x16ListAuditTrailResponse\x126\n" +
+	"\aentries\x18\x01 \x03(\v2\x1c.white.finance.v1.AuditEntryR\aentries\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total*>\n" +
 	"\tEntrySide\x12\x1a\n" +
 	"\x16ENTRY_SIDE_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05DEBIT\x10\x01\x12\n" +
@@ -22433,11 +24239,28 @@ const file_white_finance_v1_finance_proto_rawDesc = "" +
 	"\x0fListProjectTags\x12(.white.finance.v1.ListProjectTagsRequest\x1a).white.finance.v1.ListProjectTagsResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/finance/project-tags\x12q\n" +
 	"\x0eSaveProjectTag\x12\x1c.white.finance.v1.ProjectTag\x1a\x1c.white.finance.v1.ProjectTag\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/finance/project-tags\x12n\n" +
 	"\x10DeleteProjectTag\x12\x1b.white.finance.v1.IdRequest\x1a\x16.google.protobuf.Empty\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/v1/finance/project-tags/{id}\x12\x87\x01\n" +
-	"\x10GetProjectProfit\x12&.white.finance.v1.ProjectProfitRequest\x1a\x1f.white.finance.v1.ProjectProfit\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/finance/reports/project-profit2\xf3\x03\n" +
+	"\x10GetProjectProfit\x12&.white.finance.v1.ProjectProfitRequest\x1a\x1f.white.finance.v1.ProjectProfit\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/finance/reports/project-profit2\xbf\x0e\n" +
+	"\x10PeriodEndService\x12\x7f\n" +
+	"\rListDeferrals\x12&.white.finance.v1.ListDeferralsRequest\x1a'.white.finance.v1.ListDeferralsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/finance/deferrals\x12j\n" +
+	"\x0eCreateDeferral\x12\x1a.white.finance.v1.Deferral\x1a\x1a.white.finance.v1.Deferral\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/finance/deferrals\x12\x85\x01\n" +
+	"\x11SetDeferralActive\x12*.white.finance.v1.SetDeferralActiveRequest\x1a\x16.google.protobuf.Empty\",\x82\xd3\xe4\x93\x02&:\x01*\"!/v1/finance/deferrals/{id}:active\x12i\n" +
+	"\x0eDeleteDeferral\x12\x1b.white.finance.v1.IdRequest\x1a\x16.google.protobuf.Empty\"\"\x82\xd3\xe4\x93\x02\x1c*\x1a/v1/finance/deferrals/{id}\x12\x87\x01\n" +
+	"\x0fWriteOffInvoice\x12!.white.finance.v1.WriteOffRequest\x1a\x19.white.finance.v1.Invoice\"6\x82\xd3\xe4\x93\x020:\x01*\"+/v1/finance/invoices/{invoice_id}:write-off\x12\x8c\x01\n" +
+	"\x10ListTaxPositions\x12).white.finance.v1.ListTaxPositionsRequest\x1a*.white.finance.v1.ListTaxPositionsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/finance/tax-positions\x12\x94\x01\n" +
+	"\x12ListTaxRemittances\x12+.white.finance.v1.ListTaxRemittancesRequest\x1a,.white.finance.v1.ListTaxRemittancesResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/finance/tax-remittances\x12t\n" +
+	"\bRemitTax\x12\x1f.white.finance.v1.TaxRemittance\x1a\x1f.white.finance.v1.TaxRemittance\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/v1/finance/tax-remittances\x12\x8c\x01\n" +
+	"\x11VoidTaxRemittance\x12$.white.finance.v1.VoidAdvanceRequest\x1a\x1f.white.finance.v1.TaxRemittance\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/v1/finance/tax-remittances/{id}:void\x12p\n" +
+	"\bCloseVat\x12!.white.finance.v1.CloseVatRequest\x1a\x1c.white.finance.v1.VatClosing\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/finance/vat-closings\x12\x84\x01\n" +
+	"\x0eListAuditTrail\x12'.white.finance.v1.ListAuditTrailRequest\x1a(.white.finance.v1.ListAuditTrailResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/v1/finance/audit-trail\x12\x8c\x01\n" +
+	"\x10ExportAuditTrail\x12'.white.finance.v1.ListAuditTrailRequest\x1a\x1f.white.finance.v1.TaxExportFile\".\x82\xd3\xe4\x93\x02(\x12&/v1/finance/reports/audit-trail-export\x12\x87\x01\n" +
+	"\x12GetControlSettings\x12(.white.finance.v1.ControlSettingsRequest\x1a!.white.finance.v1.ControlSettings\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/v1/finance/control-settings\x12\x83\x01\n" +
+	"\x12SetControlSettings\x12!.white.finance.v1.ControlSettings\x1a!.white.finance.v1.ControlSettings\"'\x82\xd3\xe4\x93\x02!:\x01*\x1a\x1c/v1/finance/control-settings2\xfd\x05\n" +
 	"\x0eAdvanceService\x12{\n" +
 	"\fListAdvances\x12%.white.finance.v1.ListAdvancesRequest\x1a&.white.finance.v1.ListAdvancesResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/finance/advances\x12k\n" +
 	"\rCreateAdvance\x12\x1e.white.finance.v1.AdvanceInput\x1a\x19.white.finance.v1.Advance\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/v1/finance/advances\x12|\n" +
-	"\fApplyAdvance\x12%.white.finance.v1.ApplyAdvanceRequest\x1a\x19.white.finance.v1.Invoice\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/finance/advances/{id}:apply\x12y\n" +
+	"\fApplyAdvance\x12%.white.finance.v1.ApplyAdvanceRequest\x1a\x19.white.finance.v1.Invoice\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/finance/advances/{id}:apply\x12\x7f\n" +
+	"\rRefundAdvance\x12&.white.finance.v1.RefundAdvanceRequest\x1a\x19.white.finance.v1.Advance\"+\x82\xd3\xe4\x93\x02%:\x01*\" /v1/finance/advances/{id}:refund\x12\x86\x01\n" +
+	"\x11VoidAdvanceRefund\x12$.white.finance.v1.VoidAdvanceRequest\x1a\x19.white.finance.v1.Advance\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/v1/finance/advance-refunds/{id}:void\x12y\n" +
 	"\vVoidAdvance\x12$.white.finance.v1.VoidAdvanceRequest\x1a\x19.white.finance.v1.Advance\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/finance/advances/{id}:void2\xd1\x04\n" +
 	"\x0fAnalysisService\x12\x85\x01\n" +
 	"\x14GetFinancialAnalysis\x12*.white.finance.v1.FinancialAnalysisRequest\x1a#.white.finance.v1.FinancialAnalysis\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/finance/analysis\x12\x9b\x01\n" +
@@ -22458,7 +24281,7 @@ func file_white_finance_v1_finance_proto_rawDescGZIP() []byte {
 }
 
 var file_white_finance_v1_finance_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_white_finance_v1_finance_proto_msgTypes = make([]protoimpl.MessageInfo, 244)
+var file_white_finance_v1_finance_proto_msgTypes = make([]protoimpl.MessageInfo, 266)
 var file_white_finance_v1_finance_proto_goTypes = []any{
 	(EntrySide)(0),                            // 0: white.finance.v1.EntrySide
 	(DocumentStatus)(0),                       // 1: white.finance.v1.DocumentStatus
@@ -22712,10 +24535,32 @@ var file_white_finance_v1_finance_proto_goTypes = []any{
 	(*VoidAdvanceRequest)(nil),                // 249: white.finance.v1.VoidAdvanceRequest
 	(*SubledgerReconRow)(nil),                 // 250: white.finance.v1.SubledgerReconRow
 	(*SubledgerRecon)(nil),                    // 251: white.finance.v1.SubledgerRecon
-	(*timestamppb.Timestamp)(nil),             // 252: google.protobuf.Timestamp
-	(*v1.Delta)(nil),                          // 253: white.common.v1.Delta
-	(*v1.DateRange)(nil),                      // 254: white.common.v1.DateRange
-	(*emptypb.Empty)(nil),                     // 255: google.protobuf.Empty
+	(*PaymentAdjustment)(nil),                 // 252: white.finance.v1.PaymentAdjustment
+	(*PaymentAdjustmentInput)(nil),            // 253: white.finance.v1.PaymentAdjustmentInput
+	(*AdvanceRefund)(nil),                     // 254: white.finance.v1.AdvanceRefund
+	(*RefundAdvanceRequest)(nil),              // 255: white.finance.v1.RefundAdvanceRequest
+	(*Deferral)(nil),                          // 256: white.finance.v1.Deferral
+	(*ListDeferralsRequest)(nil),              // 257: white.finance.v1.ListDeferralsRequest
+	(*ListDeferralsResponse)(nil),             // 258: white.finance.v1.ListDeferralsResponse
+	(*SetDeferralActiveRequest)(nil),          // 259: white.finance.v1.SetDeferralActiveRequest
+	(*WriteOffRequest)(nil),                   // 260: white.finance.v1.WriteOffRequest
+	(*TaxPosition)(nil),                       // 261: white.finance.v1.TaxPosition
+	(*ListTaxPositionsRequest)(nil),           // 262: white.finance.v1.ListTaxPositionsRequest
+	(*ListTaxPositionsResponse)(nil),          // 263: white.finance.v1.ListTaxPositionsResponse
+	(*TaxRemittance)(nil),                     // 264: white.finance.v1.TaxRemittance
+	(*ListTaxRemittancesRequest)(nil),         // 265: white.finance.v1.ListTaxRemittancesRequest
+	(*ListTaxRemittancesResponse)(nil),        // 266: white.finance.v1.ListTaxRemittancesResponse
+	(*CloseVatRequest)(nil),                   // 267: white.finance.v1.CloseVatRequest
+	(*VatClosing)(nil),                        // 268: white.finance.v1.VatClosing
+	(*ControlSettingsRequest)(nil),            // 269: white.finance.v1.ControlSettingsRequest
+	(*ControlSettings)(nil),                   // 270: white.finance.v1.ControlSettings
+	(*AuditEntry)(nil),                        // 271: white.finance.v1.AuditEntry
+	(*ListAuditTrailRequest)(nil),             // 272: white.finance.v1.ListAuditTrailRequest
+	(*ListAuditTrailResponse)(nil),            // 273: white.finance.v1.ListAuditTrailResponse
+	(*timestamppb.Timestamp)(nil),             // 274: google.protobuf.Timestamp
+	(*v1.Delta)(nil),                          // 275: white.common.v1.Delta
+	(*v1.DateRange)(nil),                      // 276: white.common.v1.DateRange
+	(*emptypb.Empty)(nil),                     // 277: google.protobuf.Empty
 }
 var file_white_finance_v1_finance_proto_depIdxs = []int32{
 	0,   // 0: white.finance.v1.AccountType.normal_balance:type_name -> white.finance.v1.EntrySide
@@ -22723,8 +24568,8 @@ var file_white_finance_v1_finance_proto_depIdxs = []int32{
 	10,  // 2: white.finance.v1.UpdateAccountTypeRequest.input:type_name -> white.finance.v1.AccountTypeInput
 	9,   // 3: white.finance.v1.ListAccountTypesResponse.account_types:type_name -> white.finance.v1.AccountType
 	0,   // 4: white.finance.v1.Account.normal_balance:type_name -> white.finance.v1.EntrySide
-	252, // 5: white.finance.v1.Account.created_at:type_name -> google.protobuf.Timestamp
-	252, // 6: white.finance.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
+	274, // 5: white.finance.v1.Account.created_at:type_name -> google.protobuf.Timestamp
+	274, // 6: white.finance.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
 	15,  // 7: white.finance.v1.UpdateAccountRequest.input:type_name -> white.finance.v1.AccountInput
 	14,  // 8: white.finance.v1.ListAccountsResponse.accounts:type_name -> white.finance.v1.Account
 	20,  // 9: white.finance.v1.ImportAccountsResponse.issues:type_name -> white.finance.v1.ImportIssue
@@ -22733,15 +24578,15 @@ var file_white_finance_v1_finance_proto_depIdxs = []int32{
 	25,  // 12: white.finance.v1.ListJournalEventsResponse.events:type_name -> white.finance.v1.JournalEvent
 	0,   // 13: white.finance.v1.JournalMappingLine.entry_side:type_name -> white.finance.v1.EntrySide
 	27,  // 14: white.finance.v1.JournalMapping.lines:type_name -> white.finance.v1.JournalMappingLine
-	252, // 15: white.finance.v1.JournalMapping.updated_at:type_name -> google.protobuf.Timestamp
+	274, // 15: white.finance.v1.JournalMapping.updated_at:type_name -> google.protobuf.Timestamp
 	0,   // 16: white.finance.v1.JournalMappingLineInput.entry_side:type_name -> white.finance.v1.EntrySide
 	29,  // 17: white.finance.v1.JournalMappingInput.lines:type_name -> white.finance.v1.JournalMappingLineInput
 	30,  // 18: white.finance.v1.UpdateJournalMappingRequest.input:type_name -> white.finance.v1.JournalMappingInput
 	28,  // 19: white.finance.v1.ListJournalMappingsResponse.mappings:type_name -> white.finance.v1.JournalMapping
 	3,   // 20: white.finance.v1.FiscalPeriod.status:type_name -> white.finance.v1.PeriodStatus
 	34,  // 21: white.finance.v1.FiscalYear.periods:type_name -> white.finance.v1.FiscalPeriod
-	252, // 22: white.finance.v1.FiscalYear.created_at:type_name -> google.protobuf.Timestamp
-	252, // 23: white.finance.v1.FiscalYear.updated_at:type_name -> google.protobuf.Timestamp
+	274, // 22: white.finance.v1.FiscalYear.created_at:type_name -> google.protobuf.Timestamp
+	274, // 23: white.finance.v1.FiscalYear.updated_at:type_name -> google.protobuf.Timestamp
 	3,   // 24: white.finance.v1.FiscalPeriodInput.status:type_name -> white.finance.v1.PeriodStatus
 	36,  // 25: white.finance.v1.FiscalYearInput.periods:type_name -> white.finance.v1.FiscalPeriodInput
 	37,  // 26: white.finance.v1.UpdateFiscalYearRequest.input:type_name -> white.finance.v1.FiscalYearInput
@@ -22766,18 +24611,18 @@ var file_white_finance_v1_finance_proto_depIdxs = []int32{
 	0,   // 45: white.finance.v1.JournalLine.entry_side:type_name -> white.finance.v1.EntrySide
 	2,   // 46: white.finance.v1.JournalEntry.entry_type:type_name -> white.finance.v1.EntryType
 	1,   // 47: white.finance.v1.JournalEntry.status:type_name -> white.finance.v1.DocumentStatus
-	252, // 48: white.finance.v1.JournalEntry.posted_at:type_name -> google.protobuf.Timestamp
+	274, // 48: white.finance.v1.JournalEntry.posted_at:type_name -> google.protobuf.Timestamp
 	54,  // 49: white.finance.v1.JournalEntry.lines:type_name -> white.finance.v1.JournalLine
-	252, // 50: white.finance.v1.JournalEntry.created_at:type_name -> google.protobuf.Timestamp
-	252, // 51: white.finance.v1.JournalEntry.updated_at:type_name -> google.protobuf.Timestamp
+	274, // 50: white.finance.v1.JournalEntry.created_at:type_name -> google.protobuf.Timestamp
+	274, // 51: white.finance.v1.JournalEntry.updated_at:type_name -> google.protobuf.Timestamp
 	0,   // 52: white.finance.v1.JournalLineInput.entry_side:type_name -> white.finance.v1.EntrySide
 	56,  // 53: white.finance.v1.JournalEntryInput.lines:type_name -> white.finance.v1.JournalLineInput
 	57,  // 54: white.finance.v1.UpdateJournalEntryRequest.input:type_name -> white.finance.v1.JournalEntryInput
 	1,   // 55: white.finance.v1.ListJournalEntriesRequest.status:type_name -> white.finance.v1.DocumentStatus
 	2,   // 56: white.finance.v1.ListJournalEntriesRequest.entry_type:type_name -> white.finance.v1.EntryType
 	55,  // 57: white.finance.v1.ListJournalEntriesResponse.entries:type_name -> white.finance.v1.JournalEntry
-	252, // 58: white.finance.v1.PostingLog.created_at:type_name -> google.protobuf.Timestamp
-	252, // 59: white.finance.v1.PostingLog.updated_at:type_name -> google.protobuf.Timestamp
+	274, // 58: white.finance.v1.PostingLog.created_at:type_name -> google.protobuf.Timestamp
+	274, // 59: white.finance.v1.PostingLog.updated_at:type_name -> google.protobuf.Timestamp
 	61,  // 60: white.finance.v1.ListPostingLogsResponse.logs:type_name -> white.finance.v1.PostingLog
 	0,   // 61: white.finance.v1.CashBankAccount.normal_balance:type_name -> white.finance.v1.EntrySide
 	64,  // 62: white.finance.v1.ListCashBankAccountsResponse.accounts:type_name -> white.finance.v1.CashBankAccount
@@ -22791,18 +24636,18 @@ var file_white_finance_v1_finance_proto_depIdxs = []int32{
 	23,  // 70: white.finance.v1.CashMovement.cash_account:type_name -> white.finance.v1.PostableAccount
 	23,  // 71: white.finance.v1.CashMovement.offset_account:type_name -> white.finance.v1.PostableAccount
 	1,   // 72: white.finance.v1.CashMovement.status:type_name -> white.finance.v1.DocumentStatus
-	252, // 73: white.finance.v1.CashMovement.created_at:type_name -> google.protobuf.Timestamp
+	274, // 73: white.finance.v1.CashMovement.created_at:type_name -> google.protobuf.Timestamp
 	5,   // 74: white.finance.v1.ListCashMovementsRequest.kind:type_name -> white.finance.v1.CashMovementKind
 	70,  // 75: white.finance.v1.ListCashMovementsResponse.movements:type_name -> white.finance.v1.CashMovement
 	23,  // 76: white.finance.v1.CashTransfer.from_account:type_name -> white.finance.v1.PostableAccount
 	23,  // 77: white.finance.v1.CashTransfer.to_account:type_name -> white.finance.v1.PostableAccount
 	1,   // 78: white.finance.v1.CashTransfer.status:type_name -> white.finance.v1.DocumentStatus
-	252, // 79: white.finance.v1.CashTransfer.created_at:type_name -> google.protobuf.Timestamp
+	274, // 79: white.finance.v1.CashTransfer.created_at:type_name -> google.protobuf.Timestamp
 	74,  // 80: white.finance.v1.ListCashTransfersResponse.transfers:type_name -> white.finance.v1.CashTransfer
 	4,   // 81: white.finance.v1.Invoice.kind:type_name -> white.finance.v1.LedgerKind
 	1,   // 82: white.finance.v1.Invoice.status:type_name -> white.finance.v1.DocumentStatus
-	252, // 83: white.finance.v1.Invoice.posted_at:type_name -> google.protobuf.Timestamp
-	252, // 84: white.finance.v1.Invoice.created_at:type_name -> google.protobuf.Timestamp
+	274, // 83: white.finance.v1.Invoice.posted_at:type_name -> google.protobuf.Timestamp
+	274, // 84: white.finance.v1.Invoice.created_at:type_name -> google.protobuf.Timestamp
 	77,  // 85: white.finance.v1.UpdateInvoiceRequest.input:type_name -> white.finance.v1.InvoiceInput
 	1,   // 86: white.finance.v1.ListInvoicesRequest.status:type_name -> white.finance.v1.DocumentStatus
 	76,  // 87: white.finance.v1.ListInvoicesResponse.invoices:type_name -> white.finance.v1.Invoice
@@ -22811,499 +24656,538 @@ var file_white_finance_v1_finance_proto_depIdxs = []int32{
 	4,   // 90: white.finance.v1.Payment.kind:type_name -> white.finance.v1.LedgerKind
 	1,   // 91: white.finance.v1.Payment.status:type_name -> white.finance.v1.DocumentStatus
 	84,  // 92: white.finance.v1.Payment.allocations:type_name -> white.finance.v1.Allocation
-	252, // 93: white.finance.v1.Payment.voided_at:type_name -> google.protobuf.Timestamp
-	252, // 94: white.finance.v1.Payment.created_at:type_name -> google.protobuf.Timestamp
-	87,  // 95: white.finance.v1.PaymentInput.allocations:type_name -> white.finance.v1.AllocationInput
-	85,  // 96: white.finance.v1.ListPaymentsResponse.payments:type_name -> white.finance.v1.Payment
-	85,  // 97: white.finance.v1.PaymentResult.payment:type_name -> white.finance.v1.Payment
-	76,  // 98: white.finance.v1.PaymentResult.invoices:type_name -> white.finance.v1.Invoice
-	76,  // 99: white.finance.v1.InvoiceResult.invoice:type_name -> white.finance.v1.Invoice
-	0,   // 100: white.finance.v1.AccountBalance.normal_balance:type_name -> white.finance.v1.EntrySide
-	96,  // 101: white.finance.v1.TrialBalance.rows:type_name -> white.finance.v1.AccountBalance
-	96,  // 102: white.finance.v1.BalanceSheet.assets:type_name -> white.finance.v1.AccountBalance
-	96,  // 103: white.finance.v1.BalanceSheet.liabilities:type_name -> white.finance.v1.AccountBalance
-	96,  // 104: white.finance.v1.BalanceSheet.equity:type_name -> white.finance.v1.AccountBalance
-	96,  // 105: white.finance.v1.IncomeStatement.revenue:type_name -> white.finance.v1.AccountBalance
-	96,  // 106: white.finance.v1.IncomeStatement.cogs:type_name -> white.finance.v1.AccountBalance
-	96,  // 107: white.finance.v1.IncomeStatement.expenses:type_name -> white.finance.v1.AccountBalance
-	96,  // 108: white.finance.v1.IncomeStatement.other_income:type_name -> white.finance.v1.AccountBalance
-	96,  // 109: white.finance.v1.IncomeStatement.other_expenses:type_name -> white.finance.v1.AccountBalance
-	96,  // 110: white.finance.v1.CashFlowSection.rows:type_name -> white.finance.v1.AccountBalance
-	100, // 111: white.finance.v1.CashFlow.operating:type_name -> white.finance.v1.CashFlowSection
-	100, // 112: white.finance.v1.CashFlow.investing:type_name -> white.finance.v1.CashFlowSection
-	100, // 113: white.finance.v1.CashFlow.financing:type_name -> white.finance.v1.CashFlowSection
-	100, // 114: white.finance.v1.CashFlow.non_cash:type_name -> white.finance.v1.CashFlowSection
-	102, // 115: white.finance.v1.ListGeneralLedgerAccountsResponse.accounts:type_name -> white.finance.v1.GeneralLedgerAccount
-	4,   // 116: white.finance.v1.ListSubsidiaryPartiesRequest.kind:type_name -> white.finance.v1.LedgerKind
-	105, // 117: white.finance.v1.ListSubsidiaryPartiesResponse.parties:type_name -> white.finance.v1.SubsidiaryParty
-	4,   // 118: white.finance.v1.SubsidiaryLedgerRequest.kind:type_name -> white.finance.v1.LedgerKind
-	4,   // 119: white.finance.v1.SubsidiaryLedger.kind:type_name -> white.finance.v1.LedgerKind
-	108, // 120: white.finance.v1.SubsidiaryLedger.lines:type_name -> white.finance.v1.SubsidiaryLine
-	113, // 121: white.finance.v1.Dashboard.kpis:type_name -> white.finance.v1.DashboardKpis
-	111, // 122: white.finance.v1.Dashboard.balance_composition:type_name -> white.finance.v1.NameValue
-	111, // 123: white.finance.v1.Dashboard.pnl_breakdown:type_name -> white.finance.v1.NameValue
-	111, // 124: white.finance.v1.Dashboard.cash_flow_breakdown:type_name -> white.finance.v1.NameValue
-	112, // 125: white.finance.v1.Dashboard.monthly_trend:type_name -> white.finance.v1.MonthTrend
-	111, // 126: white.finance.v1.Dashboard.top_expense_accounts:type_name -> white.finance.v1.NameValue
-	116, // 127: white.finance.v1.FinanceSummary.window:type_name -> white.finance.v1.AnalyticsWindow
-	117, // 128: white.finance.v1.FinanceSummary.kpis:type_name -> white.finance.v1.AnalyticsKpi
-	118, // 129: white.finance.v1.FinanceSummary.pnl:type_name -> white.finance.v1.AnalyticsSeries
-	118, // 130: white.finance.v1.FinanceSummary.cash:type_name -> white.finance.v1.AnalyticsSeries
-	119, // 131: white.finance.v1.FinanceSummary.assets:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 132: white.finance.v1.FinanceSummary.liabilities:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 133: white.finance.v1.FinanceSummary.equity:type_name -> white.finance.v1.AnalyticsAmount
-	116, // 134: white.finance.v1.FinanceProfitability.window:type_name -> white.finance.v1.AnalyticsWindow
-	117, // 135: white.finance.v1.FinanceProfitability.kpis:type_name -> white.finance.v1.AnalyticsKpi
-	120, // 136: white.finance.v1.FinanceProfitability.waterfall:type_name -> white.finance.v1.WaterfallStep
-	118, // 137: white.finance.v1.FinanceProfitability.pnl:type_name -> white.finance.v1.AnalyticsSeries
-	119, // 138: white.finance.v1.FinanceProfitability.revenue_accounts:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 139: white.finance.v1.FinanceProfitability.revenue_clients:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 140: white.finance.v1.FinanceProfitability.expense_groups:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 141: white.finance.v1.FinanceProfitability.expense_accounts:type_name -> white.finance.v1.AnalyticsAmount
-	118, // 142: white.finance.v1.FinanceProfitability.account_months:type_name -> white.finance.v1.AnalyticsSeries
-	116, // 143: white.finance.v1.FinanceCashAnalytics.window:type_name -> white.finance.v1.AnalyticsWindow
-	117, // 144: white.finance.v1.FinanceCashAnalytics.kpis:type_name -> white.finance.v1.AnalyticsKpi
-	118, // 145: white.finance.v1.FinanceCashAnalytics.flows:type_name -> white.finance.v1.AnalyticsSeries
-	118, // 146: white.finance.v1.FinanceCashAnalytics.balances:type_name -> white.finance.v1.AnalyticsSeries
-	120, // 147: white.finance.v1.FinanceCashAnalytics.bridge:type_name -> white.finance.v1.WaterfallStep
-	123, // 148: white.finance.v1.FinanceCashAnalytics.accounts:type_name -> white.finance.v1.CashAccountSummary
-	116, // 149: white.finance.v1.FinanceArAp.window:type_name -> white.finance.v1.AnalyticsWindow
-	117, // 150: white.finance.v1.FinanceArAp.kpis:type_name -> white.finance.v1.AnalyticsKpi
-	125, // 151: white.finance.v1.FinanceArAp.aging:type_name -> white.finance.v1.AgingRow
-	118, // 152: white.finance.v1.FinanceArAp.ar_aging_trend:type_name -> white.finance.v1.AnalyticsSeries
-	118, // 153: white.finance.v1.FinanceArAp.ap_aging_trend:type_name -> white.finance.v1.AnalyticsSeries
-	118, // 154: white.finance.v1.FinanceArAp.days:type_name -> white.finance.v1.AnalyticsSeries
-	126, // 155: white.finance.v1.FinanceArAp.customers:type_name -> white.finance.v1.PartyBalance
-	126, // 156: white.finance.v1.FinanceArAp.vendors:type_name -> white.finance.v1.PartyBalance
-	127, // 157: white.finance.v1.FinanceArAp.overdue:type_name -> white.finance.v1.OverdueInvoice
-	116, // 158: white.finance.v1.FinanceSpend.window:type_name -> white.finance.v1.AnalyticsWindow
-	117, // 159: white.finance.v1.FinanceSpend.kpis:type_name -> white.finance.v1.AnalyticsKpi
-	118, // 160: white.finance.v1.FinanceSpend.expense_groups:type_name -> white.finance.v1.AnalyticsSeries
-	118, // 161: white.finance.v1.FinanceSpend.claim_categories:type_name -> white.finance.v1.AnalyticsSeries
-	119, // 162: white.finance.v1.FinanceSpend.by_category:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 163: white.finance.v1.FinanceSpend.by_department:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 164: white.finance.v1.FinanceSpend.by_status:type_name -> white.finance.v1.AnalyticsAmount
-	119, // 165: white.finance.v1.FinanceSpend.lead_time:type_name -> white.finance.v1.AnalyticsAmount
-	118, // 166: white.finance.v1.FinanceSpend.lead_time_trend:type_name -> white.finance.v1.AnalyticsSeries
-	129, // 167: white.finance.v1.FinanceSpend.pending:type_name -> white.finance.v1.ClaimSummary
-	252, // 168: white.finance.v1.ClaimReceipt.created_at:type_name -> google.protobuf.Timestamp
-	252, // 169: white.finance.v1.ClaimHistory.created_at:type_name -> google.protobuf.Timestamp
-	6,   // 170: white.finance.v1.Claim.category:type_name -> white.finance.v1.ClaimCategory
-	7,   // 171: white.finance.v1.Claim.status:type_name -> white.finance.v1.ClaimStatus
-	131, // 172: white.finance.v1.Claim.receipts:type_name -> white.finance.v1.ClaimReceipt
-	132, // 173: white.finance.v1.Claim.history:type_name -> white.finance.v1.ClaimHistory
-	252, // 174: white.finance.v1.Claim.submitted_at:type_name -> google.protobuf.Timestamp
-	252, // 175: white.finance.v1.Claim.paid_at:type_name -> google.protobuf.Timestamp
-	252, // 176: white.finance.v1.Claim.created_at:type_name -> google.protobuf.Timestamp
-	252, // 177: white.finance.v1.Claim.updated_at:type_name -> google.protobuf.Timestamp
-	134, // 178: white.finance.v1.Claim.duplicates:type_name -> white.finance.v1.ClaimDuplicate
-	6,   // 179: white.finance.v1.ClaimInput.category:type_name -> white.finance.v1.ClaimCategory
-	135, // 180: white.finance.v1.UpdateClaimRequest.input:type_name -> white.finance.v1.ClaimInput
-	7,   // 181: white.finance.v1.ListMyClaimsRequest.status:type_name -> white.finance.v1.ClaimStatus
-	7,   // 182: white.finance.v1.ListClaimsRequest.status:type_name -> white.finance.v1.ClaimStatus
-	6,   // 183: white.finance.v1.ListClaimsRequest.category:type_name -> white.finance.v1.ClaimCategory
-	133, // 184: white.finance.v1.ListClaimsResponse.claims:type_name -> white.finance.v1.Claim
-	252, // 185: white.finance.v1.ReimbursementBatch.created_at:type_name -> google.protobuf.Timestamp
-	145, // 186: white.finance.v1.ListPaymentBatchesResponse.batches:type_name -> white.finance.v1.ReimbursementBatch
-	6,   // 187: white.finance.v1.MonthlySummaryRow.category:type_name -> white.finance.v1.ClaimCategory
-	149, // 188: white.finance.v1.MonthlySummary.rows:type_name -> white.finance.v1.MonthlySummaryRow
-	6,   // 189: white.finance.v1.ReimbursementPolicy.category:type_name -> white.finance.v1.ClaimCategory
-	6,   // 190: white.finance.v1.PolicyInput.category:type_name -> white.finance.v1.ClaimCategory
-	151, // 191: white.finance.v1.ListPoliciesResponse.policies:type_name -> white.finance.v1.ReimbursementPolicy
-	253, // 192: white.finance.v1.Metric.delta:type_name -> white.common.v1.Delta
-	253, // 193: white.finance.v1.ExpenseItem.delta:type_name -> white.common.v1.Delta
-	254, // 194: white.finance.v1.FinancialAnalysis.current:type_name -> white.common.v1.DateRange
-	254, // 195: white.finance.v1.FinancialAnalysis.previous:type_name -> white.common.v1.DateRange
-	157, // 196: white.finance.v1.FinancialAnalysis.profitability:type_name -> white.finance.v1.Metric
-	157, // 197: white.finance.v1.FinancialAnalysis.liquidity:type_name -> white.finance.v1.Metric
-	157, // 198: white.finance.v1.FinancialAnalysis.leverage:type_name -> white.finance.v1.Metric
-	157, // 199: white.finance.v1.FinancialAnalysis.efficiency:type_name -> white.finance.v1.Metric
-	157, // 200: white.finance.v1.FinancialAnalysis.cash:type_name -> white.finance.v1.Metric
-	158, // 201: white.finance.v1.FinancialAnalysis.expense_breakdown:type_name -> white.finance.v1.ExpenseItem
-	158, // 202: white.finance.v1.FinancialAnalysis.top_movers:type_name -> white.finance.v1.ExpenseItem
-	252, // 203: white.finance.v1.FinancialInsight.created_at:type_name -> google.protobuf.Timestamp
-	161, // 204: white.finance.v1.ListFinancialInsightsResponse.insights:type_name -> white.finance.v1.FinancialInsight
-	165, // 205: white.finance.v1.RatioTrendSeries.points:type_name -> white.finance.v1.RatioPoint
-	166, // 206: white.finance.v1.RatioTrend.series:type_name -> white.finance.v1.RatioTrendSeries
-	168, // 207: white.finance.v1.ListClaimPayAccountsResponse.accounts:type_name -> white.finance.v1.ClaimPayAccount
-	170, // 208: white.finance.v1.ListReconAccountsResponse.accounts:type_name -> white.finance.v1.ReconAccount
-	252, // 209: white.finance.v1.StatementLine.verified_at:type_name -> google.protobuf.Timestamp
-	172, // 210: white.finance.v1.ListStatementLinesResponse.lines:type_name -> white.finance.v1.StatementLine
-	178, // 211: white.finance.v1.ListMatchCandidatesResponse.candidates:type_name -> white.finance.v1.MatchCandidate
-	56,  // 212: white.finance.v1.RecurringJournal.lines:type_name -> white.finance.v1.JournalLineInput
-	56,  // 213: white.finance.v1.RecurringJournalInput.lines:type_name -> white.finance.v1.JournalLineInput
-	185, // 214: white.finance.v1.UpdateRecurringJournalRequest.input:type_name -> white.finance.v1.RecurringJournalInput
-	190, // 215: white.finance.v1.UpdateFixedAssetRequest.input:type_name -> white.finance.v1.FixedAssetInput
-	184, // 216: white.finance.v1.ListRecurringJournalsResponse.journals:type_name -> white.finance.v1.RecurringJournal
-	189, // 217: white.finance.v1.ListFixedAssetsResponse.assets:type_name -> white.finance.v1.FixedAsset
-	193, // 218: white.finance.v1.BudgetVsActual.rows:type_name -> white.finance.v1.BudgetRow
-	196, // 219: white.finance.v1.BudgetYear.entries:type_name -> white.finance.v1.BudgetEntry
-	196, // 220: white.finance.v1.SaveBudgetYearRequest.entries:type_name -> white.finance.v1.BudgetEntry
-	199, // 221: white.finance.v1.EquityChanges.rows:type_name -> white.finance.v1.EquityRow
-	201, // 222: white.finance.v1.ClientEconomicsReport.clients:type_name -> white.finance.v1.ClientEconomicsRow
-	203, // 223: white.finance.v1.ListVendorsResponse.vendors:type_name -> white.finance.v1.Vendor
-	207, // 224: white.finance.v1.FinanceDocument.items:type_name -> white.finance.v1.DocumentItem
-	209, // 225: white.finance.v1.FinanceDocument.taxes:type_name -> white.finance.v1.DocumentTax
-	210, // 226: white.finance.v1.FinanceDocument.charges:type_name -> white.finance.v1.DocumentCharge
-	207, // 227: white.finance.v1.DocumentInput.items:type_name -> white.finance.v1.DocumentItem
-	210, // 228: white.finance.v1.DocumentInput.charges:type_name -> white.finance.v1.DocumentCharge
-	208, // 229: white.finance.v1.ListDocumentsResponse.documents:type_name -> white.finance.v1.FinanceDocument
-	219, // 230: white.finance.v1.TaxCode.brackets:type_name -> white.finance.v1.TaxBracketMsg
-	218, // 231: white.finance.v1.ListTaxCodesResponse.taxes:type_name -> white.finance.v1.TaxCode
-	220, // 232: white.finance.v1.ListChargeTypesResponse.charges:type_name -> white.finance.v1.ChargeType
-	224, // 233: white.finance.v1.TaxRegister.rows:type_name -> white.finance.v1.TaxRegisterRow
-	226, // 234: white.finance.v1.FiscalPosition.rules:type_name -> white.finance.v1.FiscalRuleMsg
-	227, // 235: white.finance.v1.ListFiscalPositionsResponse.positions:type_name -> white.finance.v1.FiscalPosition
-	229, // 236: white.finance.v1.ListPartyProfilesResponse.profiles:type_name -> white.finance.v1.PartyTaxProfile
-	234, // 237: white.finance.v1.ListProjectTagsResponse.tags:type_name -> white.finance.v1.ProjectTag
-	238, // 238: white.finance.v1.ProjectProfit.rows:type_name -> white.finance.v1.ProjectProfitRow
-	241, // 239: white.finance.v1.UpdateRecurringInvoiceRequest.input:type_name -> white.finance.v1.RecurringInvoiceInput
-	240, // 240: white.finance.v1.ListRecurringInvoicesResponse.invoices:type_name -> white.finance.v1.RecurringInvoice
-	244, // 241: white.finance.v1.ListAdvancesResponse.advances:type_name -> white.finance.v1.Advance
-	250, // 242: white.finance.v1.SubledgerRecon.rows:type_name -> white.finance.v1.SubledgerReconRow
-	12,  // 243: white.finance.v1.AccountService.ListAccountTypes:input_type -> white.finance.v1.ListAccountTypesRequest
-	10,  // 244: white.finance.v1.AccountService.CreateAccountType:input_type -> white.finance.v1.AccountTypeInput
-	11,  // 245: white.finance.v1.AccountService.UpdateAccountType:input_type -> white.finance.v1.UpdateAccountTypeRequest
-	8,   // 246: white.finance.v1.AccountService.DeleteAccountType:input_type -> white.finance.v1.IdRequest
-	17,  // 247: white.finance.v1.AccountService.ListAccounts:input_type -> white.finance.v1.ListAccountsRequest
-	8,   // 248: white.finance.v1.AccountService.GetAccount:input_type -> white.finance.v1.IdRequest
-	15,  // 249: white.finance.v1.AccountService.CreateAccount:input_type -> white.finance.v1.AccountInput
-	16,  // 250: white.finance.v1.AccountService.UpdateAccount:input_type -> white.finance.v1.UpdateAccountRequest
-	8,   // 251: white.finance.v1.AccountService.DeleteAccount:input_type -> white.finance.v1.IdRequest
-	19,  // 252: white.finance.v1.AccountService.ImportAccounts:input_type -> white.finance.v1.ImportAccountsRequest
-	255, // 253: white.finance.v1.AccountService.ListPostableAccounts:input_type -> google.protobuf.Empty
-	255, // 254: white.finance.v1.AccountService.ListJournalEvents:input_type -> google.protobuf.Empty
-	32,  // 255: white.finance.v1.AccountService.ListJournalMappings:input_type -> white.finance.v1.ListJournalMappingsRequest
-	8,   // 256: white.finance.v1.AccountService.GetJournalMapping:input_type -> white.finance.v1.IdRequest
-	30,  // 257: white.finance.v1.AccountService.CreateJournalMapping:input_type -> white.finance.v1.JournalMappingInput
-	31,  // 258: white.finance.v1.AccountService.UpdateJournalMapping:input_type -> white.finance.v1.UpdateJournalMappingRequest
-	8,   // 259: white.finance.v1.AccountService.DeleteJournalMapping:input_type -> white.finance.v1.IdRequest
-	39,  // 260: white.finance.v1.FiscalService.ListFiscalYears:input_type -> white.finance.v1.ListFiscalYearsRequest
-	8,   // 261: white.finance.v1.FiscalService.GetFiscalYear:input_type -> white.finance.v1.IdRequest
-	37,  // 262: white.finance.v1.FiscalService.CreateFiscalYear:input_type -> white.finance.v1.FiscalYearInput
-	38,  // 263: white.finance.v1.FiscalService.UpdateFiscalYear:input_type -> white.finance.v1.UpdateFiscalYearRequest
-	8,   // 264: white.finance.v1.FiscalService.DeleteFiscalYear:input_type -> white.finance.v1.IdRequest
-	41,  // 265: white.finance.v1.FiscalService.ListFiscalPeriods:input_type -> white.finance.v1.ListFiscalPeriodsRequest
-	43,  // 266: white.finance.v1.FiscalService.OpenFiscalPeriod:input_type -> white.finance.v1.OpenFiscalPeriodRequest
-	8,   // 267: white.finance.v1.FiscalService.GetPeriodClosePreview:input_type -> white.finance.v1.IdRequest
-	8,   // 268: white.finance.v1.FiscalService.CloseFiscalPeriod:input_type -> white.finance.v1.IdRequest
-	46,  // 269: white.finance.v1.FiscalService.GetFiscalCoverage:input_type -> white.finance.v1.GetFiscalCoverageRequest
-	8,   // 270: white.finance.v1.FiscalService.GetBeginningBalance:input_type -> white.finance.v1.IdRequest
-	52,  // 271: white.finance.v1.FiscalService.SaveBeginningBalance:input_type -> white.finance.v1.SaveBeginningBalanceRequest
-	59,  // 272: white.finance.v1.JournalService.ListJournalEntries:input_type -> white.finance.v1.ListJournalEntriesRequest
-	8,   // 273: white.finance.v1.JournalService.GetJournalEntry:input_type -> white.finance.v1.IdRequest
-	57,  // 274: white.finance.v1.JournalService.CreateJournalEntry:input_type -> white.finance.v1.JournalEntryInput
-	58,  // 275: white.finance.v1.JournalService.UpdateJournalEntry:input_type -> white.finance.v1.UpdateJournalEntryRequest
-	8,   // 276: white.finance.v1.JournalService.DeleteJournalEntry:input_type -> white.finance.v1.IdRequest
-	8,   // 277: white.finance.v1.JournalService.PostJournalEntry:input_type -> white.finance.v1.IdRequest
-	62,  // 278: white.finance.v1.JournalService.ListPostingLogs:input_type -> white.finance.v1.ListPostingLogsRequest
-	8,   // 279: white.finance.v1.JournalService.RetryPosting:input_type -> white.finance.v1.IdRequest
-	255, // 280: white.finance.v1.CashBankService.ListCashBankAccounts:input_type -> google.protobuf.Empty
-	66,  // 281: white.finance.v1.CashBankService.GetCashBankLedger:input_type -> white.finance.v1.LedgerRequest
-	71,  // 282: white.finance.v1.CashBankService.ListCashMovements:input_type -> white.finance.v1.ListCashMovementsRequest
-	69,  // 283: white.finance.v1.CashBankService.CreateCashMovement:input_type -> white.finance.v1.CashMovementInput
-	71,  // 284: white.finance.v1.CashBankService.ListCashTransfers:input_type -> white.finance.v1.ListCashMovementsRequest
-	73,  // 285: white.finance.v1.CashBankService.CreateCashTransfer:input_type -> white.finance.v1.CashTransferInput
-	79,  // 286: white.finance.v1.PayableService.ListApInvoices:input_type -> white.finance.v1.ListInvoicesRequest
-	8,   // 287: white.finance.v1.PayableService.GetApInvoice:input_type -> white.finance.v1.IdRequest
-	77,  // 288: white.finance.v1.PayableService.CreateApInvoice:input_type -> white.finance.v1.InvoiceInput
-	78,  // 289: white.finance.v1.PayableService.UpdateApInvoice:input_type -> white.finance.v1.UpdateInvoiceRequest
-	8,   // 290: white.finance.v1.PayableService.DeleteApInvoice:input_type -> white.finance.v1.IdRequest
-	8,   // 291: white.finance.v1.PayableService.PostApInvoice:input_type -> white.finance.v1.IdRequest
-	255, // 292: white.finance.v1.PayableService.ListApPayable:input_type -> google.protobuf.Empty
-	81,  // 293: white.finance.v1.PayableService.GetApAging:input_type -> white.finance.v1.AgingRequest
-	88,  // 294: white.finance.v1.PayableService.ListApPayments:input_type -> white.finance.v1.ListPaymentsRequest
-	86,  // 295: white.finance.v1.PayableService.CreateApPayment:input_type -> white.finance.v1.PaymentInput
-	92,  // 296: white.finance.v1.PayableService.VoidApPayment:input_type -> white.finance.v1.VoidPaymentRequest
-	79,  // 297: white.finance.v1.ReceivableService.ListArInvoices:input_type -> white.finance.v1.ListInvoicesRequest
-	8,   // 298: white.finance.v1.ReceivableService.GetArInvoice:input_type -> white.finance.v1.IdRequest
-	93,  // 299: white.finance.v1.ReceivableService.GetArInvoiceBySalesInvoice:input_type -> white.finance.v1.GetArInvoiceBySalesInvoiceRequest
-	77,  // 300: white.finance.v1.ReceivableService.CreateArInvoice:input_type -> white.finance.v1.InvoiceInput
-	78,  // 301: white.finance.v1.ReceivableService.UpdateArInvoice:input_type -> white.finance.v1.UpdateInvoiceRequest
-	8,   // 302: white.finance.v1.ReceivableService.DeleteArInvoice:input_type -> white.finance.v1.IdRequest
-	8,   // 303: white.finance.v1.ReceivableService.PostArInvoice:input_type -> white.finance.v1.IdRequest
-	255, // 304: white.finance.v1.ReceivableService.ListArReceivable:input_type -> google.protobuf.Empty
-	81,  // 305: white.finance.v1.ReceivableService.GetArAging:input_type -> white.finance.v1.AgingRequest
-	88,  // 306: white.finance.v1.ReceivableService.ListArReceipts:input_type -> white.finance.v1.ListPaymentsRequest
-	86,  // 307: white.finance.v1.ReceivableService.CreateArReceipt:input_type -> white.finance.v1.PaymentInput
-	92,  // 308: white.finance.v1.ReceivableService.VoidArReceipt:input_type -> white.finance.v1.VoidPaymentRequest
-	255, // 309: white.finance.v1.ReportService.GetSubledgerRecon:input_type -> google.protobuf.Empty
-	94,  // 310: white.finance.v1.ReportService.GetTrialBalance:input_type -> white.finance.v1.AsOfRequest
-	94,  // 311: white.finance.v1.ReportService.GetBalanceSheet:input_type -> white.finance.v1.AsOfRequest
-	95,  // 312: white.finance.v1.ReportService.GetIncomeStatement:input_type -> white.finance.v1.PeriodRequest
-	95,  // 313: white.finance.v1.ReportService.GetBudgetVsActual:input_type -> white.finance.v1.PeriodRequest
-	195, // 314: white.finance.v1.ReportService.GetBudgetYear:input_type -> white.finance.v1.BudgetYearRequest
-	198, // 315: white.finance.v1.ReportService.SaveBudgetYear:input_type -> white.finance.v1.SaveBudgetYearRequest
-	95,  // 316: white.finance.v1.ReportService.GetEquityChanges:input_type -> white.finance.v1.PeriodRequest
-	95,  // 317: white.finance.v1.ReportService.GetClientEconomics:input_type -> white.finance.v1.PeriodRequest
-	95,  // 318: white.finance.v1.ReportService.GetCashFlow:input_type -> white.finance.v1.PeriodRequest
-	94,  // 319: white.finance.v1.ReportService.ListGeneralLedgerAccounts:input_type -> white.finance.v1.AsOfRequest
-	66,  // 320: white.finance.v1.ReportService.GetGeneralLedger:input_type -> white.finance.v1.LedgerRequest
-	104, // 321: white.finance.v1.ReportService.ListSubsidiaryParties:input_type -> white.finance.v1.ListSubsidiaryPartiesRequest
-	107, // 322: white.finance.v1.ReportService.GetSubsidiaryLedger:input_type -> white.finance.v1.SubsidiaryLedgerRequest
-	110, // 323: white.finance.v1.ReportService.GetDashboard:input_type -> white.finance.v1.DashboardRequest
-	115, // 324: white.finance.v1.ReportService.GetFinanceSummary:input_type -> white.finance.v1.FinanceAnalyticsRequest
-	115, // 325: white.finance.v1.ReportService.GetFinanceProfitability:input_type -> white.finance.v1.FinanceAnalyticsRequest
-	115, // 326: white.finance.v1.ReportService.GetFinanceCashAnalytics:input_type -> white.finance.v1.FinanceAnalyticsRequest
-	115, // 327: white.finance.v1.ReportService.GetFinanceArAp:input_type -> white.finance.v1.FinanceAnalyticsRequest
-	115, // 328: white.finance.v1.ReportService.GetFinanceSpend:input_type -> white.finance.v1.FinanceAnalyticsRequest
-	141, // 329: white.finance.v1.ReimbursementService.ListMyClaims:input_type -> white.finance.v1.ListMyClaimsRequest
-	135, // 330: white.finance.v1.ReimbursementService.CreateClaim:input_type -> white.finance.v1.ClaimInput
-	136, // 331: white.finance.v1.ReimbursementService.UpdateClaim:input_type -> white.finance.v1.UpdateClaimRequest
-	137, // 332: white.finance.v1.ReimbursementService.UploadReceipt:input_type -> white.finance.v1.UploadReceiptRequest
-	138, // 333: white.finance.v1.ReimbursementService.DeleteReceipt:input_type -> white.finance.v1.DeleteReceiptRequest
-	8,   // 334: white.finance.v1.ReimbursementService.SubmitClaim:input_type -> white.finance.v1.IdRequest
-	8,   // 335: white.finance.v1.ReimbursementService.CancelClaim:input_type -> white.finance.v1.IdRequest
-	8,   // 336: white.finance.v1.ReimbursementService.GetClaim:input_type -> white.finance.v1.IdRequest
-	255, // 337: white.finance.v1.ReimbursementService.ListApprovalInbox:input_type -> google.protobuf.Empty
-	139, // 338: white.finance.v1.ReimbursementService.ApproveClaim:input_type -> white.finance.v1.ApproveClaimRequest
-	140, // 339: white.finance.v1.ReimbursementService.RejectClaim:input_type -> white.finance.v1.RejectClaimRequest
-	142, // 340: white.finance.v1.ReimbursementService.ListClaims:input_type -> white.finance.v1.ListClaimsRequest
-	144, // 341: white.finance.v1.ReimbursementService.PayClaims:input_type -> white.finance.v1.PayClaimsRequest
-	146, // 342: white.finance.v1.ReimbursementService.ListPaymentBatches:input_type -> white.finance.v1.ListPaymentBatchesRequest
-	148, // 343: white.finance.v1.ReimbursementService.GetMonthlySummary:input_type -> white.finance.v1.MonthlySummaryRequest
-	255, // 344: white.finance.v1.ReimbursementService.ListClaimPayAccounts:input_type -> google.protobuf.Empty
-	255, // 345: white.finance.v1.ReimbursementService.ListPolicies:input_type -> google.protobuf.Empty
-	152, // 346: white.finance.v1.ReimbursementService.UpdatePolicy:input_type -> white.finance.v1.PolicyInput
-	154, // 347: white.finance.v1.ReimbursementService.GetReceiptFile:input_type -> white.finance.v1.GetReceiptFileRequest
-	255, // 348: white.finance.v1.BankReconService.ListReconAccounts:input_type -> google.protobuf.Empty
-	173, // 349: white.finance.v1.BankReconService.ListStatementLines:input_type -> white.finance.v1.ListStatementLinesRequest
-	175, // 350: white.finance.v1.BankReconService.ImportStatement:input_type -> white.finance.v1.ImportStatementRequest
-	177, // 351: white.finance.v1.BankReconService.RematchStatements:input_type -> white.finance.v1.RematchRequest
-	8,   // 352: white.finance.v1.BankReconService.ListMatchCandidates:input_type -> white.finance.v1.IdRequest
-	180, // 353: white.finance.v1.BankReconService.MatchStatementLine:input_type -> white.finance.v1.MatchStatementLineRequest
-	181, // 354: white.finance.v1.BankReconService.RecordStatementLine:input_type -> white.finance.v1.RecordStatementLineRequest
-	182, // 355: white.finance.v1.BankReconService.IgnoreStatementLine:input_type -> white.finance.v1.IgnoreStatementLineRequest
-	8,   // 356: white.finance.v1.BankReconService.ReopenStatementLine:input_type -> white.finance.v1.IdRequest
-	255, // 357: white.finance.v1.ScheduleService.ListRecurringJournals:input_type -> google.protobuf.Empty
-	185, // 358: white.finance.v1.ScheduleService.CreateRecurringJournal:input_type -> white.finance.v1.RecurringJournalInput
-	186, // 359: white.finance.v1.ScheduleService.UpdateRecurringJournal:input_type -> white.finance.v1.UpdateRecurringJournalRequest
-	183, // 360: white.finance.v1.ScheduleService.SetRecurringJournalActive:input_type -> white.finance.v1.SetActiveRequest
-	8,   // 361: white.finance.v1.ScheduleService.DeleteRecurringJournal:input_type -> white.finance.v1.IdRequest
-	255, // 362: white.finance.v1.ScheduleService.ListFixedAssets:input_type -> google.protobuf.Empty
-	190, // 363: white.finance.v1.ScheduleService.CreateFixedAsset:input_type -> white.finance.v1.FixedAssetInput
-	255, // 364: white.finance.v1.ScheduleService.ListRecurringInvoices:input_type -> google.protobuf.Empty
-	241, // 365: white.finance.v1.ScheduleService.CreateRecurringInvoice:input_type -> white.finance.v1.RecurringInvoiceInput
-	242, // 366: white.finance.v1.ScheduleService.UpdateRecurringInvoice:input_type -> white.finance.v1.UpdateRecurringInvoiceRequest
-	183, // 367: white.finance.v1.ScheduleService.SetRecurringInvoiceActive:input_type -> white.finance.v1.SetActiveRequest
-	8,   // 368: white.finance.v1.ScheduleService.DeleteRecurringInvoice:input_type -> white.finance.v1.IdRequest
-	187, // 369: white.finance.v1.ScheduleService.UpdateFixedAsset:input_type -> white.finance.v1.UpdateFixedAssetRequest
-	183, // 370: white.finance.v1.ScheduleService.SetFixedAssetActive:input_type -> white.finance.v1.SetActiveRequest
-	8,   // 371: white.finance.v1.ScheduleService.DeleteFixedAsset:input_type -> white.finance.v1.IdRequest
-	255, // 372: white.finance.v1.ScheduleService.RunSchedules:input_type -> google.protobuf.Empty
-	205, // 373: white.finance.v1.DocumentService.ListVendors:input_type -> white.finance.v1.ListVendorsRequest
-	204, // 374: white.finance.v1.DocumentService.SaveVendor:input_type -> white.finance.v1.VendorInput
-	8,   // 375: white.finance.v1.DocumentService.DeleteVendor:input_type -> white.finance.v1.IdRequest
-	212, // 376: white.finance.v1.DocumentService.ListDocuments:input_type -> white.finance.v1.ListDocumentsRequest
-	8,   // 377: white.finance.v1.DocumentService.GetDocument:input_type -> white.finance.v1.IdRequest
-	211, // 378: white.finance.v1.DocumentService.CreateDocument:input_type -> white.finance.v1.DocumentInput
-	211, // 379: white.finance.v1.DocumentService.UpdateDocument:input_type -> white.finance.v1.DocumentInput
-	8,   // 380: white.finance.v1.DocumentService.DeleteDocument:input_type -> white.finance.v1.IdRequest
-	214, // 381: white.finance.v1.DocumentService.ActOnDocument:input_type -> white.finance.v1.ActOnDocumentRequest
-	215, // 382: white.finance.v1.DocumentService.ConvertDocument:input_type -> white.finance.v1.ConvertDocumentRequest
-	216, // 383: white.finance.v1.DocumentService.IssueDocument:input_type -> white.finance.v1.IssueDocumentRequest
-	8,   // 384: white.finance.v1.DocumentService.RenderDocumentPdf:input_type -> white.finance.v1.IdRequest
-	221, // 385: white.finance.v1.TaxSetupService.ListTaxCodes:input_type -> white.finance.v1.ListTaxMasterRequest
-	218, // 386: white.finance.v1.TaxSetupService.SaveTaxCode:input_type -> white.finance.v1.TaxCode
-	8,   // 387: white.finance.v1.TaxSetupService.DeleteTaxCode:input_type -> white.finance.v1.IdRequest
-	8,   // 388: white.finance.v1.TaxSetupService.DeleteChargeType:input_type -> white.finance.v1.IdRequest
-	8,   // 389: white.finance.v1.TaxSetupService.DeleteFiscalPosition:input_type -> white.finance.v1.IdRequest
-	8,   // 390: white.finance.v1.TaxSetupService.DeletePartyProfile:input_type -> white.finance.v1.IdRequest
-	221, // 391: white.finance.v1.TaxSetupService.ListChargeTypes:input_type -> white.finance.v1.ListTaxMasterRequest
-	220, // 392: white.finance.v1.TaxSetupService.SaveChargeType:input_type -> white.finance.v1.ChargeType
-	95,  // 393: white.finance.v1.TaxSetupService.GetTaxRegister:input_type -> white.finance.v1.PeriodRequest
-	231, // 394: white.finance.v1.TaxSetupService.ExportTaxData:input_type -> white.finance.v1.TaxExportRequest
-	255, // 395: white.finance.v1.TaxSetupService.ListFiscalPositions:input_type -> google.protobuf.Empty
-	227, // 396: white.finance.v1.TaxSetupService.SaveFiscalPosition:input_type -> white.finance.v1.FiscalPosition
-	255, // 397: white.finance.v1.TaxSetupService.ListPartyProfiles:input_type -> google.protobuf.Empty
-	229, // 398: white.finance.v1.TaxSetupService.SavePartyProfile:input_type -> white.finance.v1.PartyTaxProfile
-	233, // 399: white.finance.v1.TaxSetupService.CreateCreditNote:input_type -> white.finance.v1.CreditNoteRequest
-	235, // 400: white.finance.v1.ProjectTagService.ListProjectTags:input_type -> white.finance.v1.ListProjectTagsRequest
-	234, // 401: white.finance.v1.ProjectTagService.SaveProjectTag:input_type -> white.finance.v1.ProjectTag
-	8,   // 402: white.finance.v1.ProjectTagService.DeleteProjectTag:input_type -> white.finance.v1.IdRequest
-	237, // 403: white.finance.v1.ProjectTagService.GetProjectProfit:input_type -> white.finance.v1.ProjectProfitRequest
-	246, // 404: white.finance.v1.AdvanceService.ListAdvances:input_type -> white.finance.v1.ListAdvancesRequest
-	245, // 405: white.finance.v1.AdvanceService.CreateAdvance:input_type -> white.finance.v1.AdvanceInput
-	248, // 406: white.finance.v1.AdvanceService.ApplyAdvance:input_type -> white.finance.v1.ApplyAdvanceRequest
-	249, // 407: white.finance.v1.AdvanceService.VoidAdvance:input_type -> white.finance.v1.VoidAdvanceRequest
-	156, // 408: white.finance.v1.AnalysisService.GetFinancialAnalysis:input_type -> white.finance.v1.FinancialAnalysisRequest
-	160, // 409: white.finance.v1.AnalysisService.GenerateFinancialInsight:input_type -> white.finance.v1.GenerateFinancialInsightRequest
-	162, // 410: white.finance.v1.AnalysisService.ListFinancialInsights:input_type -> white.finance.v1.ListFinancialInsightsRequest
-	164, // 411: white.finance.v1.AnalysisService.GetRatioTrend:input_type -> white.finance.v1.RatioTrendRequest
-	13,  // 412: white.finance.v1.AccountService.ListAccountTypes:output_type -> white.finance.v1.ListAccountTypesResponse
-	9,   // 413: white.finance.v1.AccountService.CreateAccountType:output_type -> white.finance.v1.AccountType
-	9,   // 414: white.finance.v1.AccountService.UpdateAccountType:output_type -> white.finance.v1.AccountType
-	255, // 415: white.finance.v1.AccountService.DeleteAccountType:output_type -> google.protobuf.Empty
-	18,  // 416: white.finance.v1.AccountService.ListAccounts:output_type -> white.finance.v1.ListAccountsResponse
-	14,  // 417: white.finance.v1.AccountService.GetAccount:output_type -> white.finance.v1.Account
-	14,  // 418: white.finance.v1.AccountService.CreateAccount:output_type -> white.finance.v1.Account
-	14,  // 419: white.finance.v1.AccountService.UpdateAccount:output_type -> white.finance.v1.Account
-	255, // 420: white.finance.v1.AccountService.DeleteAccount:output_type -> google.protobuf.Empty
-	22,  // 421: white.finance.v1.AccountService.ImportAccounts:output_type -> white.finance.v1.ImportAccountsResponse
-	24,  // 422: white.finance.v1.AccountService.ListPostableAccounts:output_type -> white.finance.v1.ListPostableAccountsResponse
-	26,  // 423: white.finance.v1.AccountService.ListJournalEvents:output_type -> white.finance.v1.ListJournalEventsResponse
-	33,  // 424: white.finance.v1.AccountService.ListJournalMappings:output_type -> white.finance.v1.ListJournalMappingsResponse
-	28,  // 425: white.finance.v1.AccountService.GetJournalMapping:output_type -> white.finance.v1.JournalMapping
-	28,  // 426: white.finance.v1.AccountService.CreateJournalMapping:output_type -> white.finance.v1.JournalMapping
-	28,  // 427: white.finance.v1.AccountService.UpdateJournalMapping:output_type -> white.finance.v1.JournalMapping
-	255, // 428: white.finance.v1.AccountService.DeleteJournalMapping:output_type -> google.protobuf.Empty
-	40,  // 429: white.finance.v1.FiscalService.ListFiscalYears:output_type -> white.finance.v1.ListFiscalYearsResponse
-	35,  // 430: white.finance.v1.FiscalService.GetFiscalYear:output_type -> white.finance.v1.FiscalYear
-	35,  // 431: white.finance.v1.FiscalService.CreateFiscalYear:output_type -> white.finance.v1.FiscalYear
-	35,  // 432: white.finance.v1.FiscalService.UpdateFiscalYear:output_type -> white.finance.v1.FiscalYear
-	255, // 433: white.finance.v1.FiscalService.DeleteFiscalYear:output_type -> google.protobuf.Empty
-	42,  // 434: white.finance.v1.FiscalService.ListFiscalPeriods:output_type -> white.finance.v1.ListFiscalPeriodsResponse
-	34,  // 435: white.finance.v1.FiscalService.OpenFiscalPeriod:output_type -> white.finance.v1.FiscalPeriod
-	45,  // 436: white.finance.v1.FiscalService.GetPeriodClosePreview:output_type -> white.finance.v1.PeriodClosePreview
-	34,  // 437: white.finance.v1.FiscalService.CloseFiscalPeriod:output_type -> white.finance.v1.FiscalPeriod
-	47,  // 438: white.finance.v1.FiscalService.GetFiscalCoverage:output_type -> white.finance.v1.FiscalCoverage
-	50,  // 439: white.finance.v1.FiscalService.GetBeginningBalance:output_type -> white.finance.v1.BeginningBalance
-	53,  // 440: white.finance.v1.FiscalService.SaveBeginningBalance:output_type -> white.finance.v1.SaveBeginningBalanceResponse
-	60,  // 441: white.finance.v1.JournalService.ListJournalEntries:output_type -> white.finance.v1.ListJournalEntriesResponse
-	55,  // 442: white.finance.v1.JournalService.GetJournalEntry:output_type -> white.finance.v1.JournalEntry
-	55,  // 443: white.finance.v1.JournalService.CreateJournalEntry:output_type -> white.finance.v1.JournalEntry
-	55,  // 444: white.finance.v1.JournalService.UpdateJournalEntry:output_type -> white.finance.v1.JournalEntry
-	255, // 445: white.finance.v1.JournalService.DeleteJournalEntry:output_type -> google.protobuf.Empty
-	55,  // 446: white.finance.v1.JournalService.PostJournalEntry:output_type -> white.finance.v1.JournalEntry
-	63,  // 447: white.finance.v1.JournalService.ListPostingLogs:output_type -> white.finance.v1.ListPostingLogsResponse
-	61,  // 448: white.finance.v1.JournalService.RetryPosting:output_type -> white.finance.v1.PostingLog
-	65,  // 449: white.finance.v1.CashBankService.ListCashBankAccounts:output_type -> white.finance.v1.ListCashBankAccountsResponse
-	68,  // 450: white.finance.v1.CashBankService.GetCashBankLedger:output_type -> white.finance.v1.Ledger
-	72,  // 451: white.finance.v1.CashBankService.ListCashMovements:output_type -> white.finance.v1.ListCashMovementsResponse
-	70,  // 452: white.finance.v1.CashBankService.CreateCashMovement:output_type -> white.finance.v1.CashMovement
-	75,  // 453: white.finance.v1.CashBankService.ListCashTransfers:output_type -> white.finance.v1.ListCashTransfersResponse
-	74,  // 454: white.finance.v1.CashBankService.CreateCashTransfer:output_type -> white.finance.v1.CashTransfer
-	80,  // 455: white.finance.v1.PayableService.ListApInvoices:output_type -> white.finance.v1.ListInvoicesResponse
-	76,  // 456: white.finance.v1.PayableService.GetApInvoice:output_type -> white.finance.v1.Invoice
-	76,  // 457: white.finance.v1.PayableService.CreateApInvoice:output_type -> white.finance.v1.Invoice
-	76,  // 458: white.finance.v1.PayableService.UpdateApInvoice:output_type -> white.finance.v1.Invoice
-	255, // 459: white.finance.v1.PayableService.DeleteApInvoice:output_type -> google.protobuf.Empty
-	91,  // 460: white.finance.v1.PayableService.PostApInvoice:output_type -> white.finance.v1.InvoiceResult
-	80,  // 461: white.finance.v1.PayableService.ListApPayable:output_type -> white.finance.v1.ListInvoicesResponse
-	83,  // 462: white.finance.v1.PayableService.GetApAging:output_type -> white.finance.v1.Aging
-	89,  // 463: white.finance.v1.PayableService.ListApPayments:output_type -> white.finance.v1.ListPaymentsResponse
-	90,  // 464: white.finance.v1.PayableService.CreateApPayment:output_type -> white.finance.v1.PaymentResult
-	90,  // 465: white.finance.v1.PayableService.VoidApPayment:output_type -> white.finance.v1.PaymentResult
-	80,  // 466: white.finance.v1.ReceivableService.ListArInvoices:output_type -> white.finance.v1.ListInvoicesResponse
-	76,  // 467: white.finance.v1.ReceivableService.GetArInvoice:output_type -> white.finance.v1.Invoice
-	76,  // 468: white.finance.v1.ReceivableService.GetArInvoiceBySalesInvoice:output_type -> white.finance.v1.Invoice
-	76,  // 469: white.finance.v1.ReceivableService.CreateArInvoice:output_type -> white.finance.v1.Invoice
-	76,  // 470: white.finance.v1.ReceivableService.UpdateArInvoice:output_type -> white.finance.v1.Invoice
-	255, // 471: white.finance.v1.ReceivableService.DeleteArInvoice:output_type -> google.protobuf.Empty
-	91,  // 472: white.finance.v1.ReceivableService.PostArInvoice:output_type -> white.finance.v1.InvoiceResult
-	80,  // 473: white.finance.v1.ReceivableService.ListArReceivable:output_type -> white.finance.v1.ListInvoicesResponse
-	83,  // 474: white.finance.v1.ReceivableService.GetArAging:output_type -> white.finance.v1.Aging
-	89,  // 475: white.finance.v1.ReceivableService.ListArReceipts:output_type -> white.finance.v1.ListPaymentsResponse
-	90,  // 476: white.finance.v1.ReceivableService.CreateArReceipt:output_type -> white.finance.v1.PaymentResult
-	90,  // 477: white.finance.v1.ReceivableService.VoidArReceipt:output_type -> white.finance.v1.PaymentResult
-	251, // 478: white.finance.v1.ReportService.GetSubledgerRecon:output_type -> white.finance.v1.SubledgerRecon
-	97,  // 479: white.finance.v1.ReportService.GetTrialBalance:output_type -> white.finance.v1.TrialBalance
-	98,  // 480: white.finance.v1.ReportService.GetBalanceSheet:output_type -> white.finance.v1.BalanceSheet
-	99,  // 481: white.finance.v1.ReportService.GetIncomeStatement:output_type -> white.finance.v1.IncomeStatement
-	194, // 482: white.finance.v1.ReportService.GetBudgetVsActual:output_type -> white.finance.v1.BudgetVsActual
-	197, // 483: white.finance.v1.ReportService.GetBudgetYear:output_type -> white.finance.v1.BudgetYear
-	197, // 484: white.finance.v1.ReportService.SaveBudgetYear:output_type -> white.finance.v1.BudgetYear
-	200, // 485: white.finance.v1.ReportService.GetEquityChanges:output_type -> white.finance.v1.EquityChanges
-	202, // 486: white.finance.v1.ReportService.GetClientEconomics:output_type -> white.finance.v1.ClientEconomicsReport
-	101, // 487: white.finance.v1.ReportService.GetCashFlow:output_type -> white.finance.v1.CashFlow
-	103, // 488: white.finance.v1.ReportService.ListGeneralLedgerAccounts:output_type -> white.finance.v1.ListGeneralLedgerAccountsResponse
-	68,  // 489: white.finance.v1.ReportService.GetGeneralLedger:output_type -> white.finance.v1.Ledger
-	106, // 490: white.finance.v1.ReportService.ListSubsidiaryParties:output_type -> white.finance.v1.ListSubsidiaryPartiesResponse
-	109, // 491: white.finance.v1.ReportService.GetSubsidiaryLedger:output_type -> white.finance.v1.SubsidiaryLedger
-	114, // 492: white.finance.v1.ReportService.GetDashboard:output_type -> white.finance.v1.Dashboard
-	121, // 493: white.finance.v1.ReportService.GetFinanceSummary:output_type -> white.finance.v1.FinanceSummary
-	122, // 494: white.finance.v1.ReportService.GetFinanceProfitability:output_type -> white.finance.v1.FinanceProfitability
-	124, // 495: white.finance.v1.ReportService.GetFinanceCashAnalytics:output_type -> white.finance.v1.FinanceCashAnalytics
-	128, // 496: white.finance.v1.ReportService.GetFinanceArAp:output_type -> white.finance.v1.FinanceArAp
-	130, // 497: white.finance.v1.ReportService.GetFinanceSpend:output_type -> white.finance.v1.FinanceSpend
-	143, // 498: white.finance.v1.ReimbursementService.ListMyClaims:output_type -> white.finance.v1.ListClaimsResponse
-	133, // 499: white.finance.v1.ReimbursementService.CreateClaim:output_type -> white.finance.v1.Claim
-	133, // 500: white.finance.v1.ReimbursementService.UpdateClaim:output_type -> white.finance.v1.Claim
-	133, // 501: white.finance.v1.ReimbursementService.UploadReceipt:output_type -> white.finance.v1.Claim
-	133, // 502: white.finance.v1.ReimbursementService.DeleteReceipt:output_type -> white.finance.v1.Claim
-	133, // 503: white.finance.v1.ReimbursementService.SubmitClaim:output_type -> white.finance.v1.Claim
-	133, // 504: white.finance.v1.ReimbursementService.CancelClaim:output_type -> white.finance.v1.Claim
-	133, // 505: white.finance.v1.ReimbursementService.GetClaim:output_type -> white.finance.v1.Claim
-	143, // 506: white.finance.v1.ReimbursementService.ListApprovalInbox:output_type -> white.finance.v1.ListClaimsResponse
-	133, // 507: white.finance.v1.ReimbursementService.ApproveClaim:output_type -> white.finance.v1.Claim
-	133, // 508: white.finance.v1.ReimbursementService.RejectClaim:output_type -> white.finance.v1.Claim
-	143, // 509: white.finance.v1.ReimbursementService.ListClaims:output_type -> white.finance.v1.ListClaimsResponse
-	145, // 510: white.finance.v1.ReimbursementService.PayClaims:output_type -> white.finance.v1.ReimbursementBatch
-	147, // 511: white.finance.v1.ReimbursementService.ListPaymentBatches:output_type -> white.finance.v1.ListPaymentBatchesResponse
-	150, // 512: white.finance.v1.ReimbursementService.GetMonthlySummary:output_type -> white.finance.v1.MonthlySummary
-	169, // 513: white.finance.v1.ReimbursementService.ListClaimPayAccounts:output_type -> white.finance.v1.ListClaimPayAccountsResponse
-	153, // 514: white.finance.v1.ReimbursementService.ListPolicies:output_type -> white.finance.v1.ListPoliciesResponse
-	151, // 515: white.finance.v1.ReimbursementService.UpdatePolicy:output_type -> white.finance.v1.ReimbursementPolicy
-	155, // 516: white.finance.v1.ReimbursementService.GetReceiptFile:output_type -> white.finance.v1.ReceiptFile
-	171, // 517: white.finance.v1.BankReconService.ListReconAccounts:output_type -> white.finance.v1.ListReconAccountsResponse
-	174, // 518: white.finance.v1.BankReconService.ListStatementLines:output_type -> white.finance.v1.ListStatementLinesResponse
-	176, // 519: white.finance.v1.BankReconService.ImportStatement:output_type -> white.finance.v1.ImportStatementResponse
-	176, // 520: white.finance.v1.BankReconService.RematchStatements:output_type -> white.finance.v1.ImportStatementResponse
-	179, // 521: white.finance.v1.BankReconService.ListMatchCandidates:output_type -> white.finance.v1.ListMatchCandidatesResponse
-	172, // 522: white.finance.v1.BankReconService.MatchStatementLine:output_type -> white.finance.v1.StatementLine
-	172, // 523: white.finance.v1.BankReconService.RecordStatementLine:output_type -> white.finance.v1.StatementLine
-	172, // 524: white.finance.v1.BankReconService.IgnoreStatementLine:output_type -> white.finance.v1.StatementLine
-	172, // 525: white.finance.v1.BankReconService.ReopenStatementLine:output_type -> white.finance.v1.StatementLine
-	188, // 526: white.finance.v1.ScheduleService.ListRecurringJournals:output_type -> white.finance.v1.ListRecurringJournalsResponse
-	184, // 527: white.finance.v1.ScheduleService.CreateRecurringJournal:output_type -> white.finance.v1.RecurringJournal
-	184, // 528: white.finance.v1.ScheduleService.UpdateRecurringJournal:output_type -> white.finance.v1.RecurringJournal
-	184, // 529: white.finance.v1.ScheduleService.SetRecurringJournalActive:output_type -> white.finance.v1.RecurringJournal
-	255, // 530: white.finance.v1.ScheduleService.DeleteRecurringJournal:output_type -> google.protobuf.Empty
-	191, // 531: white.finance.v1.ScheduleService.ListFixedAssets:output_type -> white.finance.v1.ListFixedAssetsResponse
-	189, // 532: white.finance.v1.ScheduleService.CreateFixedAsset:output_type -> white.finance.v1.FixedAsset
-	243, // 533: white.finance.v1.ScheduleService.ListRecurringInvoices:output_type -> white.finance.v1.ListRecurringInvoicesResponse
-	240, // 534: white.finance.v1.ScheduleService.CreateRecurringInvoice:output_type -> white.finance.v1.RecurringInvoice
-	240, // 535: white.finance.v1.ScheduleService.UpdateRecurringInvoice:output_type -> white.finance.v1.RecurringInvoice
-	240, // 536: white.finance.v1.ScheduleService.SetRecurringInvoiceActive:output_type -> white.finance.v1.RecurringInvoice
-	255, // 537: white.finance.v1.ScheduleService.DeleteRecurringInvoice:output_type -> google.protobuf.Empty
-	189, // 538: white.finance.v1.ScheduleService.UpdateFixedAsset:output_type -> white.finance.v1.FixedAsset
-	189, // 539: white.finance.v1.ScheduleService.SetFixedAssetActive:output_type -> white.finance.v1.FixedAsset
-	255, // 540: white.finance.v1.ScheduleService.DeleteFixedAsset:output_type -> google.protobuf.Empty
-	192, // 541: white.finance.v1.ScheduleService.RunSchedules:output_type -> white.finance.v1.RunSchedulesResponse
-	206, // 542: white.finance.v1.DocumentService.ListVendors:output_type -> white.finance.v1.ListVendorsResponse
-	203, // 543: white.finance.v1.DocumentService.SaveVendor:output_type -> white.finance.v1.Vendor
-	255, // 544: white.finance.v1.DocumentService.DeleteVendor:output_type -> google.protobuf.Empty
-	213, // 545: white.finance.v1.DocumentService.ListDocuments:output_type -> white.finance.v1.ListDocumentsResponse
-	208, // 546: white.finance.v1.DocumentService.GetDocument:output_type -> white.finance.v1.FinanceDocument
-	208, // 547: white.finance.v1.DocumentService.CreateDocument:output_type -> white.finance.v1.FinanceDocument
-	208, // 548: white.finance.v1.DocumentService.UpdateDocument:output_type -> white.finance.v1.FinanceDocument
-	255, // 549: white.finance.v1.DocumentService.DeleteDocument:output_type -> google.protobuf.Empty
-	208, // 550: white.finance.v1.DocumentService.ActOnDocument:output_type -> white.finance.v1.FinanceDocument
-	208, // 551: white.finance.v1.DocumentService.ConvertDocument:output_type -> white.finance.v1.FinanceDocument
-	208, // 552: white.finance.v1.DocumentService.IssueDocument:output_type -> white.finance.v1.FinanceDocument
-	217, // 553: white.finance.v1.DocumentService.RenderDocumentPdf:output_type -> white.finance.v1.DocumentPdf
-	222, // 554: white.finance.v1.TaxSetupService.ListTaxCodes:output_type -> white.finance.v1.ListTaxCodesResponse
-	218, // 555: white.finance.v1.TaxSetupService.SaveTaxCode:output_type -> white.finance.v1.TaxCode
-	255, // 556: white.finance.v1.TaxSetupService.DeleteTaxCode:output_type -> google.protobuf.Empty
-	255, // 557: white.finance.v1.TaxSetupService.DeleteChargeType:output_type -> google.protobuf.Empty
-	255, // 558: white.finance.v1.TaxSetupService.DeleteFiscalPosition:output_type -> google.protobuf.Empty
-	255, // 559: white.finance.v1.TaxSetupService.DeletePartyProfile:output_type -> google.protobuf.Empty
-	223, // 560: white.finance.v1.TaxSetupService.ListChargeTypes:output_type -> white.finance.v1.ListChargeTypesResponse
-	220, // 561: white.finance.v1.TaxSetupService.SaveChargeType:output_type -> white.finance.v1.ChargeType
-	225, // 562: white.finance.v1.TaxSetupService.GetTaxRegister:output_type -> white.finance.v1.TaxRegister
-	232, // 563: white.finance.v1.TaxSetupService.ExportTaxData:output_type -> white.finance.v1.TaxExportFile
-	228, // 564: white.finance.v1.TaxSetupService.ListFiscalPositions:output_type -> white.finance.v1.ListFiscalPositionsResponse
-	227, // 565: white.finance.v1.TaxSetupService.SaveFiscalPosition:output_type -> white.finance.v1.FiscalPosition
-	230, // 566: white.finance.v1.TaxSetupService.ListPartyProfiles:output_type -> white.finance.v1.ListPartyProfilesResponse
-	229, // 567: white.finance.v1.TaxSetupService.SavePartyProfile:output_type -> white.finance.v1.PartyTaxProfile
-	76,  // 568: white.finance.v1.TaxSetupService.CreateCreditNote:output_type -> white.finance.v1.Invoice
-	236, // 569: white.finance.v1.ProjectTagService.ListProjectTags:output_type -> white.finance.v1.ListProjectTagsResponse
-	234, // 570: white.finance.v1.ProjectTagService.SaveProjectTag:output_type -> white.finance.v1.ProjectTag
-	255, // 571: white.finance.v1.ProjectTagService.DeleteProjectTag:output_type -> google.protobuf.Empty
-	239, // 572: white.finance.v1.ProjectTagService.GetProjectProfit:output_type -> white.finance.v1.ProjectProfit
-	247, // 573: white.finance.v1.AdvanceService.ListAdvances:output_type -> white.finance.v1.ListAdvancesResponse
-	244, // 574: white.finance.v1.AdvanceService.CreateAdvance:output_type -> white.finance.v1.Advance
-	76,  // 575: white.finance.v1.AdvanceService.ApplyAdvance:output_type -> white.finance.v1.Invoice
-	244, // 576: white.finance.v1.AdvanceService.VoidAdvance:output_type -> white.finance.v1.Advance
-	159, // 577: white.finance.v1.AnalysisService.GetFinancialAnalysis:output_type -> white.finance.v1.FinancialAnalysis
-	161, // 578: white.finance.v1.AnalysisService.GenerateFinancialInsight:output_type -> white.finance.v1.FinancialInsight
-	163, // 579: white.finance.v1.AnalysisService.ListFinancialInsights:output_type -> white.finance.v1.ListFinancialInsightsResponse
-	167, // 580: white.finance.v1.AnalysisService.GetRatioTrend:output_type -> white.finance.v1.RatioTrend
-	412, // [412:581] is the sub-list for method output_type
-	243, // [243:412] is the sub-list for method input_type
-	243, // [243:243] is the sub-list for extension type_name
-	243, // [243:243] is the sub-list for extension extendee
-	0,   // [0:243] is the sub-list for field type_name
+	274, // 93: white.finance.v1.Payment.voided_at:type_name -> google.protobuf.Timestamp
+	274, // 94: white.finance.v1.Payment.created_at:type_name -> google.protobuf.Timestamp
+	252, // 95: white.finance.v1.Payment.adjustments:type_name -> white.finance.v1.PaymentAdjustment
+	87,  // 96: white.finance.v1.PaymentInput.allocations:type_name -> white.finance.v1.AllocationInput
+	253, // 97: white.finance.v1.PaymentInput.adjustments:type_name -> white.finance.v1.PaymentAdjustmentInput
+	85,  // 98: white.finance.v1.ListPaymentsResponse.payments:type_name -> white.finance.v1.Payment
+	85,  // 99: white.finance.v1.PaymentResult.payment:type_name -> white.finance.v1.Payment
+	76,  // 100: white.finance.v1.PaymentResult.invoices:type_name -> white.finance.v1.Invoice
+	76,  // 101: white.finance.v1.InvoiceResult.invoice:type_name -> white.finance.v1.Invoice
+	0,   // 102: white.finance.v1.AccountBalance.normal_balance:type_name -> white.finance.v1.EntrySide
+	96,  // 103: white.finance.v1.TrialBalance.rows:type_name -> white.finance.v1.AccountBalance
+	96,  // 104: white.finance.v1.BalanceSheet.assets:type_name -> white.finance.v1.AccountBalance
+	96,  // 105: white.finance.v1.BalanceSheet.liabilities:type_name -> white.finance.v1.AccountBalance
+	96,  // 106: white.finance.v1.BalanceSheet.equity:type_name -> white.finance.v1.AccountBalance
+	96,  // 107: white.finance.v1.IncomeStatement.revenue:type_name -> white.finance.v1.AccountBalance
+	96,  // 108: white.finance.v1.IncomeStatement.cogs:type_name -> white.finance.v1.AccountBalance
+	96,  // 109: white.finance.v1.IncomeStatement.expenses:type_name -> white.finance.v1.AccountBalance
+	96,  // 110: white.finance.v1.IncomeStatement.other_income:type_name -> white.finance.v1.AccountBalance
+	96,  // 111: white.finance.v1.IncomeStatement.other_expenses:type_name -> white.finance.v1.AccountBalance
+	96,  // 112: white.finance.v1.CashFlowSection.rows:type_name -> white.finance.v1.AccountBalance
+	100, // 113: white.finance.v1.CashFlow.operating:type_name -> white.finance.v1.CashFlowSection
+	100, // 114: white.finance.v1.CashFlow.investing:type_name -> white.finance.v1.CashFlowSection
+	100, // 115: white.finance.v1.CashFlow.financing:type_name -> white.finance.v1.CashFlowSection
+	100, // 116: white.finance.v1.CashFlow.non_cash:type_name -> white.finance.v1.CashFlowSection
+	102, // 117: white.finance.v1.ListGeneralLedgerAccountsResponse.accounts:type_name -> white.finance.v1.GeneralLedgerAccount
+	4,   // 118: white.finance.v1.ListSubsidiaryPartiesRequest.kind:type_name -> white.finance.v1.LedgerKind
+	105, // 119: white.finance.v1.ListSubsidiaryPartiesResponse.parties:type_name -> white.finance.v1.SubsidiaryParty
+	4,   // 120: white.finance.v1.SubsidiaryLedgerRequest.kind:type_name -> white.finance.v1.LedgerKind
+	4,   // 121: white.finance.v1.SubsidiaryLedger.kind:type_name -> white.finance.v1.LedgerKind
+	108, // 122: white.finance.v1.SubsidiaryLedger.lines:type_name -> white.finance.v1.SubsidiaryLine
+	113, // 123: white.finance.v1.Dashboard.kpis:type_name -> white.finance.v1.DashboardKpis
+	111, // 124: white.finance.v1.Dashboard.balance_composition:type_name -> white.finance.v1.NameValue
+	111, // 125: white.finance.v1.Dashboard.pnl_breakdown:type_name -> white.finance.v1.NameValue
+	111, // 126: white.finance.v1.Dashboard.cash_flow_breakdown:type_name -> white.finance.v1.NameValue
+	112, // 127: white.finance.v1.Dashboard.monthly_trend:type_name -> white.finance.v1.MonthTrend
+	111, // 128: white.finance.v1.Dashboard.top_expense_accounts:type_name -> white.finance.v1.NameValue
+	116, // 129: white.finance.v1.FinanceSummary.window:type_name -> white.finance.v1.AnalyticsWindow
+	117, // 130: white.finance.v1.FinanceSummary.kpis:type_name -> white.finance.v1.AnalyticsKpi
+	118, // 131: white.finance.v1.FinanceSummary.pnl:type_name -> white.finance.v1.AnalyticsSeries
+	118, // 132: white.finance.v1.FinanceSummary.cash:type_name -> white.finance.v1.AnalyticsSeries
+	119, // 133: white.finance.v1.FinanceSummary.assets:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 134: white.finance.v1.FinanceSummary.liabilities:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 135: white.finance.v1.FinanceSummary.equity:type_name -> white.finance.v1.AnalyticsAmount
+	116, // 136: white.finance.v1.FinanceProfitability.window:type_name -> white.finance.v1.AnalyticsWindow
+	117, // 137: white.finance.v1.FinanceProfitability.kpis:type_name -> white.finance.v1.AnalyticsKpi
+	120, // 138: white.finance.v1.FinanceProfitability.waterfall:type_name -> white.finance.v1.WaterfallStep
+	118, // 139: white.finance.v1.FinanceProfitability.pnl:type_name -> white.finance.v1.AnalyticsSeries
+	119, // 140: white.finance.v1.FinanceProfitability.revenue_accounts:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 141: white.finance.v1.FinanceProfitability.revenue_clients:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 142: white.finance.v1.FinanceProfitability.expense_groups:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 143: white.finance.v1.FinanceProfitability.expense_accounts:type_name -> white.finance.v1.AnalyticsAmount
+	118, // 144: white.finance.v1.FinanceProfitability.account_months:type_name -> white.finance.v1.AnalyticsSeries
+	116, // 145: white.finance.v1.FinanceCashAnalytics.window:type_name -> white.finance.v1.AnalyticsWindow
+	117, // 146: white.finance.v1.FinanceCashAnalytics.kpis:type_name -> white.finance.v1.AnalyticsKpi
+	118, // 147: white.finance.v1.FinanceCashAnalytics.flows:type_name -> white.finance.v1.AnalyticsSeries
+	118, // 148: white.finance.v1.FinanceCashAnalytics.balances:type_name -> white.finance.v1.AnalyticsSeries
+	120, // 149: white.finance.v1.FinanceCashAnalytics.bridge:type_name -> white.finance.v1.WaterfallStep
+	123, // 150: white.finance.v1.FinanceCashAnalytics.accounts:type_name -> white.finance.v1.CashAccountSummary
+	116, // 151: white.finance.v1.FinanceArAp.window:type_name -> white.finance.v1.AnalyticsWindow
+	117, // 152: white.finance.v1.FinanceArAp.kpis:type_name -> white.finance.v1.AnalyticsKpi
+	125, // 153: white.finance.v1.FinanceArAp.aging:type_name -> white.finance.v1.AgingRow
+	118, // 154: white.finance.v1.FinanceArAp.ar_aging_trend:type_name -> white.finance.v1.AnalyticsSeries
+	118, // 155: white.finance.v1.FinanceArAp.ap_aging_trend:type_name -> white.finance.v1.AnalyticsSeries
+	118, // 156: white.finance.v1.FinanceArAp.days:type_name -> white.finance.v1.AnalyticsSeries
+	126, // 157: white.finance.v1.FinanceArAp.customers:type_name -> white.finance.v1.PartyBalance
+	126, // 158: white.finance.v1.FinanceArAp.vendors:type_name -> white.finance.v1.PartyBalance
+	127, // 159: white.finance.v1.FinanceArAp.overdue:type_name -> white.finance.v1.OverdueInvoice
+	116, // 160: white.finance.v1.FinanceSpend.window:type_name -> white.finance.v1.AnalyticsWindow
+	117, // 161: white.finance.v1.FinanceSpend.kpis:type_name -> white.finance.v1.AnalyticsKpi
+	118, // 162: white.finance.v1.FinanceSpend.expense_groups:type_name -> white.finance.v1.AnalyticsSeries
+	118, // 163: white.finance.v1.FinanceSpend.claim_categories:type_name -> white.finance.v1.AnalyticsSeries
+	119, // 164: white.finance.v1.FinanceSpend.by_category:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 165: white.finance.v1.FinanceSpend.by_department:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 166: white.finance.v1.FinanceSpend.by_status:type_name -> white.finance.v1.AnalyticsAmount
+	119, // 167: white.finance.v1.FinanceSpend.lead_time:type_name -> white.finance.v1.AnalyticsAmount
+	118, // 168: white.finance.v1.FinanceSpend.lead_time_trend:type_name -> white.finance.v1.AnalyticsSeries
+	129, // 169: white.finance.v1.FinanceSpend.pending:type_name -> white.finance.v1.ClaimSummary
+	274, // 170: white.finance.v1.ClaimReceipt.created_at:type_name -> google.protobuf.Timestamp
+	274, // 171: white.finance.v1.ClaimHistory.created_at:type_name -> google.protobuf.Timestamp
+	6,   // 172: white.finance.v1.Claim.category:type_name -> white.finance.v1.ClaimCategory
+	7,   // 173: white.finance.v1.Claim.status:type_name -> white.finance.v1.ClaimStatus
+	131, // 174: white.finance.v1.Claim.receipts:type_name -> white.finance.v1.ClaimReceipt
+	132, // 175: white.finance.v1.Claim.history:type_name -> white.finance.v1.ClaimHistory
+	274, // 176: white.finance.v1.Claim.submitted_at:type_name -> google.protobuf.Timestamp
+	274, // 177: white.finance.v1.Claim.paid_at:type_name -> google.protobuf.Timestamp
+	274, // 178: white.finance.v1.Claim.created_at:type_name -> google.protobuf.Timestamp
+	274, // 179: white.finance.v1.Claim.updated_at:type_name -> google.protobuf.Timestamp
+	134, // 180: white.finance.v1.Claim.duplicates:type_name -> white.finance.v1.ClaimDuplicate
+	6,   // 181: white.finance.v1.ClaimInput.category:type_name -> white.finance.v1.ClaimCategory
+	135, // 182: white.finance.v1.UpdateClaimRequest.input:type_name -> white.finance.v1.ClaimInput
+	7,   // 183: white.finance.v1.ListMyClaimsRequest.status:type_name -> white.finance.v1.ClaimStatus
+	7,   // 184: white.finance.v1.ListClaimsRequest.status:type_name -> white.finance.v1.ClaimStatus
+	6,   // 185: white.finance.v1.ListClaimsRequest.category:type_name -> white.finance.v1.ClaimCategory
+	133, // 186: white.finance.v1.ListClaimsResponse.claims:type_name -> white.finance.v1.Claim
+	274, // 187: white.finance.v1.ReimbursementBatch.created_at:type_name -> google.protobuf.Timestamp
+	145, // 188: white.finance.v1.ListPaymentBatchesResponse.batches:type_name -> white.finance.v1.ReimbursementBatch
+	6,   // 189: white.finance.v1.MonthlySummaryRow.category:type_name -> white.finance.v1.ClaimCategory
+	149, // 190: white.finance.v1.MonthlySummary.rows:type_name -> white.finance.v1.MonthlySummaryRow
+	6,   // 191: white.finance.v1.ReimbursementPolicy.category:type_name -> white.finance.v1.ClaimCategory
+	6,   // 192: white.finance.v1.PolicyInput.category:type_name -> white.finance.v1.ClaimCategory
+	151, // 193: white.finance.v1.ListPoliciesResponse.policies:type_name -> white.finance.v1.ReimbursementPolicy
+	275, // 194: white.finance.v1.Metric.delta:type_name -> white.common.v1.Delta
+	275, // 195: white.finance.v1.ExpenseItem.delta:type_name -> white.common.v1.Delta
+	276, // 196: white.finance.v1.FinancialAnalysis.current:type_name -> white.common.v1.DateRange
+	276, // 197: white.finance.v1.FinancialAnalysis.previous:type_name -> white.common.v1.DateRange
+	157, // 198: white.finance.v1.FinancialAnalysis.profitability:type_name -> white.finance.v1.Metric
+	157, // 199: white.finance.v1.FinancialAnalysis.liquidity:type_name -> white.finance.v1.Metric
+	157, // 200: white.finance.v1.FinancialAnalysis.leverage:type_name -> white.finance.v1.Metric
+	157, // 201: white.finance.v1.FinancialAnalysis.efficiency:type_name -> white.finance.v1.Metric
+	157, // 202: white.finance.v1.FinancialAnalysis.cash:type_name -> white.finance.v1.Metric
+	158, // 203: white.finance.v1.FinancialAnalysis.expense_breakdown:type_name -> white.finance.v1.ExpenseItem
+	158, // 204: white.finance.v1.FinancialAnalysis.top_movers:type_name -> white.finance.v1.ExpenseItem
+	274, // 205: white.finance.v1.FinancialInsight.created_at:type_name -> google.protobuf.Timestamp
+	161, // 206: white.finance.v1.ListFinancialInsightsResponse.insights:type_name -> white.finance.v1.FinancialInsight
+	165, // 207: white.finance.v1.RatioTrendSeries.points:type_name -> white.finance.v1.RatioPoint
+	166, // 208: white.finance.v1.RatioTrend.series:type_name -> white.finance.v1.RatioTrendSeries
+	168, // 209: white.finance.v1.ListClaimPayAccountsResponse.accounts:type_name -> white.finance.v1.ClaimPayAccount
+	170, // 210: white.finance.v1.ListReconAccountsResponse.accounts:type_name -> white.finance.v1.ReconAccount
+	274, // 211: white.finance.v1.StatementLine.verified_at:type_name -> google.protobuf.Timestamp
+	172, // 212: white.finance.v1.ListStatementLinesResponse.lines:type_name -> white.finance.v1.StatementLine
+	178, // 213: white.finance.v1.ListMatchCandidatesResponse.candidates:type_name -> white.finance.v1.MatchCandidate
+	56,  // 214: white.finance.v1.RecurringJournal.lines:type_name -> white.finance.v1.JournalLineInput
+	56,  // 215: white.finance.v1.RecurringJournalInput.lines:type_name -> white.finance.v1.JournalLineInput
+	185, // 216: white.finance.v1.UpdateRecurringJournalRequest.input:type_name -> white.finance.v1.RecurringJournalInput
+	190, // 217: white.finance.v1.UpdateFixedAssetRequest.input:type_name -> white.finance.v1.FixedAssetInput
+	184, // 218: white.finance.v1.ListRecurringJournalsResponse.journals:type_name -> white.finance.v1.RecurringJournal
+	189, // 219: white.finance.v1.ListFixedAssetsResponse.assets:type_name -> white.finance.v1.FixedAsset
+	193, // 220: white.finance.v1.BudgetVsActual.rows:type_name -> white.finance.v1.BudgetRow
+	196, // 221: white.finance.v1.BudgetYear.entries:type_name -> white.finance.v1.BudgetEntry
+	196, // 222: white.finance.v1.SaveBudgetYearRequest.entries:type_name -> white.finance.v1.BudgetEntry
+	199, // 223: white.finance.v1.EquityChanges.rows:type_name -> white.finance.v1.EquityRow
+	201, // 224: white.finance.v1.ClientEconomicsReport.clients:type_name -> white.finance.v1.ClientEconomicsRow
+	203, // 225: white.finance.v1.ListVendorsResponse.vendors:type_name -> white.finance.v1.Vendor
+	207, // 226: white.finance.v1.FinanceDocument.items:type_name -> white.finance.v1.DocumentItem
+	209, // 227: white.finance.v1.FinanceDocument.taxes:type_name -> white.finance.v1.DocumentTax
+	210, // 228: white.finance.v1.FinanceDocument.charges:type_name -> white.finance.v1.DocumentCharge
+	207, // 229: white.finance.v1.DocumentInput.items:type_name -> white.finance.v1.DocumentItem
+	210, // 230: white.finance.v1.DocumentInput.charges:type_name -> white.finance.v1.DocumentCharge
+	208, // 231: white.finance.v1.ListDocumentsResponse.documents:type_name -> white.finance.v1.FinanceDocument
+	219, // 232: white.finance.v1.TaxCode.brackets:type_name -> white.finance.v1.TaxBracketMsg
+	218, // 233: white.finance.v1.ListTaxCodesResponse.taxes:type_name -> white.finance.v1.TaxCode
+	220, // 234: white.finance.v1.ListChargeTypesResponse.charges:type_name -> white.finance.v1.ChargeType
+	224, // 235: white.finance.v1.TaxRegister.rows:type_name -> white.finance.v1.TaxRegisterRow
+	226, // 236: white.finance.v1.FiscalPosition.rules:type_name -> white.finance.v1.FiscalRuleMsg
+	227, // 237: white.finance.v1.ListFiscalPositionsResponse.positions:type_name -> white.finance.v1.FiscalPosition
+	229, // 238: white.finance.v1.ListPartyProfilesResponse.profiles:type_name -> white.finance.v1.PartyTaxProfile
+	234, // 239: white.finance.v1.ListProjectTagsResponse.tags:type_name -> white.finance.v1.ProjectTag
+	238, // 240: white.finance.v1.ProjectProfit.rows:type_name -> white.finance.v1.ProjectProfitRow
+	241, // 241: white.finance.v1.UpdateRecurringInvoiceRequest.input:type_name -> white.finance.v1.RecurringInvoiceInput
+	240, // 242: white.finance.v1.ListRecurringInvoicesResponse.invoices:type_name -> white.finance.v1.RecurringInvoice
+	254, // 243: white.finance.v1.Advance.refunds:type_name -> white.finance.v1.AdvanceRefund
+	244, // 244: white.finance.v1.ListAdvancesResponse.advances:type_name -> white.finance.v1.Advance
+	250, // 245: white.finance.v1.SubledgerRecon.rows:type_name -> white.finance.v1.SubledgerReconRow
+	256, // 246: white.finance.v1.ListDeferralsResponse.deferrals:type_name -> white.finance.v1.Deferral
+	261, // 247: white.finance.v1.ListTaxPositionsResponse.positions:type_name -> white.finance.v1.TaxPosition
+	264, // 248: white.finance.v1.ListTaxRemittancesResponse.remittances:type_name -> white.finance.v1.TaxRemittance
+	271, // 249: white.finance.v1.ListAuditTrailResponse.entries:type_name -> white.finance.v1.AuditEntry
+	12,  // 250: white.finance.v1.AccountService.ListAccountTypes:input_type -> white.finance.v1.ListAccountTypesRequest
+	10,  // 251: white.finance.v1.AccountService.CreateAccountType:input_type -> white.finance.v1.AccountTypeInput
+	11,  // 252: white.finance.v1.AccountService.UpdateAccountType:input_type -> white.finance.v1.UpdateAccountTypeRequest
+	8,   // 253: white.finance.v1.AccountService.DeleteAccountType:input_type -> white.finance.v1.IdRequest
+	17,  // 254: white.finance.v1.AccountService.ListAccounts:input_type -> white.finance.v1.ListAccountsRequest
+	8,   // 255: white.finance.v1.AccountService.GetAccount:input_type -> white.finance.v1.IdRequest
+	15,  // 256: white.finance.v1.AccountService.CreateAccount:input_type -> white.finance.v1.AccountInput
+	16,  // 257: white.finance.v1.AccountService.UpdateAccount:input_type -> white.finance.v1.UpdateAccountRequest
+	8,   // 258: white.finance.v1.AccountService.DeleteAccount:input_type -> white.finance.v1.IdRequest
+	19,  // 259: white.finance.v1.AccountService.ImportAccounts:input_type -> white.finance.v1.ImportAccountsRequest
+	277, // 260: white.finance.v1.AccountService.ListPostableAccounts:input_type -> google.protobuf.Empty
+	277, // 261: white.finance.v1.AccountService.ListJournalEvents:input_type -> google.protobuf.Empty
+	32,  // 262: white.finance.v1.AccountService.ListJournalMappings:input_type -> white.finance.v1.ListJournalMappingsRequest
+	8,   // 263: white.finance.v1.AccountService.GetJournalMapping:input_type -> white.finance.v1.IdRequest
+	30,  // 264: white.finance.v1.AccountService.CreateJournalMapping:input_type -> white.finance.v1.JournalMappingInput
+	31,  // 265: white.finance.v1.AccountService.UpdateJournalMapping:input_type -> white.finance.v1.UpdateJournalMappingRequest
+	8,   // 266: white.finance.v1.AccountService.DeleteJournalMapping:input_type -> white.finance.v1.IdRequest
+	39,  // 267: white.finance.v1.FiscalService.ListFiscalYears:input_type -> white.finance.v1.ListFiscalYearsRequest
+	8,   // 268: white.finance.v1.FiscalService.GetFiscalYear:input_type -> white.finance.v1.IdRequest
+	37,  // 269: white.finance.v1.FiscalService.CreateFiscalYear:input_type -> white.finance.v1.FiscalYearInput
+	38,  // 270: white.finance.v1.FiscalService.UpdateFiscalYear:input_type -> white.finance.v1.UpdateFiscalYearRequest
+	8,   // 271: white.finance.v1.FiscalService.DeleteFiscalYear:input_type -> white.finance.v1.IdRequest
+	41,  // 272: white.finance.v1.FiscalService.ListFiscalPeriods:input_type -> white.finance.v1.ListFiscalPeriodsRequest
+	43,  // 273: white.finance.v1.FiscalService.OpenFiscalPeriod:input_type -> white.finance.v1.OpenFiscalPeriodRequest
+	8,   // 274: white.finance.v1.FiscalService.GetPeriodClosePreview:input_type -> white.finance.v1.IdRequest
+	8,   // 275: white.finance.v1.FiscalService.CloseFiscalPeriod:input_type -> white.finance.v1.IdRequest
+	46,  // 276: white.finance.v1.FiscalService.GetFiscalCoverage:input_type -> white.finance.v1.GetFiscalCoverageRequest
+	8,   // 277: white.finance.v1.FiscalService.GetBeginningBalance:input_type -> white.finance.v1.IdRequest
+	52,  // 278: white.finance.v1.FiscalService.SaveBeginningBalance:input_type -> white.finance.v1.SaveBeginningBalanceRequest
+	59,  // 279: white.finance.v1.JournalService.ListJournalEntries:input_type -> white.finance.v1.ListJournalEntriesRequest
+	8,   // 280: white.finance.v1.JournalService.GetJournalEntry:input_type -> white.finance.v1.IdRequest
+	57,  // 281: white.finance.v1.JournalService.CreateJournalEntry:input_type -> white.finance.v1.JournalEntryInput
+	58,  // 282: white.finance.v1.JournalService.UpdateJournalEntry:input_type -> white.finance.v1.UpdateJournalEntryRequest
+	8,   // 283: white.finance.v1.JournalService.DeleteJournalEntry:input_type -> white.finance.v1.IdRequest
+	8,   // 284: white.finance.v1.JournalService.PostJournalEntry:input_type -> white.finance.v1.IdRequest
+	62,  // 285: white.finance.v1.JournalService.ListPostingLogs:input_type -> white.finance.v1.ListPostingLogsRequest
+	8,   // 286: white.finance.v1.JournalService.RetryPosting:input_type -> white.finance.v1.IdRequest
+	277, // 287: white.finance.v1.CashBankService.ListCashBankAccounts:input_type -> google.protobuf.Empty
+	66,  // 288: white.finance.v1.CashBankService.GetCashBankLedger:input_type -> white.finance.v1.LedgerRequest
+	71,  // 289: white.finance.v1.CashBankService.ListCashMovements:input_type -> white.finance.v1.ListCashMovementsRequest
+	69,  // 290: white.finance.v1.CashBankService.CreateCashMovement:input_type -> white.finance.v1.CashMovementInput
+	71,  // 291: white.finance.v1.CashBankService.ListCashTransfers:input_type -> white.finance.v1.ListCashMovementsRequest
+	73,  // 292: white.finance.v1.CashBankService.CreateCashTransfer:input_type -> white.finance.v1.CashTransferInput
+	79,  // 293: white.finance.v1.PayableService.ListApInvoices:input_type -> white.finance.v1.ListInvoicesRequest
+	8,   // 294: white.finance.v1.PayableService.GetApInvoice:input_type -> white.finance.v1.IdRequest
+	77,  // 295: white.finance.v1.PayableService.CreateApInvoice:input_type -> white.finance.v1.InvoiceInput
+	78,  // 296: white.finance.v1.PayableService.UpdateApInvoice:input_type -> white.finance.v1.UpdateInvoiceRequest
+	8,   // 297: white.finance.v1.PayableService.DeleteApInvoice:input_type -> white.finance.v1.IdRequest
+	8,   // 298: white.finance.v1.PayableService.PostApInvoice:input_type -> white.finance.v1.IdRequest
+	277, // 299: white.finance.v1.PayableService.ListApPayable:input_type -> google.protobuf.Empty
+	81,  // 300: white.finance.v1.PayableService.GetApAging:input_type -> white.finance.v1.AgingRequest
+	88,  // 301: white.finance.v1.PayableService.ListApPayments:input_type -> white.finance.v1.ListPaymentsRequest
+	86,  // 302: white.finance.v1.PayableService.CreateApPayment:input_type -> white.finance.v1.PaymentInput
+	92,  // 303: white.finance.v1.PayableService.VoidApPayment:input_type -> white.finance.v1.VoidPaymentRequest
+	79,  // 304: white.finance.v1.ReceivableService.ListArInvoices:input_type -> white.finance.v1.ListInvoicesRequest
+	8,   // 305: white.finance.v1.ReceivableService.GetArInvoice:input_type -> white.finance.v1.IdRequest
+	93,  // 306: white.finance.v1.ReceivableService.GetArInvoiceBySalesInvoice:input_type -> white.finance.v1.GetArInvoiceBySalesInvoiceRequest
+	77,  // 307: white.finance.v1.ReceivableService.CreateArInvoice:input_type -> white.finance.v1.InvoiceInput
+	78,  // 308: white.finance.v1.ReceivableService.UpdateArInvoice:input_type -> white.finance.v1.UpdateInvoiceRequest
+	8,   // 309: white.finance.v1.ReceivableService.DeleteArInvoice:input_type -> white.finance.v1.IdRequest
+	8,   // 310: white.finance.v1.ReceivableService.PostArInvoice:input_type -> white.finance.v1.IdRequest
+	277, // 311: white.finance.v1.ReceivableService.ListArReceivable:input_type -> google.protobuf.Empty
+	81,  // 312: white.finance.v1.ReceivableService.GetArAging:input_type -> white.finance.v1.AgingRequest
+	88,  // 313: white.finance.v1.ReceivableService.ListArReceipts:input_type -> white.finance.v1.ListPaymentsRequest
+	86,  // 314: white.finance.v1.ReceivableService.CreateArReceipt:input_type -> white.finance.v1.PaymentInput
+	92,  // 315: white.finance.v1.ReceivableService.VoidArReceipt:input_type -> white.finance.v1.VoidPaymentRequest
+	277, // 316: white.finance.v1.ReportService.GetSubledgerRecon:input_type -> google.protobuf.Empty
+	94,  // 317: white.finance.v1.ReportService.GetTrialBalance:input_type -> white.finance.v1.AsOfRequest
+	94,  // 318: white.finance.v1.ReportService.GetBalanceSheet:input_type -> white.finance.v1.AsOfRequest
+	95,  // 319: white.finance.v1.ReportService.GetIncomeStatement:input_type -> white.finance.v1.PeriodRequest
+	95,  // 320: white.finance.v1.ReportService.GetBudgetVsActual:input_type -> white.finance.v1.PeriodRequest
+	195, // 321: white.finance.v1.ReportService.GetBudgetYear:input_type -> white.finance.v1.BudgetYearRequest
+	198, // 322: white.finance.v1.ReportService.SaveBudgetYear:input_type -> white.finance.v1.SaveBudgetYearRequest
+	95,  // 323: white.finance.v1.ReportService.GetEquityChanges:input_type -> white.finance.v1.PeriodRequest
+	95,  // 324: white.finance.v1.ReportService.GetClientEconomics:input_type -> white.finance.v1.PeriodRequest
+	95,  // 325: white.finance.v1.ReportService.GetCashFlow:input_type -> white.finance.v1.PeriodRequest
+	94,  // 326: white.finance.v1.ReportService.ListGeneralLedgerAccounts:input_type -> white.finance.v1.AsOfRequest
+	66,  // 327: white.finance.v1.ReportService.GetGeneralLedger:input_type -> white.finance.v1.LedgerRequest
+	104, // 328: white.finance.v1.ReportService.ListSubsidiaryParties:input_type -> white.finance.v1.ListSubsidiaryPartiesRequest
+	107, // 329: white.finance.v1.ReportService.GetSubsidiaryLedger:input_type -> white.finance.v1.SubsidiaryLedgerRequest
+	110, // 330: white.finance.v1.ReportService.GetDashboard:input_type -> white.finance.v1.DashboardRequest
+	115, // 331: white.finance.v1.ReportService.GetFinanceSummary:input_type -> white.finance.v1.FinanceAnalyticsRequest
+	115, // 332: white.finance.v1.ReportService.GetFinanceProfitability:input_type -> white.finance.v1.FinanceAnalyticsRequest
+	115, // 333: white.finance.v1.ReportService.GetFinanceCashAnalytics:input_type -> white.finance.v1.FinanceAnalyticsRequest
+	115, // 334: white.finance.v1.ReportService.GetFinanceArAp:input_type -> white.finance.v1.FinanceAnalyticsRequest
+	115, // 335: white.finance.v1.ReportService.GetFinanceSpend:input_type -> white.finance.v1.FinanceAnalyticsRequest
+	141, // 336: white.finance.v1.ReimbursementService.ListMyClaims:input_type -> white.finance.v1.ListMyClaimsRequest
+	135, // 337: white.finance.v1.ReimbursementService.CreateClaim:input_type -> white.finance.v1.ClaimInput
+	136, // 338: white.finance.v1.ReimbursementService.UpdateClaim:input_type -> white.finance.v1.UpdateClaimRequest
+	137, // 339: white.finance.v1.ReimbursementService.UploadReceipt:input_type -> white.finance.v1.UploadReceiptRequest
+	138, // 340: white.finance.v1.ReimbursementService.DeleteReceipt:input_type -> white.finance.v1.DeleteReceiptRequest
+	8,   // 341: white.finance.v1.ReimbursementService.SubmitClaim:input_type -> white.finance.v1.IdRequest
+	8,   // 342: white.finance.v1.ReimbursementService.CancelClaim:input_type -> white.finance.v1.IdRequest
+	8,   // 343: white.finance.v1.ReimbursementService.GetClaim:input_type -> white.finance.v1.IdRequest
+	277, // 344: white.finance.v1.ReimbursementService.ListApprovalInbox:input_type -> google.protobuf.Empty
+	139, // 345: white.finance.v1.ReimbursementService.ApproveClaim:input_type -> white.finance.v1.ApproveClaimRequest
+	140, // 346: white.finance.v1.ReimbursementService.RejectClaim:input_type -> white.finance.v1.RejectClaimRequest
+	142, // 347: white.finance.v1.ReimbursementService.ListClaims:input_type -> white.finance.v1.ListClaimsRequest
+	144, // 348: white.finance.v1.ReimbursementService.PayClaims:input_type -> white.finance.v1.PayClaimsRequest
+	146, // 349: white.finance.v1.ReimbursementService.ListPaymentBatches:input_type -> white.finance.v1.ListPaymentBatchesRequest
+	148, // 350: white.finance.v1.ReimbursementService.GetMonthlySummary:input_type -> white.finance.v1.MonthlySummaryRequest
+	277, // 351: white.finance.v1.ReimbursementService.ListClaimPayAccounts:input_type -> google.protobuf.Empty
+	277, // 352: white.finance.v1.ReimbursementService.ListPolicies:input_type -> google.protobuf.Empty
+	152, // 353: white.finance.v1.ReimbursementService.UpdatePolicy:input_type -> white.finance.v1.PolicyInput
+	154, // 354: white.finance.v1.ReimbursementService.GetReceiptFile:input_type -> white.finance.v1.GetReceiptFileRequest
+	277, // 355: white.finance.v1.BankReconService.ListReconAccounts:input_type -> google.protobuf.Empty
+	173, // 356: white.finance.v1.BankReconService.ListStatementLines:input_type -> white.finance.v1.ListStatementLinesRequest
+	175, // 357: white.finance.v1.BankReconService.ImportStatement:input_type -> white.finance.v1.ImportStatementRequest
+	177, // 358: white.finance.v1.BankReconService.RematchStatements:input_type -> white.finance.v1.RematchRequest
+	8,   // 359: white.finance.v1.BankReconService.ListMatchCandidates:input_type -> white.finance.v1.IdRequest
+	180, // 360: white.finance.v1.BankReconService.MatchStatementLine:input_type -> white.finance.v1.MatchStatementLineRequest
+	181, // 361: white.finance.v1.BankReconService.RecordStatementLine:input_type -> white.finance.v1.RecordStatementLineRequest
+	182, // 362: white.finance.v1.BankReconService.IgnoreStatementLine:input_type -> white.finance.v1.IgnoreStatementLineRequest
+	8,   // 363: white.finance.v1.BankReconService.ReopenStatementLine:input_type -> white.finance.v1.IdRequest
+	277, // 364: white.finance.v1.ScheduleService.ListRecurringJournals:input_type -> google.protobuf.Empty
+	185, // 365: white.finance.v1.ScheduleService.CreateRecurringJournal:input_type -> white.finance.v1.RecurringJournalInput
+	186, // 366: white.finance.v1.ScheduleService.UpdateRecurringJournal:input_type -> white.finance.v1.UpdateRecurringJournalRequest
+	183, // 367: white.finance.v1.ScheduleService.SetRecurringJournalActive:input_type -> white.finance.v1.SetActiveRequest
+	8,   // 368: white.finance.v1.ScheduleService.DeleteRecurringJournal:input_type -> white.finance.v1.IdRequest
+	277, // 369: white.finance.v1.ScheduleService.ListFixedAssets:input_type -> google.protobuf.Empty
+	190, // 370: white.finance.v1.ScheduleService.CreateFixedAsset:input_type -> white.finance.v1.FixedAssetInput
+	277, // 371: white.finance.v1.ScheduleService.ListRecurringInvoices:input_type -> google.protobuf.Empty
+	241, // 372: white.finance.v1.ScheduleService.CreateRecurringInvoice:input_type -> white.finance.v1.RecurringInvoiceInput
+	242, // 373: white.finance.v1.ScheduleService.UpdateRecurringInvoice:input_type -> white.finance.v1.UpdateRecurringInvoiceRequest
+	183, // 374: white.finance.v1.ScheduleService.SetRecurringInvoiceActive:input_type -> white.finance.v1.SetActiveRequest
+	8,   // 375: white.finance.v1.ScheduleService.DeleteRecurringInvoice:input_type -> white.finance.v1.IdRequest
+	187, // 376: white.finance.v1.ScheduleService.UpdateFixedAsset:input_type -> white.finance.v1.UpdateFixedAssetRequest
+	183, // 377: white.finance.v1.ScheduleService.SetFixedAssetActive:input_type -> white.finance.v1.SetActiveRequest
+	8,   // 378: white.finance.v1.ScheduleService.DeleteFixedAsset:input_type -> white.finance.v1.IdRequest
+	277, // 379: white.finance.v1.ScheduleService.RunSchedules:input_type -> google.protobuf.Empty
+	205, // 380: white.finance.v1.DocumentService.ListVendors:input_type -> white.finance.v1.ListVendorsRequest
+	204, // 381: white.finance.v1.DocumentService.SaveVendor:input_type -> white.finance.v1.VendorInput
+	8,   // 382: white.finance.v1.DocumentService.DeleteVendor:input_type -> white.finance.v1.IdRequest
+	212, // 383: white.finance.v1.DocumentService.ListDocuments:input_type -> white.finance.v1.ListDocumentsRequest
+	8,   // 384: white.finance.v1.DocumentService.GetDocument:input_type -> white.finance.v1.IdRequest
+	211, // 385: white.finance.v1.DocumentService.CreateDocument:input_type -> white.finance.v1.DocumentInput
+	211, // 386: white.finance.v1.DocumentService.UpdateDocument:input_type -> white.finance.v1.DocumentInput
+	8,   // 387: white.finance.v1.DocumentService.DeleteDocument:input_type -> white.finance.v1.IdRequest
+	214, // 388: white.finance.v1.DocumentService.ActOnDocument:input_type -> white.finance.v1.ActOnDocumentRequest
+	215, // 389: white.finance.v1.DocumentService.ConvertDocument:input_type -> white.finance.v1.ConvertDocumentRequest
+	216, // 390: white.finance.v1.DocumentService.IssueDocument:input_type -> white.finance.v1.IssueDocumentRequest
+	8,   // 391: white.finance.v1.DocumentService.RenderDocumentPdf:input_type -> white.finance.v1.IdRequest
+	221, // 392: white.finance.v1.TaxSetupService.ListTaxCodes:input_type -> white.finance.v1.ListTaxMasterRequest
+	218, // 393: white.finance.v1.TaxSetupService.SaveTaxCode:input_type -> white.finance.v1.TaxCode
+	8,   // 394: white.finance.v1.TaxSetupService.DeleteTaxCode:input_type -> white.finance.v1.IdRequest
+	8,   // 395: white.finance.v1.TaxSetupService.DeleteChargeType:input_type -> white.finance.v1.IdRequest
+	8,   // 396: white.finance.v1.TaxSetupService.DeleteFiscalPosition:input_type -> white.finance.v1.IdRequest
+	8,   // 397: white.finance.v1.TaxSetupService.DeletePartyProfile:input_type -> white.finance.v1.IdRequest
+	221, // 398: white.finance.v1.TaxSetupService.ListChargeTypes:input_type -> white.finance.v1.ListTaxMasterRequest
+	220, // 399: white.finance.v1.TaxSetupService.SaveChargeType:input_type -> white.finance.v1.ChargeType
+	95,  // 400: white.finance.v1.TaxSetupService.GetTaxRegister:input_type -> white.finance.v1.PeriodRequest
+	231, // 401: white.finance.v1.TaxSetupService.ExportTaxData:input_type -> white.finance.v1.TaxExportRequest
+	277, // 402: white.finance.v1.TaxSetupService.ListFiscalPositions:input_type -> google.protobuf.Empty
+	227, // 403: white.finance.v1.TaxSetupService.SaveFiscalPosition:input_type -> white.finance.v1.FiscalPosition
+	277, // 404: white.finance.v1.TaxSetupService.ListPartyProfiles:input_type -> google.protobuf.Empty
+	229, // 405: white.finance.v1.TaxSetupService.SavePartyProfile:input_type -> white.finance.v1.PartyTaxProfile
+	233, // 406: white.finance.v1.TaxSetupService.CreateCreditNote:input_type -> white.finance.v1.CreditNoteRequest
+	235, // 407: white.finance.v1.ProjectTagService.ListProjectTags:input_type -> white.finance.v1.ListProjectTagsRequest
+	234, // 408: white.finance.v1.ProjectTagService.SaveProjectTag:input_type -> white.finance.v1.ProjectTag
+	8,   // 409: white.finance.v1.ProjectTagService.DeleteProjectTag:input_type -> white.finance.v1.IdRequest
+	237, // 410: white.finance.v1.ProjectTagService.GetProjectProfit:input_type -> white.finance.v1.ProjectProfitRequest
+	257, // 411: white.finance.v1.PeriodEndService.ListDeferrals:input_type -> white.finance.v1.ListDeferralsRequest
+	256, // 412: white.finance.v1.PeriodEndService.CreateDeferral:input_type -> white.finance.v1.Deferral
+	259, // 413: white.finance.v1.PeriodEndService.SetDeferralActive:input_type -> white.finance.v1.SetDeferralActiveRequest
+	8,   // 414: white.finance.v1.PeriodEndService.DeleteDeferral:input_type -> white.finance.v1.IdRequest
+	260, // 415: white.finance.v1.PeriodEndService.WriteOffInvoice:input_type -> white.finance.v1.WriteOffRequest
+	262, // 416: white.finance.v1.PeriodEndService.ListTaxPositions:input_type -> white.finance.v1.ListTaxPositionsRequest
+	265, // 417: white.finance.v1.PeriodEndService.ListTaxRemittances:input_type -> white.finance.v1.ListTaxRemittancesRequest
+	264, // 418: white.finance.v1.PeriodEndService.RemitTax:input_type -> white.finance.v1.TaxRemittance
+	249, // 419: white.finance.v1.PeriodEndService.VoidTaxRemittance:input_type -> white.finance.v1.VoidAdvanceRequest
+	267, // 420: white.finance.v1.PeriodEndService.CloseVat:input_type -> white.finance.v1.CloseVatRequest
+	272, // 421: white.finance.v1.PeriodEndService.ListAuditTrail:input_type -> white.finance.v1.ListAuditTrailRequest
+	272, // 422: white.finance.v1.PeriodEndService.ExportAuditTrail:input_type -> white.finance.v1.ListAuditTrailRequest
+	269, // 423: white.finance.v1.PeriodEndService.GetControlSettings:input_type -> white.finance.v1.ControlSettingsRequest
+	270, // 424: white.finance.v1.PeriodEndService.SetControlSettings:input_type -> white.finance.v1.ControlSettings
+	246, // 425: white.finance.v1.AdvanceService.ListAdvances:input_type -> white.finance.v1.ListAdvancesRequest
+	245, // 426: white.finance.v1.AdvanceService.CreateAdvance:input_type -> white.finance.v1.AdvanceInput
+	248, // 427: white.finance.v1.AdvanceService.ApplyAdvance:input_type -> white.finance.v1.ApplyAdvanceRequest
+	255, // 428: white.finance.v1.AdvanceService.RefundAdvance:input_type -> white.finance.v1.RefundAdvanceRequest
+	249, // 429: white.finance.v1.AdvanceService.VoidAdvanceRefund:input_type -> white.finance.v1.VoidAdvanceRequest
+	249, // 430: white.finance.v1.AdvanceService.VoidAdvance:input_type -> white.finance.v1.VoidAdvanceRequest
+	156, // 431: white.finance.v1.AnalysisService.GetFinancialAnalysis:input_type -> white.finance.v1.FinancialAnalysisRequest
+	160, // 432: white.finance.v1.AnalysisService.GenerateFinancialInsight:input_type -> white.finance.v1.GenerateFinancialInsightRequest
+	162, // 433: white.finance.v1.AnalysisService.ListFinancialInsights:input_type -> white.finance.v1.ListFinancialInsightsRequest
+	164, // 434: white.finance.v1.AnalysisService.GetRatioTrend:input_type -> white.finance.v1.RatioTrendRequest
+	13,  // 435: white.finance.v1.AccountService.ListAccountTypes:output_type -> white.finance.v1.ListAccountTypesResponse
+	9,   // 436: white.finance.v1.AccountService.CreateAccountType:output_type -> white.finance.v1.AccountType
+	9,   // 437: white.finance.v1.AccountService.UpdateAccountType:output_type -> white.finance.v1.AccountType
+	277, // 438: white.finance.v1.AccountService.DeleteAccountType:output_type -> google.protobuf.Empty
+	18,  // 439: white.finance.v1.AccountService.ListAccounts:output_type -> white.finance.v1.ListAccountsResponse
+	14,  // 440: white.finance.v1.AccountService.GetAccount:output_type -> white.finance.v1.Account
+	14,  // 441: white.finance.v1.AccountService.CreateAccount:output_type -> white.finance.v1.Account
+	14,  // 442: white.finance.v1.AccountService.UpdateAccount:output_type -> white.finance.v1.Account
+	277, // 443: white.finance.v1.AccountService.DeleteAccount:output_type -> google.protobuf.Empty
+	22,  // 444: white.finance.v1.AccountService.ImportAccounts:output_type -> white.finance.v1.ImportAccountsResponse
+	24,  // 445: white.finance.v1.AccountService.ListPostableAccounts:output_type -> white.finance.v1.ListPostableAccountsResponse
+	26,  // 446: white.finance.v1.AccountService.ListJournalEvents:output_type -> white.finance.v1.ListJournalEventsResponse
+	33,  // 447: white.finance.v1.AccountService.ListJournalMappings:output_type -> white.finance.v1.ListJournalMappingsResponse
+	28,  // 448: white.finance.v1.AccountService.GetJournalMapping:output_type -> white.finance.v1.JournalMapping
+	28,  // 449: white.finance.v1.AccountService.CreateJournalMapping:output_type -> white.finance.v1.JournalMapping
+	28,  // 450: white.finance.v1.AccountService.UpdateJournalMapping:output_type -> white.finance.v1.JournalMapping
+	277, // 451: white.finance.v1.AccountService.DeleteJournalMapping:output_type -> google.protobuf.Empty
+	40,  // 452: white.finance.v1.FiscalService.ListFiscalYears:output_type -> white.finance.v1.ListFiscalYearsResponse
+	35,  // 453: white.finance.v1.FiscalService.GetFiscalYear:output_type -> white.finance.v1.FiscalYear
+	35,  // 454: white.finance.v1.FiscalService.CreateFiscalYear:output_type -> white.finance.v1.FiscalYear
+	35,  // 455: white.finance.v1.FiscalService.UpdateFiscalYear:output_type -> white.finance.v1.FiscalYear
+	277, // 456: white.finance.v1.FiscalService.DeleteFiscalYear:output_type -> google.protobuf.Empty
+	42,  // 457: white.finance.v1.FiscalService.ListFiscalPeriods:output_type -> white.finance.v1.ListFiscalPeriodsResponse
+	34,  // 458: white.finance.v1.FiscalService.OpenFiscalPeriod:output_type -> white.finance.v1.FiscalPeriod
+	45,  // 459: white.finance.v1.FiscalService.GetPeriodClosePreview:output_type -> white.finance.v1.PeriodClosePreview
+	34,  // 460: white.finance.v1.FiscalService.CloseFiscalPeriod:output_type -> white.finance.v1.FiscalPeriod
+	47,  // 461: white.finance.v1.FiscalService.GetFiscalCoverage:output_type -> white.finance.v1.FiscalCoverage
+	50,  // 462: white.finance.v1.FiscalService.GetBeginningBalance:output_type -> white.finance.v1.BeginningBalance
+	53,  // 463: white.finance.v1.FiscalService.SaveBeginningBalance:output_type -> white.finance.v1.SaveBeginningBalanceResponse
+	60,  // 464: white.finance.v1.JournalService.ListJournalEntries:output_type -> white.finance.v1.ListJournalEntriesResponse
+	55,  // 465: white.finance.v1.JournalService.GetJournalEntry:output_type -> white.finance.v1.JournalEntry
+	55,  // 466: white.finance.v1.JournalService.CreateJournalEntry:output_type -> white.finance.v1.JournalEntry
+	55,  // 467: white.finance.v1.JournalService.UpdateJournalEntry:output_type -> white.finance.v1.JournalEntry
+	277, // 468: white.finance.v1.JournalService.DeleteJournalEntry:output_type -> google.protobuf.Empty
+	55,  // 469: white.finance.v1.JournalService.PostJournalEntry:output_type -> white.finance.v1.JournalEntry
+	63,  // 470: white.finance.v1.JournalService.ListPostingLogs:output_type -> white.finance.v1.ListPostingLogsResponse
+	61,  // 471: white.finance.v1.JournalService.RetryPosting:output_type -> white.finance.v1.PostingLog
+	65,  // 472: white.finance.v1.CashBankService.ListCashBankAccounts:output_type -> white.finance.v1.ListCashBankAccountsResponse
+	68,  // 473: white.finance.v1.CashBankService.GetCashBankLedger:output_type -> white.finance.v1.Ledger
+	72,  // 474: white.finance.v1.CashBankService.ListCashMovements:output_type -> white.finance.v1.ListCashMovementsResponse
+	70,  // 475: white.finance.v1.CashBankService.CreateCashMovement:output_type -> white.finance.v1.CashMovement
+	75,  // 476: white.finance.v1.CashBankService.ListCashTransfers:output_type -> white.finance.v1.ListCashTransfersResponse
+	74,  // 477: white.finance.v1.CashBankService.CreateCashTransfer:output_type -> white.finance.v1.CashTransfer
+	80,  // 478: white.finance.v1.PayableService.ListApInvoices:output_type -> white.finance.v1.ListInvoicesResponse
+	76,  // 479: white.finance.v1.PayableService.GetApInvoice:output_type -> white.finance.v1.Invoice
+	76,  // 480: white.finance.v1.PayableService.CreateApInvoice:output_type -> white.finance.v1.Invoice
+	76,  // 481: white.finance.v1.PayableService.UpdateApInvoice:output_type -> white.finance.v1.Invoice
+	277, // 482: white.finance.v1.PayableService.DeleteApInvoice:output_type -> google.protobuf.Empty
+	91,  // 483: white.finance.v1.PayableService.PostApInvoice:output_type -> white.finance.v1.InvoiceResult
+	80,  // 484: white.finance.v1.PayableService.ListApPayable:output_type -> white.finance.v1.ListInvoicesResponse
+	83,  // 485: white.finance.v1.PayableService.GetApAging:output_type -> white.finance.v1.Aging
+	89,  // 486: white.finance.v1.PayableService.ListApPayments:output_type -> white.finance.v1.ListPaymentsResponse
+	90,  // 487: white.finance.v1.PayableService.CreateApPayment:output_type -> white.finance.v1.PaymentResult
+	90,  // 488: white.finance.v1.PayableService.VoidApPayment:output_type -> white.finance.v1.PaymentResult
+	80,  // 489: white.finance.v1.ReceivableService.ListArInvoices:output_type -> white.finance.v1.ListInvoicesResponse
+	76,  // 490: white.finance.v1.ReceivableService.GetArInvoice:output_type -> white.finance.v1.Invoice
+	76,  // 491: white.finance.v1.ReceivableService.GetArInvoiceBySalesInvoice:output_type -> white.finance.v1.Invoice
+	76,  // 492: white.finance.v1.ReceivableService.CreateArInvoice:output_type -> white.finance.v1.Invoice
+	76,  // 493: white.finance.v1.ReceivableService.UpdateArInvoice:output_type -> white.finance.v1.Invoice
+	277, // 494: white.finance.v1.ReceivableService.DeleteArInvoice:output_type -> google.protobuf.Empty
+	91,  // 495: white.finance.v1.ReceivableService.PostArInvoice:output_type -> white.finance.v1.InvoiceResult
+	80,  // 496: white.finance.v1.ReceivableService.ListArReceivable:output_type -> white.finance.v1.ListInvoicesResponse
+	83,  // 497: white.finance.v1.ReceivableService.GetArAging:output_type -> white.finance.v1.Aging
+	89,  // 498: white.finance.v1.ReceivableService.ListArReceipts:output_type -> white.finance.v1.ListPaymentsResponse
+	90,  // 499: white.finance.v1.ReceivableService.CreateArReceipt:output_type -> white.finance.v1.PaymentResult
+	90,  // 500: white.finance.v1.ReceivableService.VoidArReceipt:output_type -> white.finance.v1.PaymentResult
+	251, // 501: white.finance.v1.ReportService.GetSubledgerRecon:output_type -> white.finance.v1.SubledgerRecon
+	97,  // 502: white.finance.v1.ReportService.GetTrialBalance:output_type -> white.finance.v1.TrialBalance
+	98,  // 503: white.finance.v1.ReportService.GetBalanceSheet:output_type -> white.finance.v1.BalanceSheet
+	99,  // 504: white.finance.v1.ReportService.GetIncomeStatement:output_type -> white.finance.v1.IncomeStatement
+	194, // 505: white.finance.v1.ReportService.GetBudgetVsActual:output_type -> white.finance.v1.BudgetVsActual
+	197, // 506: white.finance.v1.ReportService.GetBudgetYear:output_type -> white.finance.v1.BudgetYear
+	197, // 507: white.finance.v1.ReportService.SaveBudgetYear:output_type -> white.finance.v1.BudgetYear
+	200, // 508: white.finance.v1.ReportService.GetEquityChanges:output_type -> white.finance.v1.EquityChanges
+	202, // 509: white.finance.v1.ReportService.GetClientEconomics:output_type -> white.finance.v1.ClientEconomicsReport
+	101, // 510: white.finance.v1.ReportService.GetCashFlow:output_type -> white.finance.v1.CashFlow
+	103, // 511: white.finance.v1.ReportService.ListGeneralLedgerAccounts:output_type -> white.finance.v1.ListGeneralLedgerAccountsResponse
+	68,  // 512: white.finance.v1.ReportService.GetGeneralLedger:output_type -> white.finance.v1.Ledger
+	106, // 513: white.finance.v1.ReportService.ListSubsidiaryParties:output_type -> white.finance.v1.ListSubsidiaryPartiesResponse
+	109, // 514: white.finance.v1.ReportService.GetSubsidiaryLedger:output_type -> white.finance.v1.SubsidiaryLedger
+	114, // 515: white.finance.v1.ReportService.GetDashboard:output_type -> white.finance.v1.Dashboard
+	121, // 516: white.finance.v1.ReportService.GetFinanceSummary:output_type -> white.finance.v1.FinanceSummary
+	122, // 517: white.finance.v1.ReportService.GetFinanceProfitability:output_type -> white.finance.v1.FinanceProfitability
+	124, // 518: white.finance.v1.ReportService.GetFinanceCashAnalytics:output_type -> white.finance.v1.FinanceCashAnalytics
+	128, // 519: white.finance.v1.ReportService.GetFinanceArAp:output_type -> white.finance.v1.FinanceArAp
+	130, // 520: white.finance.v1.ReportService.GetFinanceSpend:output_type -> white.finance.v1.FinanceSpend
+	143, // 521: white.finance.v1.ReimbursementService.ListMyClaims:output_type -> white.finance.v1.ListClaimsResponse
+	133, // 522: white.finance.v1.ReimbursementService.CreateClaim:output_type -> white.finance.v1.Claim
+	133, // 523: white.finance.v1.ReimbursementService.UpdateClaim:output_type -> white.finance.v1.Claim
+	133, // 524: white.finance.v1.ReimbursementService.UploadReceipt:output_type -> white.finance.v1.Claim
+	133, // 525: white.finance.v1.ReimbursementService.DeleteReceipt:output_type -> white.finance.v1.Claim
+	133, // 526: white.finance.v1.ReimbursementService.SubmitClaim:output_type -> white.finance.v1.Claim
+	133, // 527: white.finance.v1.ReimbursementService.CancelClaim:output_type -> white.finance.v1.Claim
+	133, // 528: white.finance.v1.ReimbursementService.GetClaim:output_type -> white.finance.v1.Claim
+	143, // 529: white.finance.v1.ReimbursementService.ListApprovalInbox:output_type -> white.finance.v1.ListClaimsResponse
+	133, // 530: white.finance.v1.ReimbursementService.ApproveClaim:output_type -> white.finance.v1.Claim
+	133, // 531: white.finance.v1.ReimbursementService.RejectClaim:output_type -> white.finance.v1.Claim
+	143, // 532: white.finance.v1.ReimbursementService.ListClaims:output_type -> white.finance.v1.ListClaimsResponse
+	145, // 533: white.finance.v1.ReimbursementService.PayClaims:output_type -> white.finance.v1.ReimbursementBatch
+	147, // 534: white.finance.v1.ReimbursementService.ListPaymentBatches:output_type -> white.finance.v1.ListPaymentBatchesResponse
+	150, // 535: white.finance.v1.ReimbursementService.GetMonthlySummary:output_type -> white.finance.v1.MonthlySummary
+	169, // 536: white.finance.v1.ReimbursementService.ListClaimPayAccounts:output_type -> white.finance.v1.ListClaimPayAccountsResponse
+	153, // 537: white.finance.v1.ReimbursementService.ListPolicies:output_type -> white.finance.v1.ListPoliciesResponse
+	151, // 538: white.finance.v1.ReimbursementService.UpdatePolicy:output_type -> white.finance.v1.ReimbursementPolicy
+	155, // 539: white.finance.v1.ReimbursementService.GetReceiptFile:output_type -> white.finance.v1.ReceiptFile
+	171, // 540: white.finance.v1.BankReconService.ListReconAccounts:output_type -> white.finance.v1.ListReconAccountsResponse
+	174, // 541: white.finance.v1.BankReconService.ListStatementLines:output_type -> white.finance.v1.ListStatementLinesResponse
+	176, // 542: white.finance.v1.BankReconService.ImportStatement:output_type -> white.finance.v1.ImportStatementResponse
+	176, // 543: white.finance.v1.BankReconService.RematchStatements:output_type -> white.finance.v1.ImportStatementResponse
+	179, // 544: white.finance.v1.BankReconService.ListMatchCandidates:output_type -> white.finance.v1.ListMatchCandidatesResponse
+	172, // 545: white.finance.v1.BankReconService.MatchStatementLine:output_type -> white.finance.v1.StatementLine
+	172, // 546: white.finance.v1.BankReconService.RecordStatementLine:output_type -> white.finance.v1.StatementLine
+	172, // 547: white.finance.v1.BankReconService.IgnoreStatementLine:output_type -> white.finance.v1.StatementLine
+	172, // 548: white.finance.v1.BankReconService.ReopenStatementLine:output_type -> white.finance.v1.StatementLine
+	188, // 549: white.finance.v1.ScheduleService.ListRecurringJournals:output_type -> white.finance.v1.ListRecurringJournalsResponse
+	184, // 550: white.finance.v1.ScheduleService.CreateRecurringJournal:output_type -> white.finance.v1.RecurringJournal
+	184, // 551: white.finance.v1.ScheduleService.UpdateRecurringJournal:output_type -> white.finance.v1.RecurringJournal
+	184, // 552: white.finance.v1.ScheduleService.SetRecurringJournalActive:output_type -> white.finance.v1.RecurringJournal
+	277, // 553: white.finance.v1.ScheduleService.DeleteRecurringJournal:output_type -> google.protobuf.Empty
+	191, // 554: white.finance.v1.ScheduleService.ListFixedAssets:output_type -> white.finance.v1.ListFixedAssetsResponse
+	189, // 555: white.finance.v1.ScheduleService.CreateFixedAsset:output_type -> white.finance.v1.FixedAsset
+	243, // 556: white.finance.v1.ScheduleService.ListRecurringInvoices:output_type -> white.finance.v1.ListRecurringInvoicesResponse
+	240, // 557: white.finance.v1.ScheduleService.CreateRecurringInvoice:output_type -> white.finance.v1.RecurringInvoice
+	240, // 558: white.finance.v1.ScheduleService.UpdateRecurringInvoice:output_type -> white.finance.v1.RecurringInvoice
+	240, // 559: white.finance.v1.ScheduleService.SetRecurringInvoiceActive:output_type -> white.finance.v1.RecurringInvoice
+	277, // 560: white.finance.v1.ScheduleService.DeleteRecurringInvoice:output_type -> google.protobuf.Empty
+	189, // 561: white.finance.v1.ScheduleService.UpdateFixedAsset:output_type -> white.finance.v1.FixedAsset
+	189, // 562: white.finance.v1.ScheduleService.SetFixedAssetActive:output_type -> white.finance.v1.FixedAsset
+	277, // 563: white.finance.v1.ScheduleService.DeleteFixedAsset:output_type -> google.protobuf.Empty
+	192, // 564: white.finance.v1.ScheduleService.RunSchedules:output_type -> white.finance.v1.RunSchedulesResponse
+	206, // 565: white.finance.v1.DocumentService.ListVendors:output_type -> white.finance.v1.ListVendorsResponse
+	203, // 566: white.finance.v1.DocumentService.SaveVendor:output_type -> white.finance.v1.Vendor
+	277, // 567: white.finance.v1.DocumentService.DeleteVendor:output_type -> google.protobuf.Empty
+	213, // 568: white.finance.v1.DocumentService.ListDocuments:output_type -> white.finance.v1.ListDocumentsResponse
+	208, // 569: white.finance.v1.DocumentService.GetDocument:output_type -> white.finance.v1.FinanceDocument
+	208, // 570: white.finance.v1.DocumentService.CreateDocument:output_type -> white.finance.v1.FinanceDocument
+	208, // 571: white.finance.v1.DocumentService.UpdateDocument:output_type -> white.finance.v1.FinanceDocument
+	277, // 572: white.finance.v1.DocumentService.DeleteDocument:output_type -> google.protobuf.Empty
+	208, // 573: white.finance.v1.DocumentService.ActOnDocument:output_type -> white.finance.v1.FinanceDocument
+	208, // 574: white.finance.v1.DocumentService.ConvertDocument:output_type -> white.finance.v1.FinanceDocument
+	208, // 575: white.finance.v1.DocumentService.IssueDocument:output_type -> white.finance.v1.FinanceDocument
+	217, // 576: white.finance.v1.DocumentService.RenderDocumentPdf:output_type -> white.finance.v1.DocumentPdf
+	222, // 577: white.finance.v1.TaxSetupService.ListTaxCodes:output_type -> white.finance.v1.ListTaxCodesResponse
+	218, // 578: white.finance.v1.TaxSetupService.SaveTaxCode:output_type -> white.finance.v1.TaxCode
+	277, // 579: white.finance.v1.TaxSetupService.DeleteTaxCode:output_type -> google.protobuf.Empty
+	277, // 580: white.finance.v1.TaxSetupService.DeleteChargeType:output_type -> google.protobuf.Empty
+	277, // 581: white.finance.v1.TaxSetupService.DeleteFiscalPosition:output_type -> google.protobuf.Empty
+	277, // 582: white.finance.v1.TaxSetupService.DeletePartyProfile:output_type -> google.protobuf.Empty
+	223, // 583: white.finance.v1.TaxSetupService.ListChargeTypes:output_type -> white.finance.v1.ListChargeTypesResponse
+	220, // 584: white.finance.v1.TaxSetupService.SaveChargeType:output_type -> white.finance.v1.ChargeType
+	225, // 585: white.finance.v1.TaxSetupService.GetTaxRegister:output_type -> white.finance.v1.TaxRegister
+	232, // 586: white.finance.v1.TaxSetupService.ExportTaxData:output_type -> white.finance.v1.TaxExportFile
+	228, // 587: white.finance.v1.TaxSetupService.ListFiscalPositions:output_type -> white.finance.v1.ListFiscalPositionsResponse
+	227, // 588: white.finance.v1.TaxSetupService.SaveFiscalPosition:output_type -> white.finance.v1.FiscalPosition
+	230, // 589: white.finance.v1.TaxSetupService.ListPartyProfiles:output_type -> white.finance.v1.ListPartyProfilesResponse
+	229, // 590: white.finance.v1.TaxSetupService.SavePartyProfile:output_type -> white.finance.v1.PartyTaxProfile
+	76,  // 591: white.finance.v1.TaxSetupService.CreateCreditNote:output_type -> white.finance.v1.Invoice
+	236, // 592: white.finance.v1.ProjectTagService.ListProjectTags:output_type -> white.finance.v1.ListProjectTagsResponse
+	234, // 593: white.finance.v1.ProjectTagService.SaveProjectTag:output_type -> white.finance.v1.ProjectTag
+	277, // 594: white.finance.v1.ProjectTagService.DeleteProjectTag:output_type -> google.protobuf.Empty
+	239, // 595: white.finance.v1.ProjectTagService.GetProjectProfit:output_type -> white.finance.v1.ProjectProfit
+	258, // 596: white.finance.v1.PeriodEndService.ListDeferrals:output_type -> white.finance.v1.ListDeferralsResponse
+	256, // 597: white.finance.v1.PeriodEndService.CreateDeferral:output_type -> white.finance.v1.Deferral
+	277, // 598: white.finance.v1.PeriodEndService.SetDeferralActive:output_type -> google.protobuf.Empty
+	277, // 599: white.finance.v1.PeriodEndService.DeleteDeferral:output_type -> google.protobuf.Empty
+	76,  // 600: white.finance.v1.PeriodEndService.WriteOffInvoice:output_type -> white.finance.v1.Invoice
+	263, // 601: white.finance.v1.PeriodEndService.ListTaxPositions:output_type -> white.finance.v1.ListTaxPositionsResponse
+	266, // 602: white.finance.v1.PeriodEndService.ListTaxRemittances:output_type -> white.finance.v1.ListTaxRemittancesResponse
+	264, // 603: white.finance.v1.PeriodEndService.RemitTax:output_type -> white.finance.v1.TaxRemittance
+	264, // 604: white.finance.v1.PeriodEndService.VoidTaxRemittance:output_type -> white.finance.v1.TaxRemittance
+	268, // 605: white.finance.v1.PeriodEndService.CloseVat:output_type -> white.finance.v1.VatClosing
+	273, // 606: white.finance.v1.PeriodEndService.ListAuditTrail:output_type -> white.finance.v1.ListAuditTrailResponse
+	232, // 607: white.finance.v1.PeriodEndService.ExportAuditTrail:output_type -> white.finance.v1.TaxExportFile
+	270, // 608: white.finance.v1.PeriodEndService.GetControlSettings:output_type -> white.finance.v1.ControlSettings
+	270, // 609: white.finance.v1.PeriodEndService.SetControlSettings:output_type -> white.finance.v1.ControlSettings
+	247, // 610: white.finance.v1.AdvanceService.ListAdvances:output_type -> white.finance.v1.ListAdvancesResponse
+	244, // 611: white.finance.v1.AdvanceService.CreateAdvance:output_type -> white.finance.v1.Advance
+	76,  // 612: white.finance.v1.AdvanceService.ApplyAdvance:output_type -> white.finance.v1.Invoice
+	244, // 613: white.finance.v1.AdvanceService.RefundAdvance:output_type -> white.finance.v1.Advance
+	244, // 614: white.finance.v1.AdvanceService.VoidAdvanceRefund:output_type -> white.finance.v1.Advance
+	244, // 615: white.finance.v1.AdvanceService.VoidAdvance:output_type -> white.finance.v1.Advance
+	159, // 616: white.finance.v1.AnalysisService.GetFinancialAnalysis:output_type -> white.finance.v1.FinancialAnalysis
+	161, // 617: white.finance.v1.AnalysisService.GenerateFinancialInsight:output_type -> white.finance.v1.FinancialInsight
+	163, // 618: white.finance.v1.AnalysisService.ListFinancialInsights:output_type -> white.finance.v1.ListFinancialInsightsResponse
+	167, // 619: white.finance.v1.AnalysisService.GetRatioTrend:output_type -> white.finance.v1.RatioTrend
+	435, // [435:620] is the sub-list for method output_type
+	250, // [250:435] is the sub-list for method input_type
+	250, // [250:250] is the sub-list for extension type_name
+	250, // [250:250] is the sub-list for extension extendee
+	0,   // [0:250] is the sub-list for field type_name
 }
 
 func init() { file_white_finance_v1_finance_proto_init() }
@@ -23335,9 +25219,9 @@ func file_white_finance_v1_finance_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_finance_v1_finance_proto_rawDesc), len(file_white_finance_v1_finance_proto_rawDesc)),
 			NumEnums:      8,
-			NumMessages:   244,
+			NumMessages:   266,
 			NumExtensions: 0,
-			NumServices:   15,
+			NumServices:   16,
 		},
 		GoTypes:           file_white_finance_v1_finance_proto_goTypes,
 		DependencyIndexes: file_white_finance_v1_finance_proto_depIdxs,

@@ -81,6 +81,7 @@ export async function LedgerKindPage({
             kind={kind}
             rows={res.data.filter((a) => matchesText(q, a.advanceNo, a.partyName, a.reference) && (!status || advanceState(a) === status))}
             openInvoices={extra?.data?.[0] ?? []}
+            accounts={extra?.data?.[1] ?? []}
             canApprove={perms.canApprove}
           />
         )}
@@ -91,11 +92,11 @@ export async function LedgerKindPage({
   if (tab === "payments") {
     const [res, extra] = await Promise.all([
       load(() => listPayments(kind, { search: sp1(sp.q), page, pageSize })),
-      perms.canApprove ? load(() => Promise.all([listOpenInvoices(kind), listPostableAccounts()])) : null,
+      perms.canApprove ? load(() => Promise.all([listOpenInvoices(kind), listPostableAccounts(), listTaxCodes(true)])) : null,
     ]);
     return (
       <>
-        {header(extra?.data ? <PaymentDialog kind={kind} openInvoices={extra.data[0]} accounts={extra.data[1]} /> : null)}
+        {header(extra?.data ? <PaymentDialog kind={kind} openInvoices={extra.data[0]} accounts={extra.data[1]} taxes={extra.data[2]} /> : null)}
         {tabs}
         {res.error ? (
           <ErpLoadError error={res.error} />

@@ -7354,15 +7354,19 @@ func (x *ListPaymentsResponse) GetPaidTotal() string {
 }
 
 type RecordPaymentRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DealId        string                 `protobuf:"bytes,1,opt,name=deal_id,json=dealId,proto3" json:"deal_id,omitempty"`
-	InvoiceId     string                 `protobuf:"bytes,2,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
-	Amount        string                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
-	Method        string                 `protobuf:"bytes,4,opt,name=method,proto3" json:"method,omitempty"`
-	PaidOn        string                 `protobuf:"bytes,5,opt,name=paid_on,json=paidOn,proto3" json:"paid_on,omitempty"`
-	Note          string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	DealId    string                 `protobuf:"bytes,1,opt,name=deal_id,json=dealId,proto3" json:"deal_id,omitempty"`
+	InvoiceId string                 `protobuf:"bytes,2,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	Amount    string                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Method    string                 `protobuf:"bytes,4,opt,name=method,proto3" json:"method,omitempty"`
+	PaidOn    string                 `protobuf:"bytes,5,opt,name=paid_on,json=paidOn,proto3" json:"paid_on,omitempty"`
+	Note      string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	// Parts of amount that never reached the bank. Finance books them.
+	BankFee         string `protobuf:"bytes,7,opt,name=bank_fee,json=bankFee,proto3" json:"bank_fee,omitempty"`
+	Withheld        string `protobuf:"bytes,8,opt,name=withheld,proto3" json:"withheld,omitempty"`
+	WithheldTaxCode string `protobuf:"bytes,9,opt,name=withheld_tax_code,json=withheldTaxCode,proto3" json:"withheld_tax_code,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RecordPaymentRequest) Reset() {
@@ -7433,6 +7437,27 @@ func (x *RecordPaymentRequest) GetPaidOn() string {
 func (x *RecordPaymentRequest) GetNote() string {
 	if x != nil {
 		return x.Note
+	}
+	return ""
+}
+
+func (x *RecordPaymentRequest) GetBankFee() string {
+	if x != nil {
+		return x.BankFee
+	}
+	return ""
+}
+
+func (x *RecordPaymentRequest) GetWithheld() string {
+	if x != nil {
+		return x.Withheld
+	}
+	return ""
+}
+
+func (x *RecordPaymentRequest) GetWithheldTaxCode() string {
+	if x != nil {
+		return x.WithheldTaxCode
 	}
 	return ""
 }
@@ -16148,7 +16173,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x14ListPaymentsResponse\x123\n" +
 	"\bpayments\x18\x01 \x03(\v2\x17.white.sales.v1.PaymentR\bpayments\x12\x1d\n" +
 	"\n" +
-	"paid_total\x18\x02 \x01(\tR\tpaidTotal\"\xab\x01\n" +
+	"paid_total\x18\x02 \x01(\tR\tpaidTotal\"\x8e\x02\n" +
 	"\x14RecordPaymentRequest\x12\x17\n" +
 	"\adeal_id\x18\x01 \x01(\tR\x06dealId\x12\x1d\n" +
 	"\n" +
@@ -16156,7 +16181,10 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x06amount\x18\x03 \x01(\tR\x06amount\x12\x16\n" +
 	"\x06method\x18\x04 \x01(\tR\x06method\x12\x17\n" +
 	"\apaid_on\x18\x05 \x01(\tR\x06paidOn\x12\x12\n" +
-	"\x04note\x18\x06 \x01(\tR\x04note\"l\n" +
+	"\x04note\x18\x06 \x01(\tR\x04note\x12\x19\n" +
+	"\bbank_fee\x18\a \x01(\tR\abankFee\x12\x1a\n" +
+	"\bwithheld\x18\b \x01(\tR\bwithheld\x12*\n" +
+	"\x11withheld_tax_code\x18\t \x01(\tR\x0fwithheldTaxCode\"l\n" +
 	"\vSalesTarget\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
 	"\ftarget_value\x18\x02 \x01(\tR\vtargetValue\x12!\n" +

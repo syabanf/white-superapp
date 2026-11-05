@@ -141,7 +141,7 @@ func (s *Schedules) runRecurringInvoice(ctx context.Context, r domain.RecurringI
 				return err
 			}
 			if r.AutoPost {
-				if _, _, err := l.PostInvoice(ctx, r.Kind, r.CreatedBy, inv.ID); err != nil {
+				if _, _, err := l.postDraftInvoice(ctx, r.Kind, r.CreatedBy, inv.ID, inv); err != nil {
 					return err
 				}
 			}

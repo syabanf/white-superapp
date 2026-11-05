@@ -53,7 +53,10 @@ func Spec() pkgapp.Spec {
 		Schema:     Schema,
 		Migrations: Migrations(),
 		Register:   register,
-		Worker:     worker,
+		Unary: func(d pkgapp.Deps) []grpc.UnaryServerInterceptor {
+			return []grpc.UnaryServerInterceptor{grpcapi.AuditInterceptor(postgres.NewStore(d.Pool), d.Logger)}
+		},
+		Worker: worker,
 	}
 }
 
@@ -199,6 +202,7 @@ func (h *Handler) handle(ctx context.Context, msg events.Message) error {
 		results, err := h.autoPost.PayrollPaid(ctx, p)
 		if err == nil {
 			h.deps.Logger.Info("payroll journals", "run", p.RunID, "result", domain.Summarize(results...))
+			h.deps.AuditSystem(ctx, "PayrollPaid", p.RunID, p, domain.Summarize(results...))
 		}
 		return err
 	case events.SalesInvoiceIssued:
@@ -206,14 +210,20 @@ func (h *Handler) handle(ctx context.Context, msg events.Message) error {
 		if err := decode(msg, &p); err != nil {
 			return err
 		}
-		_, err := h.autoPost.SalesInvoiceIssued(ctx, p)
+		res, err := h.autoPost.SalesInvoiceIssued(ctx, p)
+		if err == nil && res != nil {
+			h.deps.AuditSystem(ctx, "SalesInvoiceIssued", res.ID, p, res.InvoiceNo)
+		}
 		return err
 	case events.SalesPaymentRecorded:
 		var p domain.SalesPaymentRecorded
 		if err := decode(msg, &p); err != nil {
 			return err
 		}
-		_, err := h.autoPost.SalesPaymentRecorded(ctx, p)
+		res, err := h.autoPost.SalesPaymentRecorded(ctx, p)
+		if err == nil && res != nil {
+			h.deps.AuditSystem(ctx, "SalesPaymentRecorded", res.Payment.ID, p, res.Note)
+		}
 		return err
 	case events.ERPTickDaily:
 		var p events.TickPayload
@@ -223,6 +233,7 @@ func (h *Handler) handle(ctx context.Context, msg events.Message) error {
 		res, schedErr := h.schedules.RunDue(ctx)
 		if res.Posted+res.Failed > 0 {
 			h.deps.Logger.Info("finance schedules", "posted", res.Posted, "failed", res.Failed)
+			h.deps.AuditSystem(ctx, "RunSchedules", "", res, "")
 		}
 		n, err := h.reimb.RemindApprovers(ctx, p.RunAt)
 		if err == nil && n > 0 {

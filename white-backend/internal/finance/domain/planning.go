@@ -40,7 +40,11 @@ type Advance struct {
 	CashAccountID, CashAccountName                                 string
 	AdvanceAccountID, AdvanceAccountName                           string
 	JournalEntryID, VoidReason, CreatedBy                          string
-	Amount, Applied                                                Money
+	// SourcePaymentID names the payment or credit note whose journal carries this
+	// advance. SalesPaymentID names the Sales payment that created it on its own.
+	SourcePaymentID, SalesPaymentID string
+	Amount, Applied, Refunded       Money
+	Refunds                         []AdvanceRefund
 }
 
 // Remaining is what can still be applied to invoices.
@@ -48,7 +52,7 @@ func (a Advance) Remaining() Money {
 	if a.Status != StatusPosted {
 		return 0
 	}
-	return a.Amount - a.Applied
+	return a.Amount - a.Applied - a.Refunded
 }
 
 // PlanningRepo stores project tags, recurring invoices and advances.
@@ -71,8 +75,14 @@ type PlanningRepo interface {
 
 	ListAdvances(ctx context.Context, kind string) ([]Advance, error)
 	GetAdvance(ctx context.Context, id string) (*Advance, error)
+	AdvanceBySourcePayment(ctx context.Context, paymentID string) (*Advance, error)
+	AdvanceBySalesPayment(ctx context.Context, salesPaymentID string) (*Advance, error)
+	InvoiceCredited(ctx context.Context, invoiceID string) (Money, error)
 	LockAdvance(ctx context.Context, id string) error
 	InsertAdvance(ctx context.Context, a Advance) error
 	VoidAdvance(ctx context.Context, id, reason string) error
 	InsertAdvanceApplication(ctx context.Context, paymentID, advanceID string) error
+	InsertAdvanceRefund(ctx context.Context, r AdvanceRefund) error
+	GetAdvanceRefund(ctx context.Context, id string) (*AdvanceRefund, error)
+	VoidAdvanceRefund(ctx context.Context, id, reason string) error
 }

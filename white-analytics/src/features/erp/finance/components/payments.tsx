@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Ban, Loader2, Plus } from "lucide-react";
+import { Ban, Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,7 +24,8 @@ import { ErpEmpty } from "@/features/erp/shared/states";
 import { ErpStatusBadge } from "@/features/erp/shared/status-badge";
 import { SearchFilter } from "@/features/erp/shared/url-filters";
 import { createPaymentAction, voidPaymentAction } from "../actions";
-import type { Aging, Invoice, LedgerKind, Payment, PostableAccount } from "../types";
+import { cashMoved } from "../pricing";
+import type { Aging, Invoice, LedgerKind, Payment, PostableAccount, TaxCode } from "../types";
 import type { FinancePerms } from "../perms";
 import { fs } from "../strings";
 import { AccountPicker } from "./account-picker";
@@ -32,18 +33,77 @@ import { PaymentStatusBadge } from "./invoices";
 
 const iv = fs.invoices;
 
+type AdjustmentRow = { key: number; kind: string; accountId: string; taxId: string; amount: string };
+
+function AdjustmentRows({ kind, rows, setRows, accounts, taxes }: { kind: LedgerKind; rows: AdjustmentRow[]; setRows: (r: AdjustmentRow[]) => void; accounts: PostableAccount[]; taxes: TaxCode[] }) {
+  const scope = kind === "AR" ? "SALE" : "PURCHASE";
+  const codes = taxes.filter((t) => t.kind === "WITHHOLDING" && (t.scope === "BOTH" || t.scope === scope));
+  const feeAccount = accounts.find((a) => a.code === "8101001")?.id ?? "";
+  const patch = (key: number, p: Partial<AdjustmentRow>) => setRows(rows.map((r) => (r.key === key ? { ...r, ...p } : r)));
+  return (
+    <div className="flex flex-col gap-2">
+      <div>
+        <h3 className="text-sm font-semibold">{iv.adjustments}</h3>
+        <p className="text-xs text-muted-foreground">{iv.adjustmentsHint[kind]}</p>
+      </div>
+      {rows.map((r) => (
+        <div key={r.key} className="grid items-center gap-2 rounded-lg border p-2 sm:grid-cols-[10rem_minmax(0,1fr)_10rem_auto]">
+          <Select value={r.kind} onValueChange={(v) => patch(r.key, { kind: v, accountId: v === "FEE" ? feeAccount : "", taxId: "" })}>
+            <SelectTrigger className="w-full" aria-label={iv.adjustments}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(iv.adjustmentKinds).map(([v, label]) => (
+                <SelectItem key={v} value={v}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {r.kind === "WITHHOLDING" ? (
+            <Select value={r.taxId} onValueChange={(v) => patch(r.key, { taxId: v })}>
+              <SelectTrigger className="w-full" aria-label={iv.adjustmentTax}>
+                <SelectValue placeholder={iv.adjustmentTax} />
+              </SelectTrigger>
+              <SelectContent>
+                {codes.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <AccountPicker accounts={accounts} filter={(a) => !a.isCashBank} value={r.accountId} onChange={(v) => patch(r.key, { accountId: v })} />
+          )}
+          <MoneyInput aria-label={iv.adjustmentAmount} value={r.amount} onChange={(v) => patch(r.key, { amount: v })} />
+          <Button type="button" size="icon-xs" variant="ghost" aria-label={iv.removeAdjustment} onClick={() => setRows(rows.filter((x) => x.key !== r.key))}>
+            <X className="size-3.5" />
+          </Button>
+        </div>
+      ))}
+      <Button type="button" size="xs" variant="outline" className="self-start" onClick={() => setRows([...rows, { key: Date.now(), kind: "FEE", accountId: feeAccount, taxId: "", amount: "" }])}>
+        <Plus className="size-3.5" /> {iv.addAdjustment}
+      </Button>
+    </div>
+  );
+}
+
 /** Records a payment (AP) or receipt (AR) allocated across open invoices. */
-export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKind; openInvoices: Invoice[]; accounts: PostableAccount[] }) {
+export function PaymentDialog({ kind, openInvoices, accounts, taxes }: { kind: LedgerKind; openInvoices: Invoice[]; accounts: PostableAccount[]; taxes: TaxCode[] }) {
   const k = iv[kind];
   const [open, setOpen] = React.useState(false);
   const [party, setParty] = React.useState("");
-  const [form, setForm] = React.useState({ paymentDate: toIsoDate(new Date()), method: "TRANSFER", cashAccountId: "", referenceNumber: "", notes: "" });
+  const [form, setForm] = React.useState({ paymentDate: toIsoDate(new Date()), method: iv.methodOptions[kind][0], cashAccountId: "", referenceNumber: "", notes: "" });
   const [alloc, setAlloc] = React.useState<Record<string, string>>({});
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
+  const [adjustments, setAdjustments] = React.useState<AdjustmentRow[]>([]);
+  const [excess, setExcess] = React.useState({ amount: "", accountId: accounts.find((a) => a.code === (kind === "AR" ? "2105001" : "1106001"))?.id ?? "" });
   const { pending, run } = useErpAction();
   const parties = [...new Set(openInvoices.map((i) => i.partyName))].sort();
   const visible = party ? openInvoices.filter((i) => i.partyName === party) : openInvoices;
   const total = sumMoney(Object.values(alloc));
+  const cash = cashMoved(kind, total, adjustments) + parseMoney(excess.amount);
   const payFull = (inv: Invoice) => (
     <button
       type="button"
@@ -66,7 +126,7 @@ export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKi
     const over = allocations.find((a) => parseMoney(a.amount) > parseMoney(openInvoices.find((i) => i.id === a.invoiceId)?.outstandingAmount));
     if (!allocations.length) return toast.error(iv.allocationRequired);
     if (over) return toast.error(iv.allocationTooHigh);
-    void run(() => createPaymentAction(kind, { ...form, allocations }), {
+    void run(() => createPaymentAction(kind, { ...form, allocations, adjustments: adjustments.map((a) => ({ kind: a.kind, accountId: a.accountId, taxId: a.taxId, amount: a.amount, memo: "" })), excessAmount: excess.amount || "0.00", excessAccountId: excess.accountId }), {
       success: fs.saved,
       onOk: (res) => {
         if (res.note) toast.info(res.note);
@@ -83,6 +143,8 @@ export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKi
         setOpen(o);
         if (o) {
           setAlloc({});
+          setAdjustments([]);
+          setExcess((x) => ({ ...x, amount: "" }));
           setErrors({});
           setParty("");
         }
@@ -108,9 +170,9 @@ export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKi
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(iv.methods).map(([v, label]) => (
+                  {iv.methodOptions[kind].map((v) => (
                     <SelectItem key={v} value={v}>
-                      {label}
+                      {iv.methods[v]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -193,9 +255,27 @@ export function PaymentDialog({ kind, openInvoices, accounts }: { kind: LedgerKi
               </div>
             </>
           )}
-          <div className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-2.5 text-sm">
-            <span className="text-muted-foreground">{iv.paymentTotal}</span>
-            <span className="text-base font-semibold tabular">{formatRupiah(total)}</span>
+          <AdjustmentRows kind={kind} rows={adjustments} setRows={setAdjustments} accounts={accounts} taxes={taxes} />
+          {errors.adjustments ? <p className="text-xs text-negative">{errors.adjustments[0]}</p> : null}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label={iv.excess} hint={iv.excessHint} error={errors.excess_amount}>
+              <MoneyInput value={excess.amount} onChange={(v) => setExcess((x) => ({ ...x, amount: v }))} />
+            </FormField>
+            {parseMoney(excess.amount) > 0 ? (
+              <FormField label={iv.excessAccount} error={errors.advance_account_id}>
+                <AccountPicker accounts={accounts} filter={(a) => !a.isCashBank} value={excess.accountId} onChange={(v) => setExcess((x) => ({ ...x, accountId: v }))} />
+              </FormField>
+            ) : null}
+          </div>
+          <div className="grid gap-1 rounded-lg bg-muted/40 px-4 py-2.5 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{iv.settled}</span>
+              <span className="tabular">{formatRupiah(total)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{iv.cashMoved[kind]}</span>
+              <span className="text-base font-semibold tabular">{formatRupiah(cash)}</span>
+            </div>
           </div>
           <FormField label={iv.notes} htmlFor="pay-notes">
             <Textarea id="pay-notes" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
@@ -247,7 +327,21 @@ export function PaymentsTable({ kind, payments, page, perms }: { kind: LedgerKin
         </span>
       ),
     },
-    { accessorKey: "amount", header: fs.amount, meta: { align: "right" }, cell: ({ row }) => <Money value={row.original.amount} /> },
+    { accessorKey: "amount", header: fs.amount, meta: { align: "right" }, cell: ({ row }) => (
+        <span className="block text-right">
+          <Money value={row.original.amount} />
+          {row.original.adjustments?.map((a, i) => (
+            <span key={i} className="block text-xs text-muted-foreground">
+              {a.taxName || iv.adjustmentKinds[a.kind]} {formatRupiah(a.amount)}
+            </span>
+          ))}
+          {row.original.adjustments?.length && row.original.cashAmount ? (
+            <span className="block text-xs text-muted-foreground">
+              {iv.cashMoved[kind]} {formatRupiah(row.original.cashAmount)}
+            </span>
+          ) : null}
+        </span>
+      ) },
     {
       accessorKey: "status",
       header: fs.status,

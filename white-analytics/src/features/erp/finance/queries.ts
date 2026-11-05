@@ -2,6 +2,10 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  AuditEntry,
+  Deferral,
+  TaxPosition,
+  TaxRemittance,
   SubledgerRecon,
   Advance,
   ProjectProfit,
@@ -324,4 +328,24 @@ export async function listAdvances(kind: LedgerKind) {
 
 export function getSubledgerRecon() {
   return gatewayFetch<SubledgerRecon>(`${F}/reports/subledger-recon`);
+}
+
+export async function listDeferrals() {
+  return (await gatewayFetch<{ deferrals?: Deferral[] }>(`${F}/deferrals`)).deferrals ?? [];
+}
+
+export async function listTaxPositions() {
+  return (await gatewayFetch<{ positions?: TaxPosition[] }>(`${F}/tax-positions`)).positions ?? [];
+}
+
+export async function listTaxRemittances() {
+  return (await gatewayFetch<{ remittances?: TaxRemittance[] }>(`${F}/tax-remittances`)).remittances ?? [];
+}
+
+export async function getSeparateApprover() {
+  return (await gatewayFetch<{ separateApprover?: boolean }>(`${F}/control-settings`)).separateApprover ?? false;
+}
+
+export function listAuditTrail(q: Q) {
+  return gatewayFetch<{ entries?: AuditEntry[]; total?: number }>(`${F}/audit-trail${qs(q)}`);
 }

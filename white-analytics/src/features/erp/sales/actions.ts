@@ -5,6 +5,7 @@ import { z } from "zod";
 import { fail, type ActionResult } from "@/lib/action-result";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { runGateway, zodFieldErrors } from "@/features/erp/shared/action";
+import { listTaxCodes } from "@/features/erp/finance/queries";
 import { ss } from "./strings";
 import type {
   Account,
@@ -362,6 +363,9 @@ const paymentSchema = z.object({
   method: req(),
   paidOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal tidak valid"),
   note: opt,
+  bankFee: opt,
+  withheld: opt,
+  withheldTaxCode: opt,
 });
 export type PaymentValues = z.input<typeof paymentSchema>;
 
@@ -530,4 +534,11 @@ export async function deleteReplyTemplateAction(id: string) {
 
 export async function saveChatbotSettingsAction(input: ChatbotSettings) {
   return send<ChatbotSettings>("/chatbot-settings", "PUT", input);
+}
+
+/** PPh codes a client can withhold, for the payment form. */
+export async function withholdingTaxesAction() {
+  const res = await runGateway(() => listTaxCodes(true));
+  if (!res.ok) return [];
+  return res.data.filter((t) => t.kind === "WITHHOLDING" && t.scope !== "PURCHASE").map((t) => ({ code: t.code, name: t.name }));
 }

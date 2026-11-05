@@ -44,6 +44,8 @@ type Spec struct {
 	Migrations fs.FS
 	// Register adds gRPC services to the server. Nil for worker-only binaries.
 	Register func(ctx context.Context, d Deps, s *grpc.Server) error
+	// Unary adds interceptors to the gRPC server. Optional.
+	Unary func(d Deps) []grpc.UnaryServerInterceptor
 	// Worker runs background consumers until ctx ends. Optional.
 	Worker func(ctx context.Context, d Deps) error
 	// NoDatabase skips Postgres (gateway, scheduler).
@@ -117,7 +119,11 @@ func Run(parent context.Context, spec Spec, args []string) error {
 		if spec.Register == nil {
 			return errors.New("service ini tidak punya server gRPC")
 		}
-		srv := grpcx.NewServer(grpcx.ServerOptions{Logger: logger, Verifier: d.Verifier})
+		opts := grpcx.ServerOptions{Logger: logger, Verifier: d.Verifier}
+		if spec.Unary != nil {
+			opts.Unary = spec.Unary(d)
+		}
+		srv := grpcx.NewServer(opts)
 		if err := spec.Register(runCtx, d, srv); err != nil {
 			return err
 		}

@@ -744,6 +744,15 @@ func (s *Store) withAllocations(ctx context.Context, ps []domain.Payment) ([]dom
 		p := &ps[idx[r.PaymentID]]
 		p.Allocations = append(p.Allocations, domain.Allocation{InvoiceID: r.InvoiceID, InvoiceNo: r.InvoiceNo, Amount: r.Amount})
 	}
+	adjustments, err := s.q.PaymentAdjustments(ctx, pids)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range adjustments {
+		p := &ps[idx[r.PaymentID]]
+		p.Adjustments = append(p.Adjustments, domain.PaymentAdjustment{Kind: r.Kind, AccountID: r.AccountID, AccountName: r.AccountName, TaxCode: r.TaxCode, TaxName: r.TaxName,
+			TaxRate: r.TaxRate, ReportCode: r.ReportCode, TaxBase: r.TaxBase, Amount: r.Amount, Memo: r.Memo})
+	}
 	return ps, nil
 }
 
@@ -807,7 +816,10 @@ func (s *Store) VoidPayment(ctx context.Context, id, reason, by string) error {
 }
 
 func (s *Store) SetPaymentJournal(ctx context.Context, id, entryID string) error {
-	return s.q.SetPaymentJournal(ctx, sqlc.SetPaymentJournalParams{ID: id, JournalEntryID: sp(entryID)})
+	if err := s.q.SetPaymentJournal(ctx, sqlc.SetPaymentJournalParams{ID: id, JournalEntryID: sp(entryID)}); err != nil {
+		return err
+	}
+	return s.q.SetAdvanceJournalByPayment(ctx, sqlc.SetAdvanceJournalByPaymentParams{SourcePaymentID: sp(id), JournalEntryID: sp(entryID)})
 }
 
 func (s *Store) SubsidiaryParties(ctx context.Context, kind string) ([]domain.SubsidiaryParty, error) {

@@ -352,6 +352,12 @@ func paymentPB(p *domain.Payment) *financev1.Payment {
 	for _, a := range p.Allocations {
 		out.Allocations = append(out.Allocations, &financev1.Allocation{InvoiceId: a.InvoiceID, InvoiceNo: a.InvoiceNo, Amount: a.Amount.String()})
 	}
+	for _, a := range p.Adjustments {
+		out.Adjustments = append(out.Adjustments, &financev1.PaymentAdjustment{Kind: a.Kind, AccountId: a.AccountID, AccountName: a.AccountName, TaxCode: a.TaxCode, TaxName: a.TaxName, Amount: a.Amount.String(), Memo: a.Memo})
+	}
+	if p.Method != "credit_note" {
+		out.CashAmount = domain.CashMoved(p.Kind, p.Amount, p.Adjustments).String()
+	}
 	return out
 }
 
@@ -364,6 +370,18 @@ func paymentInputFrom(in *financev1.PaymentInput) (app.PaymentInput, error) {
 		}
 		out.Allocations = append(out.Allocations, domain.Allocation{InvoiceID: a.InvoiceId, Amount: amount})
 	}
+	for _, a := range in.GetAdjustments() {
+		amount, err := money("adjustments", a.Amount)
+		if err != nil {
+			return out, err
+		}
+		out.Adjustments = append(out.Adjustments, app.AdjustmentInput{Kind: a.Kind, AccountID: a.AccountId, TaxID: a.TaxId, Memo: a.Memo, Amount: amount})
+	}
+	excess, err := money("excess_amount", orZero(in.GetExcessAmount()))
+	if err != nil {
+		return out, err
+	}
+	out.Excess, out.ExcessAccountID = excess, in.GetExcessAccountId()
 	return out, nil
 }
 

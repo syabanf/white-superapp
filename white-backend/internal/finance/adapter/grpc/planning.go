@@ -77,9 +77,13 @@ type advanceServer struct {
 }
 
 func advancePB(a *domain.Advance) *financev1.Advance {
-	return &financev1.Advance{Id: a.ID, Kind: a.Kind, AdvanceNo: a.AdvanceNo, AdvanceDate: a.Date, PartyName: a.PartyName, Amount: a.Amount.String(), Applied: a.Applied.String(), Remaining: a.Remaining().String(),
+	refunds := make([]*financev1.AdvanceRefund, len(a.Refunds))
+	for i, r := range a.Refunds {
+		refunds[i] = &financev1.AdvanceRefund{Id: r.ID, RefundNo: r.RefundNo, RefundDate: r.Date, Amount: r.Amount.String(), CashAccountName: r.CashAccountName, Reason: r.Reason, Status: r.Status, JournalEntryId: r.JournalEntryID, VoidReason: r.VoidReason}
+	}
+	return &financev1.Advance{Refunds: refunds, Refunded: a.Refunded.String(), Id: a.ID, Kind: a.Kind, AdvanceNo: a.AdvanceNo, AdvanceDate: a.Date, PartyName: a.PartyName, Amount: a.Amount.String(), Applied: a.Applied.String(), Remaining: a.Remaining().String(),
 		CashAccountId: a.CashAccountID, CashAccountName: a.CashAccountName, AdvanceAccountId: a.AdvanceAccountID, AdvanceAccountName: a.AdvanceAccountName, Reference: a.Reference, Notes: a.Notes,
-		Status: a.Status, JournalEntryId: a.JournalEntryID, VoidReason: a.VoidReason}
+		Status: a.Status, JournalEntryId: a.JournalEntryID, VoidReason: a.VoidReason, SourcePaymentId: a.SourcePaymentID}
 }
 
 func (s *advanceServer) ListAdvances(ctx context.Context, r *financev1.ListAdvancesRequest) (*financev1.ListAdvancesResponse, error) {
@@ -136,6 +140,34 @@ func (s *advanceServer) VoidAdvance(ctx context.Context, r *financev1.VoidAdvanc
 		return nil, err
 	}
 	a, err := s.svc.Ledgers.VoidAdvance(ctx, p.UserID, r.Id, r.Reason)
+	if err != nil {
+		return nil, err
+	}
+	return advancePB(a), nil
+}
+
+func (s *advanceServer) RefundAdvance(ctx context.Context, r *financev1.RefundAdvanceRequest) (*financev1.Advance, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := money("amount", r.Amount)
+	if err != nil {
+		return nil, err
+	}
+	a, err := s.svc.Ledgers.RefundAdvance(ctx, p.UserID, r.Id, app.RefundInput{Date: r.RefundDate, CashAccountID: r.CashAccountId, Reason: r.Reason, Amount: amount})
+	if err != nil {
+		return nil, err
+	}
+	return advancePB(a), nil
+}
+
+func (s *advanceServer) VoidAdvanceRefund(ctx context.Context, r *financev1.VoidAdvanceRequest) (*financev1.Advance, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	a, err := s.svc.Ledgers.VoidAdvanceRefund(ctx, p.UserID, r.Id, r.Reason)
 	if err != nil {
 		return nil, err
 	}

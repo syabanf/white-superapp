@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"os"
 	"sync"
@@ -110,6 +111,7 @@ func (f *fakeEvents) Publish(_ context.Context, subject string, payload any) err
 // ─── harness ────────────────────────────────────────────────
 
 type harness struct {
+	pool     *pgxpool.Pool
 	t        *testing.T
 	ctx      context.Context
 	deps     app.Deps
@@ -131,7 +133,7 @@ func newHarness(t *testing.T) *harness {
 	pool := pg.TestPool(t, finance.Migrations(), "migrations", finance.Schema)
 	pg.TruncateSchema(t, pool, finance.Schema)
 	h := &harness{
-		t: t, ctx: context.Background(),
+		pool: pool, t: t, ctx: context.Background(),
 		hr:       &fakeHR{byUser: map[string]*app.Employee{}, byID: map[string]*app.Employee{}},
 		identity: &fakeIdentity{}, storage: &fakeStorage{files: map[string][]byte{}}, events: &fakeEvents{}, insights: &fakeInsights{},
 	}

@@ -125,6 +125,10 @@ type SalesPaymentRecorded struct {
 	Method     string `json:"method,omitempty"`
 	Reference  string `json:"reference,omitempty"`
 	RecordedBy string `json:"recordedBy,omitempty"`
+	// BankFee and Withheld settle part of Amount without reaching the bank.
+	BankFee         Money  `json:"bankFee,omitempty"`
+	Withheld        Money  `json:"withheld,omitempty"`
+	WithheldTaxCode string `json:"withheldTaxCode,omitempty"`
 }
 
 // ReimbursementPaid is the payload finance publishes on

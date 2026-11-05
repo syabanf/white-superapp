@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Ban, Plus, ReceiptText } from "lucide-react";
+import { Ban, Plus, ReceiptText, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Fld, FormDialog, FormFooter, SimpleSelect } from "@/features/erp/sales/components/ui";
@@ -17,7 +17,7 @@ import { DatePicker, toIsoDate } from "@/features/erp/shared/period-picker";
 import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
 import { advanceState } from "../advance-state";
-import { applyAdvanceAction, createAdvanceAction, voidAdvanceAction } from "../actions";
+import { applyAdvanceAction, createAdvanceAction, refundAdvanceAction, voidAdvanceAction, voidAdvanceRefundAction } from "../actions";
 import { fs } from "../strings";
 import type { Advance, Invoice, LedgerKind, PostableAccount } from "../types";
 import { AccountPicker } from "./account-picker";
@@ -120,7 +120,36 @@ function ApplyForm({ advance, invoices, close }: { advance: Advance; invoices: I
   );
 }
 
-export function AdvancesTable({ kind, rows, openInvoices, canApprove }: { kind: LedgerKind; rows: Advance[]; openInvoices: Invoice[]; canApprove: boolean }) {
+function RefundForm({ advance, accounts, close }: { advance: Advance; accounts: PostableAccount[]; close: () => void }) {
+  const [v, setV] = React.useState({ refundDate: toIsoDate(new Date()), amount: advance.remaining, cashAccountId: "", reason: "" });
+  const [errors, setErrors] = React.useState<Record<string, string[]>>();
+  const { pending, run } = useErpAction();
+  return (
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(() => refundAdvanceAction(advance.kind, advance.id, v), { success: s.refunded, onOk: close, onFail: (r) => setErrors(r.fieldErrors) });
+      }}
+    >
+      <Fld label={s.amount} htmlFor="rf-amount" error={errors?.amount}>
+        <MoneyInput id="rf-amount" value={v.amount} onChange={(x) => setV((p) => ({ ...p, amount: x }))} />
+      </Fld>
+      <Fld label={s.date} htmlFor="rf-date" error={errors?.refund_date}>
+        <DatePicker id="rf-date" value={v.refundDate} onChange={(x) => setV((p) => ({ ...p, refundDate: x }))} />
+      </Fld>
+      <Fld label={s.cashAccount} htmlFor="rf-cash" error={errors?.cash_account_id}>
+        <AccountPicker accounts={accounts} filter={(a) => a.isCashBank} value={v.cashAccountId} onChange={(x) => setV((p) => ({ ...p, cashAccountId: x }))} />
+      </Fld>
+      <Fld label={s.refundReason} htmlFor="rf-reason" error={errors?.reason}>
+        <Input id="rf-reason" value={v.reason} onChange={(e) => setV((p) => ({ ...p, reason: e.target.value }))} />
+      </Fld>
+      <FormFooter onCancel={close} pending={pending} />
+    </form>
+  );
+}
+
+export function AdvancesTable({ kind, rows, openInvoices, accounts, canApprove }: { kind: LedgerKind; rows: Advance[]; openInvoices: Invoice[]; accounts: PostableAccount[]; canApprove: boolean }) {
   const { run } = useErpAction();
   const columns: ColumnDef<Advance, unknown>[] = [
     {
@@ -137,6 +166,37 @@ export function AdvancesTable({ kind, rows, openInvoices, canApprove }: { kind: 
     { accessorKey: "advanceDate", header: s.date, cell: ({ row }) => formatDate(row.original.advanceDate) },
     { accessorKey: "amount", header: s.amount, meta: { align: "right" }, cell: ({ row }) => <Money value={row.original.amount} /> },
     { accessorKey: "applied", header: s.appliedCol, meta: { align: "right" }, cell: ({ row }) => <Money value={row.original.applied} muteZero /> },
+    {
+      accessorKey: "refunded",
+      header: s.refundedCol,
+      meta: { align: "right" },
+      cell: ({ row }) => (
+        <span className="block text-right">
+          <Money value={row.original.refunded ?? "0"} muteZero />
+          {row.original.refunds?.map((r) =>
+            r.status === "POSTED" ? (
+              <span key={r.id} className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+                {r.refundNo}
+                {canApprove ? (
+                  <ReasonAction
+                    trigger={
+                      <Button size="icon-xs" variant="ghost" aria-label={s.refundVoid} className="text-destructive">
+                        <Ban className="size-3" />
+                      </Button>
+                    }
+                    title={s.refundVoid}
+                    description={s.refundVoidHint}
+                    confirmLabel={s.void}
+                    reasonLabel={s.voidReason}
+                    onConfirm={async (reason: string) => (await run(() => voidAdvanceRefundAction(kind, r.id, reason), { success: s.refundVoided })).ok}
+                  />
+                ) : null}
+              </span>
+            ) : null,
+          )}
+        </span>
+      ),
+    },
     { accessorKey: "remaining", header: s.remaining, meta: { align: "right" }, cell: ({ row }) => <Money value={row.original.remaining} muteZero /> },
     {
       id: "status",
@@ -172,7 +232,20 @@ export function AdvancesTable({ kind, rows, openInvoices, canApprove }: { kind: 
                 {(close) => <ApplyForm advance={a} invoices={openInvoices} close={close} />}
               </FormDialog>
             ) : null}
-            {canApprove && a.status === "POSTED" && parseMoney(a.applied) === 0 ? (
+            {canApprove && advanceState(a) === "open" ? (
+              <FormDialog
+                title={s.refundTitle}
+                description={s.refundHint[kind]}
+                trigger={
+                  <Button size="xs" variant="ghost">
+                    <Undo2 className="size-3.5" /> {s.refund}
+                  </Button>
+                }
+              >
+                {(close) => <RefundForm advance={a} accounts={accounts} close={close} />}
+              </FormDialog>
+            ) : null}
+            {canApprove && a.status === "POSTED" && !a.sourcePaymentId && parseMoney(a.applied) === 0 && parseMoney(a.refunded ?? "0") === 0 ? (
               <ReasonAction
                 trigger={
                   <Button size="xs" variant="ghost" className="text-destructive">

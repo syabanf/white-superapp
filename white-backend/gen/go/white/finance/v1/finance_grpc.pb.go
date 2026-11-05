@@ -7062,10 +7062,614 @@ var ProjectTagService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	AdvanceService_ListAdvances_FullMethodName  = "/white.finance.v1.AdvanceService/ListAdvances"
-	AdvanceService_CreateAdvance_FullMethodName = "/white.finance.v1.AdvanceService/CreateAdvance"
-	AdvanceService_ApplyAdvance_FullMethodName  = "/white.finance.v1.AdvanceService/ApplyAdvance"
-	AdvanceService_VoidAdvance_FullMethodName   = "/white.finance.v1.AdvanceService/VoidAdvance"
+	PeriodEndService_ListDeferrals_FullMethodName      = "/white.finance.v1.PeriodEndService/ListDeferrals"
+	PeriodEndService_CreateDeferral_FullMethodName     = "/white.finance.v1.PeriodEndService/CreateDeferral"
+	PeriodEndService_SetDeferralActive_FullMethodName  = "/white.finance.v1.PeriodEndService/SetDeferralActive"
+	PeriodEndService_DeleteDeferral_FullMethodName     = "/white.finance.v1.PeriodEndService/DeleteDeferral"
+	PeriodEndService_WriteOffInvoice_FullMethodName    = "/white.finance.v1.PeriodEndService/WriteOffInvoice"
+	PeriodEndService_ListTaxPositions_FullMethodName   = "/white.finance.v1.PeriodEndService/ListTaxPositions"
+	PeriodEndService_ListTaxRemittances_FullMethodName = "/white.finance.v1.PeriodEndService/ListTaxRemittances"
+	PeriodEndService_RemitTax_FullMethodName           = "/white.finance.v1.PeriodEndService/RemitTax"
+	PeriodEndService_VoidTaxRemittance_FullMethodName  = "/white.finance.v1.PeriodEndService/VoidTaxRemittance"
+	PeriodEndService_CloseVat_FullMethodName           = "/white.finance.v1.PeriodEndService/CloseVat"
+	PeriodEndService_ListAuditTrail_FullMethodName     = "/white.finance.v1.PeriodEndService/ListAuditTrail"
+	PeriodEndService_ExportAuditTrail_FullMethodName   = "/white.finance.v1.PeriodEndService/ExportAuditTrail"
+	PeriodEndService_GetControlSettings_FullMethodName = "/white.finance.v1.PeriodEndService/GetControlSettings"
+	PeriodEndService_SetControlSettings_FullMethodName = "/white.finance.v1.PeriodEndService/SetControlSettings"
+)
+
+// PeriodEndServiceClient is the client API for PeriodEndService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Period-end work: recognition schedules, write-offs, tax payments, VAT offset and
+// the separation of duties switch. finance.approve for every change.
+type PeriodEndServiceClient interface {
+	ListDeferrals(ctx context.Context, in *ListDeferralsRequest, opts ...grpc.CallOption) (*ListDeferralsResponse, error)
+	CreateDeferral(ctx context.Context, in *Deferral, opts ...grpc.CallOption) (*Deferral, error)
+	SetDeferralActive(ctx context.Context, in *SetDeferralActiveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteDeferral(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	WriteOffInvoice(ctx context.Context, in *WriteOffRequest, opts ...grpc.CallOption) (*Invoice, error)
+	ListTaxPositions(ctx context.Context, in *ListTaxPositionsRequest, opts ...grpc.CallOption) (*ListTaxPositionsResponse, error)
+	ListTaxRemittances(ctx context.Context, in *ListTaxRemittancesRequest, opts ...grpc.CallOption) (*ListTaxRemittancesResponse, error)
+	RemitTax(ctx context.Context, in *TaxRemittance, opts ...grpc.CallOption) (*TaxRemittance, error)
+	VoidTaxRemittance(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*TaxRemittance, error)
+	CloseVat(ctx context.Context, in *CloseVatRequest, opts ...grpc.CallOption) (*VatClosing, error)
+	ListAuditTrail(ctx context.Context, in *ListAuditTrailRequest, opts ...grpc.CallOption) (*ListAuditTrailResponse, error)
+	ExportAuditTrail(ctx context.Context, in *ListAuditTrailRequest, opts ...grpc.CallOption) (*TaxExportFile, error)
+	GetControlSettings(ctx context.Context, in *ControlSettingsRequest, opts ...grpc.CallOption) (*ControlSettings, error)
+	SetControlSettings(ctx context.Context, in *ControlSettings, opts ...grpc.CallOption) (*ControlSettings, error)
+}
+
+type periodEndServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPeriodEndServiceClient(cc grpc.ClientConnInterface) PeriodEndServiceClient {
+	return &periodEndServiceClient{cc}
+}
+
+func (c *periodEndServiceClient) ListDeferrals(ctx context.Context, in *ListDeferralsRequest, opts ...grpc.CallOption) (*ListDeferralsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDeferralsResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_ListDeferrals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) CreateDeferral(ctx context.Context, in *Deferral, opts ...grpc.CallOption) (*Deferral, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Deferral)
+	err := c.cc.Invoke(ctx, PeriodEndService_CreateDeferral_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) SetDeferralActive(ctx context.Context, in *SetDeferralActiveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, PeriodEndService_SetDeferralActive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) DeleteDeferral(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, PeriodEndService_DeleteDeferral_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) WriteOffInvoice(ctx context.Context, in *WriteOffRequest, opts ...grpc.CallOption) (*Invoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Invoice)
+	err := c.cc.Invoke(ctx, PeriodEndService_WriteOffInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ListTaxPositions(ctx context.Context, in *ListTaxPositionsRequest, opts ...grpc.CallOption) (*ListTaxPositionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTaxPositionsResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_ListTaxPositions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ListTaxRemittances(ctx context.Context, in *ListTaxRemittancesRequest, opts ...grpc.CallOption) (*ListTaxRemittancesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTaxRemittancesResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_ListTaxRemittances_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) RemitTax(ctx context.Context, in *TaxRemittance, opts ...grpc.CallOption) (*TaxRemittance, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TaxRemittance)
+	err := c.cc.Invoke(ctx, PeriodEndService_RemitTax_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) VoidTaxRemittance(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*TaxRemittance, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TaxRemittance)
+	err := c.cc.Invoke(ctx, PeriodEndService_VoidTaxRemittance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) CloseVat(ctx context.Context, in *CloseVatRequest, opts ...grpc.CallOption) (*VatClosing, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(VatClosing)
+	err := c.cc.Invoke(ctx, PeriodEndService_CloseVat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ListAuditTrail(ctx context.Context, in *ListAuditTrailRequest, opts ...grpc.CallOption) (*ListAuditTrailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAuditTrailResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_ListAuditTrail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ExportAuditTrail(ctx context.Context, in *ListAuditTrailRequest, opts ...grpc.CallOption) (*TaxExportFile, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TaxExportFile)
+	err := c.cc.Invoke(ctx, PeriodEndService_ExportAuditTrail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) GetControlSettings(ctx context.Context, in *ControlSettingsRequest, opts ...grpc.CallOption) (*ControlSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ControlSettings)
+	err := c.cc.Invoke(ctx, PeriodEndService_GetControlSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) SetControlSettings(ctx context.Context, in *ControlSettings, opts ...grpc.CallOption) (*ControlSettings, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ControlSettings)
+	err := c.cc.Invoke(ctx, PeriodEndService_SetControlSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PeriodEndServiceServer is the server API for PeriodEndService service.
+// All implementations must embed UnimplementedPeriodEndServiceServer
+// for forward compatibility.
+//
+// Period-end work: recognition schedules, write-offs, tax payments, VAT offset and
+// the separation of duties switch. finance.approve for every change.
+type PeriodEndServiceServer interface {
+	ListDeferrals(context.Context, *ListDeferralsRequest) (*ListDeferralsResponse, error)
+	CreateDeferral(context.Context, *Deferral) (*Deferral, error)
+	SetDeferralActive(context.Context, *SetDeferralActiveRequest) (*emptypb.Empty, error)
+	DeleteDeferral(context.Context, *IdRequest) (*emptypb.Empty, error)
+	WriteOffInvoice(context.Context, *WriteOffRequest) (*Invoice, error)
+	ListTaxPositions(context.Context, *ListTaxPositionsRequest) (*ListTaxPositionsResponse, error)
+	ListTaxRemittances(context.Context, *ListTaxRemittancesRequest) (*ListTaxRemittancesResponse, error)
+	RemitTax(context.Context, *TaxRemittance) (*TaxRemittance, error)
+	VoidTaxRemittance(context.Context, *VoidAdvanceRequest) (*TaxRemittance, error)
+	CloseVat(context.Context, *CloseVatRequest) (*VatClosing, error)
+	ListAuditTrail(context.Context, *ListAuditTrailRequest) (*ListAuditTrailResponse, error)
+	ExportAuditTrail(context.Context, *ListAuditTrailRequest) (*TaxExportFile, error)
+	GetControlSettings(context.Context, *ControlSettingsRequest) (*ControlSettings, error)
+	SetControlSettings(context.Context, *ControlSettings) (*ControlSettings, error)
+	mustEmbedUnimplementedPeriodEndServiceServer()
+}
+
+// UnimplementedPeriodEndServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedPeriodEndServiceServer struct{}
+
+func (UnimplementedPeriodEndServiceServer) ListDeferrals(context.Context, *ListDeferralsRequest) (*ListDeferralsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDeferrals not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) CreateDeferral(context.Context, *Deferral) (*Deferral, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateDeferral not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) SetDeferralActive(context.Context, *SetDeferralActiveRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetDeferralActive not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) DeleteDeferral(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteDeferral not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) WriteOffInvoice(context.Context, *WriteOffRequest) (*Invoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method WriteOffInvoice not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ListTaxPositions(context.Context, *ListTaxPositionsRequest) (*ListTaxPositionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTaxPositions not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ListTaxRemittances(context.Context, *ListTaxRemittancesRequest) (*ListTaxRemittancesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTaxRemittances not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) RemitTax(context.Context, *TaxRemittance) (*TaxRemittance, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemitTax not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) VoidTaxRemittance(context.Context, *VoidAdvanceRequest) (*TaxRemittance, error) {
+	return nil, status.Error(codes.Unimplemented, "method VoidTaxRemittance not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) CloseVat(context.Context, *CloseVatRequest) (*VatClosing, error) {
+	return nil, status.Error(codes.Unimplemented, "method CloseVat not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ListAuditTrail(context.Context, *ListAuditTrailRequest) (*ListAuditTrailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAuditTrail not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ExportAuditTrail(context.Context, *ListAuditTrailRequest) (*TaxExportFile, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExportAuditTrail not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) GetControlSettings(context.Context, *ControlSettingsRequest) (*ControlSettings, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetControlSettings not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) SetControlSettings(context.Context, *ControlSettings) (*ControlSettings, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetControlSettings not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) mustEmbedUnimplementedPeriodEndServiceServer() {}
+func (UnimplementedPeriodEndServiceServer) testEmbeddedByValue()                          {}
+
+// UnsafePeriodEndServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PeriodEndServiceServer will
+// result in compilation errors.
+type UnsafePeriodEndServiceServer interface {
+	mustEmbedUnimplementedPeriodEndServiceServer()
+}
+
+func RegisterPeriodEndServiceServer(s grpc.ServiceRegistrar, srv PeriodEndServiceServer) {
+	// If the following call panics, it indicates UnimplementedPeriodEndServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&PeriodEndService_ServiceDesc, srv)
+}
+
+func _PeriodEndService_ListDeferrals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDeferralsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ListDeferrals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ListDeferrals_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ListDeferrals(ctx, req.(*ListDeferralsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_CreateDeferral_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Deferral)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).CreateDeferral(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_CreateDeferral_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).CreateDeferral(ctx, req.(*Deferral))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_SetDeferralActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDeferralActiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).SetDeferralActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_SetDeferralActive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).SetDeferralActive(ctx, req.(*SetDeferralActiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_DeleteDeferral_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).DeleteDeferral(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_DeleteDeferral_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).DeleteDeferral(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_WriteOffInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WriteOffRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).WriteOffInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_WriteOffInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).WriteOffInvoice(ctx, req.(*WriteOffRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ListTaxPositions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTaxPositionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ListTaxPositions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ListTaxPositions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ListTaxPositions(ctx, req.(*ListTaxPositionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ListTaxRemittances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTaxRemittancesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ListTaxRemittances(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ListTaxRemittances_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ListTaxRemittances(ctx, req.(*ListTaxRemittancesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_RemitTax_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaxRemittance)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).RemitTax(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_RemitTax_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).RemitTax(ctx, req.(*TaxRemittance))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_VoidTaxRemittance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoidAdvanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).VoidTaxRemittance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_VoidTaxRemittance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).VoidTaxRemittance(ctx, req.(*VoidAdvanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_CloseVat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseVatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).CloseVat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_CloseVat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).CloseVat(ctx, req.(*CloseVatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ListAuditTrail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuditTrailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ListAuditTrail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ListAuditTrail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ListAuditTrail(ctx, req.(*ListAuditTrailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ExportAuditTrail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuditTrailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ExportAuditTrail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ExportAuditTrail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ExportAuditTrail(ctx, req.(*ListAuditTrailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_GetControlSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ControlSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).GetControlSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_GetControlSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).GetControlSettings(ctx, req.(*ControlSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_SetControlSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ControlSettings)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).SetControlSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_SetControlSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).SetControlSettings(ctx, req.(*ControlSettings))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PeriodEndService_ServiceDesc is the grpc.ServiceDesc for PeriodEndService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PeriodEndService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.PeriodEndService",
+	HandlerType: (*PeriodEndServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListDeferrals",
+			Handler:    _PeriodEndService_ListDeferrals_Handler,
+		},
+		{
+			MethodName: "CreateDeferral",
+			Handler:    _PeriodEndService_CreateDeferral_Handler,
+		},
+		{
+			MethodName: "SetDeferralActive",
+			Handler:    _PeriodEndService_SetDeferralActive_Handler,
+		},
+		{
+			MethodName: "DeleteDeferral",
+			Handler:    _PeriodEndService_DeleteDeferral_Handler,
+		},
+		{
+			MethodName: "WriteOffInvoice",
+			Handler:    _PeriodEndService_WriteOffInvoice_Handler,
+		},
+		{
+			MethodName: "ListTaxPositions",
+			Handler:    _PeriodEndService_ListTaxPositions_Handler,
+		},
+		{
+			MethodName: "ListTaxRemittances",
+			Handler:    _PeriodEndService_ListTaxRemittances_Handler,
+		},
+		{
+			MethodName: "RemitTax",
+			Handler:    _PeriodEndService_RemitTax_Handler,
+		},
+		{
+			MethodName: "VoidTaxRemittance",
+			Handler:    _PeriodEndService_VoidTaxRemittance_Handler,
+		},
+		{
+			MethodName: "CloseVat",
+			Handler:    _PeriodEndService_CloseVat_Handler,
+		},
+		{
+			MethodName: "ListAuditTrail",
+			Handler:    _PeriodEndService_ListAuditTrail_Handler,
+		},
+		{
+			MethodName: "ExportAuditTrail",
+			Handler:    _PeriodEndService_ExportAuditTrail_Handler,
+		},
+		{
+			MethodName: "GetControlSettings",
+			Handler:    _PeriodEndService_GetControlSettings_Handler,
+		},
+		{
+			MethodName: "SetControlSettings",
+			Handler:    _PeriodEndService_SetControlSettings_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
+	AdvanceService_ListAdvances_FullMethodName      = "/white.finance.v1.AdvanceService/ListAdvances"
+	AdvanceService_CreateAdvance_FullMethodName     = "/white.finance.v1.AdvanceService/CreateAdvance"
+	AdvanceService_ApplyAdvance_FullMethodName      = "/white.finance.v1.AdvanceService/ApplyAdvance"
+	AdvanceService_RefundAdvance_FullMethodName     = "/white.finance.v1.AdvanceService/RefundAdvance"
+	AdvanceService_VoidAdvanceRefund_FullMethodName = "/white.finance.v1.AdvanceService/VoidAdvanceRefund"
+	AdvanceService_VoidAdvance_FullMethodName       = "/white.finance.v1.AdvanceService/VoidAdvance"
 )
 
 // AdvanceServiceClient is the client API for AdvanceService service.
@@ -7077,6 +7681,8 @@ type AdvanceServiceClient interface {
 	ListAdvances(ctx context.Context, in *ListAdvancesRequest, opts ...grpc.CallOption) (*ListAdvancesResponse, error)
 	CreateAdvance(ctx context.Context, in *AdvanceInput, opts ...grpc.CallOption) (*Advance, error)
 	ApplyAdvance(ctx context.Context, in *ApplyAdvanceRequest, opts ...grpc.CallOption) (*Invoice, error)
+	RefundAdvance(ctx context.Context, in *RefundAdvanceRequest, opts ...grpc.CallOption) (*Advance, error)
+	VoidAdvanceRefund(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*Advance, error)
 	VoidAdvance(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*Advance, error)
 }
 
@@ -7118,6 +7724,26 @@ func (c *advanceServiceClient) ApplyAdvance(ctx context.Context, in *ApplyAdvanc
 	return out, nil
 }
 
+func (c *advanceServiceClient) RefundAdvance(ctx context.Context, in *RefundAdvanceRequest, opts ...grpc.CallOption) (*Advance, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Advance)
+	err := c.cc.Invoke(ctx, AdvanceService_RefundAdvance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *advanceServiceClient) VoidAdvanceRefund(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*Advance, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Advance)
+	err := c.cc.Invoke(ctx, AdvanceService_VoidAdvanceRefund_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *advanceServiceClient) VoidAdvance(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*Advance, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Advance)
@@ -7137,6 +7763,8 @@ type AdvanceServiceServer interface {
 	ListAdvances(context.Context, *ListAdvancesRequest) (*ListAdvancesResponse, error)
 	CreateAdvance(context.Context, *AdvanceInput) (*Advance, error)
 	ApplyAdvance(context.Context, *ApplyAdvanceRequest) (*Invoice, error)
+	RefundAdvance(context.Context, *RefundAdvanceRequest) (*Advance, error)
+	VoidAdvanceRefund(context.Context, *VoidAdvanceRequest) (*Advance, error)
 	VoidAdvance(context.Context, *VoidAdvanceRequest) (*Advance, error)
 	mustEmbedUnimplementedAdvanceServiceServer()
 }
@@ -7156,6 +7784,12 @@ func (UnimplementedAdvanceServiceServer) CreateAdvance(context.Context, *Advance
 }
 func (UnimplementedAdvanceServiceServer) ApplyAdvance(context.Context, *ApplyAdvanceRequest) (*Invoice, error) {
 	return nil, status.Error(codes.Unimplemented, "method ApplyAdvance not implemented")
+}
+func (UnimplementedAdvanceServiceServer) RefundAdvance(context.Context, *RefundAdvanceRequest) (*Advance, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefundAdvance not implemented")
+}
+func (UnimplementedAdvanceServiceServer) VoidAdvanceRefund(context.Context, *VoidAdvanceRequest) (*Advance, error) {
+	return nil, status.Error(codes.Unimplemented, "method VoidAdvanceRefund not implemented")
 }
 func (UnimplementedAdvanceServiceServer) VoidAdvance(context.Context, *VoidAdvanceRequest) (*Advance, error) {
 	return nil, status.Error(codes.Unimplemented, "method VoidAdvance not implemented")
@@ -7235,6 +7869,42 @@ func _AdvanceService_ApplyAdvance_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdvanceService_RefundAdvance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefundAdvanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdvanceServiceServer).RefundAdvance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdvanceService_RefundAdvance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdvanceServiceServer).RefundAdvance(ctx, req.(*RefundAdvanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdvanceService_VoidAdvanceRefund_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoidAdvanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdvanceServiceServer).VoidAdvanceRefund(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdvanceService_VoidAdvanceRefund_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdvanceServiceServer).VoidAdvanceRefund(ctx, req.(*VoidAdvanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdvanceService_VoidAdvance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(VoidAdvanceRequest)
 	if err := dec(in); err != nil {
@@ -7271,6 +7941,14 @@ var AdvanceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ApplyAdvance",
 			Handler:    _AdvanceService_ApplyAdvance_Handler,
+		},
+		{
+			MethodName: "RefundAdvance",
+			Handler:    _AdvanceService_RefundAdvance_Handler,
+		},
+		{
+			MethodName: "VoidAdvanceRefund",
+			Handler:    _AdvanceService_VoidAdvanceRefund_Handler,
 		},
 		{
 			MethodName: "VoidAdvance",

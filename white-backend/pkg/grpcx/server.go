@@ -27,6 +27,9 @@ type ServerOptions struct {
 	Verifier *authn.Verifier
 	// MaxRecvBytes raises the default 4 MB limit (CSV import, media upload).
 	MaxRecvBytes int
+	// Unary runs inside the standard chain, so it sees the principal and the
+	// handler's own errors.
+	Unary []grpc.UnaryServerInterceptor
 }
 
 // NewServer builds a gRPC server with health and reflection registered.
@@ -36,12 +39,12 @@ func NewServer(opts ServerOptions) *grpc.Server {
 	}
 	s := grpc.NewServer(
 		grpc.MaxRecvMsgSize(opts.MaxRecvBytes),
-		grpc.ChainUnaryInterceptor(
+		grpc.ChainUnaryInterceptor(append([]grpc.UnaryServerInterceptor{
 			recoverUnary(opts.Logger),
 			authUnary(opts.Verifier),
 			logUnary(opts.Logger),
 			errorUnary,
-		),
+		}, opts.Unary...)...),
 	)
 	healthpb.RegisterHealthServer(s, health.NewServer())
 	reflection.Register(s)

@@ -417,6 +417,8 @@ export type Payment = {
   status: DocumentStatus;
   partyName: string;
   allocations: Allocation[];
+  adjustments?: { kind: string; accountName: string; taxName: string; amount: string; memo: string }[];
+  cashAmount?: string;
   voidReason: string;
   voidedAt?: string | null;
   journalEntryId: string;
@@ -997,6 +999,9 @@ export type Advance = {
   partyName: string;
   amount: string;
   applied: string;
+  refunded?: string;
+  refunds?: AdvanceRefund[];
+  sourcePaymentId?: string;
   remaining: string;
   cashAccountName: string;
   advanceAccountName: string;
@@ -1009,3 +1014,9 @@ export type Advance = {
 
 export type SubledgerReconRow = { kind: LedgerKind; accounts?: string[]; generalLedger: string; subledger: string; difference: string; unjournaledCount?: number; unjournaledAmount: string; opening: string; recon: string };
 export type SubledgerRecon = { rows?: SubledgerReconRow[]; pendingPostings?: number };
+
+export type Deferral = { id: string; kind: "REVENUE" | "EXPENSE"; name: string; partyName: string; reference: string; deferredAccountName: string; targetAccountName: string; startDate: string; months: number; postedMonths?: number; amount: string; recognized: string; isActive?: boolean; lastError?: string };
+export type TaxPosition = { accountId: string; code: string; name: string; kind: "PAYABLE" | "PREPAID"; balance: string };
+export type TaxRemittance = { id: string; remitNo: string; period: string; remitDate: string; accountName: string; cashAccountName: string; amount: string; ntpn: string; notes: string; status: "POSTED" | "VOID"; journalEntryId: string; voidReason: string };
+export type AuditEntry = { id: string; at: string; actorName: string; action: string; docId: string; docNo: string; result: "OK" | "REFUSED"; message: string; request: string; response: string };
+export type AdvanceRefund = { id: string; refundNo: string; refundDate: string; amount: string; cashAccountName: string; reason: string; status: "POSTED" | "VOID"; journalEntryId: string; voidReason: string };

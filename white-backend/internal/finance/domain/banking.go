@@ -466,17 +466,24 @@ func (a FixedAsset) DepreciationFor(n int) Money {
 }
 
 func (a FixedAsset) accumulatedAt(n int) Money {
-	base := int64(a.Cost - a.Salvage)
-	life := int64(a.LifeMonths)
-	return Money((base*int64(n)*2 + life) / (2 * life))
+	return straightLineTotal(a.Cost-a.Salvage, a.LifeMonths, n)
+}
+
+// straightLineTotal is the rounded total after n of months equal parts.
+func straightLineTotal(base Money, months, n int) Money {
+	life := int64(months)
+	return Money((int64(base)*int64(n)*2 + life) / (2 * life))
 }
 
 // Accumulated is the depreciation booked so far.
 func (a FixedAsset) Accumulated() Money { return a.accumulatedAt(a.DepreciatedMonths) }
 
 // MonthEnd is the posting date of month n (1-based).
-func (a FixedAsset) MonthEnd(n int) (string, error) {
-	t, err := time.Parse("2006-01-02", a.AcquiredOn)
+func (a FixedAsset) MonthEnd(n int) (string, error) { return monthEndAfter(a.AcquiredOn, n) }
+
+// monthEndAfter is the last day of month n, counting date's own month as 1.
+func monthEndAfter(date string, n int) (string, error) {
+	t, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		return "", err
 	}
