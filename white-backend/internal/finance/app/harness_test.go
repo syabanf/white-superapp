@@ -151,6 +151,27 @@ func newHarness(t *testing.T) *harness {
 	return h
 }
 
+// periodFor finds a period id by its YYYY-MM month.
+func (h *harness) periodFor(month string) (string, error) {
+	f := app.NewFiscal(h.deps)
+	years, err := f.ListYears(h.ctx, "", nil)
+	if err != nil {
+		return "", err
+	}
+	for _, y := range years {
+		full, err := f.GetYear(h.ctx, y.ID)
+		if err != nil {
+			return "", err
+		}
+		for _, p := range full.Periods {
+			if p.StartDate[:7] == month {
+				return p.ID, nil
+			}
+		}
+	}
+	return "", nil
+}
+
 func (h *harness) mustYear(y *domain.FiscalYear, err error) *domain.FiscalYear {
 	h.t.Helper()
 	if err != nil {

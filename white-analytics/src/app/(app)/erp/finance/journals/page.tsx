@@ -8,10 +8,11 @@ import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load, sp1, spInt } from "@/features/erp/shared/load";
 import { ErpLoadError } from "@/features/erp/shared/states";
 import { UrlTabs } from "@/features/erp/shared/url-tabs";
+import { JournalHistory } from "@/features/erp/finance/components/journal-history";
 import { JournalsTable } from "@/features/erp/finance/components/journals-table";
 import { PostingLogs } from "@/features/erp/finance/components/posting-logs";
 import { financePerms } from "@/features/erp/finance/perms";
-import { listJournalEntries, listPostingLogs } from "@/features/erp/finance/queries";
+import { listJournalEntries, listPostableAccounts, listPostingLogs } from "@/features/erp/finance/queries";
 import { fs } from "@/features/erp/finance/strings";
 
 export const metadata: Metadata = { title: fs.journals.title };
@@ -20,7 +21,8 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
   const sp = await props.searchParams;
   const { access, offline } = await requireErp("finance.read");
   const perms = financePerms(access);
-  const tab = sp1(sp.tab) === "logs" ? "logs" : "entries";
+  const requested = sp1(sp.tab);
+  const tab = requested === "logs" || requested === "history" ? requested : "entries";
   const header = (
     <PageHeader
       eyebrow={fs.eyebrow}
@@ -42,9 +44,10 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
       label={fs.journals.title}
       tabs={[
         { value: "entries", label: fs.journals.tabEntries },
+        { value: "history", label: fs.journals.tabHistory },
         { value: "logs", label: fs.journals.tabLogs },
       ]}
-      reset={["page", "q", "status", "type", "from", "to", "logStatus"]}
+      reset={["page", "q", "status", "type", "from", "to", "account", "logStatus"]}
     />
   );
   if (offline) return <>{header}<OfflineNotice message={offline.message} /></>;
@@ -65,7 +68,7 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
   const res = await load(() =>
     listJournalEntries({
       search: sp1(sp.q),
-      status: sp1(sp.status),
+      status: tab === "history" ? "POSTED" : sp1(sp.status),
       entryType: sp1(sp.type),
       dateFrom: sp1(sp.from),
       dateTo: sp1(sp.to),
@@ -74,6 +77,20 @@ export default async function JournalsPage(props: PageProps<"/erp/finance/journa
       pageSize,
     }),
   );
+  if (tab === "history") {
+    const accounts = await load(listPostableAccounts);
+    return (
+      <>
+        {header}
+        {tabs}
+        {res.error ? (
+          <ErpLoadError error={res.error} />
+        ) : (
+          <JournalHistory entries={res.data.entries} page={{ page, pageSize, total: res.data.total }} accounts={accounts.data ?? []} />
+        )}
+      </>
+    );
+  }
   return (
     <>
       {header}

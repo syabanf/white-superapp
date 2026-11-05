@@ -158,7 +158,7 @@ func (q *Queries) FindLeadByContact(ctx context.Context, arg FindLeadByContactPa
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, name, account_type, industry, address, city, phone, email, website, npwp, notes, owner_user_id, custom, created_by, updated_by, created_at, updated_at, deleted_at FROM sales.accounts WHERE id = $1 AND deleted_at IS NULL
+SELECT id, name, account_type, industry, address, city, phone, email, website, npwp, notes, owner_user_id, custom, created_by, updated_by, created_at, updated_at, deleted_at, bank_name, bank_account_no, bank_account_name, billing_email, payment_terms_days FROM sales.accounts WHERE id = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) GetAccount(ctx context.Context, id string) (SalesAccount, error) {
@@ -183,6 +183,11 @@ func (q *Queries) GetAccount(ctx context.Context, id string) (SalesAccount, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.BankName,
+		&i.BankAccountNo,
+		&i.BankAccountName,
+		&i.BillingEmail,
+		&i.PaymentTermsDays,
 	)
 	return i, err
 }
@@ -286,7 +291,7 @@ func (q *Queries) LeadKeys(ctx context.Context) ([]LeadKeysRow, error) {
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, name, account_type, industry, address, city, phone, email, website, npwp, notes, owner_user_id, custom, created_by, updated_by, created_at, updated_at, deleted_at FROM sales.accounts
+SELECT id, name, account_type, industry, address, city, phone, email, website, npwp, notes, owner_user_id, custom, created_by, updated_by, created_at, updated_at, deleted_at, bank_name, bank_account_no, bank_account_name, billing_email, payment_terms_days FROM sales.accounts
 WHERE deleted_at IS NULL AND ($1::text IS NULL OR name ILIKE '%' || $1 || '%')
 ORDER BY name LIMIT $2
 `
@@ -324,6 +329,11 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]S
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.BankName,
+			&i.BankAccountNo,
+			&i.BankAccountName,
+			&i.BillingEmail,
+			&i.PaymentTermsDays,
 		); err != nil {
 			return nil, err
 		}
@@ -587,32 +597,39 @@ func (q *Queries) UpdateLeadScore(ctx context.Context, arg UpdateLeadScoreParams
 
 const upsertAccount = `-- name: UpsertAccount :exec
 INSERT INTO sales.accounts (id, name, account_type, industry, address, city, phone, email, website, npwp, notes,
-    owner_user_id, custom, created_by, updated_by, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    owner_user_id, custom, created_by, updated_by, created_at, updated_at, bank_name, bank_account_no, bank_account_name, billing_email, payment_terms_days)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, account_type = EXCLUDED.account_type, industry = EXCLUDED.industry,
     address = EXCLUDED.address, city = EXCLUDED.city, phone = EXCLUDED.phone, email = EXCLUDED.email,
     website = EXCLUDED.website, npwp = EXCLUDED.npwp, notes = EXCLUDED.notes, owner_user_id = EXCLUDED.owner_user_id,
-    custom = EXCLUDED.custom, updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at
+    custom = EXCLUDED.custom, updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at,
+    bank_name = EXCLUDED.bank_name, bank_account_no = EXCLUDED.bank_account_no, bank_account_name = EXCLUDED.bank_account_name,
+    billing_email = EXCLUDED.billing_email, payment_terms_days = EXCLUDED.payment_terms_days
 `
 
 type UpsertAccountParams struct {
-	ID          string
-	Name        string
-	AccountType string
-	Industry    *string
-	Address     *string
-	City        *string
-	Phone       *string
-	Email       *string
-	Website     *string
-	Npwp        *string
-	Notes       *string
-	OwnerUserID *string
-	Custom      []byte
-	CreatedBy   *string
-	UpdatedBy   *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID               string
+	Name             string
+	AccountType      string
+	Industry         *string
+	Address          *string
+	City             *string
+	Phone            *string
+	Email            *string
+	Website          *string
+	Npwp             *string
+	Notes            *string
+	OwnerUserID      *string
+	Custom           []byte
+	CreatedBy        *string
+	UpdatedBy        *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	BankName         *string
+	BankAccountNo    *string
+	BankAccountName  *string
+	BillingEmail     *string
+	PaymentTermsDays *int32
 }
 
 func (q *Queries) UpsertAccount(ctx context.Context, arg UpsertAccountParams) error {
@@ -634,6 +651,11 @@ func (q *Queries) UpsertAccount(ctx context.Context, arg UpsertAccountParams) er
 		arg.UpdatedBy,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.BankName,
+		arg.BankAccountNo,
+		arg.BankAccountName,
+		arg.BillingEmail,
+		arg.PaymentTermsDays,
 	)
 	return err
 }

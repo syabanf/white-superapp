@@ -3422,6 +3422,260 @@ func (x *MarkSetupRequest) GetKind() MarkSetupRequest_Kind {
 	return MarkSetupRequest_KIND_UNSPECIFIED
 }
 
+type AuditLog struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	At            *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=at,proto3" json:"at,omitempty"`
+	UserId        string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserName      string                 `protobuf:"bytes,4,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
+	Role          string                 `protobuf:"bytes,5,opt,name=role,proto3" json:"role,omitempty"`
+	Method        string                 `protobuf:"bytes,6,opt,name=method,proto3" json:"method,omitempty"`
+	Path          string                 `protobuf:"bytes,7,opt,name=path,proto3" json:"path,omitempty"`
+	Status        int32                  `protobuf:"varint,8,opt,name=status,proto3" json:"status,omitempty"`
+	Ip            string                 `protobuf:"bytes,9,opt,name=ip,proto3" json:"ip,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,10,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuditLog) Reset() {
+	*x = AuditLog{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuditLog) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuditLog) ProtoMessage() {}
+
+func (x *AuditLog) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuditLog.ProtoReflect.Descriptor instead.
+func (*AuditLog) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *AuditLog) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AuditLog) GetAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.At
+	}
+	return nil
+}
+
+func (x *AuditLog) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *AuditLog) GetUserName() string {
+	if x != nil {
+		return x.UserName
+	}
+	return ""
+}
+
+func (x *AuditLog) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *AuditLog) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *AuditLog) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *AuditLog) GetStatus() int32 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *AuditLog) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *AuditLog) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+type ListAuditLogsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Matches the path or the user's name.
+	Q          string `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
+	FailedOnly bool   `protobuf:"varint,2,opt,name=failed_only,json=failedOnly,proto3" json:"failed_only,omitempty"`
+	// YYYY-MM-DD, WIB, inclusive.
+	DateFrom      string `protobuf:"bytes,3,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo        string `protobuf:"bytes,4,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
+	Page          int32  `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32  `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAuditLogsRequest) Reset() {
+	*x = ListAuditLogsRequest{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAuditLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAuditLogsRequest) ProtoMessage() {}
+
+func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAuditLogsRequest.ProtoReflect.Descriptor instead.
+func (*ListAuditLogsRequest) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *ListAuditLogsRequest) GetQ() string {
+	if x != nil {
+		return x.Q
+	}
+	return ""
+}
+
+func (x *ListAuditLogsRequest) GetFailedOnly() bool {
+	if x != nil {
+		return x.FailedOnly
+	}
+	return false
+}
+
+func (x *ListAuditLogsRequest) GetDateFrom() string {
+	if x != nil {
+		return x.DateFrom
+	}
+	return ""
+}
+
+func (x *ListAuditLogsRequest) GetDateTo() string {
+	if x != nil {
+		return x.DateTo
+	}
+	return ""
+}
+
+func (x *ListAuditLogsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListAuditLogsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListAuditLogsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Logs          []*AuditLog            `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAuditLogsResponse) Reset() {
+	*x = ListAuditLogsResponse{}
+	mi := &file_white_identity_v1_identity_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAuditLogsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAuditLogsResponse) ProtoMessage() {}
+
+func (x *ListAuditLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_identity_v1_identity_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAuditLogsResponse.ProtoReflect.Descriptor instead.
+func (*ListAuditLogsResponse) Descriptor() ([]byte, []int) {
+	return file_white_identity_v1_identity_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ListAuditLogsResponse) GetLogs() []*AuditLog {
+	if x != nil {
+		return x.Logs
+	}
+	return nil
+}
+
+func (x *ListAuditLogsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
 type ListPermissionsResponse_Permission struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -3432,7 +3686,7 @@ type ListPermissionsResponse_Permission struct {
 
 func (x *ListPermissionsResponse_Permission) Reset() {
 	*x = ListPermissionsResponse_Permission{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[52]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3444,7 +3698,7 @@ func (x *ListPermissionsResponse_Permission) String() string {
 func (*ListPermissionsResponse_Permission) ProtoMessage() {}
 
 func (x *ListPermissionsResponse_Permission) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[52]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3486,7 +3740,7 @@ type UserWithClients_UserClient struct {
 
 func (x *UserWithClients_UserClient) Reset() {
 	*x = UserWithClients_UserClient{}
-	mi := &file_white_identity_v1_identity_proto_msgTypes[53]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3498,7 +3752,7 @@ func (x *UserWithClients_UserClient) String() string {
 func (*UserWithClients_UserClient) ProtoMessage() {}
 
 func (x *UserWithClients_UserClient) ProtoReflect() protoreflect.Message {
-	mi := &file_white_identity_v1_identity_proto_msgTypes[53]
+	mi := &file_white_identity_v1_identity_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3800,7 +4054,31 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\x04Kind\x12\x14\n" +
 	"\x10KIND_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tCOMPLETED\x10\x01\x12\v\n" +
-	"\aSKIPPED\x10\x02*<\n" +
+	"\aSKIPPED\x10\x02\"\x83\x02\n" +
+	"\bAuditLog\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
+	"\x02at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x1b\n" +
+	"\tuser_name\x18\x04 \x01(\tR\buserName\x12\x12\n" +
+	"\x04role\x18\x05 \x01(\tR\x04role\x12\x16\n" +
+	"\x06method\x18\x06 \x01(\tR\x06method\x12\x12\n" +
+	"\x04path\x18\a \x01(\tR\x04path\x12\x16\n" +
+	"\x06status\x18\b \x01(\x05R\x06status\x12\x0e\n" +
+	"\x02ip\x18\t \x01(\tR\x02ip\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\n" +
+	" \x01(\tR\tuserAgent\"\xac\x01\n" +
+	"\x14ListAuditLogsRequest\x12\f\n" +
+	"\x01q\x18\x01 \x01(\tR\x01q\x12\x1f\n" +
+	"\vfailed_only\x18\x02 \x01(\bR\n" +
+	"failedOnly\x12\x1b\n" +
+	"\tdate_from\x18\x03 \x01(\tR\bdateFrom\x12\x17\n" +
+	"\adate_to\x18\x04 \x01(\tR\x06dateTo\x12\x12\n" +
+	"\x04page\x18\x05 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x06 \x01(\x05R\bpageSize\"^\n" +
+	"\x15ListAuditLogsResponse\x12/\n" +
+	"\x04logs\x18\x01 \x03(\v2\x1b.white.identity.v1.AuditLogR\x04logs\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total*<\n" +
 	"\bUserRole\x12\x19\n" +
 	"\x15USER_ROLE_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05ADMIN\x10\x01\x12\n" +
@@ -3854,7 +4132,9 @@ const file_white_identity_v1_identity_proto_rawDesc = "" +
 	"\x06Notify\x12 .white.identity.v1.NotifyRequest\x1a!.white.identity.v1.NotifyResponse2\x96\x02\n" +
 	"\fShareService\x12w\n" +
 	"\x0fGetShareContext\x12).white.identity.v1.GetShareContextRequest\x1a\x1f.white.identity.v1.ShareContext\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/v1/share/{slug}\x12\x8c\x01\n" +
-	"\x0eVerifySharePin\x12(.white.identity.v1.VerifySharePinRequest\x1a).white.identity.v1.VerifySharePinResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/share/{slug}:verifyPin2\xed\x01\n" +
+	"\x0eVerifySharePin\x12(.white.identity.v1.VerifySharePinRequest\x1a).white.identity.v1.VerifySharePinResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/share/{slug}:verifyPin2\x8a\x01\n" +
+	"\fAuditService\x12z\n" +
+	"\rListAuditLogs\x12'.white.identity.v1.ListAuditLogsRequest\x1a(.white.identity.v1.ListAuditLogsResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/audit-logs2\xed\x01\n" +
 	"\x10WorkspaceService\x12c\n" +
 	"\rGetSetupState\x12\x16.google.protobuf.Empty\x1a\x1d.white.identity.v1.SetupState\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/workspace/setup\x12t\n" +
 	"\tMarkSetup\x12#.white.identity.v1.MarkSetupRequest\x1a\x1d.white.identity.v1.SetupState\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/workspace/setup:markBUZSgithub.com/syabanf/white-superapp/white-backend/gen/go/white/identity/v1;identityv1b\x06proto3"
@@ -3872,7 +4152,7 @@ func file_white_identity_v1_identity_proto_rawDescGZIP() []byte {
 }
 
 var file_white_identity_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_white_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
+var file_white_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 57)
 var file_white_identity_v1_identity_proto_goTypes = []any{
 	(UserRole)(0),                              // 0: white.identity.v1.UserRole
 	(ClientMemberRole)(0),                      // 1: white.identity.v1.ClientMemberRole
@@ -3932,27 +4212,30 @@ var file_white_identity_v1_identity_proto_goTypes = []any{
 	(*VerifySharePinResponse)(nil),             // 55: white.identity.v1.VerifySharePinResponse
 	(*SetupState)(nil),                         // 56: white.identity.v1.SetupState
 	(*MarkSetupRequest)(nil),                   // 57: white.identity.v1.MarkSetupRequest
-	(*ListPermissionsResponse_Permission)(nil), // 58: white.identity.v1.ListPermissionsResponse.Permission
-	(*UserWithClients_UserClient)(nil),         // 59: white.identity.v1.UserWithClients.UserClient
-	(*timestamppb.Timestamp)(nil),              // 60: google.protobuf.Timestamp
-	(v1.ModuleKey)(0),                          // 61: white.common.v1.ModuleKey
-	(*emptypb.Empty)(nil),                      // 62: google.protobuf.Empty
+	(*AuditLog)(nil),                           // 58: white.identity.v1.AuditLog
+	(*ListAuditLogsRequest)(nil),               // 59: white.identity.v1.ListAuditLogsRequest
+	(*ListAuditLogsResponse)(nil),              // 60: white.identity.v1.ListAuditLogsResponse
+	(*ListPermissionsResponse_Permission)(nil), // 61: white.identity.v1.ListPermissionsResponse.Permission
+	(*UserWithClients_UserClient)(nil),         // 62: white.identity.v1.UserWithClients.UserClient
+	(*timestamppb.Timestamp)(nil),              // 63: google.protobuf.Timestamp
+	(v1.ModuleKey)(0),                          // 64: white.common.v1.ModuleKey
+	(*emptypb.Empty)(nil),                      // 65: google.protobuf.Empty
 }
 var file_white_identity_v1_identity_proto_depIdxs = []int32{
 	0,  // 0: white.identity.v1.User.role:type_name -> white.identity.v1.UserRole
-	60, // 1: white.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	63, // 1: white.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 2: white.identity.v1.Membership.role:type_name -> white.identity.v1.ClientMemberRole
-	61, // 3: white.identity.v1.Client.share_modules:type_name -> white.common.v1.ModuleKey
-	60, // 4: white.identity.v1.Client.created_at:type_name -> google.protobuf.Timestamp
+	64, // 3: white.identity.v1.Client.share_modules:type_name -> white.common.v1.ModuleKey
+	63, // 4: white.identity.v1.Client.created_at:type_name -> google.protobuf.Timestamp
 	8,  // 5: white.identity.v1.ClientAccess.client:type_name -> white.identity.v1.Client
 	2,  // 6: white.identity.v1.ClientAccess.role:type_name -> white.identity.v1.ClientAccess.AccessRole
-	60, // 7: white.identity.v1.TokenPair.access_expires_at:type_name -> google.protobuf.Timestamp
-	60, // 8: white.identity.v1.TokenPair.refresh_expires_at:type_name -> google.protobuf.Timestamp
+	63, // 7: white.identity.v1.TokenPair.access_expires_at:type_name -> google.protobuf.Timestamp
+	63, // 8: white.identity.v1.TokenPair.refresh_expires_at:type_name -> google.protobuf.Timestamp
 	6,  // 9: white.identity.v1.TokenPair.user:type_name -> white.identity.v1.User
 	0,  // 10: white.identity.v1.SyncLegacyUserRequest.role:type_name -> white.identity.v1.UserRole
-	58, // 11: white.identity.v1.ListPermissionsResponse.permissions:type_name -> white.identity.v1.ListPermissionsResponse.Permission
+	61, // 11: white.identity.v1.ListPermissionsResponse.permissions:type_name -> white.identity.v1.ListPermissionsResponse.Permission
 	6,  // 12: white.identity.v1.UserWithClients.user:type_name -> white.identity.v1.User
-	59, // 13: white.identity.v1.UserWithClients.clients:type_name -> white.identity.v1.UserWithClients.UserClient
+	62, // 13: white.identity.v1.UserWithClients.clients:type_name -> white.identity.v1.UserWithClients.UserClient
 	18, // 14: white.identity.v1.ListUsersResponse.users:type_name -> white.identity.v1.UserWithClients
 	20, // 15: white.identity.v1.ListUserOptionsResponse.users:type_name -> white.identity.v1.UserOption
 	0,  // 16: white.identity.v1.CreateUserRequest.role:type_name -> white.identity.v1.UserRole
@@ -3963,102 +4246,106 @@ var file_white_identity_v1_identity_proto_depIdxs = []int32{
 	2,  // 21: white.identity.v1.ClientSummary.my_role:type_name -> white.identity.v1.ClientAccess.AccessRole
 	26, // 22: white.identity.v1.ListClientsResponse.clients:type_name -> white.identity.v1.ClientSummary
 	29, // 23: white.identity.v1.CreateClientRequest.profile:type_name -> white.identity.v1.ClientProfile
-	61, // 24: white.identity.v1.CreateClientRequest.modules:type_name -> white.common.v1.ModuleKey
+	64, // 24: white.identity.v1.CreateClientRequest.modules:type_name -> white.common.v1.ModuleKey
 	29, // 25: white.identity.v1.UpdateClientRequest.profile:type_name -> white.identity.v1.ClientProfile
 	1,  // 26: white.identity.v1.ClientMember.role:type_name -> white.identity.v1.ClientMemberRole
-	60, // 27: white.identity.v1.ClientMember.created_at:type_name -> google.protobuf.Timestamp
+	63, // 27: white.identity.v1.ClientMember.created_at:type_name -> google.protobuf.Timestamp
 	33, // 28: white.identity.v1.ListMembersResponse.members:type_name -> white.identity.v1.ClientMember
 	1,  // 29: white.identity.v1.UpsertMemberRequest.role:type_name -> white.identity.v1.ClientMemberRole
-	61, // 30: white.identity.v1.UpdateShareSettingsRequest.modules:type_name -> white.common.v1.ModuleKey
+	64, // 30: white.identity.v1.UpdateShareSettingsRequest.modules:type_name -> white.common.v1.ModuleKey
 	8,  // 31: white.identity.v1.ListAllClientsResponse.clients:type_name -> white.identity.v1.Client
-	60, // 32: white.identity.v1.Notification.created_at:type_name -> google.protobuf.Timestamp
+	63, // 32: white.identity.v1.Notification.created_at:type_name -> google.protobuf.Timestamp
 	45, // 33: white.identity.v1.NotificationFeed.items:type_name -> white.identity.v1.Notification
 	3,  // 34: white.identity.v1.NotifyRequest.audience:type_name -> white.identity.v1.NotifyRequest.Audience
 	4,  // 35: white.identity.v1.ShareContext.status:type_name -> white.identity.v1.ShareContext.Status
 	8,  // 36: white.identity.v1.ShareContext.client:type_name -> white.identity.v1.Client
-	60, // 37: white.identity.v1.SetupState.completed_at:type_name -> google.protobuf.Timestamp
-	60, // 38: white.identity.v1.SetupState.skipped_at:type_name -> google.protobuf.Timestamp
+	63, // 37: white.identity.v1.SetupState.completed_at:type_name -> google.protobuf.Timestamp
+	63, // 38: white.identity.v1.SetupState.skipped_at:type_name -> google.protobuf.Timestamp
 	5,  // 39: white.identity.v1.MarkSetupRequest.kind:type_name -> white.identity.v1.MarkSetupRequest.Kind
-	1,  // 40: white.identity.v1.UserWithClients.UserClient.role:type_name -> white.identity.v1.ClientMemberRole
-	11, // 41: white.identity.v1.AuthService.Login:input_type -> white.identity.v1.LoginRequest
-	13, // 42: white.identity.v1.AuthService.Refresh:input_type -> white.identity.v1.RefreshRequest
-	14, // 43: white.identity.v1.AuthService.Logout:input_type -> white.identity.v1.LogoutRequest
-	62, // 44: white.identity.v1.AuthService.Me:input_type -> google.protobuf.Empty
-	10, // 45: white.identity.v1.AuthService.IssueServiceToken:input_type -> white.identity.v1.IssueServiceTokenRequest
-	62, // 46: white.identity.v1.UserService.ListPermissions:input_type -> google.protobuf.Empty
-	62, // 47: white.identity.v1.UserService.ListUsers:input_type -> google.protobuf.Empty
-	62, // 48: white.identity.v1.UserService.ListUserOptions:input_type -> google.protobuf.Empty
-	22, // 49: white.identity.v1.UserService.CreateUser:input_type -> white.identity.v1.CreateUserRequest
-	23, // 50: white.identity.v1.UserService.UpdateUser:input_type -> white.identity.v1.UpdateUserRequest
-	24, // 51: white.identity.v1.UserService.SetUserActive:input_type -> white.identity.v1.SetUserActiveRequest
-	25, // 52: white.identity.v1.UserService.DeleteUser:input_type -> white.identity.v1.DeleteUserRequest
-	15, // 53: white.identity.v1.UserService.SetUserPermissions:input_type -> white.identity.v1.SetUserPermissionsRequest
-	16, // 54: white.identity.v1.UserService.SyncLegacyUser:input_type -> white.identity.v1.SyncLegacyUserRequest
-	25, // 55: white.identity.v1.UserService.RemoveLegacyUser:input_type -> white.identity.v1.DeleteUserRequest
-	62, // 56: white.identity.v1.ClientService.ListClients:input_type -> google.protobuf.Empty
-	28, // 57: white.identity.v1.ClientService.GetClient:input_type -> white.identity.v1.GetClientRequest
-	30, // 58: white.identity.v1.ClientService.CreateClient:input_type -> white.identity.v1.CreateClientRequest
-	31, // 59: white.identity.v1.ClientService.UpdateClient:input_type -> white.identity.v1.UpdateClientRequest
-	32, // 60: white.identity.v1.ClientService.DeleteClient:input_type -> white.identity.v1.DeleteClientRequest
-	34, // 61: white.identity.v1.ClientService.ListMembers:input_type -> white.identity.v1.ListMembersRequest
-	36, // 62: white.identity.v1.ClientService.UpsertMember:input_type -> white.identity.v1.UpsertMemberRequest
-	37, // 63: white.identity.v1.ClientService.RemoveMember:input_type -> white.identity.v1.RemoveMemberRequest
-	38, // 64: white.identity.v1.ClientService.UpdateShareSettings:input_type -> white.identity.v1.UpdateShareSettingsRequest
-	40, // 65: white.identity.v1.AccessService.CheckClientAccess:input_type -> white.identity.v1.CheckClientAccessRequest
-	41, // 66: white.identity.v1.AccessService.GetUser:input_type -> white.identity.v1.GetUserRequest
-	42, // 67: white.identity.v1.AccessService.ListAccessibleClientIds:input_type -> white.identity.v1.ListAccessibleClientIdsRequest
-	62, // 68: white.identity.v1.AccessService.ListAllClients:input_type -> google.protobuf.Empty
-	39, // 69: white.identity.v1.AccessService.ListPermissionHolders:input_type -> white.identity.v1.ListPermissionHoldersRequest
-	46, // 70: white.identity.v1.NotificationService.ListNotifications:input_type -> white.identity.v1.ListNotificationsRequest
-	48, // 71: white.identity.v1.NotificationService.MarkNotificationRead:input_type -> white.identity.v1.MarkNotificationReadRequest
-	62, // 72: white.identity.v1.NotificationService.MarkAllNotificationsRead:input_type -> google.protobuf.Empty
-	50, // 73: white.identity.v1.NotificationService.Notify:input_type -> white.identity.v1.NotifyRequest
-	52, // 74: white.identity.v1.ShareService.GetShareContext:input_type -> white.identity.v1.GetShareContextRequest
-	54, // 75: white.identity.v1.ShareService.VerifySharePin:input_type -> white.identity.v1.VerifySharePinRequest
-	62, // 76: white.identity.v1.WorkspaceService.GetSetupState:input_type -> google.protobuf.Empty
-	57, // 77: white.identity.v1.WorkspaceService.MarkSetup:input_type -> white.identity.v1.MarkSetupRequest
-	12, // 78: white.identity.v1.AuthService.Login:output_type -> white.identity.v1.TokenPair
-	12, // 79: white.identity.v1.AuthService.Refresh:output_type -> white.identity.v1.TokenPair
-	62, // 80: white.identity.v1.AuthService.Logout:output_type -> google.protobuf.Empty
-	6,  // 81: white.identity.v1.AuthService.Me:output_type -> white.identity.v1.User
-	12, // 82: white.identity.v1.AuthService.IssueServiceToken:output_type -> white.identity.v1.TokenPair
-	17, // 83: white.identity.v1.UserService.ListPermissions:output_type -> white.identity.v1.ListPermissionsResponse
-	19, // 84: white.identity.v1.UserService.ListUsers:output_type -> white.identity.v1.ListUsersResponse
-	21, // 85: white.identity.v1.UserService.ListUserOptions:output_type -> white.identity.v1.ListUserOptionsResponse
-	6,  // 86: white.identity.v1.UserService.CreateUser:output_type -> white.identity.v1.User
-	6,  // 87: white.identity.v1.UserService.UpdateUser:output_type -> white.identity.v1.User
-	6,  // 88: white.identity.v1.UserService.SetUserActive:output_type -> white.identity.v1.User
-	62, // 89: white.identity.v1.UserService.DeleteUser:output_type -> google.protobuf.Empty
-	6,  // 90: white.identity.v1.UserService.SetUserPermissions:output_type -> white.identity.v1.User
-	6,  // 91: white.identity.v1.UserService.SyncLegacyUser:output_type -> white.identity.v1.User
-	62, // 92: white.identity.v1.UserService.RemoveLegacyUser:output_type -> google.protobuf.Empty
-	27, // 93: white.identity.v1.ClientService.ListClients:output_type -> white.identity.v1.ListClientsResponse
-	9,  // 94: white.identity.v1.ClientService.GetClient:output_type -> white.identity.v1.ClientAccess
-	8,  // 95: white.identity.v1.ClientService.CreateClient:output_type -> white.identity.v1.Client
-	8,  // 96: white.identity.v1.ClientService.UpdateClient:output_type -> white.identity.v1.Client
-	62, // 97: white.identity.v1.ClientService.DeleteClient:output_type -> google.protobuf.Empty
-	35, // 98: white.identity.v1.ClientService.ListMembers:output_type -> white.identity.v1.ListMembersResponse
-	62, // 99: white.identity.v1.ClientService.UpsertMember:output_type -> google.protobuf.Empty
-	62, // 100: white.identity.v1.ClientService.RemoveMember:output_type -> google.protobuf.Empty
-	8,  // 101: white.identity.v1.ClientService.UpdateShareSettings:output_type -> white.identity.v1.Client
-	9,  // 102: white.identity.v1.AccessService.CheckClientAccess:output_type -> white.identity.v1.ClientAccess
-	6,  // 103: white.identity.v1.AccessService.GetUser:output_type -> white.identity.v1.User
-	43, // 104: white.identity.v1.AccessService.ListAccessibleClientIds:output_type -> white.identity.v1.ListAccessibleClientIdsResponse
-	44, // 105: white.identity.v1.AccessService.ListAllClients:output_type -> white.identity.v1.ListAllClientsResponse
-	21, // 106: white.identity.v1.AccessService.ListPermissionHolders:output_type -> white.identity.v1.ListUserOptionsResponse
-	47, // 107: white.identity.v1.NotificationService.ListNotifications:output_type -> white.identity.v1.NotificationFeed
-	62, // 108: white.identity.v1.NotificationService.MarkNotificationRead:output_type -> google.protobuf.Empty
-	49, // 109: white.identity.v1.NotificationService.MarkAllNotificationsRead:output_type -> white.identity.v1.MarkAllNotificationsReadResponse
-	51, // 110: white.identity.v1.NotificationService.Notify:output_type -> white.identity.v1.NotifyResponse
-	53, // 111: white.identity.v1.ShareService.GetShareContext:output_type -> white.identity.v1.ShareContext
-	55, // 112: white.identity.v1.ShareService.VerifySharePin:output_type -> white.identity.v1.VerifySharePinResponse
-	56, // 113: white.identity.v1.WorkspaceService.GetSetupState:output_type -> white.identity.v1.SetupState
-	56, // 114: white.identity.v1.WorkspaceService.MarkSetup:output_type -> white.identity.v1.SetupState
-	78, // [78:115] is the sub-list for method output_type
-	41, // [41:78] is the sub-list for method input_type
-	41, // [41:41] is the sub-list for extension type_name
-	41, // [41:41] is the sub-list for extension extendee
-	0,  // [0:41] is the sub-list for field type_name
+	63, // 40: white.identity.v1.AuditLog.at:type_name -> google.protobuf.Timestamp
+	58, // 41: white.identity.v1.ListAuditLogsResponse.logs:type_name -> white.identity.v1.AuditLog
+	1,  // 42: white.identity.v1.UserWithClients.UserClient.role:type_name -> white.identity.v1.ClientMemberRole
+	11, // 43: white.identity.v1.AuthService.Login:input_type -> white.identity.v1.LoginRequest
+	13, // 44: white.identity.v1.AuthService.Refresh:input_type -> white.identity.v1.RefreshRequest
+	14, // 45: white.identity.v1.AuthService.Logout:input_type -> white.identity.v1.LogoutRequest
+	65, // 46: white.identity.v1.AuthService.Me:input_type -> google.protobuf.Empty
+	10, // 47: white.identity.v1.AuthService.IssueServiceToken:input_type -> white.identity.v1.IssueServiceTokenRequest
+	65, // 48: white.identity.v1.UserService.ListPermissions:input_type -> google.protobuf.Empty
+	65, // 49: white.identity.v1.UserService.ListUsers:input_type -> google.protobuf.Empty
+	65, // 50: white.identity.v1.UserService.ListUserOptions:input_type -> google.protobuf.Empty
+	22, // 51: white.identity.v1.UserService.CreateUser:input_type -> white.identity.v1.CreateUserRequest
+	23, // 52: white.identity.v1.UserService.UpdateUser:input_type -> white.identity.v1.UpdateUserRequest
+	24, // 53: white.identity.v1.UserService.SetUserActive:input_type -> white.identity.v1.SetUserActiveRequest
+	25, // 54: white.identity.v1.UserService.DeleteUser:input_type -> white.identity.v1.DeleteUserRequest
+	15, // 55: white.identity.v1.UserService.SetUserPermissions:input_type -> white.identity.v1.SetUserPermissionsRequest
+	16, // 56: white.identity.v1.UserService.SyncLegacyUser:input_type -> white.identity.v1.SyncLegacyUserRequest
+	25, // 57: white.identity.v1.UserService.RemoveLegacyUser:input_type -> white.identity.v1.DeleteUserRequest
+	65, // 58: white.identity.v1.ClientService.ListClients:input_type -> google.protobuf.Empty
+	28, // 59: white.identity.v1.ClientService.GetClient:input_type -> white.identity.v1.GetClientRequest
+	30, // 60: white.identity.v1.ClientService.CreateClient:input_type -> white.identity.v1.CreateClientRequest
+	31, // 61: white.identity.v1.ClientService.UpdateClient:input_type -> white.identity.v1.UpdateClientRequest
+	32, // 62: white.identity.v1.ClientService.DeleteClient:input_type -> white.identity.v1.DeleteClientRequest
+	34, // 63: white.identity.v1.ClientService.ListMembers:input_type -> white.identity.v1.ListMembersRequest
+	36, // 64: white.identity.v1.ClientService.UpsertMember:input_type -> white.identity.v1.UpsertMemberRequest
+	37, // 65: white.identity.v1.ClientService.RemoveMember:input_type -> white.identity.v1.RemoveMemberRequest
+	38, // 66: white.identity.v1.ClientService.UpdateShareSettings:input_type -> white.identity.v1.UpdateShareSettingsRequest
+	40, // 67: white.identity.v1.AccessService.CheckClientAccess:input_type -> white.identity.v1.CheckClientAccessRequest
+	41, // 68: white.identity.v1.AccessService.GetUser:input_type -> white.identity.v1.GetUserRequest
+	42, // 69: white.identity.v1.AccessService.ListAccessibleClientIds:input_type -> white.identity.v1.ListAccessibleClientIdsRequest
+	65, // 70: white.identity.v1.AccessService.ListAllClients:input_type -> google.protobuf.Empty
+	39, // 71: white.identity.v1.AccessService.ListPermissionHolders:input_type -> white.identity.v1.ListPermissionHoldersRequest
+	46, // 72: white.identity.v1.NotificationService.ListNotifications:input_type -> white.identity.v1.ListNotificationsRequest
+	48, // 73: white.identity.v1.NotificationService.MarkNotificationRead:input_type -> white.identity.v1.MarkNotificationReadRequest
+	65, // 74: white.identity.v1.NotificationService.MarkAllNotificationsRead:input_type -> google.protobuf.Empty
+	50, // 75: white.identity.v1.NotificationService.Notify:input_type -> white.identity.v1.NotifyRequest
+	52, // 76: white.identity.v1.ShareService.GetShareContext:input_type -> white.identity.v1.GetShareContextRequest
+	54, // 77: white.identity.v1.ShareService.VerifySharePin:input_type -> white.identity.v1.VerifySharePinRequest
+	59, // 78: white.identity.v1.AuditService.ListAuditLogs:input_type -> white.identity.v1.ListAuditLogsRequest
+	65, // 79: white.identity.v1.WorkspaceService.GetSetupState:input_type -> google.protobuf.Empty
+	57, // 80: white.identity.v1.WorkspaceService.MarkSetup:input_type -> white.identity.v1.MarkSetupRequest
+	12, // 81: white.identity.v1.AuthService.Login:output_type -> white.identity.v1.TokenPair
+	12, // 82: white.identity.v1.AuthService.Refresh:output_type -> white.identity.v1.TokenPair
+	65, // 83: white.identity.v1.AuthService.Logout:output_type -> google.protobuf.Empty
+	6,  // 84: white.identity.v1.AuthService.Me:output_type -> white.identity.v1.User
+	12, // 85: white.identity.v1.AuthService.IssueServiceToken:output_type -> white.identity.v1.TokenPair
+	17, // 86: white.identity.v1.UserService.ListPermissions:output_type -> white.identity.v1.ListPermissionsResponse
+	19, // 87: white.identity.v1.UserService.ListUsers:output_type -> white.identity.v1.ListUsersResponse
+	21, // 88: white.identity.v1.UserService.ListUserOptions:output_type -> white.identity.v1.ListUserOptionsResponse
+	6,  // 89: white.identity.v1.UserService.CreateUser:output_type -> white.identity.v1.User
+	6,  // 90: white.identity.v1.UserService.UpdateUser:output_type -> white.identity.v1.User
+	6,  // 91: white.identity.v1.UserService.SetUserActive:output_type -> white.identity.v1.User
+	65, // 92: white.identity.v1.UserService.DeleteUser:output_type -> google.protobuf.Empty
+	6,  // 93: white.identity.v1.UserService.SetUserPermissions:output_type -> white.identity.v1.User
+	6,  // 94: white.identity.v1.UserService.SyncLegacyUser:output_type -> white.identity.v1.User
+	65, // 95: white.identity.v1.UserService.RemoveLegacyUser:output_type -> google.protobuf.Empty
+	27, // 96: white.identity.v1.ClientService.ListClients:output_type -> white.identity.v1.ListClientsResponse
+	9,  // 97: white.identity.v1.ClientService.GetClient:output_type -> white.identity.v1.ClientAccess
+	8,  // 98: white.identity.v1.ClientService.CreateClient:output_type -> white.identity.v1.Client
+	8,  // 99: white.identity.v1.ClientService.UpdateClient:output_type -> white.identity.v1.Client
+	65, // 100: white.identity.v1.ClientService.DeleteClient:output_type -> google.protobuf.Empty
+	35, // 101: white.identity.v1.ClientService.ListMembers:output_type -> white.identity.v1.ListMembersResponse
+	65, // 102: white.identity.v1.ClientService.UpsertMember:output_type -> google.protobuf.Empty
+	65, // 103: white.identity.v1.ClientService.RemoveMember:output_type -> google.protobuf.Empty
+	8,  // 104: white.identity.v1.ClientService.UpdateShareSettings:output_type -> white.identity.v1.Client
+	9,  // 105: white.identity.v1.AccessService.CheckClientAccess:output_type -> white.identity.v1.ClientAccess
+	6,  // 106: white.identity.v1.AccessService.GetUser:output_type -> white.identity.v1.User
+	43, // 107: white.identity.v1.AccessService.ListAccessibleClientIds:output_type -> white.identity.v1.ListAccessibleClientIdsResponse
+	44, // 108: white.identity.v1.AccessService.ListAllClients:output_type -> white.identity.v1.ListAllClientsResponse
+	21, // 109: white.identity.v1.AccessService.ListPermissionHolders:output_type -> white.identity.v1.ListUserOptionsResponse
+	47, // 110: white.identity.v1.NotificationService.ListNotifications:output_type -> white.identity.v1.NotificationFeed
+	65, // 111: white.identity.v1.NotificationService.MarkNotificationRead:output_type -> google.protobuf.Empty
+	49, // 112: white.identity.v1.NotificationService.MarkAllNotificationsRead:output_type -> white.identity.v1.MarkAllNotificationsReadResponse
+	51, // 113: white.identity.v1.NotificationService.Notify:output_type -> white.identity.v1.NotifyResponse
+	53, // 114: white.identity.v1.ShareService.GetShareContext:output_type -> white.identity.v1.ShareContext
+	55, // 115: white.identity.v1.ShareService.VerifySharePin:output_type -> white.identity.v1.VerifySharePinResponse
+	60, // 116: white.identity.v1.AuditService.ListAuditLogs:output_type -> white.identity.v1.ListAuditLogsResponse
+	56, // 117: white.identity.v1.WorkspaceService.GetSetupState:output_type -> white.identity.v1.SetupState
+	56, // 118: white.identity.v1.WorkspaceService.MarkSetup:output_type -> white.identity.v1.SetupState
+	81, // [81:119] is the sub-list for method output_type
+	43, // [43:81] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_white_identity_v1_identity_proto_init() }
@@ -4079,9 +4366,9 @@ func file_white_identity_v1_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_identity_v1_identity_proto_rawDesc), len(file_white_identity_v1_identity_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   54,
+			NumMessages:   57,
 			NumExtensions: 0,
-			NumServices:   7,
+			NumServices:   8,
 		},
 		GoTypes:           file_white_identity_v1_identity_proto_goTypes,
 		DependencyIndexes: file_white_identity_v1_identity_proto_depIdxs,

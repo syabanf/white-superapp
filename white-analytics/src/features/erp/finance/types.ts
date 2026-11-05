@@ -40,6 +40,7 @@ export type Account = {
   isPostable: boolean;
   isContra: boolean;
   isCashBank: boolean;
+  isCreditCard: boolean;
   cashFlowCategory: CashFlowCategory;
   description: string;
   isActive: boolean;
@@ -580,7 +581,12 @@ export type ClaimReceipt = {
 
 export type ClaimHistory = { action: string; actorId: string; actorName: string; note: string; createdAt: string };
 
+export type ClaimDuplicate = { receiptId: string; claimNo: string; filename: string; exact: boolean };
+
 export type Claim = {
+  preferredCashAccountId: string;
+  preferredCashAccountName: string;
+  duplicates: ClaimDuplicate[];
   id: string;
   claimNo: string;
   employeeId: string;
@@ -611,6 +617,7 @@ export type Claim = {
 };
 
 export type ClaimInput = {
+  preferredCashAccountId: string;
   category: ClaimCategory;
   transactionDate: string;
   amount: string;
@@ -732,3 +739,151 @@ export type FinancialInsight = {
 };
 
 export type SaveBeginningBalanceResult = { entryId: string; status: DocumentStatus };
+
+export type ClaimPayAccount = { id: string; name: string };
+
+export type ReconAccount = {
+  id: string;
+  code: string;
+  codeDisplay: string;
+  name: string;
+  isCreditCard: boolean;
+  bookBalance: string;
+  unmatched: number;
+  suggested: number;
+  matched: number;
+  ignored: number;
+};
+
+export type StatementLine = {
+  id: string;
+  accountId: string;
+  lineDate: string;
+  description: string;
+  senderName: string;
+  amount: string;
+  status: "UNMATCHED" | "SUGGESTED" | "MATCHED" | "IGNORED";
+  suggestedKind: "" | "JOURNAL" | "INVOICE";
+  suggestedRef: string;
+  suggestedLabel: string;
+  suggestedScore: number;
+  suggestedReason: string;
+  matchedEntryId: string;
+  matchedEntryNo: string;
+  note: string;
+  verifiedBy: string;
+};
+
+export type MatchCandidate = {
+  kind: "JOURNAL" | "INVOICE";
+  ref: string;
+  label: string;
+  date: string;
+  amount: string;
+  score: number;
+  reason: string;
+};
+
+export type StatementImportResult = { inserted: number; skipped: number; matched: number; suggested: number; unmatched: number };
+
+export type RecurringJournal = {
+  id: string;
+  name: string;
+  description: string;
+  frequency: "MONTHLY" | "QUARTERLY" | "YEARLY";
+  nextRun: string;
+  endDate: string;
+  isActive: boolean;
+  total: string;
+  lastEntryId: string;
+  lastError: string;
+};
+
+export type FixedAsset = {
+  id: string;
+  name: string;
+  acquiredOn: string;
+  cost: string;
+  salvage: string;
+  lifeMonths: number;
+  monthlyAmount: string;
+  depreciatedMonths: number;
+  accumulated: string;
+  bookValue: string;
+  expenseAccountName: string;
+  accumAccountName: string;
+  isActive: boolean;
+  lastEntryId: string;
+  lastError: string;
+};
+
+export type BudgetRow = { accountId: string; codeDisplay: string; name: string; typeCode: string; budget: string; actual: string; variance: string };
+export type BudgetVsActual = { dateFrom: string; dateTo: string; rows: BudgetRow[]; totalBudgetRevenue: string; totalActualRevenue: string; totalBudgetCost: string; totalActualCost: string };
+export type BudgetEntry = { month: string; accountId: string; amount: string };
+export type EquityRow = { codeDisplay: string; name: string; opening: string; movement: string; closing: string; isEarnings: boolean };
+export type EquityChanges = { dateFrom: string; dateTo: string; rows: EquityRow[]; totalOpening: string; totalMovement: string; totalClosing: string };
+export type ClientEconomicsRow = { party: string; invoiceCount: number; invoiced: string; collected: string; outstanding: string; avgDaysToPay: number; hasPayments: boolean };
+export type ClientEconomicsReport = {
+  dateFrom: string;
+  dateTo: string;
+  clients: ClientEconomicsRow[];
+  totalInvoiced: string;
+  totalCollected: string;
+  averagePerClient: string;
+  collectionRate: number;
+  topClientShare: number;
+  topThreeShare: number;
+  avgDaysToPay: number;
+  hasPayments: boolean;
+};
+
+export type Vendor = {
+  id: string;
+  name: string;
+  picName: string;
+  phone: string;
+  email: string;
+  address: string;
+  npwp: string;
+  bankName: string;
+  bankAccountNo: string;
+  bankAccountName: string;
+  paymentTermsDays: number;
+  notes: string;
+  isActive: boolean;
+};
+
+export type DocumentKind = "PR" | "PO" | "QUOTATION" | "INVOICE";
+export type DocumentItem = { description: string; unit: string; qty: string; unitPrice: string; lineTotal?: string };
+
+export type FinanceDocument = {
+  id: string;
+  kind: DocumentKind;
+  side: "B2B" | "SUPPLIER";
+  number: string;
+  status: string;
+  vendorId: string;
+  partyName: string;
+  picName: string;
+  phone: string;
+  email: string;
+  address: string;
+  title: string;
+  issueDate: string;
+  dueDate: string;
+  externalNumber: string;
+  notes: string;
+  items: DocumentItem[];
+  discountPercent: string;
+  ppnPercent: string;
+  subtotal: string;
+  discountAmount: string;
+  taxAmount: string;
+  totalAmount: string;
+  accountId: string;
+  sourceId: string;
+  ledgerInvoiceId: string;
+  rejectReason: string;
+  createdBy: string;
+  decidedBy: string;
+};

@@ -24,6 +24,9 @@ type Services struct {
 	Reports        *app.Reports
 	Reimbursements *app.Reimbursements
 	Analysis       *app.Analysis
+	Banking        *app.Banking
+	Schedules      *app.Schedules
+	Documents      *app.Documents
 }
 
 func Register(s *grpc.Server, svc Services) {
@@ -36,6 +39,9 @@ func Register(s *grpc.Server, svc Services) {
 	financev1.RegisterReportServiceServer(s, &reportServer{svc: svc})
 	financev1.RegisterReimbursementServiceServer(s, &reimbursementServer{svc: svc})
 	financev1.RegisterAnalysisServiceServer(s, &analysisServer{svc: svc})
+	financev1.RegisterBankReconServiceServer(s, &bankReconServer{svc: svc})
+	financev1.RegisterScheduleServiceServer(s, &scheduleServer{svc: svc})
+	financev1.RegisterDocumentServiceServer(s, &documentServer{svc: svc})
 }
 
 var empty = &emptypb.Empty{}
@@ -1065,7 +1071,7 @@ func (s *reportServer) GetSubsidiaryLedger(ctx context.Context, req *financev1.S
 	if _, err := read(ctx); err != nil {
 		return nil, err
 	}
-	sl, err := s.svc.Ledgers.SubsidiaryLedger(ctx, kindFrom(req.Kind), req.PartyName, req.DateFrom, req.DateTo)
+	sl, err := s.svc.Ledgers.SubsidiaryLedger(ctx, kindFrom(req.Kind), req.PartyName, req.AccountId, req.DateFrom, req.DateTo)
 	if err != nil {
 		return nil, err
 	}
@@ -1169,6 +1175,92 @@ func (s *analysisServer) ListFinancialInsights(ctx context.Context, req *finance
 	out := &financev1.ListFinancialInsightsResponse{}
 	for i := range rows {
 		out.Insights = append(out.Insights, insightPB(&rows[i]))
+	}
+	return out, nil
+}
+
+// ─── Budgets, equity changes and client economics ──
+
+func (s *reportServer) GetBudgetVsActual(ctx context.Context, req *financev1.PeriodRequest) (*financev1.BudgetVsActual, error) {
+	if _, err := read(ctx); err != nil {
+		return nil, err
+	}
+	b, err := s.svc.Reports.BudgetVsActual(ctx, req.DateFrom, req.DateTo)
+	if err != nil {
+		return nil, err
+	}
+	out := &financev1.BudgetVsActual{DateFrom: b.From, DateTo: b.To, TotalBudgetRevenue: b.BudgetRevenue.String(), TotalActualRevenue: b.ActualRevenue.String(),
+		TotalBudgetCost: b.BudgetCost.String(), TotalActualCost: b.ActualCost.String()}
+	for _, r := range b.Rows {
+		out.Rows = append(out.Rows, &financev1.BudgetRow{AccountId: r.AccountID, CodeDisplay: domain.FormatAccountCodeDisplay(r.Code), Name: r.Name, TypeCode: r.TypeCode,
+			Budget: r.Budget.String(), Actual: r.Actual.String(), Variance: r.Variance.String()})
+	}
+	return out, nil
+}
+
+func (s *reportServer) GetBudgetYear(ctx context.Context, req *financev1.BudgetYearRequest) (*financev1.BudgetYear, error) {
+	if _, err := read(ctx); err != nil {
+		return nil, err
+	}
+	rows, err := s.svc.Reports.BudgetYear(ctx, int(req.Year))
+	if err != nil {
+		return nil, err
+	}
+	out := &financev1.BudgetYear{Year: req.Year}
+	for _, b := range rows {
+		out.Entries = append(out.Entries, &financev1.BudgetEntry{Month: b.Month, AccountId: b.AccountID, Amount: b.Amount.String()})
+	}
+	return out, nil
+}
+
+func (s *reportServer) SaveBudgetYear(ctx context.Context, req *financev1.SaveBudgetYearRequest) (*financev1.BudgetYear, error) {
+	p, err := write(ctx)
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]domain.Budget, 0, len(req.Entries))
+	for _, e := range req.Entries {
+		amount, err := money("amount", orZero(e.Amount))
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, domain.Budget{Month: e.Month, AccountID: e.AccountId, Amount: amount})
+	}
+	if err := s.svc.Reports.SaveBudgetYear(ctx, p.UserID, int(req.Year), entries); err != nil {
+		return nil, err
+	}
+	return s.GetBudgetYear(ctx, &financev1.BudgetYearRequest{Year: req.Year})
+}
+
+func (s *reportServer) GetEquityChanges(ctx context.Context, req *financev1.PeriodRequest) (*financev1.EquityChanges, error) {
+	if _, err := read(ctx); err != nil {
+		return nil, err
+	}
+	e, err := s.svc.Reports.EquityChanges(ctx, req.DateFrom, req.DateTo)
+	if err != nil {
+		return nil, err
+	}
+	out := &financev1.EquityChanges{DateFrom: e.From, DateTo: e.To, TotalOpening: e.TotalOpening.String(), TotalMovement: e.TotalMovement.String(), TotalClosing: e.TotalClosing.String()}
+	for _, r := range e.Rows {
+		out.Rows = append(out.Rows, &financev1.EquityRow{CodeDisplay: r.CodeDisplay, Name: r.Name, Opening: r.Opening.String(), Movement: r.Movement.String(), Closing: r.Closing.String(), IsEarnings: r.IsEarnings})
+	}
+	return out, nil
+}
+
+func (s *reportServer) GetClientEconomics(ctx context.Context, req *financev1.PeriodRequest) (*financev1.ClientEconomicsReport, error) {
+	if _, err := read(ctx); err != nil {
+		return nil, err
+	}
+	c, err := s.svc.Reports.ClientEconomics(ctx, req.DateFrom, req.DateTo)
+	if err != nil {
+		return nil, err
+	}
+	out := &financev1.ClientEconomicsReport{DateFrom: c.From, DateTo: c.To, TotalInvoiced: c.TotalInvoiced.String(), TotalCollected: c.TotalCollected.String(), AveragePerClient: c.AveragePerClient.String(),
+		CollectionRate: c.CollectionRate, TopClientShare: c.TopClientShare, TopThreeShare: c.TopThreeShare, AvgDaysToPay: c.AvgDaysToPay, HasPayments: c.HasPayments}
+	for _, r := range c.Rows {
+		days, paid := r.AvgDaysToPay()
+		out.Clients = append(out.Clients, &financev1.ClientEconomicsRow{Party: r.Party, InvoiceCount: int32(r.InvoiceCount), Invoiced: r.Invoiced.String(), Collected: r.Collected.String(),
+			Outstanding: (r.Invoiced - r.Collected).String(), AvgDaysToPay: days, HasPayments: paid})
 	}
 	return out, nil
 }

@@ -98,6 +98,11 @@ function AccountForm({ account, owners, close }: { account: Account | null; owne
     npwp: account?.npwp ?? "",
     notes: account?.notes ?? "",
     ownerUserId: account?.ownerUserId ?? "",
+    bankName: account?.bankName ?? "",
+    bankAccountNo: account?.bankAccountNo ?? "",
+    bankAccountName: account?.bankAccountName ?? "",
+    billingEmail: account?.billingEmail ?? "",
+    paymentTermsDays: account?.paymentTermsDays ?? 0,
   });
   const [errors, setErrors] = React.useState<FieldErrors>();
   const { pending, run } = useErpAction();
@@ -131,6 +136,11 @@ function AccountForm({ account, owners, close }: { account: Account | null; owne
       {text("email", a.email)}
       {text("website", a.website)}
       {text("npwp", a.npwp)}
+      {text("bankName", a.bankName)}
+      {text("bankAccountNo", a.bankAccountNo)}
+      {text("bankAccountName", a.bankAccountName)}
+      {text("billingEmail", a.billingEmail)}
+      {text("paymentTermsDays", a.paymentTermsDays)}
       {text("city", ss.leads.city)}
       <Fld label={ss.owner} htmlFor="acc-owner">
         <Picker id="acc-owner" value={v.ownerUserId ?? ""} onChange={(x) => set("ownerUserId", x)} options={owners} allowEmpty={ss.noOwner} />

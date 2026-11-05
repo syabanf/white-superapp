@@ -33,13 +33,40 @@ func (q *Queries) DeleteTargets(ctx context.Context, periodMonth string) error {
 	return err
 }
 
+const getFollowup = `-- name: GetFollowup :one
+SELECT id, invoice_id, stage, phone, message, status, last_error, approved_by, approved_at, sent_at, message_id, created_at FROM sales.invoice_followups WHERE id = $1
+`
+
+func (q *Queries) GetFollowup(ctx context.Context, id string) (SalesInvoiceFollowup, error) {
+	row := q.db.QueryRow(ctx, getFollowup, id)
+	var i SalesInvoiceFollowup
+	err := row.Scan(
+		&i.ID,
+		&i.InvoiceID,
+		&i.Stage,
+		&i.Phone,
+		&i.Message,
+		&i.Status,
+		&i.LastError,
+		&i.ApprovedBy,
+		&i.ApprovedAt,
+		&i.SentAt,
+		&i.MessageID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getInvoice = `-- name: GetInvoice :one
-SELECT i.id, i.deal_id, i.quotation_id, i.term_id, i.invoice_number, i.label, i.amount, i.due_date, i.status, i.sent_at, i.issued_by, i.cancelled_at, i.cancelled_by, i.cancel_reason, i.created_by, i.updated_by, i.created_at, i.updated_at, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
+SELECT i.id, i.deal_id, i.quotation_id, i.term_id, i.invoice_number, i.label, i.amount, i.due_date, i.status, i.sent_at, i.issued_by, i.cancelled_at, i.cancelled_by, i.cancel_reason, i.created_by, i.updated_by, i.created_at, i.updated_at, i.note, i.faktur_pajak_key, i.faktur_pajak_name, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
+       coalesce(q.quote_number, '')::text AS quote_number, coalesce(t.label, '')::text AS term_label,
        (SELECT coalesce(sum(p.amount), 0) FROM sales.payments p WHERE p.invoice_id = i.id AND p.deleted_at IS NULL)::numeric AS paid_total
 FROM sales.invoices i
 JOIN sales.deals d ON d.id = i.deal_id
 LEFT JOIN sales.leads l ON l.id = d.lead_id
 LEFT JOIN sales.accounts a ON a.id = d.account_id
+LEFT JOIN sales.quotations q ON q.id = i.quotation_id
+LEFT JOIN sales.quotation_terms t ON t.id = i.term_id
 WHERE i.id = $1
 `
 
@@ -47,6 +74,8 @@ type GetInvoiceRow struct {
 	SalesInvoice SalesInvoice
 	DealTitle    string
 	ClientName   string
+	QuoteNumber  string
+	TermLabel    string
 	PaidTotal    string
 }
 
@@ -72,8 +101,13 @@ func (q *Queries) GetInvoice(ctx context.Context, id string) (GetInvoiceRow, err
 		&i.SalesInvoice.UpdatedBy,
 		&i.SalesInvoice.CreatedAt,
 		&i.SalesInvoice.UpdatedAt,
+		&i.SalesInvoice.Note,
+		&i.SalesInvoice.FakturPajakKey,
+		&i.SalesInvoice.FakturPajakName,
 		&i.DealTitle,
 		&i.ClientName,
+		&i.QuoteNumber,
+		&i.TermLabel,
 		&i.PaidTotal,
 	)
 	return i, err
@@ -99,6 +133,34 @@ func (q *Queries) GetPayment(ctx context.Context, id string) (SalesPayment, erro
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const insertFollowup = `-- name: InsertFollowup :execrows
+INSERT INTO sales.invoice_followups (id, invoice_id, stage, phone, message)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (invoice_id, stage) DO NOTHING
+`
+
+type InsertFollowupParams struct {
+	ID        string
+	InvoiceID string
+	Stage     int32
+	Phone     string
+	Message   string
+}
+
+func (q *Queries) InsertFollowup(ctx context.Context, arg InsertFollowupParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertFollowup,
+		arg.ID,
+		arg.InvoiceID,
+		arg.Stage,
+		arg.Phone,
+		arg.Message,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const insertPayment = `-- name: InsertPayment :exec
@@ -169,25 +231,91 @@ func (q *Queries) InvoicePaidTotal(ctx context.Context, invoiceID *string) (stri
 	return column_1, err
 }
 
+const listFollowups = `-- name: ListFollowups :many
+SELECT f.id, f.invoice_id, f.stage, f.phone, f.message, f.status, f.last_error, f.approved_by, f.approved_at, f.sent_at, f.message_id, f.created_at, i.invoice_number, i.deal_id, coalesce(a.name, l.org_name, d.title)::text AS client_name
+FROM sales.invoice_followups f
+JOIN sales.invoices i ON i.id = f.invoice_id
+JOIN sales.deals d ON d.id = i.deal_id
+LEFT JOIN sales.leads l ON l.id = d.lead_id
+LEFT JOIN sales.accounts a ON a.id = d.account_id
+WHERE ($1::text IS NULL OR f.status = $1)
+ORDER BY f.created_at DESC, f.id
+LIMIT $2
+`
+
+type ListFollowupsParams struct {
+	Status *string
+	Lim    int32
+}
+
+type ListFollowupsRow struct {
+	SalesInvoiceFollowup SalesInvoiceFollowup
+	InvoiceNumber        string
+	DealID               string
+	ClientName           string
+}
+
+func (q *Queries) ListFollowups(ctx context.Context, arg ListFollowupsParams) ([]ListFollowupsRow, error) {
+	rows, err := q.db.Query(ctx, listFollowups, arg.Status, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFollowupsRow{}
+	for rows.Next() {
+		var i ListFollowupsRow
+		if err := rows.Scan(
+			&i.SalesInvoiceFollowup.ID,
+			&i.SalesInvoiceFollowup.InvoiceID,
+			&i.SalesInvoiceFollowup.Stage,
+			&i.SalesInvoiceFollowup.Phone,
+			&i.SalesInvoiceFollowup.Message,
+			&i.SalesInvoiceFollowup.Status,
+			&i.SalesInvoiceFollowup.LastError,
+			&i.SalesInvoiceFollowup.ApprovedBy,
+			&i.SalesInvoiceFollowup.ApprovedAt,
+			&i.SalesInvoiceFollowup.SentAt,
+			&i.SalesInvoiceFollowup.MessageID,
+			&i.SalesInvoiceFollowup.CreatedAt,
+			&i.InvoiceNumber,
+			&i.DealID,
+			&i.ClientName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listInvoices = `-- name: ListInvoices :many
-SELECT i.id, i.deal_id, i.quotation_id, i.term_id, i.invoice_number, i.label, i.amount, i.due_date, i.status, i.sent_at, i.issued_by, i.cancelled_at, i.cancelled_by, i.cancel_reason, i.created_by, i.updated_by, i.created_at, i.updated_at, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
+SELECT i.id, i.deal_id, i.quotation_id, i.term_id, i.invoice_number, i.label, i.amount, i.due_date, i.status, i.sent_at, i.issued_by, i.cancelled_at, i.cancelled_by, i.cancel_reason, i.created_by, i.updated_by, i.created_at, i.updated_at, i.note, i.faktur_pajak_key, i.faktur_pajak_name, d.title AS deal_title, coalesce(a.name, l.org_name, d.title)::text AS client_name,
+       coalesce(q.quote_number, '')::text AS quote_number, coalesce(t.label, '')::text AS term_label,
        (SELECT coalesce(sum(p.amount), 0) FROM sales.payments p WHERE p.invoice_id = i.id AND p.deleted_at IS NULL)::numeric AS paid_total
 FROM sales.invoices i
 JOIN sales.deals d ON d.id = i.deal_id
 LEFT JOIN sales.leads l ON l.id = d.lead_id
 LEFT JOIN sales.accounts a ON a.id = d.account_id
+LEFT JOIN sales.quotations q ON q.id = i.quotation_id
+LEFT JOIN sales.quotation_terms t ON t.id = i.term_id
 WHERE d.deleted_at IS NULL
   AND ($1::text IS NULL OR i.deal_id = $1)
   AND ($2::text IS NULL OR i.status = $2)
-  AND ($3::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) >= $3)
-  AND ($4::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) < $4)
+  AND ($3::text IS NULL OR i.invoice_number ILIKE '%' || $3 || '%' OR i.label ILIKE '%' || $3 || '%'
+       OR d.title ILIKE '%' || $3 || '%' OR coalesce(a.name, l.org_name, '') ILIKE '%' || $3 || '%')
+  AND ($4::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) >= $4)
+  AND ($5::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) < $5)
 ORDER BY i.created_at DESC, i.id
-LIMIT $5
+LIMIT $6
 `
 
 type ListInvoicesParams struct {
 	Deal   *string
 	Status *string
+	Search *string
 	FromAt *time.Time
 	ToAt   *time.Time
 	Lim    int32
@@ -197,6 +325,8 @@ type ListInvoicesRow struct {
 	SalesInvoice SalesInvoice
 	DealTitle    string
 	ClientName   string
+	QuoteNumber  string
+	TermLabel    string
 	PaidTotal    string
 }
 
@@ -204,6 +334,7 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 	rows, err := q.db.Query(ctx, listInvoices,
 		arg.Deal,
 		arg.Status,
+		arg.Search,
 		arg.FromAt,
 		arg.ToAt,
 		arg.Lim,
@@ -234,8 +365,13 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 			&i.SalesInvoice.UpdatedBy,
 			&i.SalesInvoice.CreatedAt,
 			&i.SalesInvoice.UpdatedAt,
+			&i.SalesInvoice.Note,
+			&i.SalesInvoice.FakturPajakKey,
+			&i.SalesInvoice.FakturPajakName,
 			&i.DealTitle,
 			&i.ClientName,
+			&i.QuoteNumber,
+			&i.TermLabel,
 			&i.PaidTotal,
 		); err != nil {
 			return nil, err
@@ -326,35 +462,72 @@ func (q *Queries) PaidTotal(ctx context.Context, dealID string) (string, error) 
 	return column_1, err
 }
 
+const updateFollowup = `-- name: UpdateFollowup :exec
+UPDATE sales.invoice_followups
+SET phone = $2, message = $3, status = $4, last_error = $5, approved_by = $6, approved_at = $7, sent_at = $8, message_id = $9
+WHERE id = $1
+`
+
+type UpdateFollowupParams struct {
+	ID         string
+	Phone      string
+	Message    string
+	Status     string
+	LastError  string
+	ApprovedBy *string
+	ApprovedAt *time.Time
+	SentAt     *time.Time
+	MessageID  *string
+}
+
+func (q *Queries) UpdateFollowup(ctx context.Context, arg UpdateFollowupParams) error {
+	_, err := q.db.Exec(ctx, updateFollowup,
+		arg.ID,
+		arg.Phone,
+		arg.Message,
+		arg.Status,
+		arg.LastError,
+		arg.ApprovedBy,
+		arg.ApprovedAt,
+		arg.SentAt,
+		arg.MessageID,
+	)
+	return err
+}
+
 const upsertInvoice = `-- name: UpsertInvoice :exec
 INSERT INTO sales.invoices (id, deal_id, quotation_id, term_id, invoice_number, label, amount, due_date, status, sent_at,
-    issued_by, cancelled_at, cancelled_by, cancel_reason, created_by, updated_by, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+    issued_by, cancelled_at, cancelled_by, cancel_reason, created_by, updated_by, created_at, updated_at, note, faktur_pajak_key, faktur_pajak_name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
 ON CONFLICT (id) DO UPDATE SET label = EXCLUDED.label, amount = EXCLUDED.amount, due_date = EXCLUDED.due_date,
     status = EXCLUDED.status, sent_at = EXCLUDED.sent_at, issued_by = EXCLUDED.issued_by,
     cancelled_at = EXCLUDED.cancelled_at, cancelled_by = EXCLUDED.cancelled_by, cancel_reason = EXCLUDED.cancel_reason,
-    updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at
+    updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at, note = EXCLUDED.note,
+    faktur_pajak_key = EXCLUDED.faktur_pajak_key, faktur_pajak_name = EXCLUDED.faktur_pajak_name
 `
 
 type UpsertInvoiceParams struct {
-	ID            string
-	DealID        string
-	QuotationID   *string
-	TermID        *string
-	InvoiceNumber string
-	Label         string
-	Amount        string
-	DueDate       *time.Time
-	Status        string
-	SentAt        *time.Time
-	IssuedBy      *string
-	CancelledAt   *time.Time
-	CancelledBy   *string
-	CancelReason  *string
-	CreatedBy     *string
-	UpdatedBy     *string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID              string
+	DealID          string
+	QuotationID     *string
+	TermID          *string
+	InvoiceNumber   string
+	Label           string
+	Amount          string
+	DueDate         *time.Time
+	Status          string
+	SentAt          *time.Time
+	IssuedBy        *string
+	CancelledAt     *time.Time
+	CancelledBy     *string
+	CancelReason    *string
+	CreatedBy       *string
+	UpdatedBy       *string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	Note            *string
+	FakturPajakKey  *string
+	FakturPajakName *string
 }
 
 func (q *Queries) UpsertInvoice(ctx context.Context, arg UpsertInvoiceParams) error {
@@ -377,6 +550,9 @@ func (q *Queries) UpsertInvoice(ctx context.Context, arg UpsertInvoiceParams) er
 		arg.UpdatedBy,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.Note,
+		arg.FakturPajakKey,
+		arg.FakturPajakName,
 	)
 	return err
 }

@@ -26,8 +26,8 @@ import { FormField } from "@/features/erp/shared/form-field";
 import { Money } from "@/features/erp/shared/money-display";
 import { MoneyInput } from "@/features/erp/shared/money-input";
 import { DatePicker, toIsoDate } from "@/features/erp/shared/period-picker";
-import { claimTransitionAction, deleteReceiptAction, saveClaimAction } from "../actions";
-import type { Claim, ClaimCategory, ClaimReceipt } from "../types";
+import { claimPayAccountsAction, claimTransitionAction, deleteReceiptAction, saveClaimAction } from "../actions";
+import type { Claim, ClaimCategory, ClaimDuplicate, ClaimPayAccount, ClaimReceipt } from "../types";
 import { fs } from "../strings";
 import { ClaimDecision, ClaimStatusBadge, categoryLabel } from "./claims";
 
@@ -35,6 +35,22 @@ const rb = fs.reimburse;
 const receiptUrl = (id: string) => `/api/erp/api/finance/receipts/${encodeURIComponent(id)}`;
 
 /** Create or edit a claim. A new claim opens its detail page so receipts can be uploaded. */
+function DuplicateWarning({ duplicates }: { duplicates: ClaimDuplicate[] }) {
+  if (!duplicates?.length) return null;
+  return (
+    <Alert variant="destructive">
+      <AlertDescription>
+        <p className="font-semibold">{rb.duplicateTitle}</p>
+        <ul className="mt-1 list-disc pl-4">
+          {duplicates.map((d, i) => (
+            <li key={i}>{d.exact ? rb.duplicateExact(d.claimNo, d.filename) : rb.duplicateSimilar(d.claimNo, d.filename)}</li>
+          ))}
+        </ul>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export function ClaimFormDialog({ claim, trigger }: { claim?: Claim; trigger: React.ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -46,10 +62,12 @@ export function ClaimFormDialog({ claim, trigger }: { claim?: Claim; trigger: Re
     description: claim?.description ?? "",
     clientId: claim?.clientId ?? "",
     project: claim?.project ?? "",
+    preferredCashAccountId: claim?.preferredCashAccountId ?? "",
   };
   const [form, setForm] = React.useState(blank);
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
   const { pending, run } = useErpAction();
+  const [payAccounts, setPayAccounts] = React.useState<ClaimPayAccount[]>([]);
   return (
     <Dialog
       open={open}
@@ -58,6 +76,9 @@ export function ClaimFormDialog({ claim, trigger }: { claim?: Claim; trigger: Re
         if (o) {
           setForm(blank);
           setErrors({});
+          void claimPayAccountsAction().then((r) => {
+            if (r.ok) setPayAccounts(r.data.accounts);
+          });
         }
       }}
     >
@@ -122,6 +143,21 @@ export function ClaimFormDialog({ claim, trigger }: { claim?: Claim; trigger: Re
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
+          </FormField>
+          <FormField label={rb.payAccount} htmlFor="cl-pay" error={errors.preferredCashAccountId}>
+            <select
+              id="cl-pay"
+              value={form.preferredCashAccountId}
+              onChange={(e) => setForm({ ...form, preferredCashAccountId: e.target.value })}
+              className="h-9 w-full rounded-full border bg-background px-3 text-sm"
+            >
+              <option value="">{rb.payAccountNone}</option>
+              {payAccounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
           </FormField>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField label={rb.project} htmlFor="cl-project" error={errors.project}>
@@ -259,6 +295,8 @@ export function ClaimDetail({ claim, mode }: { claim: Claim; mode: "mine" | "rev
   const editable = mode === "mine" && claim.canEdit;
   const cancellable = mode === "mine" && (claim.status === "CLAIM_DRAFT" || claim.status === "SUBMITTED");
   return (
+    <>
+    <DuplicateWarning duplicates={claim.duplicates} />
     <DetailLayout
       aside={
         <Card className="gap-3 px-(--card-pad)">
@@ -357,6 +395,7 @@ export function ClaimDetail({ claim, mode }: { claim: Claim; mode: "mine" | "rev
             <Money value={claim.amount} className="text-lg font-semibold" />
           </Meta>
           {claim.project ? <Meta label={rb.project}>{claim.project}</Meta> : null}
+          {claim.preferredCashAccountName ? <Meta label={rb.payAccount}>{claim.preferredCashAccountName}</Meta> : null}
           {claim.paidAt ? <Meta label={rb.paidAt}>{formatDateTime(claim.paidAt)}</Meta> : null}
           <div className="sm:col-span-2 lg:col-span-3">
             <dt className="label-mono text-muted-foreground">{fs.description}</dt>
@@ -385,5 +424,6 @@ export function ClaimDetail({ claim, mode }: { claim: Claim; mode: "mine" | "rev
         ) : null}
       </Card>
     </DetailLayout>
+    </>
   );
 }

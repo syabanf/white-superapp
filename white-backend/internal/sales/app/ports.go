@@ -109,6 +109,7 @@ type WhatsApp interface {
 type Files interface {
 	Put(ctx context.Context, key string, data []byte) error
 	Get(ctx context.Context, key string) ([]byte, error)
+	Delete(ctx context.Context, key string) error
 }
 
 // Renderer turns documents into bytes.

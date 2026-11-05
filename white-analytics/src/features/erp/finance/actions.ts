@@ -7,6 +7,17 @@ import { gatewayFetch } from "@/lib/erp/gateway";
 import { runGateway, zodFieldErrors } from "@/features/erp/shared/action";
 import { fs } from "./strings";
 import type {
+  DocumentItem,
+  DocumentKind,
+  FinanceDocument,
+  Vendor,
+  BudgetEntry,
+  ClaimPayAccount,
+  FixedAsset,
+  MatchCandidate,
+  RecurringJournal,
+  StatementImportResult,
+  StatementLine,
   Account,
   AccountType,
   Claim,
@@ -85,6 +96,7 @@ const accountSchema = z.object({
   accountTypeId: z.string().min(1, fs.accounts.typeRequired),
   isContra: z.boolean(),
   isCashBank: z.boolean(),
+  isCreditCard: z.boolean(),
   cashFlowCategory: z.enum(["", "OPERATING", "INVESTING", "FINANCING", "NON_CASH"]),
   description: z.string().max(500),
   isActive: z.boolean(),
@@ -431,6 +443,7 @@ const claimSchema = z.object({
   description: z.string().trim().min(1, fs.reimburse.descriptionRequired).max(500),
   clientId: z.string().max(64),
   project: z.string().max(120),
+  preferredCashAccountId: z.string().max(64),
 });
 
 function revalidateClaims(claimId?: string) {
@@ -525,5 +538,182 @@ export async function generateInsightAction(from: string, to: string, language: 
     gatewayFetch<FinancialInsight>(`${F}/analysis/insights`, json("POST", { from, to, language })),
   );
   revalidatePath(`${ROOT}/analysis`);
+  return res;
+}
+
+// ─── Reconciliation ──────────────────────────
+
+const RECON = `${ROOT}/reconciliation`;
+
+async function reconAction<T>(path: string, body: unknown = {}): Promise<ActionResult<T>> {
+  const res = await runGateway(() => gatewayFetch<T>(`${F}/recon/${path}`, json("POST", body)));
+  revalidatePath(RECON);
+  return res;
+}
+
+export async function rematchAction(accountId: string) {
+  return reconAction<StatementImportResult>(`accounts/${id(accountId)}:rematch`);
+}
+
+export async function matchCandidatesAction(lineId: string) {
+  return runGateway(() => gatewayFetch<{ candidates: MatchCandidate[] }>(`${F}/recon/lines/${id(lineId)}/candidates`));
+}
+
+export async function matchLineAction(lineId: string, kind: string, ref: string) {
+  return reconAction<StatementLine>(`lines/${id(lineId)}:match`, { kind, ref });
+}
+
+export async function recordLineAction(lineId: string, counterAccountId: string, description: string) {
+  return reconAction<StatementLine>(`lines/${id(lineId)}:record`, { counterAccountId, description });
+}
+
+export async function ignoreLineAction(lineId: string, note: string) {
+  return reconAction<StatementLine>(`lines/${id(lineId)}:ignore`, { note });
+}
+
+export async function reopenLineAction(lineId: string) {
+  return reconAction<StatementLine>(`lines/${id(lineId)}:reopen`);
+}
+
+export async function claimPayAccountsAction() {
+  return runGateway(() => gatewayFetch<{ accounts: ClaimPayAccount[] }>(`${F}/reimbursements/pay-accounts`));
+}
+
+// ─── Schedules ───────────────────────────────
+
+const SCHEDULES = `${ROOT}/schedules`;
+
+async function scheduleAction<T>(path: string, method: string, body?: unknown): Promise<ActionResult<T>> {
+  const res = await runGateway(() => gatewayFetch<T>(`${F}/${path}`, json(method, body)));
+  revalidatePath(SCHEDULES);
+  return res;
+}
+
+export type RecurringValues = {
+  name: string;
+  description: string;
+  frequency: string;
+  startDate: string;
+  endDate: string;
+  debitAccountId: string;
+  creditAccountId: string;
+  amount: string;
+};
+
+export async function createRecurringAction(v: RecurringValues) {
+  const { debitAccountId, creditAccountId, amount, ...rest } = v;
+  return scheduleAction<RecurringJournal>("recurring-journals", "POST", {
+    ...rest,
+    lines: [
+      { accountId: debitAccountId, entrySide: "ENTRY_SIDE_DEBIT", amount },
+      { accountId: creditAccountId, entrySide: "ENTRY_SIDE_CREDIT", amount },
+    ],
+  });
+}
+
+export async function setRecurringActiveAction(recurringId: string, active: boolean) {
+  return scheduleAction<RecurringJournal>(`recurring-journals/${id(recurringId)}:active`, "POST", { active });
+}
+
+export async function deleteRecurringAction(recurringId: string) {
+  return scheduleAction(`recurring-journals/${id(recurringId)}`, "DELETE");
+}
+
+export type AssetValues = {
+  name: string;
+  acquiredOn: string;
+  cost: string;
+  salvage: string;
+  lifeMonths: number;
+  expenseAccountId: string;
+  accumAccountId: string;
+};
+
+export async function createAssetAction(v: AssetValues) {
+  return scheduleAction<FixedAsset>("fixed-assets", "POST", v);
+}
+
+export async function setAssetActiveAction(assetId: string, active: boolean) {
+  return scheduleAction<FixedAsset>(`fixed-assets/${id(assetId)}:active`, "POST", { active });
+}
+
+export async function deleteAssetAction(assetId: string) {
+  return scheduleAction(`fixed-assets/${id(assetId)}`, "DELETE");
+}
+
+export async function runSchedulesAction() {
+  const res = await scheduleAction<{ posted: number; failed: number }>("schedules:run", "POST", {});
+  revalidatePath(`${ROOT}/journals`);
+  return res;
+}
+
+export async function saveBudgetYearAction(year: number, entries: BudgetEntry[]) {
+  const res = await runGateway(() => gatewayFetch(`${F}/budgets/${year}`, json("PUT", { entries })));
+  revalidatePath(`${ROOT}/budgets`);
+  revalidatePath(`${ROOT}/reports`);
+  return res;
+}
+
+// ─── Vendors and documents ───────────────────
+
+export type VendorValues = Omit<Vendor, "id"> & { id?: string };
+
+export async function saveVendorAction(input: VendorValues) {
+  const res = await runGateway(() => gatewayFetch<Vendor>(`${F}/vendors`, json("POST", input)));
+  revalidatePath(`${ROOT}/vendors`);
+  return res;
+}
+
+export type DocumentValues = {
+  id?: string;
+  kind: DocumentKind;
+  side: string;
+  vendorId: string;
+  partyName: string;
+  picName: string;
+  phone: string;
+  email: string;
+  address: string;
+  title: string;
+  issueDate: string;
+  dueDate: string;
+  externalNumber: string;
+  notes: string;
+  items: DocumentItem[];
+  discountPercent: string;
+  ppnPercent: string;
+};
+
+function revalidateDocuments() {
+  revalidatePath(`${ROOT}/purchasing`);
+  revalidatePath(`${ROOT}/documents`, "layout");
+}
+
+async function documentCall<T>(path: string, method: string, body?: unknown): Promise<ActionResult<T>> {
+  const res = await runGateway(() => gatewayFetch<T>(`${F}/documents${path}`, json(method, body)));
+  revalidateDocuments();
+  return res;
+}
+
+export async function saveDocumentAction(input: DocumentValues) {
+  return input.id ? documentCall<FinanceDocument>(`/${id(input.id)}`, "PATCH", input) : documentCall<FinanceDocument>("", "POST", input);
+}
+
+export async function deleteDocumentAction(documentId: string) {
+  return documentCall(`/${id(documentId)}`, "DELETE");
+}
+
+export async function actOnDocumentAction(documentId: string, action: string, reason = "") {
+  return documentCall<FinanceDocument>(`/${id(documentId)}:act`, "POST", { action, reason });
+}
+
+export async function convertDocumentAction(documentId: string, vendorId = "") {
+  return documentCall<FinanceDocument>(`/${id(documentId)}:convert`, "POST", { vendorId });
+}
+
+export async function issueDocumentAction(documentId: string, accountId: string, dueDate: string) {
+  const res = await documentCall<FinanceDocument>(`/${id(documentId)}:issue`, "POST", { accountId, dueDate });
+  revalidatePath(`${ROOT}/payables`);
+  revalidatePath(`${ROOT}/receivables`);
   return res;
 }

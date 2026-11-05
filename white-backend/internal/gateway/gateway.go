@@ -80,6 +80,7 @@ func registerGateway(ctx context.Context, mux *runtime.ServeMux, u *Upstreams) e
 		identityv1.RegisterNotificationServiceHandler,
 		identityv1.RegisterShareServiceHandler,
 		identityv1.RegisterWorkspaceServiceHandler,
+		identityv1.RegisterAuditServiceHandler,
 	}
 	for _, r := range regs {
 		if err := r(ctx, mux, u.Identity); err != nil {
@@ -129,7 +130,7 @@ func run(ctx context.Context, d pkgapp.Deps) error {
 	browser.Mount(root)
 	root.Handle("/", mux)
 
-	handler := withCORS(withRequestLog(d.Logger, root), strings.Split(config.Env("CORS_ORIGINS", "http://localhost:3000"), ","))
+	handler := withCORS(withAudit(d, withRequestLog(d.Logger, root)), strings.Split(config.Env("CORS_ORIGINS", "http://localhost:3000"), ","))
 	srv := &http.Server{
 		Addr:              config.Env("HTTP_ADDR", ":8080"),
 		Handler:           handler,

@@ -224,7 +224,7 @@ func (s *Store) StaleLeadIDs(ctx context.Context, before time.Time) ([]string, e
 // ─── accounts and contacts ──────────────────────────────────
 
 func toAccount(r sqlc.SalesAccount) domain.Account {
-	return domain.Account{ID: r.ID, Name: r.Name, AccountType: r.AccountType, Industry: r.Industry, Address: r.Address, City: r.City, Phone: r.Phone, Email: r.Email, Website: r.Website, Npwp: r.Npwp, Notes: r.Notes, OwnerUserID: r.OwnerUserID, Custom: jsonOr(r.Custom, "{}"),
+	return domain.Account{ID: r.ID, Name: r.Name, AccountType: r.AccountType, Industry: r.Industry, Address: r.Address, City: r.City, Phone: r.Phone, Email: r.Email, Website: r.Website, Npwp: r.Npwp, Notes: r.Notes, OwnerUserID: r.OwnerUserID, Custom: jsonOr(r.Custom, "{}"), BankName: r.BankName, BankAccountNo: r.BankAccountNo, BankAccountName: r.BankAccountName, BillingEmail: r.BillingEmail, PaymentTermsDays: r.PaymentTermsDays,
 		Audit: domain.Audit{CreatedBy: r.CreatedBy, UpdatedBy: r.UpdatedBy, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}}
 }
 
@@ -239,7 +239,7 @@ func (s *Store) ListAccounts(ctx context.Context, query string, limit int) ([]do
 }
 
 func (s *Store) SaveAccount(ctx context.Context, a *domain.Account) error {
-	return wrap(s.q.UpsertAccount(ctx, sqlc.UpsertAccountParams{ID: a.ID, Name: a.Name, AccountType: a.AccountType, Industry: a.Industry, Address: a.Address, City: a.City, Phone: a.Phone, Email: a.Email, Website: a.Website, Npwp: a.Npwp, Notes: a.Notes, OwnerUserID: a.OwnerUserID, Custom: jsonOr(a.Custom, "{}"), CreatedBy: a.CreatedBy, UpdatedBy: a.UpdatedBy, CreatedAt: a.CreatedAt, UpdatedAt: a.UpdatedAt}))
+	return wrap(s.q.UpsertAccount(ctx, sqlc.UpsertAccountParams{BankName: a.BankName, BankAccountNo: a.BankAccountNo, BankAccountName: a.BankAccountName, BillingEmail: a.BillingEmail, PaymentTermsDays: a.PaymentTermsDays, ID: a.ID, Name: a.Name, AccountType: a.AccountType, Industry: a.Industry, Address: a.Address, City: a.City, Phone: a.Phone, Email: a.Email, Website: a.Website, Npwp: a.Npwp, Notes: a.Notes, OwnerUserID: a.OwnerUserID, Custom: jsonOr(a.Custom, "{}"), CreatedBy: a.CreatedBy, UpdatedBy: a.UpdatedBy, CreatedAt: a.CreatedAt, UpdatedAt: a.UpdatedAt}))
 }
 
 func (s *Store) DeleteAccount(ctx context.Context, id string, at time.Time) error {

@@ -3,6 +3,7 @@ package grpcapi
 import (
 	"context"
 	"crypto/subtle"
+	"time"
 
 	identityv1 "github.com/syabanf/white-superapp/white-backend/gen/go/white/identity/v1"
 	"github.com/syabanf/white-superapp/white-backend/internal/identity/app"
@@ -13,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Services struct {
@@ -24,6 +26,7 @@ type Services struct {
 	Notifications  *app.Notifications
 	Share          *app.Share
 	Workspace      *app.Workspace
+	Audit          *app.Audit
 }
 
 func Register(s *grpc.Server, svc Services) {
@@ -34,6 +37,7 @@ func Register(s *grpc.Server, svc Services) {
 	identityv1.RegisterNotificationServiceServer(s, &notificationServer{svc: svc})
 	identityv1.RegisterShareServiceServer(s, &shareServer{svc: svc})
 	identityv1.RegisterWorkspaceServiceServer(s, &workspaceServer{svc: svc})
+	identityv1.RegisterAuditServiceServer(s, &auditServer{svc: svc})
 }
 
 func userAgent(ctx context.Context) string {
@@ -546,3 +550,35 @@ func (s *workspaceServer) MarkSetup(ctx context.Context, req *identityv1.MarkSet
 	}
 	return setupPB(st), nil
 }
+
+// ─── AuditService ────────────────────────────
+
+type auditServer struct {
+	identityv1.UnimplementedAuditServiceServer
+	svc Services
+}
+
+func (s *auditServer) ListAuditLogs(ctx context.Context, r *identityv1.ListAuditLogsRequest) (*identityv1.ListAuditLogsResponse, error) {
+	if _, err := authn.RequireAdmin(ctx); err != nil {
+		return nil, err
+	}
+	f := app.AuditFilter{Query: r.Q, FailedOnly: r.FailedOnly, Page: int(r.Page), Size: int(r.PageSize)}
+	if t, err := time.ParseInLocation(time.DateOnly, r.DateFrom, jakarta); err == nil {
+		f.From = &t
+	}
+	if t, err := time.ParseInLocation(time.DateOnly, r.DateTo, jakarta); err == nil {
+		next := t.AddDate(0, 0, 1)
+		f.To = &next
+	}
+	rows, total, err := s.svc.Audit.List(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	out := &identityv1.ListAuditLogsResponse{Total: int32(total)}
+	for _, l := range rows {
+		out.Logs = append(out.Logs, &identityv1.AuditLog{Id: l.ID, At: timestamppb.New(l.At), UserId: l.UserID, UserName: l.UserName, Role: l.Role, Method: l.Method, Path: l.Path, Status: int32(l.Status), Ip: l.IP, UserAgent: l.UserAgent})
+	}
+	return out, nil
+}
+
+var jakarta = time.FixedZone("WIB", 7*3600)

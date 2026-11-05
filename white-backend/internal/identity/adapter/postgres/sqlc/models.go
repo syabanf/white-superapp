@@ -118,6 +118,19 @@ type IdentityAppSetting struct {
 	UpdatedAt time.Time
 }
 
+type IdentityAuditLog struct {
+	ID        string
+	At        time.Time
+	UserID    string
+	UserName  string
+	Role      string
+	Method    string
+	Path      string
+	Status    int32
+	Ip        string
+	UserAgent string
+}
+
 type IdentityClient struct {
 	ID           string
 	Name         string

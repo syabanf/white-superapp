@@ -46,6 +46,11 @@ export default async function AccountDetailPage(props: PageProps<"/erp/sales/lea
               <Info label={a.email}>{account.email}</Info>
               <Info label={a.website}>{account.website}</Info>
               <Info label={a.npwp}>{account.npwp}</Info>
+              <Info label={a.bankName}>{account.bankName}</Info>
+              <Info label={a.bankAccountNo}>{account.bankAccountNo}</Info>
+              <Info label={a.bankAccountName}>{account.bankAccountName}</Info>
+              <Info label={a.billingEmail}>{account.billingEmail}</Info>
+              <Info label={a.paymentTermsDays}>{account.paymentTermsDays ? String(account.paymentTermsDays) : ""}</Info>
               <Info label={ss.owner}>{nameOf(names, account.ownerUserId)}</Info>
               <Info label={a.address}>{account.address}</Info>
             </dl>

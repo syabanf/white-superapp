@@ -64,6 +64,11 @@ export type Account = {
   custom: Custom;
   createdAt: Ts;
   updatedAt: Ts;
+  bankName: string;
+  bankAccountNo: string;
+  bankAccountName: string;
+  billingEmail: string;
+  paymentTermsDays: number;
 };
 export type AccountDetail = { account: Account; contacts: Contact[]; deals: Deal[] };
 
@@ -320,6 +325,10 @@ export type Invoice = {
   cancelReason: string;
   paidTotal: string;
   createdAt: Ts;
+  note: string;
+  fakturPajakName: string;
+  quoteNumber: string;
+  termLabel: string;
 };
 export type Payment = {
   id: string;
@@ -633,3 +642,18 @@ export type ChatbotSettings = {
   handoffUserIds: string[];
 };
 export type PublicChat = { token: string; botName: string; messages: ChatMessage[]; humanTakeover: boolean };
+
+export type InvoiceFollowup = {
+  id: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  dealId: string;
+  clientName: string;
+  stage: number;
+  phone: string;
+  message: string;
+  status: string;
+  lastError: string;
+  sentAt: Ts;
+  createdAt: Ts;
+};

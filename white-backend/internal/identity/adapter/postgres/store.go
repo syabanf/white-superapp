@@ -443,3 +443,28 @@ func nonNil(xs []string) []string {
 	}
 	return xs
 }
+
+func (s *Store) InsertAuditLog(ctx context.Context, l domain.AuditLog) error {
+	return s.q.InsertAuditLog(ctx, sqlc.InsertAuditLogParams{ID: l.ID, At: l.At, UserID: l.UserID, UserName: l.UserName, Role: l.Role, Method: l.Method, Path: l.Path, Status: int32(l.Status), Ip: l.IP, UserAgent: l.UserAgent})
+}
+
+func (s *Store) ListAuditLogs(ctx context.Context, query string, failedOnly bool, from, to *time.Time, limit, offset int) ([]domain.AuditLog, int, error) {
+	params := sqlc.ListAuditLogsParams{FromAt: from, ToAt: to, Lim: int32(limit), Off: int32(offset)}
+	if query != "" {
+		params.Q = &query
+	}
+	if failedOnly {
+		params.Failed = &failedOnly
+	}
+	rows, err := s.q.ListAuditLogs(ctx, params)
+	if err != nil {
+		return nil, 0, err
+	}
+	out := make([]domain.AuditLog, len(rows))
+	total := 0
+	for i, r := range rows {
+		out[i] = domain.AuditLog{ID: r.ID, At: r.At, UserID: r.UserID, UserName: r.UserName, Role: r.Role, Method: r.Method, Path: r.Path, Status: int(r.Status), IP: r.Ip, UserAgent: r.UserAgent}
+		total = int(r.Total)
+	}
+	return out, total, nil
+}

@@ -24,7 +24,7 @@ DELETE FROM finance.account_types WHERE id = $1;
 
 -- name: ListAccounts :many
 SELECT a.id, a.code, a.name, a.parent_id, a.account_type_id, t.code AS type_code, t.name AS type_name,
-       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.cash_flow_category,
+       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.is_credit_card, a.cash_flow_category,
        a.description, a.is_active, a.created_at, a.updated_at
   FROM finance.accounts a
   JOIN finance.account_types t ON t.id = a.account_type_id
@@ -39,7 +39,7 @@ SELECT a.id, a.code, a.name, a.parent_id, a.account_type_id, t.code AS type_code
 
 -- name: GetAccount :one
 SELECT a.id, a.code, a.name, a.parent_id, a.account_type_id, t.code AS type_code, t.name AS type_name,
-       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.cash_flow_category,
+       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.is_credit_card, a.cash_flow_category,
        a.description, a.is_active, a.created_at, a.updated_at
   FROM finance.accounts a
   JOIN finance.account_types t ON t.id = a.account_type_id
@@ -47,13 +47,13 @@ SELECT a.id, a.code, a.name, a.parent_id, a.account_type_id, t.code AS type_code
 
 -- name: InsertAccount :exec
 INSERT INTO finance.accounts (id, code, name, parent_id, account_type_id, level, is_postable, is_contra, is_cash_bank,
-                              cash_flow_category, description, is_active, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, $9, $10, $11, sqlc.narg(by), sqlc.narg(by));
+                              cash_flow_category, description, is_active, is_credit_card, created_by, updated_by)
+VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, $9, $10, $11, $12, sqlc.narg(by), sqlc.narg(by));
 
 -- name: UpdateAccount :exec
 UPDATE finance.accounts
    SET code = $2, name = $3, parent_id = $4, account_type_id = $5, level = $6, is_contra = $7, is_cash_bank = $8,
-       cash_flow_category = $9, description = $10, is_active = $11, updated_by = sqlc.narg(by), updated_at = now()
+       cash_flow_category = $9, description = $10, is_active = $11, is_credit_card = $12, updated_by = sqlc.narg(by), updated_at = now()
  WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: SoftDeleteAccount :exec

@@ -61,18 +61,28 @@ func register(_ context.Context, d pkgapp.Deps, s *grpc.Server) error {
 		Notifications:  app.NewNotifications(store),
 		Share:          app.NewShare(store, config.Env("AUTH_SECRET", ""), clk),
 		Workspace:      app.NewWorkspace(store, clk),
+		Audit:          app.NewAudit(store),
 	})
 	return nil
 }
 
-// worker prunes read notifications and expired sessions on the retention tick.
+// worker prunes read notifications and expired sessions on the retention tick
+// and stores the gateway's audit events.
 func worker(ctx context.Context, d pkgapp.Deps) error {
 	if d.Bus == nil {
 		<-ctx.Done()
 		return nil
 	}
-	notif := app.NewNotifications(postgres.NewStore(d.Pool))
-	return d.Bus.Subscribe(ctx, "identity-retention", []string{events.RetentionTick}, func(ctx context.Context, msg events.Message) error {
+	store := postgres.NewStore(d.Pool)
+	notif, audit := app.NewNotifications(store), app.NewAudit(store)
+	return d.Bus.Subscribe(ctx, "identity-retention", []string{events.RetentionTick, events.AuditSubject}, func(ctx context.Context, msg events.Message) error {
+		if msg.Subject == events.AuditSubject {
+			var p events.AuditRecorded
+			if err := msg.Decode(&p); err != nil {
+				return err
+			}
+			return audit.Record(ctx, msg.ID, p)
+		}
 		var p events.TickPayload
 		if err := msg.Decode(&p); err != nil {
 			return err

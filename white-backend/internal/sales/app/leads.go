@@ -295,6 +295,8 @@ func (l *Leads) ListOwners(ctx context.Context) ([]User, error) {
 
 type AccountInput struct {
 	ID, Name, AccountType, Industry, Address, City, Phone, Email, Website, Npwp, Notes, OwnerUserID string
+	BankName, BankAccountNo, BankAccountName, BillingEmail                                          string
+	PaymentTermsDays                                                                                int32
 	Custom                                                                                          json.RawMessage
 }
 
@@ -323,6 +325,11 @@ func (l *Leads) applyAccount(ctx context.Context, in AccountInput, a *domain.Acc
 	a.Name, a.AccountType, a.Industry, a.Address = domain.JSTrim(in.Name), accType, domain.TrimmedOrNil(in.Industry), domain.TrimmedOrNil(in.Address)
 	a.City, a.Phone, a.Email, a.Website = domain.TrimmedOrNil(in.City), domain.TrimmedOrNil(in.Phone), domain.TrimmedOrNil(email), domain.TrimmedOrNil(in.Website)
 	a.Npwp, a.Notes, a.OwnerUserID, a.Custom = domain.TrimmedOrNil(in.Npwp), domain.TrimmedOrNil(in.Notes), domain.TrimmedOrNil(in.OwnerUserID), custom
+	if in.PaymentTermsDays < 0 || in.PaymentTermsDays > 365 {
+		return apperr.Field("paymentTermsDays", "Termin pembayaran 0 sampai 365 hari")
+	}
+	a.BankName, a.BankAccountNo, a.BankAccountName = domain.TrimmedOrNil(in.BankName), domain.TrimmedOrNil(in.BankAccountNo), domain.TrimmedOrNil(in.BankAccountName)
+	a.BillingEmail, a.PaymentTermsDays = domain.TrimmedOrNil(in.BillingEmail), &in.PaymentTermsDays
 	return nil
 }
 

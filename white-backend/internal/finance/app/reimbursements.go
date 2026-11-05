@@ -122,6 +122,7 @@ func (r *Reimbursements) MyClaims(ctx context.Context, p authn.Principal, status
 // ClaimInput is the claim form.
 type ClaimInput struct {
 	Category, TransactionDate, Description, ClientID, Project string
+	PreferredCashAccountID                                    string
 	Amount                                                    domain.Money
 }
 
@@ -168,6 +169,28 @@ func (r *Reimbursements) claimant(ctx context.Context, userID string) (*Employee
 	return emp, managerUser, nil
 }
 
+// preferredAccount resolves the optional account a claimant asks to be paid from.
+func (r *Reimbursements) preferredAccount(ctx context.Context, id string) (string, string, error) {
+	id = trim(id)
+	if id == "" {
+		return "", "", nil
+	}
+	acc, err := r.Store.GetAccount(ctx, id)
+	if err != nil {
+		return "", "", err
+	}
+	if acc == nil || !acc.IsCashBank || !acc.IsPostable || !acc.IsActive {
+		return "", "", apperr.Field("preferred_cash_account_id", "Rekening tidak valid")
+	}
+	return acc.ID, acc.Name, nil
+}
+
+// PayAccounts lists the accounts a claimant may ask to be paid from.
+func (r *Reimbursements) PayAccounts(ctx context.Context) ([]domain.Account, error) {
+	yes := true
+	return r.Store.ListAccounts(ctx, domain.AccountFilter{IsCashBank: &yes, IsPostable: &yes, IsActive: &yes})
+}
+
 func (r *Reimbursements) Create(ctx context.Context, p authn.Principal, in ClaimInput) (*domain.Claim, error) {
 	if err := r.normalize(&in); err != nil {
 		return nil, err
@@ -180,6 +203,9 @@ func (r *Reimbursements) Create(ctx context.Context, p authn.Principal, in Claim
 		ID: ids.New(), EmployeeID: emp.ID, EmployeeUserID: p.UserID, EmployeeName: emp.Name, DepartmentName: emp.DepartmentName,
 		ManagerEmployeeID: emp.ManagerID, ManagerUserID: managerUser, Category: in.Category, TransactionDate: in.TransactionDate,
 		Amount: in.Amount, Description: in.Description, ClientID: in.ClientID, Project: in.Project, Status: domain.ClaimDraft, CreatedBy: p.UserID,
+	}
+	if c.PreferredCashAccountID, c.PreferredCashAccountName, err = r.preferredAccount(ctx, in.PreferredCashAccountID); err != nil {
+		return nil, err
 	}
 	err = r.Store.WithTx(ctx, func(tx domain.Store) error {
 		prefix := "RB-" + r.now().In(Jakarta).Format("200601") + "-"
@@ -209,6 +235,9 @@ func (r *Reimbursements) Update(ctx context.Context, p authn.Principal, id strin
 	}
 	c.Category, c.TransactionDate, c.Amount, c.Description = in.Category, in.TransactionDate, in.Amount, in.Description
 	c.ClientID, c.Project, c.UpdatedBy = in.ClientID, in.Project, p.UserID
+	if c.PreferredCashAccountID, c.PreferredCashAccountName, err = r.preferredAccount(ctx, in.PreferredCashAccountID); err != nil {
+		return nil, err
+	}
 	if err := r.Store.UpdateClaim(ctx, *c); err != nil {
 		return nil, err
 	}
@@ -231,7 +260,7 @@ func (r *Reimbursements) UploadReceipt(ctx context.Context, p authn.Principal, i
 	if len(c.Receipts) >= maxReceipts {
 		return nil, domain.Bad(fmt.Sprintf("Maksimal %d bukti per klaim.", maxReceipts))
 	}
-	rec := domain.Receipt{ID: ids.New(), ClaimID: id, Filename: domain.CleanFilename(filename), ContentType: mime, SizeBytes: int64(len(data)), CreatedBy: p.UserID}
+	rec := domain.Receipt{ContentHash: domain.ContentHash(data), ImageHash: domain.ImageFingerprint(data), ID: ids.New(), ClaimID: id, Filename: domain.CleanFilename(filename), ContentType: mime, SizeBytes: int64(len(data)), CreatedBy: p.UserID}
 	rec.StorageKey = "reimbursements/" + rec.ID + "." + ext
 	if err := r.Storage.Put(ctx, rec.StorageKey, data); err != nil {
 		return nil, err

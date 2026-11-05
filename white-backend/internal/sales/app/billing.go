@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"net/http"
 	"time"
+	"unicode/utf8"
 
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/domain"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/salesevents"
@@ -279,6 +281,124 @@ func (b *Billing) CancelInvoice(ctx context.Context, actor Actor, id, reason str
 	return b.Store.GetInvoice(ctx, id)
 }
 
+// InvoiceRevision is what finance may change on a submitted invoice.
+type InvoiceRevision struct {
+	Label, Amount, DueDate, Note string
+}
+
+// UpdateInvoice revises a submitted invoice. An issued invoice is already
+// booked as a receivable and a paid one has money against its amount, so
+// neither can change. A term invoice keeps the amount allocated to its term.
+func (b *Billing) UpdateInvoice(ctx context.Context, actor Actor, id string, in InvoiceRevision) (*domain.Invoice, error) {
+	inv, err := b.load(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if inv.Status != InvoiceSubmitted {
+		return nil, conflict("Hanya invoice berstatus diajukan yang bisa direvisi")
+	}
+	if inv.PaidTotal > 0 {
+		return nil, conflict("Invoice yang sudah ada pembayarannya tidak bisa direvisi")
+	}
+	errs := map[string]string{}
+	label := domain.JSTrim(in.Label)
+	if label == "" || utf8.RuneCountInString(label) > 150 {
+		errs["label"] = "Keterangan wajib diisi, maksimal 150 karakter"
+	}
+	amount, err := domain.ParseMoney(in.Amount)
+	if err != nil || amount <= 0 {
+		errs["amount"] = "Nominal invoice harus lebih dari 0"
+	} else if inv.TermID != nil && amount != inv.Amount {
+		errs["amount"] = "Nominal invoice termin mengikuti quotation"
+	}
+	due, err := domain.ParseDate(in.DueDate)
+	if err != nil {
+		errs["dueDate"] = "Tanggal jatuh tempo tidak valid"
+	}
+	if utf8.RuneCountInString(in.Note) > 300 {
+		errs["note"] = "Catatan maksimal 300 karakter"
+	}
+	if err := fieldErrs(errs); err != nil {
+		return nil, err
+	}
+	inv.Label, inv.Amount, inv.DueDate, inv.Note = label, amount, due, domain.TrimmedOrNil(in.Note)
+	inv.UpdatedBy, inv.UpdatedAt = actor.ref(), b.now()
+	if err := b.Store.SaveInvoice(ctx, inv); err != nil {
+		return nil, err
+	}
+	return b.Store.GetInvoice(ctx, id)
+}
+
+// fakturPajakMaxBytes caps the tax invoice attachment.
+const fakturPajakMaxBytes = 10 << 20
+
+var fakturPajakTypes = []string{"application/pdf", "image/jpeg", "image/png", "image/webp"}
+
+// UploadFakturPajak attaches the tax invoice. The key is fixed per invoice, so
+// a new file replaces the old one.
+func (b *Billing) UploadFakturPajak(ctx context.Context, actor Actor, id, name string, data []byte) (*domain.Invoice, error) {
+	inv, err := b.load(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if inv.Status == InvoiceCancelled {
+		return nil, conflict("Invoice sudah dibatalkan")
+	}
+	if len(data) == 0 || len(data) > fakturPajakMaxBytes {
+		return nil, apperr.Field("file", "Ukuran file maksimal 10 MB")
+	}
+	if !domain.Contains(fakturPajakTypes, http.DetectContentType(data)) {
+		return nil, apperr.Field("file", "Format file harus PDF, JPG, PNG, atau WebP")
+	}
+	key := "invoices/" + inv.ID + "/faktur-pajak"
+	if err := b.Files.Put(ctx, key, data); err != nil {
+		return nil, err
+	}
+	safe := domain.SafeFileName(name)
+	inv.FakturPajakKey, inv.FakturPajakName = &key, &safe
+	inv.UpdatedBy, inv.UpdatedAt = actor.ref(), b.now()
+	if err := b.Store.SaveInvoice(ctx, inv); err != nil {
+		return nil, err
+	}
+	return b.Store.GetInvoice(ctx, id)
+}
+
+// FakturPajak returns the attached file's name, type and bytes.
+func (b *Billing) FakturPajak(ctx context.Context, id string) (string, string, []byte, error) {
+	inv, err := b.load(ctx, id)
+	if err != nil {
+		return "", "", nil, err
+	}
+	if inv.FakturPajakKey == nil {
+		return "", "", nil, notFound("Faktur pajak belum diunggah")
+	}
+	data, err := b.Files.Get(ctx, *inv.FakturPajakKey)
+	if err != nil {
+		return "", "", nil, err
+	}
+	return deref(inv.FakturPajakName), http.DetectContentType(data), data, nil
+}
+
+func (b *Billing) DeleteFakturPajak(ctx context.Context, actor Actor, id string) (*domain.Invoice, error) {
+	inv, err := b.load(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if inv.FakturPajakKey == nil {
+		return inv, nil
+	}
+	key := *inv.FakturPajakKey
+	inv.FakturPajakKey, inv.FakturPajakName = nil, nil
+	inv.UpdatedBy, inv.UpdatedAt = actor.ref(), b.now()
+	if err := b.Store.SaveInvoice(ctx, inv); err != nil {
+		return nil, err
+	}
+	if err := b.Files.Delete(ctx, key); err != nil {
+		return nil, err
+	}
+	return b.Store.GetInvoice(ctx, id)
+}
+
 func (b *Billing) RenderInvoicePDF(ctx context.Context, id string) (string, []byte, error) {
 	inv, err := b.load(ctx, id)
 	if err != nil {
@@ -389,4 +509,170 @@ func (b *Billing) DeletePayment(ctx context.Context, id string) error {
 		return notFound("Pembayaran tidak ditemukan")
 	}
 	return b.Store.DeletePayment(ctx, id, b.now())
+}
+
+// ─── follow-ups ────────────────────────────────
+
+func (b *Billing) WhatsAppEnabled() bool { return b.WhatsApp != nil && b.WhatsApp.Enabled() }
+
+func (b *Billing) ListFollowups(ctx context.Context, status string, limit int) ([]domain.InvoiceFollowup, error) {
+	return b.Store.ListFollowups(ctx, status, limit)
+}
+
+// QueueFollowups drafts one message per stage for issued, unpaid invoices. The
+// draft waits for finance; it never goes out by itself.
+func (b *Billing) QueueFollowups(ctx context.Context) (int, error) {
+	invoices, err := b.Store.ListInvoices(ctx, domain.InvoiceFilter{Status: InvoiceSent, Limit: 2000})
+	if err != nil {
+		return 0, err
+	}
+	queued := 0
+	for _, inv := range invoices {
+		if inv.DueDate == nil || inv.PaidTotal >= inv.Amount {
+			continue
+		}
+		stage, ok := domain.FollowupStageDue(*inv.DueDate, b.now())
+		if !ok {
+			continue
+		}
+		pic, phone, err := b.billingContact(ctx, inv.DealID)
+		if err != nil {
+			return queued, err
+		}
+		added, err := b.Store.InsertFollowup(ctx, domain.InvoiceFollowup{ID: ids.New(), InvoiceID: inv.ID, Stage: stage, Phone: phone,
+			Message: domain.FollowupMessage(pic, inv.InvoiceNumber, inv.Amount-inv.PaidTotal, *inv.DueDate, stage)})
+		if err != nil {
+			return queued, err
+		}
+		if added {
+			queued++
+		}
+	}
+	return queued, nil
+}
+
+// billingContact prefers the lead's PIC and falls back to the account's phone.
+func (b *Billing) billingContact(ctx context.Context, dealID string) (string, string, error) {
+	deal, err := b.Store.GetDeal(ctx, dealID)
+	if err != nil || deal == nil {
+		return "", "", err
+	}
+	pic, phone := "", ""
+	if deal.LeadID != nil {
+		lead, err := b.Store.GetLead(ctx, *deal.LeadID)
+		if err != nil {
+			return "", "", err
+		}
+		if lead != nil {
+			pic, phone = lead.PicName, deref(lead.PicPhone)
+		}
+	}
+	if phone == "" && deal.AccountID != nil {
+		acc, err := b.Store.GetAccount(ctx, *deal.AccountID)
+		if err != nil {
+			return "", "", err
+		}
+		if acc != nil {
+			phone = deref(acc.Phone)
+		}
+	}
+	return pic, phone, nil
+}
+
+func (b *Billing) openFollowup(ctx context.Context, id string) (*domain.InvoiceFollowup, error) {
+	f, err := b.Store.GetFollowup(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if f == nil {
+		return nil, notFound("Follow-up tidak ditemukan")
+	}
+	if f.Status == domain.FollowupSent || f.Status == domain.FollowupSkipped {
+		return nil, conflict("Follow-up ini sudah selesai")
+	}
+	return f, nil
+}
+
+// ApproveFollowup authorizes a message, optionally with an edited phone or text,
+// and sends it when the window and the gateway allow. Otherwise it stays
+// approved and the next tick sends it.
+func (b *Billing) ApproveFollowup(ctx context.Context, actor Actor, id, phone, message string) (*domain.InvoiceFollowup, error) {
+	f, err := b.openFollowup(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if p := domain.JSTrim(phone); p != "" {
+		f.Phone = p
+	}
+	if m := domain.JSTrim(message); m != "" {
+		f.Message = m
+	}
+	if f.Phone == "" {
+		return nil, apperr.Field("phone", "Nomor WhatsApp wajib diisi")
+	}
+	now := b.now()
+	f.Status, f.ApprovedBy, f.ApprovedAt, f.LastError = domain.FollowupApproved, actor.ref(), &now, ""
+	if err := b.Store.UpdateFollowup(ctx, *f); err != nil {
+		return nil, err
+	}
+	if err := b.sendFollowup(ctx, f); err != nil {
+		return nil, err
+	}
+	return b.Store.GetFollowup(ctx, id)
+}
+
+func (b *Billing) SkipFollowup(ctx context.Context, id string) (*domain.InvoiceFollowup, error) {
+	f, err := b.openFollowup(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	f.Status = domain.FollowupSkipped
+	if err := b.Store.UpdateFollowup(ctx, *f); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+// SendApprovedFollowups retries what waited for the window or the gateway.
+func (b *Billing) SendApprovedFollowups(ctx context.Context) (int, error) {
+	rows, err := b.Store.ListFollowups(ctx, domain.FollowupApproved, 200)
+	if err != nil {
+		return 0, err
+	}
+	sent := 0
+	for i := range rows {
+		if err := b.sendFollowup(ctx, &rows[i]); err != nil {
+			return sent, err
+		}
+		if rows[i].Status == domain.FollowupSent {
+			sent++
+		}
+	}
+	return sent, nil
+}
+
+// sendFollowup rechecks the invoice right before sending, so a client who paid
+// after approval gets no reminder. A delivery failure stays on the row as text.
+func (b *Billing) sendFollowup(ctx context.Context, f *domain.InvoiceFollowup) error {
+	inv, err := b.Store.GetInvoice(ctx, f.InvoiceID)
+	if err != nil {
+		return err
+	}
+	switch {
+	case inv == nil || inv.Status != InvoiceSent || inv.PaidTotal >= inv.Amount:
+		f.Status, f.LastError = domain.FollowupSkipped, "Invoice sudah lunas atau dibatalkan"
+	case !b.WhatsAppEnabled():
+		f.LastError = "Layanan WhatsApp belum aktif. Pesan terkirim otomatis setelah aktif."
+	case !domain.FollowupSendable(b.now()):
+		f.LastError = "Menunggu jam kirim: Senin sampai Jumat, 08.00 sampai 18.00 WIB."
+	default:
+		id, err := b.WhatsApp.Send(ctx, f.Phone, f.Message)
+		if err != nil {
+			f.LastError = "Gagal mengirim: " + apperr.As(err).Message
+			break
+		}
+		now := b.now()
+		f.Status, f.SentAt, f.MessageID, f.LastError = domain.FollowupSent, &now, &id, ""
+	}
+	return b.Store.UpdateFollowup(ctx, *f)
 }

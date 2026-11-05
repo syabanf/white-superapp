@@ -16,10 +16,11 @@ type Jobs struct {
 	pipeline   *Pipeline
 	chat       *Chat
 	onboarding *Onboarding
+	billing    *Billing
 }
 
-func NewJobs(d *Deps, auto *Automation, pipeline *Pipeline, chat *Chat, onboarding *Onboarding) *Jobs {
-	return &Jobs{Deps: d, auto: auto, pipeline: pipeline, chat: chat, onboarding: onboarding}
+func NewJobs(d *Deps, auto *Automation, pipeline *Pipeline, chat *Chat, onboarding *Onboarding, billing *Billing) *Jobs {
+	return &Jobs{Deps: d, auto: auto, pipeline: pipeline, chat: chat, onboarding: onboarding, billing: billing}
 }
 
 // Every15m is white.erp.tick.15m. Each step runs even when another fails.
@@ -28,14 +29,16 @@ func (j *Jobs) Every15m(ctx context.Context) error {
 	e2 := j.auto.ScanTimeBasedRules(ctx)
 	_, e3 := j.pipeline.SendDueReminders(ctx)
 	_, e4 := j.chat.FlagSLABreaches(ctx)
-	return errors.Join(e1, e2, e3, e4)
+	_, e5 := j.billing.SendApprovedFollowups(ctx)
+	return errors.Join(e1, e2, e3, e4, e5)
 }
 
 // Daily is white.erp.tick.daily.
 func (j *Jobs) Daily(ctx context.Context) error {
 	_, e1 := j.QuotationExpiryReminders(ctx)
 	_, e2 := j.onboarding.SendReminders(ctx)
-	return errors.Join(e1, e2)
+	_, e3 := j.billing.QueueFollowups(ctx)
+	return errors.Join(e1, e2, e3)
 }
 
 // QuotationExpiryReminders tells the deal owner once when a sent

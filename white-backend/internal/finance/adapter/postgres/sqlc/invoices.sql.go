@@ -579,17 +579,20 @@ SELECT pa.id, p.payment_no, p.payment_date, pa.amount, i.invoice_no
   JOIN finance.payments p ON p.id = pa.payment_id
   JOIN finance.invoices i ON i.id = pa.invoice_id
  WHERE p.deleted_at IS NULL AND p.status = 'POSTED' AND i.deleted_at IS NULL AND i.status = 'POSTED'
-   AND i.kind = $1 AND i.party_name = $2
-   AND ($3::date IS NULL OR p.payment_date >= $3)
-   AND ($4::date IS NULL OR p.payment_date <= $4)
+   AND i.kind = $1
+   AND ($2::text IS NULL OR i.party_name = $2)
+   AND ($3::text IS NULL OR i.account_id = $3)
+   AND ($4::date IS NULL OR p.payment_date >= $4)
+   AND ($5::date IS NULL OR p.payment_date <= $5)
  ORDER BY p.payment_date, p.payment_no
 `
 
 type SubsidiaryAllocationsParams struct {
-	Kind      string
-	PartyName string
-	DateFrom  *time.Time
-	DateTo    *time.Time
+	Kind     string
+	Party    *string
+	Account  *string
+	DateFrom *time.Time
+	DateTo   *time.Time
 }
 
 type SubsidiaryAllocationsRow struct {
@@ -603,7 +606,8 @@ type SubsidiaryAllocationsRow struct {
 func (q *Queries) SubsidiaryAllocations(ctx context.Context, arg SubsidiaryAllocationsParams) ([]SubsidiaryAllocationsRow, error) {
 	rows, err := q.db.Query(ctx, subsidiaryAllocations,
 		arg.Kind,
-		arg.PartyName,
+		arg.Party,
+		arg.Account,
 		arg.DateFrom,
 		arg.DateTo,
 	)
@@ -634,17 +638,20 @@ func (q *Queries) SubsidiaryAllocations(ctx context.Context, arg SubsidiaryAlloc
 const subsidiaryInvoices = `-- name: SubsidiaryInvoices :many
 SELECT i.id, i.invoice_no, i.invoice_date, i.total_amount, i.description
   FROM finance.invoices i
- WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1 AND i.party_name = $2
-   AND ($3::date IS NULL OR i.invoice_date >= $3)
-   AND ($4::date IS NULL OR i.invoice_date <= $4)
+ WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1
+   AND ($2::text IS NULL OR i.party_name = $2)
+   AND ($3::text IS NULL OR i.account_id = $3)
+   AND ($4::date IS NULL OR i.invoice_date >= $4)
+   AND ($5::date IS NULL OR i.invoice_date <= $5)
  ORDER BY i.invoice_date, i.invoice_no
 `
 
 type SubsidiaryInvoicesParams struct {
-	Kind      string
-	PartyName string
-	DateFrom  *time.Time
-	DateTo    *time.Time
+	Kind     string
+	Party    *string
+	Account  *string
+	DateFrom *time.Time
+	DateTo   *time.Time
 }
 
 type SubsidiaryInvoicesRow struct {
@@ -658,7 +665,8 @@ type SubsidiaryInvoicesRow struct {
 func (q *Queries) SubsidiaryInvoices(ctx context.Context, arg SubsidiaryInvoicesParams) ([]SubsidiaryInvoicesRow, error) {
 	rows, err := q.db.Query(ctx, subsidiaryInvoices,
 		arg.Kind,
-		arg.PartyName,
+		arg.Party,
+		arg.Account,
 		arg.DateFrom,
 		arg.DateTo,
 	)
@@ -688,23 +696,34 @@ func (q *Queries) SubsidiaryInvoices(ctx context.Context, arg SubsidiaryInvoices
 
 const subsidiaryOpening = `-- name: SubsidiaryOpening :one
 SELECT (COALESCE((SELECT SUM(i.total_amount) FROM finance.invoices i
-          WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1 AND i.party_name = $2
-            AND i.invoice_date < $3::date), 0)
+          WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1
+            AND ($2::text IS NULL OR i.party_name = $2)
+            AND ($3::text IS NULL OR i.account_id = $3)
+            AND i.invoice_date < $4::date), 0)
       - COALESCE((SELECT SUM(pa.amount) FROM finance.payment_allocations pa
           JOIN finance.payments p ON p.id = pa.payment_id
           JOIN finance.invoices i ON i.id = pa.invoice_id
           WHERE p.deleted_at IS NULL AND p.status = 'POSTED' AND i.deleted_at IS NULL AND i.status = 'POSTED'
-            AND i.kind = $1 AND i.party_name = $2 AND p.payment_date < $3::date), 0))::numeric AS opening
+            AND i.kind = $1
+            AND ($2::text IS NULL OR i.party_name = $2)
+            AND ($3::text IS NULL OR i.account_id = $3)
+            AND p.payment_date < $4::date), 0))::numeric AS opening
 `
 
 type SubsidiaryOpeningParams struct {
-	Kind      string
-	PartyName string
-	Before    time.Time
+	Kind    string
+	Party   *string
+	Account *string
+	Before  time.Time
 }
 
 func (q *Queries) SubsidiaryOpening(ctx context.Context, arg SubsidiaryOpeningParams) (domain.Money, error) {
-	row := q.db.QueryRow(ctx, subsidiaryOpening, arg.Kind, arg.PartyName, arg.Before)
+	row := q.db.QueryRow(ctx, subsidiaryOpening,
+		arg.Kind,
+		arg.Party,
+		arg.Account,
+		arg.Before,
+	)
 	var opening domain.Money
 	err := row.Scan(&opening)
 	return opening, err

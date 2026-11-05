@@ -152,7 +152,7 @@ func worker(ctx context.Context, d pkgapp.Deps) error {
 	}
 	defer w.close()
 	svc := Services(w.deps)
-	jobs := app.NewJobs(w.deps, svc.Automation, svc.Pipeline, svc.Chat, svc.Onboarding)
+	jobs := app.NewJobs(w.deps, svc.Automation, svc.Pipeline, svc.Chat, svc.Onboarding, svc.Billing)
 	errCh := make(chan error, 2)
 	go func() {
 		errCh <- d.Bus.Subscribe(ctx, "sales-erp-ticks", []string{events.ERPTick15m, events.ERPTickDaily}, func(ctx context.Context, msg events.Message) error {

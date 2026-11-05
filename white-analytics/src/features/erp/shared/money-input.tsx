@@ -18,6 +18,7 @@ export function MoneyInput({
   invalid,
   className,
   allowNegative,
+  "aria-label": ariaLabel,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -28,6 +29,7 @@ export function MoneyInput({
   invalid?: boolean;
   className?: string;
   allowNegative?: boolean;
+  "aria-label"?: string;
 }) {
   const display = value === "" ? "" : formatRupiah(value, { symbol: false });
   return (
@@ -37,6 +39,7 @@ export function MoneyInput({
       </InputGroupAddon>
       <InputGroupInput
         id={id}
+        aria-label={ariaLabel}
         name={name}
         inputMode="numeric"
         autoComplete="off"

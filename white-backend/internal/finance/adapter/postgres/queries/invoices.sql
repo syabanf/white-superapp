@@ -119,7 +119,9 @@ SELECT i.party_name,
 -- name: SubsidiaryInvoices :many
 SELECT i.id, i.invoice_no, i.invoice_date, i.total_amount, i.description
   FROM finance.invoices i
- WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1 AND i.party_name = $2
+ WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1
+   AND (sqlc.narg(party)::text IS NULL OR i.party_name = sqlc.narg(party))
+   AND (sqlc.narg(account)::text IS NULL OR i.account_id = sqlc.narg(account))
    AND (sqlc.narg(date_from)::date IS NULL OR i.invoice_date >= sqlc.narg(date_from))
    AND (sqlc.narg(date_to)::date IS NULL OR i.invoice_date <= sqlc.narg(date_to))
  ORDER BY i.invoice_date, i.invoice_no;
@@ -130,17 +132,24 @@ SELECT pa.id, p.payment_no, p.payment_date, pa.amount, i.invoice_no
   JOIN finance.payments p ON p.id = pa.payment_id
   JOIN finance.invoices i ON i.id = pa.invoice_id
  WHERE p.deleted_at IS NULL AND p.status = 'POSTED' AND i.deleted_at IS NULL AND i.status = 'POSTED'
-   AND i.kind = $1 AND i.party_name = $2
+   AND i.kind = $1
+   AND (sqlc.narg(party)::text IS NULL OR i.party_name = sqlc.narg(party))
+   AND (sqlc.narg(account)::text IS NULL OR i.account_id = sqlc.narg(account))
    AND (sqlc.narg(date_from)::date IS NULL OR p.payment_date >= sqlc.narg(date_from))
    AND (sqlc.narg(date_to)::date IS NULL OR p.payment_date <= sqlc.narg(date_to))
  ORDER BY p.payment_date, p.payment_no;
 
 -- name: SubsidiaryOpening :one
 SELECT (COALESCE((SELECT SUM(i.total_amount) FROM finance.invoices i
-          WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1 AND i.party_name = $2
+          WHERE i.deleted_at IS NULL AND i.status = 'POSTED' AND i.kind = $1
+            AND (sqlc.narg(party)::text IS NULL OR i.party_name = sqlc.narg(party))
+            AND (sqlc.narg(account)::text IS NULL OR i.account_id = sqlc.narg(account))
             AND i.invoice_date < sqlc.arg(before)::date), 0)
       - COALESCE((SELECT SUM(pa.amount) FROM finance.payment_allocations pa
           JOIN finance.payments p ON p.id = pa.payment_id
           JOIN finance.invoices i ON i.id = pa.invoice_id
           WHERE p.deleted_at IS NULL AND p.status = 'POSTED' AND i.deleted_at IS NULL AND i.status = 'POSTED'
-            AND i.kind = $1 AND i.party_name = $2 AND p.payment_date < sqlc.arg(before)::date), 0))::numeric AS opening;
+            AND i.kind = $1
+            AND (sqlc.narg(party)::text IS NULL OR i.party_name = sqlc.narg(party))
+            AND (sqlc.narg(account)::text IS NULL OR i.account_id = sqlc.narg(account))
+            AND p.payment_date < sqlc.arg(before)::date), 0))::numeric AS opening;

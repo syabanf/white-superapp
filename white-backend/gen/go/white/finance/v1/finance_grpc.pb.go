@@ -2925,6 +2925,11 @@ const (
 	ReportService_GetTrialBalance_FullMethodName           = "/white.finance.v1.ReportService/GetTrialBalance"
 	ReportService_GetBalanceSheet_FullMethodName           = "/white.finance.v1.ReportService/GetBalanceSheet"
 	ReportService_GetIncomeStatement_FullMethodName        = "/white.finance.v1.ReportService/GetIncomeStatement"
+	ReportService_GetBudgetVsActual_FullMethodName         = "/white.finance.v1.ReportService/GetBudgetVsActual"
+	ReportService_GetBudgetYear_FullMethodName             = "/white.finance.v1.ReportService/GetBudgetYear"
+	ReportService_SaveBudgetYear_FullMethodName            = "/white.finance.v1.ReportService/SaveBudgetYear"
+	ReportService_GetEquityChanges_FullMethodName          = "/white.finance.v1.ReportService/GetEquityChanges"
+	ReportService_GetClientEconomics_FullMethodName        = "/white.finance.v1.ReportService/GetClientEconomics"
 	ReportService_GetCashFlow_FullMethodName               = "/white.finance.v1.ReportService/GetCashFlow"
 	ReportService_ListGeneralLedgerAccounts_FullMethodName = "/white.finance.v1.ReportService/ListGeneralLedgerAccounts"
 	ReportService_GetGeneralLedger_FullMethodName          = "/white.finance.v1.ReportService/GetGeneralLedger"
@@ -2945,6 +2950,12 @@ type ReportServiceClient interface {
 	GetTrialBalance(ctx context.Context, in *AsOfRequest, opts ...grpc.CallOption) (*TrialBalance, error)
 	GetBalanceSheet(ctx context.Context, in *AsOfRequest, opts ...grpc.CallOption) (*BalanceSheet, error)
 	GetIncomeStatement(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*IncomeStatement, error)
+	GetBudgetVsActual(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*BudgetVsActual, error)
+	GetBudgetYear(ctx context.Context, in *BudgetYearRequest, opts ...grpc.CallOption) (*BudgetYear, error)
+	// finance.write. Replaces the given account-months; zero removes the row.
+	SaveBudgetYear(ctx context.Context, in *SaveBudgetYearRequest, opts ...grpc.CallOption) (*BudgetYear, error)
+	GetEquityChanges(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*EquityChanges, error)
+	GetClientEconomics(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*ClientEconomicsReport, error)
 	GetCashFlow(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*CashFlow, error)
 	ListGeneralLedgerAccounts(ctx context.Context, in *AsOfRequest, opts ...grpc.CallOption) (*ListGeneralLedgerAccountsResponse, error)
 	GetGeneralLedger(ctx context.Context, in *LedgerRequest, opts ...grpc.CallOption) (*Ledger, error)
@@ -2992,6 +3003,56 @@ func (c *reportServiceClient) GetIncomeStatement(ctx context.Context, in *Period
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(IncomeStatement)
 	err := c.cc.Invoke(ctx, ReportService_GetIncomeStatement_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) GetBudgetVsActual(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*BudgetVsActual, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BudgetVsActual)
+	err := c.cc.Invoke(ctx, ReportService_GetBudgetVsActual_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) GetBudgetYear(ctx context.Context, in *BudgetYearRequest, opts ...grpc.CallOption) (*BudgetYear, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BudgetYear)
+	err := c.cc.Invoke(ctx, ReportService_GetBudgetYear_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) SaveBudgetYear(ctx context.Context, in *SaveBudgetYearRequest, opts ...grpc.CallOption) (*BudgetYear, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BudgetYear)
+	err := c.cc.Invoke(ctx, ReportService_SaveBudgetYear_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) GetEquityChanges(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*EquityChanges, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EquityChanges)
+	err := c.cc.Invoke(ctx, ReportService_GetEquityChanges_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) GetClientEconomics(ctx context.Context, in *PeriodRequest, opts ...grpc.CallOption) (*ClientEconomicsReport, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClientEconomicsReport)
+	err := c.cc.Invoke(ctx, ReportService_GetClientEconomics_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3115,6 +3176,12 @@ type ReportServiceServer interface {
 	GetTrialBalance(context.Context, *AsOfRequest) (*TrialBalance, error)
 	GetBalanceSheet(context.Context, *AsOfRequest) (*BalanceSheet, error)
 	GetIncomeStatement(context.Context, *PeriodRequest) (*IncomeStatement, error)
+	GetBudgetVsActual(context.Context, *PeriodRequest) (*BudgetVsActual, error)
+	GetBudgetYear(context.Context, *BudgetYearRequest) (*BudgetYear, error)
+	// finance.write. Replaces the given account-months; zero removes the row.
+	SaveBudgetYear(context.Context, *SaveBudgetYearRequest) (*BudgetYear, error)
+	GetEquityChanges(context.Context, *PeriodRequest) (*EquityChanges, error)
+	GetClientEconomics(context.Context, *PeriodRequest) (*ClientEconomicsReport, error)
 	GetCashFlow(context.Context, *PeriodRequest) (*CashFlow, error)
 	ListGeneralLedgerAccounts(context.Context, *AsOfRequest) (*ListGeneralLedgerAccountsResponse, error)
 	GetGeneralLedger(context.Context, *LedgerRequest) (*Ledger, error)
@@ -3146,6 +3213,21 @@ func (UnimplementedReportServiceServer) GetBalanceSheet(context.Context, *AsOfRe
 }
 func (UnimplementedReportServiceServer) GetIncomeStatement(context.Context, *PeriodRequest) (*IncomeStatement, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetIncomeStatement not implemented")
+}
+func (UnimplementedReportServiceServer) GetBudgetVsActual(context.Context, *PeriodRequest) (*BudgetVsActual, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBudgetVsActual not implemented")
+}
+func (UnimplementedReportServiceServer) GetBudgetYear(context.Context, *BudgetYearRequest) (*BudgetYear, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetBudgetYear not implemented")
+}
+func (UnimplementedReportServiceServer) SaveBudgetYear(context.Context, *SaveBudgetYearRequest) (*BudgetYear, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveBudgetYear not implemented")
+}
+func (UnimplementedReportServiceServer) GetEquityChanges(context.Context, *PeriodRequest) (*EquityChanges, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEquityChanges not implemented")
+}
+func (UnimplementedReportServiceServer) GetClientEconomics(context.Context, *PeriodRequest) (*ClientEconomicsReport, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClientEconomics not implemented")
 }
 func (UnimplementedReportServiceServer) GetCashFlow(context.Context, *PeriodRequest) (*CashFlow, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCashFlow not implemented")
@@ -3251,6 +3333,96 @@ func _ReportService_GetIncomeStatement_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ReportServiceServer).GetIncomeStatement(ctx, req.(*PeriodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_GetBudgetVsActual_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PeriodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).GetBudgetVsActual(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_GetBudgetVsActual_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).GetBudgetVsActual(ctx, req.(*PeriodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_GetBudgetYear_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BudgetYearRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).GetBudgetYear(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_GetBudgetYear_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).GetBudgetYear(ctx, req.(*BudgetYearRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_SaveBudgetYear_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveBudgetYearRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).SaveBudgetYear(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_SaveBudgetYear_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).SaveBudgetYear(ctx, req.(*SaveBudgetYearRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_GetEquityChanges_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PeriodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).GetEquityChanges(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_GetEquityChanges_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).GetEquityChanges(ctx, req.(*PeriodRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_GetClientEconomics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PeriodRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).GetClientEconomics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_GetClientEconomics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).GetClientEconomics(ctx, req.(*PeriodRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3473,6 +3645,26 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ReportService_GetIncomeStatement_Handler,
 		},
 		{
+			MethodName: "GetBudgetVsActual",
+			Handler:    _ReportService_GetBudgetVsActual_Handler,
+		},
+		{
+			MethodName: "GetBudgetYear",
+			Handler:    _ReportService_GetBudgetYear_Handler,
+		},
+		{
+			MethodName: "SaveBudgetYear",
+			Handler:    _ReportService_SaveBudgetYear_Handler,
+		},
+		{
+			MethodName: "GetEquityChanges",
+			Handler:    _ReportService_GetEquityChanges_Handler,
+		},
+		{
+			MethodName: "GetClientEconomics",
+			Handler:    _ReportService_GetClientEconomics_Handler,
+		},
+		{
 			MethodName: "GetCashFlow",
 			Handler:    _ReportService_GetCashFlow_Handler,
 		},
@@ -3522,24 +3714,25 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	ReimbursementService_ListMyClaims_FullMethodName       = "/white.finance.v1.ReimbursementService/ListMyClaims"
-	ReimbursementService_CreateClaim_FullMethodName        = "/white.finance.v1.ReimbursementService/CreateClaim"
-	ReimbursementService_UpdateClaim_FullMethodName        = "/white.finance.v1.ReimbursementService/UpdateClaim"
-	ReimbursementService_UploadReceipt_FullMethodName      = "/white.finance.v1.ReimbursementService/UploadReceipt"
-	ReimbursementService_DeleteReceipt_FullMethodName      = "/white.finance.v1.ReimbursementService/DeleteReceipt"
-	ReimbursementService_SubmitClaim_FullMethodName        = "/white.finance.v1.ReimbursementService/SubmitClaim"
-	ReimbursementService_CancelClaim_FullMethodName        = "/white.finance.v1.ReimbursementService/CancelClaim"
-	ReimbursementService_GetClaim_FullMethodName           = "/white.finance.v1.ReimbursementService/GetClaim"
-	ReimbursementService_ListApprovalInbox_FullMethodName  = "/white.finance.v1.ReimbursementService/ListApprovalInbox"
-	ReimbursementService_ApproveClaim_FullMethodName       = "/white.finance.v1.ReimbursementService/ApproveClaim"
-	ReimbursementService_RejectClaim_FullMethodName        = "/white.finance.v1.ReimbursementService/RejectClaim"
-	ReimbursementService_ListClaims_FullMethodName         = "/white.finance.v1.ReimbursementService/ListClaims"
-	ReimbursementService_PayClaims_FullMethodName          = "/white.finance.v1.ReimbursementService/PayClaims"
-	ReimbursementService_ListPaymentBatches_FullMethodName = "/white.finance.v1.ReimbursementService/ListPaymentBatches"
-	ReimbursementService_GetMonthlySummary_FullMethodName  = "/white.finance.v1.ReimbursementService/GetMonthlySummary"
-	ReimbursementService_ListPolicies_FullMethodName       = "/white.finance.v1.ReimbursementService/ListPolicies"
-	ReimbursementService_UpdatePolicy_FullMethodName       = "/white.finance.v1.ReimbursementService/UpdatePolicy"
-	ReimbursementService_GetReceiptFile_FullMethodName     = "/white.finance.v1.ReimbursementService/GetReceiptFile"
+	ReimbursementService_ListMyClaims_FullMethodName         = "/white.finance.v1.ReimbursementService/ListMyClaims"
+	ReimbursementService_CreateClaim_FullMethodName          = "/white.finance.v1.ReimbursementService/CreateClaim"
+	ReimbursementService_UpdateClaim_FullMethodName          = "/white.finance.v1.ReimbursementService/UpdateClaim"
+	ReimbursementService_UploadReceipt_FullMethodName        = "/white.finance.v1.ReimbursementService/UploadReceipt"
+	ReimbursementService_DeleteReceipt_FullMethodName        = "/white.finance.v1.ReimbursementService/DeleteReceipt"
+	ReimbursementService_SubmitClaim_FullMethodName          = "/white.finance.v1.ReimbursementService/SubmitClaim"
+	ReimbursementService_CancelClaim_FullMethodName          = "/white.finance.v1.ReimbursementService/CancelClaim"
+	ReimbursementService_GetClaim_FullMethodName             = "/white.finance.v1.ReimbursementService/GetClaim"
+	ReimbursementService_ListApprovalInbox_FullMethodName    = "/white.finance.v1.ReimbursementService/ListApprovalInbox"
+	ReimbursementService_ApproveClaim_FullMethodName         = "/white.finance.v1.ReimbursementService/ApproveClaim"
+	ReimbursementService_RejectClaim_FullMethodName          = "/white.finance.v1.ReimbursementService/RejectClaim"
+	ReimbursementService_ListClaims_FullMethodName           = "/white.finance.v1.ReimbursementService/ListClaims"
+	ReimbursementService_PayClaims_FullMethodName            = "/white.finance.v1.ReimbursementService/PayClaims"
+	ReimbursementService_ListPaymentBatches_FullMethodName   = "/white.finance.v1.ReimbursementService/ListPaymentBatches"
+	ReimbursementService_GetMonthlySummary_FullMethodName    = "/white.finance.v1.ReimbursementService/GetMonthlySummary"
+	ReimbursementService_ListClaimPayAccounts_FullMethodName = "/white.finance.v1.ReimbursementService/ListClaimPayAccounts"
+	ReimbursementService_ListPolicies_FullMethodName         = "/white.finance.v1.ReimbursementService/ListPolicies"
+	ReimbursementService_UpdatePolicy_FullMethodName         = "/white.finance.v1.ReimbursementService/UpdatePolicy"
+	ReimbursementService_GetReceiptFile_FullMethodName       = "/white.finance.v1.ReimbursementService/GetReceiptFile"
 )
 
 // ReimbursementServiceClient is the client API for ReimbursementService service.
@@ -3566,6 +3759,8 @@ type ReimbursementServiceClient interface {
 	PayClaims(ctx context.Context, in *PayClaimsRequest, opts ...grpc.CallOption) (*ReimbursementBatch, error)
 	ListPaymentBatches(ctx context.Context, in *ListPaymentBatchesRequest, opts ...grpc.CallOption) (*ListPaymentBatchesResponse, error)
 	GetMonthlySummary(ctx context.Context, in *MonthlySummaryRequest, opts ...grpc.CallOption) (*MonthlySummary, error)
+	// Accounts a claimant may ask to be paid from (self.service).
+	ListClaimPayAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListClaimPayAccountsResponse, error)
 	ListPolicies(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	UpdatePolicy(ctx context.Context, in *PolicyInput, opts ...grpc.CallOption) (*ReimbursementPolicy, error)
 	// Internal: receipt bytes for the gateway (same access rules as GetClaim;
@@ -3731,6 +3926,16 @@ func (c *reimbursementServiceClient) GetMonthlySummary(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *reimbursementServiceClient) ListClaimPayAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListClaimPayAccountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListClaimPayAccountsResponse)
+	err := c.cc.Invoke(ctx, ReimbursementService_ListClaimPayAccounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *reimbursementServiceClient) ListPolicies(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPoliciesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPoliciesResponse)
@@ -3785,6 +3990,8 @@ type ReimbursementServiceServer interface {
 	PayClaims(context.Context, *PayClaimsRequest) (*ReimbursementBatch, error)
 	ListPaymentBatches(context.Context, *ListPaymentBatchesRequest) (*ListPaymentBatchesResponse, error)
 	GetMonthlySummary(context.Context, *MonthlySummaryRequest) (*MonthlySummary, error)
+	// Accounts a claimant may ask to be paid from (self.service).
+	ListClaimPayAccounts(context.Context, *emptypb.Empty) (*ListClaimPayAccountsResponse, error)
 	ListPolicies(context.Context, *emptypb.Empty) (*ListPoliciesResponse, error)
 	UpdatePolicy(context.Context, *PolicyInput) (*ReimbursementPolicy, error)
 	// Internal: receipt bytes for the gateway (same access rules as GetClaim;
@@ -3844,6 +4051,9 @@ func (UnimplementedReimbursementServiceServer) ListPaymentBatches(context.Contex
 }
 func (UnimplementedReimbursementServiceServer) GetMonthlySummary(context.Context, *MonthlySummaryRequest) (*MonthlySummary, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMonthlySummary not implemented")
+}
+func (UnimplementedReimbursementServiceServer) ListClaimPayAccounts(context.Context, *emptypb.Empty) (*ListClaimPayAccountsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListClaimPayAccounts not implemented")
 }
 func (UnimplementedReimbursementServiceServer) ListPolicies(context.Context, *emptypb.Empty) (*ListPoliciesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPolicies not implemented")
@@ -4145,6 +4355,24 @@ func _ReimbursementService_GetMonthlySummary_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReimbursementService_ListClaimPayAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReimbursementServiceServer).ListClaimPayAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReimbursementService_ListClaimPayAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReimbursementServiceServer).ListClaimPayAccounts(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ReimbursementService_ListPolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -4267,6 +4495,10 @@ var ReimbursementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ReimbursementService_GetMonthlySummary_Handler,
 		},
 		{
+			MethodName: "ListClaimPayAccounts",
+			Handler:    _ReimbursementService_ListClaimPayAccounts_Handler,
+		},
+		{
 			MethodName: "ListPolicies",
 			Handler:    _ReimbursementService_ListPolicies_Handler,
 		},
@@ -4277,6 +4509,1334 @@ var ReimbursementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetReceiptFile",
 			Handler:    _ReimbursementService_GetReceiptFile_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
+	BankReconService_ListReconAccounts_FullMethodName   = "/white.finance.v1.BankReconService/ListReconAccounts"
+	BankReconService_ListStatementLines_FullMethodName  = "/white.finance.v1.BankReconService/ListStatementLines"
+	BankReconService_ImportStatement_FullMethodName     = "/white.finance.v1.BankReconService/ImportStatement"
+	BankReconService_RematchStatements_FullMethodName   = "/white.finance.v1.BankReconService/RematchStatements"
+	BankReconService_ListMatchCandidates_FullMethodName = "/white.finance.v1.BankReconService/ListMatchCandidates"
+	BankReconService_MatchStatementLine_FullMethodName  = "/white.finance.v1.BankReconService/MatchStatementLine"
+	BankReconService_RecordStatementLine_FullMethodName = "/white.finance.v1.BankReconService/RecordStatementLine"
+	BankReconService_IgnoreStatementLine_FullMethodName = "/white.finance.v1.BankReconService/IgnoreStatementLine"
+	BankReconService_ReopenStatementLine_FullMethodName = "/white.finance.v1.BankReconService/ReopenStatementLine"
+)
+
+// BankReconServiceClient is the client API for BankReconService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Bank and credit card reconciliation.
+type BankReconServiceClient interface {
+	ListReconAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListReconAccountsResponse, error)
+	ListStatementLines(ctx context.Context, in *ListStatementLinesRequest, opts ...grpc.CallOption) (*ListStatementLinesResponse, error)
+	// Internal: multipart upload through the gateway. finance.write.
+	ImportStatement(ctx context.Context, in *ImportStatementRequest, opts ...grpc.CallOption) (*ImportStatementResponse, error)
+	RematchStatements(ctx context.Context, in *RematchRequest, opts ...grpc.CallOption) (*ImportStatementResponse, error)
+	ListMatchCandidates(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*ListMatchCandidatesResponse, error)
+	// finance.write for a journal; finance.approve for an invoice, which records a payment.
+	MatchStatementLine(ctx context.Context, in *MatchStatementLineRequest, opts ...grpc.CallOption) (*StatementLine, error)
+	// Posts a new journal for the row (bank fee, card charge).
+	RecordStatementLine(ctx context.Context, in *RecordStatementLineRequest, opts ...grpc.CallOption) (*StatementLine, error)
+	IgnoreStatementLine(ctx context.Context, in *IgnoreStatementLineRequest, opts ...grpc.CallOption) (*StatementLine, error)
+	ReopenStatementLine(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*StatementLine, error)
+}
+
+type bankReconServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewBankReconServiceClient(cc grpc.ClientConnInterface) BankReconServiceClient {
+	return &bankReconServiceClient{cc}
+}
+
+func (c *bankReconServiceClient) ListReconAccounts(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListReconAccountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListReconAccountsResponse)
+	err := c.cc.Invoke(ctx, BankReconService_ListReconAccounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) ListStatementLines(ctx context.Context, in *ListStatementLinesRequest, opts ...grpc.CallOption) (*ListStatementLinesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListStatementLinesResponse)
+	err := c.cc.Invoke(ctx, BankReconService_ListStatementLines_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) ImportStatement(ctx context.Context, in *ImportStatementRequest, opts ...grpc.CallOption) (*ImportStatementResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportStatementResponse)
+	err := c.cc.Invoke(ctx, BankReconService_ImportStatement_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) RematchStatements(ctx context.Context, in *RematchRequest, opts ...grpc.CallOption) (*ImportStatementResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportStatementResponse)
+	err := c.cc.Invoke(ctx, BankReconService_RematchStatements_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) ListMatchCandidates(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*ListMatchCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMatchCandidatesResponse)
+	err := c.cc.Invoke(ctx, BankReconService_ListMatchCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) MatchStatementLine(ctx context.Context, in *MatchStatementLineRequest, opts ...grpc.CallOption) (*StatementLine, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatementLine)
+	err := c.cc.Invoke(ctx, BankReconService_MatchStatementLine_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) RecordStatementLine(ctx context.Context, in *RecordStatementLineRequest, opts ...grpc.CallOption) (*StatementLine, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatementLine)
+	err := c.cc.Invoke(ctx, BankReconService_RecordStatementLine_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) IgnoreStatementLine(ctx context.Context, in *IgnoreStatementLineRequest, opts ...grpc.CallOption) (*StatementLine, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatementLine)
+	err := c.cc.Invoke(ctx, BankReconService_IgnoreStatementLine_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bankReconServiceClient) ReopenStatementLine(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*StatementLine, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatementLine)
+	err := c.cc.Invoke(ctx, BankReconService_ReopenStatementLine_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// BankReconServiceServer is the server API for BankReconService service.
+// All implementations must embed UnimplementedBankReconServiceServer
+// for forward compatibility.
+//
+// Bank and credit card reconciliation.
+type BankReconServiceServer interface {
+	ListReconAccounts(context.Context, *emptypb.Empty) (*ListReconAccountsResponse, error)
+	ListStatementLines(context.Context, *ListStatementLinesRequest) (*ListStatementLinesResponse, error)
+	// Internal: multipart upload through the gateway. finance.write.
+	ImportStatement(context.Context, *ImportStatementRequest) (*ImportStatementResponse, error)
+	RematchStatements(context.Context, *RematchRequest) (*ImportStatementResponse, error)
+	ListMatchCandidates(context.Context, *IdRequest) (*ListMatchCandidatesResponse, error)
+	// finance.write for a journal; finance.approve for an invoice, which records a payment.
+	MatchStatementLine(context.Context, *MatchStatementLineRequest) (*StatementLine, error)
+	// Posts a new journal for the row (bank fee, card charge).
+	RecordStatementLine(context.Context, *RecordStatementLineRequest) (*StatementLine, error)
+	IgnoreStatementLine(context.Context, *IgnoreStatementLineRequest) (*StatementLine, error)
+	ReopenStatementLine(context.Context, *IdRequest) (*StatementLine, error)
+	mustEmbedUnimplementedBankReconServiceServer()
+}
+
+// UnimplementedBankReconServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedBankReconServiceServer struct{}
+
+func (UnimplementedBankReconServiceServer) ListReconAccounts(context.Context, *emptypb.Empty) (*ListReconAccountsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListReconAccounts not implemented")
+}
+func (UnimplementedBankReconServiceServer) ListStatementLines(context.Context, *ListStatementLinesRequest) (*ListStatementLinesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListStatementLines not implemented")
+}
+func (UnimplementedBankReconServiceServer) ImportStatement(context.Context, *ImportStatementRequest) (*ImportStatementResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportStatement not implemented")
+}
+func (UnimplementedBankReconServiceServer) RematchStatements(context.Context, *RematchRequest) (*ImportStatementResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RematchStatements not implemented")
+}
+func (UnimplementedBankReconServiceServer) ListMatchCandidates(context.Context, *IdRequest) (*ListMatchCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMatchCandidates not implemented")
+}
+func (UnimplementedBankReconServiceServer) MatchStatementLine(context.Context, *MatchStatementLineRequest) (*StatementLine, error) {
+	return nil, status.Error(codes.Unimplemented, "method MatchStatementLine not implemented")
+}
+func (UnimplementedBankReconServiceServer) RecordStatementLine(context.Context, *RecordStatementLineRequest) (*StatementLine, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordStatementLine not implemented")
+}
+func (UnimplementedBankReconServiceServer) IgnoreStatementLine(context.Context, *IgnoreStatementLineRequest) (*StatementLine, error) {
+	return nil, status.Error(codes.Unimplemented, "method IgnoreStatementLine not implemented")
+}
+func (UnimplementedBankReconServiceServer) ReopenStatementLine(context.Context, *IdRequest) (*StatementLine, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReopenStatementLine not implemented")
+}
+func (UnimplementedBankReconServiceServer) mustEmbedUnimplementedBankReconServiceServer() {}
+func (UnimplementedBankReconServiceServer) testEmbeddedByValue()                          {}
+
+// UnsafeBankReconServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to BankReconServiceServer will
+// result in compilation errors.
+type UnsafeBankReconServiceServer interface {
+	mustEmbedUnimplementedBankReconServiceServer()
+}
+
+func RegisterBankReconServiceServer(s grpc.ServiceRegistrar, srv BankReconServiceServer) {
+	// If the following call panics, it indicates UnimplementedBankReconServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&BankReconService_ServiceDesc, srv)
+}
+
+func _BankReconService_ListReconAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).ListReconAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_ListReconAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).ListReconAccounts(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_ListStatementLines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStatementLinesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).ListStatementLines(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_ListStatementLines_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).ListStatementLines(ctx, req.(*ListStatementLinesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_ImportStatement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportStatementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).ImportStatement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_ImportStatement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).ImportStatement(ctx, req.(*ImportStatementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_RematchStatements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RematchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).RematchStatements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_RematchStatements_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).RematchStatements(ctx, req.(*RematchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_ListMatchCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).ListMatchCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_ListMatchCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).ListMatchCandidates(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_MatchStatementLine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MatchStatementLineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).MatchStatementLine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_MatchStatementLine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).MatchStatementLine(ctx, req.(*MatchStatementLineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_RecordStatementLine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordStatementLineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).RecordStatementLine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_RecordStatementLine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).RecordStatementLine(ctx, req.(*RecordStatementLineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_IgnoreStatementLine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IgnoreStatementLineRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).IgnoreStatementLine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_IgnoreStatementLine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).IgnoreStatementLine(ctx, req.(*IgnoreStatementLineRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BankReconService_ReopenStatementLine_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankReconServiceServer).ReopenStatementLine(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankReconService_ReopenStatementLine_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankReconServiceServer).ReopenStatementLine(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// BankReconService_ServiceDesc is the grpc.ServiceDesc for BankReconService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var BankReconService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.BankReconService",
+	HandlerType: (*BankReconServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListReconAccounts",
+			Handler:    _BankReconService_ListReconAccounts_Handler,
+		},
+		{
+			MethodName: "ListStatementLines",
+			Handler:    _BankReconService_ListStatementLines_Handler,
+		},
+		{
+			MethodName: "ImportStatement",
+			Handler:    _BankReconService_ImportStatement_Handler,
+		},
+		{
+			MethodName: "RematchStatements",
+			Handler:    _BankReconService_RematchStatements_Handler,
+		},
+		{
+			MethodName: "ListMatchCandidates",
+			Handler:    _BankReconService_ListMatchCandidates_Handler,
+		},
+		{
+			MethodName: "MatchStatementLine",
+			Handler:    _BankReconService_MatchStatementLine_Handler,
+		},
+		{
+			MethodName: "RecordStatementLine",
+			Handler:    _BankReconService_RecordStatementLine_Handler,
+		},
+		{
+			MethodName: "IgnoreStatementLine",
+			Handler:    _BankReconService_IgnoreStatementLine_Handler,
+		},
+		{
+			MethodName: "ReopenStatementLine",
+			Handler:    _BankReconService_ReopenStatementLine_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
+	ScheduleService_ListRecurringJournals_FullMethodName     = "/white.finance.v1.ScheduleService/ListRecurringJournals"
+	ScheduleService_CreateRecurringJournal_FullMethodName    = "/white.finance.v1.ScheduleService/CreateRecurringJournal"
+	ScheduleService_SetRecurringJournalActive_FullMethodName = "/white.finance.v1.ScheduleService/SetRecurringJournalActive"
+	ScheduleService_DeleteRecurringJournal_FullMethodName    = "/white.finance.v1.ScheduleService/DeleteRecurringJournal"
+	ScheduleService_ListFixedAssets_FullMethodName           = "/white.finance.v1.ScheduleService/ListFixedAssets"
+	ScheduleService_CreateFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/CreateFixedAsset"
+	ScheduleService_SetFixedAssetActive_FullMethodName       = "/white.finance.v1.ScheduleService/SetFixedAssetActive"
+	ScheduleService_DeleteFixedAsset_FullMethodName          = "/white.finance.v1.ScheduleService/DeleteFixedAsset"
+	ScheduleService_RunSchedules_FullMethodName              = "/white.finance.v1.ScheduleService/RunSchedules"
+)
+
+// ScheduleServiceClient is the client API for ScheduleService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Recurring journals and fixed asset depreciation.
+type ScheduleServiceClient interface {
+	ListRecurringJournals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListRecurringJournalsResponse, error)
+	CreateRecurringJournal(ctx context.Context, in *RecurringJournalInput, opts ...grpc.CallOption) (*RecurringJournal, error)
+	SetRecurringJournalActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*RecurringJournal, error)
+	DeleteRecurringJournal(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListFixedAssets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListFixedAssetsResponse, error)
+	CreateFixedAsset(ctx context.Context, in *FixedAssetInput, opts ...grpc.CallOption) (*FixedAsset, error)
+	SetFixedAssetActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*FixedAsset, error)
+	DeleteFixedAsset(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Posts everything due now; the daily tick does the same.
+	RunSchedules(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RunSchedulesResponse, error)
+}
+
+type scheduleServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewScheduleServiceClient(cc grpc.ClientConnInterface) ScheduleServiceClient {
+	return &scheduleServiceClient{cc}
+}
+
+func (c *scheduleServiceClient) ListRecurringJournals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListRecurringJournalsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRecurringJournalsResponse)
+	err := c.cc.Invoke(ctx, ScheduleService_ListRecurringJournals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) CreateRecurringJournal(ctx context.Context, in *RecurringJournalInput, opts ...grpc.CallOption) (*RecurringJournal, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecurringJournal)
+	err := c.cc.Invoke(ctx, ScheduleService_CreateRecurringJournal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) SetRecurringJournalActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*RecurringJournal, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecurringJournal)
+	err := c.cc.Invoke(ctx, ScheduleService_SetRecurringJournalActive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) DeleteRecurringJournal(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ScheduleService_DeleteRecurringJournal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) ListFixedAssets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListFixedAssetsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFixedAssetsResponse)
+	err := c.cc.Invoke(ctx, ScheduleService_ListFixedAssets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) CreateFixedAsset(ctx context.Context, in *FixedAssetInput, opts ...grpc.CallOption) (*FixedAsset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FixedAsset)
+	err := c.cc.Invoke(ctx, ScheduleService_CreateFixedAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) SetFixedAssetActive(ctx context.Context, in *SetActiveRequest, opts ...grpc.CallOption) (*FixedAsset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FixedAsset)
+	err := c.cc.Invoke(ctx, ScheduleService_SetFixedAssetActive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) DeleteFixedAsset(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ScheduleService_DeleteFixedAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *scheduleServiceClient) RunSchedules(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RunSchedulesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RunSchedulesResponse)
+	err := c.cc.Invoke(ctx, ScheduleService_RunSchedules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ScheduleServiceServer is the server API for ScheduleService service.
+// All implementations must embed UnimplementedScheduleServiceServer
+// for forward compatibility.
+//
+// Recurring journals and fixed asset depreciation.
+type ScheduleServiceServer interface {
+	ListRecurringJournals(context.Context, *emptypb.Empty) (*ListRecurringJournalsResponse, error)
+	CreateRecurringJournal(context.Context, *RecurringJournalInput) (*RecurringJournal, error)
+	SetRecurringJournalActive(context.Context, *SetActiveRequest) (*RecurringJournal, error)
+	DeleteRecurringJournal(context.Context, *IdRequest) (*emptypb.Empty, error)
+	ListFixedAssets(context.Context, *emptypb.Empty) (*ListFixedAssetsResponse, error)
+	CreateFixedAsset(context.Context, *FixedAssetInput) (*FixedAsset, error)
+	SetFixedAssetActive(context.Context, *SetActiveRequest) (*FixedAsset, error)
+	DeleteFixedAsset(context.Context, *IdRequest) (*emptypb.Empty, error)
+	// Posts everything due now; the daily tick does the same.
+	RunSchedules(context.Context, *emptypb.Empty) (*RunSchedulesResponse, error)
+	mustEmbedUnimplementedScheduleServiceServer()
+}
+
+// UnimplementedScheduleServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedScheduleServiceServer struct{}
+
+func (UnimplementedScheduleServiceServer) ListRecurringJournals(context.Context, *emptypb.Empty) (*ListRecurringJournalsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRecurringJournals not implemented")
+}
+func (UnimplementedScheduleServiceServer) CreateRecurringJournal(context.Context, *RecurringJournalInput) (*RecurringJournal, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateRecurringJournal not implemented")
+}
+func (UnimplementedScheduleServiceServer) SetRecurringJournalActive(context.Context, *SetActiveRequest) (*RecurringJournal, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetRecurringJournalActive not implemented")
+}
+func (UnimplementedScheduleServiceServer) DeleteRecurringJournal(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteRecurringJournal not implemented")
+}
+func (UnimplementedScheduleServiceServer) ListFixedAssets(context.Context, *emptypb.Empty) (*ListFixedAssetsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFixedAssets not implemented")
+}
+func (UnimplementedScheduleServiceServer) CreateFixedAsset(context.Context, *FixedAssetInput) (*FixedAsset, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateFixedAsset not implemented")
+}
+func (UnimplementedScheduleServiceServer) SetFixedAssetActive(context.Context, *SetActiveRequest) (*FixedAsset, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetFixedAssetActive not implemented")
+}
+func (UnimplementedScheduleServiceServer) DeleteFixedAsset(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFixedAsset not implemented")
+}
+func (UnimplementedScheduleServiceServer) RunSchedules(context.Context, *emptypb.Empty) (*RunSchedulesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RunSchedules not implemented")
+}
+func (UnimplementedScheduleServiceServer) mustEmbedUnimplementedScheduleServiceServer() {}
+func (UnimplementedScheduleServiceServer) testEmbeddedByValue()                         {}
+
+// UnsafeScheduleServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ScheduleServiceServer will
+// result in compilation errors.
+type UnsafeScheduleServiceServer interface {
+	mustEmbedUnimplementedScheduleServiceServer()
+}
+
+func RegisterScheduleServiceServer(s grpc.ServiceRegistrar, srv ScheduleServiceServer) {
+	// If the following call panics, it indicates UnimplementedScheduleServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&ScheduleService_ServiceDesc, srv)
+}
+
+func _ScheduleService_ListRecurringJournals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).ListRecurringJournals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_ListRecurringJournals_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).ListRecurringJournals(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_CreateRecurringJournal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecurringJournalInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).CreateRecurringJournal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_CreateRecurringJournal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).CreateRecurringJournal(ctx, req.(*RecurringJournalInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_SetRecurringJournalActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetActiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).SetRecurringJournalActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_SetRecurringJournalActive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).SetRecurringJournalActive(ctx, req.(*SetActiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_DeleteRecurringJournal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).DeleteRecurringJournal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_DeleteRecurringJournal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).DeleteRecurringJournal(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_ListFixedAssets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).ListFixedAssets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_ListFixedAssets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).ListFixedAssets(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_CreateFixedAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FixedAssetInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).CreateFixedAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_CreateFixedAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).CreateFixedAsset(ctx, req.(*FixedAssetInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_SetFixedAssetActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetActiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).SetFixedAssetActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_SetFixedAssetActive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).SetFixedAssetActive(ctx, req.(*SetActiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_DeleteFixedAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).DeleteFixedAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_DeleteFixedAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).DeleteFixedAsset(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ScheduleService_RunSchedules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScheduleServiceServer).RunSchedules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScheduleService_RunSchedules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScheduleServiceServer).RunSchedules(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ScheduleService_ServiceDesc is the grpc.ServiceDesc for ScheduleService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ScheduleService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.ScheduleService",
+	HandlerType: (*ScheduleServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListRecurringJournals",
+			Handler:    _ScheduleService_ListRecurringJournals_Handler,
+		},
+		{
+			MethodName: "CreateRecurringJournal",
+			Handler:    _ScheduleService_CreateRecurringJournal_Handler,
+		},
+		{
+			MethodName: "SetRecurringJournalActive",
+			Handler:    _ScheduleService_SetRecurringJournalActive_Handler,
+		},
+		{
+			MethodName: "DeleteRecurringJournal",
+			Handler:    _ScheduleService_DeleteRecurringJournal_Handler,
+		},
+		{
+			MethodName: "ListFixedAssets",
+			Handler:    _ScheduleService_ListFixedAssets_Handler,
+		},
+		{
+			MethodName: "CreateFixedAsset",
+			Handler:    _ScheduleService_CreateFixedAsset_Handler,
+		},
+		{
+			MethodName: "SetFixedAssetActive",
+			Handler:    _ScheduleService_SetFixedAssetActive_Handler,
+		},
+		{
+			MethodName: "DeleteFixedAsset",
+			Handler:    _ScheduleService_DeleteFixedAsset_Handler,
+		},
+		{
+			MethodName: "RunSchedules",
+			Handler:    _ScheduleService_RunSchedules_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
+	DocumentService_ListVendors_FullMethodName       = "/white.finance.v1.DocumentService/ListVendors"
+	DocumentService_SaveVendor_FullMethodName        = "/white.finance.v1.DocumentService/SaveVendor"
+	DocumentService_ListDocuments_FullMethodName     = "/white.finance.v1.DocumentService/ListDocuments"
+	DocumentService_GetDocument_FullMethodName       = "/white.finance.v1.DocumentService/GetDocument"
+	DocumentService_CreateDocument_FullMethodName    = "/white.finance.v1.DocumentService/CreateDocument"
+	DocumentService_UpdateDocument_FullMethodName    = "/white.finance.v1.DocumentService/UpdateDocument"
+	DocumentService_DeleteDocument_FullMethodName    = "/white.finance.v1.DocumentService/DeleteDocument"
+	DocumentService_ActOnDocument_FullMethodName     = "/white.finance.v1.DocumentService/ActOnDocument"
+	DocumentService_ConvertDocument_FullMethodName   = "/white.finance.v1.DocumentService/ConvertDocument"
+	DocumentService_IssueDocument_FullMethodName     = "/white.finance.v1.DocumentService/IssueDocument"
+	DocumentService_RenderDocumentPdf_FullMethodName = "/white.finance.v1.DocumentService/RenderDocumentPdf"
+)
+
+// DocumentServiceClient is the client API for DocumentService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Vendors, purchase requests, purchase orders and letterhead documents.
+type DocumentServiceClient interface {
+	ListVendors(ctx context.Context, in *ListVendorsRequest, opts ...grpc.CallOption) (*ListVendorsResponse, error)
+	SaveVendor(ctx context.Context, in *VendorInput, opts ...grpc.CallOption) (*Vendor, error)
+	ListDocuments(ctx context.Context, in *ListDocumentsRequest, opts ...grpc.CallOption) (*ListDocumentsResponse, error)
+	GetDocument(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*FinanceDocument, error)
+	CreateDocument(ctx context.Context, in *DocumentInput, opts ...grpc.CallOption) (*FinanceDocument, error)
+	// Draft only.
+	UpdateDocument(ctx context.Context, in *DocumentInput, opts ...grpc.CallOption) (*FinanceDocument, error)
+	// Draft only. A converted source becomes convertible again.
+	DeleteDocument(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// submit, send, accept, decline, reopen: finance.write.
+	// approve, reject: finance.approve, and only Admin may decide their own.
+	ActOnDocument(ctx context.Context, in *ActOnDocumentRequest, opts ...grpc.CallOption) (*FinanceDocument, error)
+	// Approved PR to PO, accepted quotation to invoice. The new document is a draft.
+	ConvertDocument(ctx context.Context, in *ConvertDocumentRequest, opts ...grpc.CallOption) (*FinanceDocument, error)
+	// Approved PO or draft invoice to a draft payable or receivable, once.
+	IssueDocument(ctx context.Context, in *IssueDocumentRequest, opts ...grpc.CallOption) (*FinanceDocument, error)
+	// Internal: PDF bytes for the gateway.
+	RenderDocumentPdf(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*DocumentPdf, error)
+}
+
+type documentServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDocumentServiceClient(cc grpc.ClientConnInterface) DocumentServiceClient {
+	return &documentServiceClient{cc}
+}
+
+func (c *documentServiceClient) ListVendors(ctx context.Context, in *ListVendorsRequest, opts ...grpc.CallOption) (*ListVendorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListVendorsResponse)
+	err := c.cc.Invoke(ctx, DocumentService_ListVendors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) SaveVendor(ctx context.Context, in *VendorInput, opts ...grpc.CallOption) (*Vendor, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Vendor)
+	err := c.cc.Invoke(ctx, DocumentService_SaveVendor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) ListDocuments(ctx context.Context, in *ListDocumentsRequest, opts ...grpc.CallOption) (*ListDocumentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDocumentsResponse)
+	err := c.cc.Invoke(ctx, DocumentService_ListDocuments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) GetDocument(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*FinanceDocument, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinanceDocument)
+	err := c.cc.Invoke(ctx, DocumentService_GetDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) CreateDocument(ctx context.Context, in *DocumentInput, opts ...grpc.CallOption) (*FinanceDocument, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinanceDocument)
+	err := c.cc.Invoke(ctx, DocumentService_CreateDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) UpdateDocument(ctx context.Context, in *DocumentInput, opts ...grpc.CallOption) (*FinanceDocument, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinanceDocument)
+	err := c.cc.Invoke(ctx, DocumentService_UpdateDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) DeleteDocument(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, DocumentService_DeleteDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) ActOnDocument(ctx context.Context, in *ActOnDocumentRequest, opts ...grpc.CallOption) (*FinanceDocument, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinanceDocument)
+	err := c.cc.Invoke(ctx, DocumentService_ActOnDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) ConvertDocument(ctx context.Context, in *ConvertDocumentRequest, opts ...grpc.CallOption) (*FinanceDocument, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinanceDocument)
+	err := c.cc.Invoke(ctx, DocumentService_ConvertDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) IssueDocument(ctx context.Context, in *IssueDocumentRequest, opts ...grpc.CallOption) (*FinanceDocument, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinanceDocument)
+	err := c.cc.Invoke(ctx, DocumentService_IssueDocument_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *documentServiceClient) RenderDocumentPdf(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*DocumentPdf, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DocumentPdf)
+	err := c.cc.Invoke(ctx, DocumentService_RenderDocumentPdf_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DocumentServiceServer is the server API for DocumentService service.
+// All implementations must embed UnimplementedDocumentServiceServer
+// for forward compatibility.
+//
+// Vendors, purchase requests, purchase orders and letterhead documents.
+type DocumentServiceServer interface {
+	ListVendors(context.Context, *ListVendorsRequest) (*ListVendorsResponse, error)
+	SaveVendor(context.Context, *VendorInput) (*Vendor, error)
+	ListDocuments(context.Context, *ListDocumentsRequest) (*ListDocumentsResponse, error)
+	GetDocument(context.Context, *IdRequest) (*FinanceDocument, error)
+	CreateDocument(context.Context, *DocumentInput) (*FinanceDocument, error)
+	// Draft only.
+	UpdateDocument(context.Context, *DocumentInput) (*FinanceDocument, error)
+	// Draft only. A converted source becomes convertible again.
+	DeleteDocument(context.Context, *IdRequest) (*emptypb.Empty, error)
+	// submit, send, accept, decline, reopen: finance.write.
+	// approve, reject: finance.approve, and only Admin may decide their own.
+	ActOnDocument(context.Context, *ActOnDocumentRequest) (*FinanceDocument, error)
+	// Approved PR to PO, accepted quotation to invoice. The new document is a draft.
+	ConvertDocument(context.Context, *ConvertDocumentRequest) (*FinanceDocument, error)
+	// Approved PO or draft invoice to a draft payable or receivable, once.
+	IssueDocument(context.Context, *IssueDocumentRequest) (*FinanceDocument, error)
+	// Internal: PDF bytes for the gateway.
+	RenderDocumentPdf(context.Context, *IdRequest) (*DocumentPdf, error)
+	mustEmbedUnimplementedDocumentServiceServer()
+}
+
+// UnimplementedDocumentServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedDocumentServiceServer struct{}
+
+func (UnimplementedDocumentServiceServer) ListVendors(context.Context, *ListVendorsRequest) (*ListVendorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListVendors not implemented")
+}
+func (UnimplementedDocumentServiceServer) SaveVendor(context.Context, *VendorInput) (*Vendor, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveVendor not implemented")
+}
+func (UnimplementedDocumentServiceServer) ListDocuments(context.Context, *ListDocumentsRequest) (*ListDocumentsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDocuments not implemented")
+}
+func (UnimplementedDocumentServiceServer) GetDocument(context.Context, *IdRequest) (*FinanceDocument, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) CreateDocument(context.Context, *DocumentInput) (*FinanceDocument, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) UpdateDocument(context.Context, *DocumentInput) (*FinanceDocument, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) DeleteDocument(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) ActOnDocument(context.Context, *ActOnDocumentRequest) (*FinanceDocument, error) {
+	return nil, status.Error(codes.Unimplemented, "method ActOnDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) ConvertDocument(context.Context, *ConvertDocumentRequest) (*FinanceDocument, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConvertDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) IssueDocument(context.Context, *IssueDocumentRequest) (*FinanceDocument, error) {
+	return nil, status.Error(codes.Unimplemented, "method IssueDocument not implemented")
+}
+func (UnimplementedDocumentServiceServer) RenderDocumentPdf(context.Context, *IdRequest) (*DocumentPdf, error) {
+	return nil, status.Error(codes.Unimplemented, "method RenderDocumentPdf not implemented")
+}
+func (UnimplementedDocumentServiceServer) mustEmbedUnimplementedDocumentServiceServer() {}
+func (UnimplementedDocumentServiceServer) testEmbeddedByValue()                         {}
+
+// UnsafeDocumentServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DocumentServiceServer will
+// result in compilation errors.
+type UnsafeDocumentServiceServer interface {
+	mustEmbedUnimplementedDocumentServiceServer()
+}
+
+func RegisterDocumentServiceServer(s grpc.ServiceRegistrar, srv DocumentServiceServer) {
+	// If the following call panics, it indicates UnimplementedDocumentServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&DocumentService_ServiceDesc, srv)
+}
+
+func _DocumentService_ListVendors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVendorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).ListVendors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_ListVendors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).ListVendors(ctx, req.(*ListVendorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_SaveVendor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VendorInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).SaveVendor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_SaveVendor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).SaveVendor(ctx, req.(*VendorInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_ListDocuments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDocumentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).ListDocuments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_ListDocuments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).ListDocuments(ctx, req.(*ListDocumentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_GetDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).GetDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_GetDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).GetDocument(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_CreateDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DocumentInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).CreateDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_CreateDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).CreateDocument(ctx, req.(*DocumentInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_UpdateDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DocumentInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).UpdateDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_UpdateDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).UpdateDocument(ctx, req.(*DocumentInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_DeleteDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).DeleteDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_DeleteDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).DeleteDocument(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_ActOnDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActOnDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).ActOnDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_ActOnDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).ActOnDocument(ctx, req.(*ActOnDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_ConvertDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConvertDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).ConvertDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_ConvertDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).ConvertDocument(ctx, req.(*ConvertDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_IssueDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IssueDocumentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).IssueDocument(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_IssueDocument_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).IssueDocument(ctx, req.(*IssueDocumentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DocumentService_RenderDocumentPdf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DocumentServiceServer).RenderDocumentPdf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DocumentService_RenderDocumentPdf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DocumentServiceServer).RenderDocumentPdf(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// DocumentService_ServiceDesc is the grpc.ServiceDesc for DocumentService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var DocumentService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.DocumentService",
+	HandlerType: (*DocumentServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListVendors",
+			Handler:    _DocumentService_ListVendors_Handler,
+		},
+		{
+			MethodName: "SaveVendor",
+			Handler:    _DocumentService_SaveVendor_Handler,
+		},
+		{
+			MethodName: "ListDocuments",
+			Handler:    _DocumentService_ListDocuments_Handler,
+		},
+		{
+			MethodName: "GetDocument",
+			Handler:    _DocumentService_GetDocument_Handler,
+		},
+		{
+			MethodName: "CreateDocument",
+			Handler:    _DocumentService_CreateDocument_Handler,
+		},
+		{
+			MethodName: "UpdateDocument",
+			Handler:    _DocumentService_UpdateDocument_Handler,
+		},
+		{
+			MethodName: "DeleteDocument",
+			Handler:    _DocumentService_DeleteDocument_Handler,
+		},
+		{
+			MethodName: "ActOnDocument",
+			Handler:    _DocumentService_ActOnDocument_Handler,
+		},
+		{
+			MethodName: "ConvertDocument",
+			Handler:    _DocumentService_ConvertDocument_Handler,
+		},
+		{
+			MethodName: "IssueDocument",
+			Handler:    _DocumentService_IssueDocument_Handler,
+		},
+		{
+			MethodName: "RenderDocumentPdf",
+			Handler:    _DocumentService_RenderDocumentPdf_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

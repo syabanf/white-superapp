@@ -29,6 +29,7 @@ type FinanceAccount struct {
 	UpdatedBy        *string
 	DeletedAt        *time.Time
 	DeletedBy        *string
+	IsCreditCard     bool
 }
 
 type FinanceAccountType struct {
@@ -42,6 +43,83 @@ type FinanceAccountType struct {
 	CreatedBy     *string
 	UpdatedAt     time.Time
 	UpdatedBy     *string
+}
+
+type FinanceBankStatement struct {
+	ID        string
+	AccountID string
+	Filename  string
+	LineCount int32
+	CreatedAt time.Time
+	CreatedBy *string
+}
+
+type FinanceBankStatementLine struct {
+	ID              string
+	StatementID     string
+	AccountID       string
+	LineDate        time.Time
+	Description     string
+	SenderName      string
+	Amount          domain.Money
+	DedupeKey       string
+	Status          string
+	SuggestedKind   string
+	SuggestedRef    string
+	SuggestedLabel  string
+	SuggestedScore  int32
+	SuggestedReason string
+	MatchedLineID   *string
+	MatchedEntryID  *string
+	Note            string
+	VerifiedBy      *string
+	VerifiedAt      *time.Time
+	CreatedAt       time.Time
+}
+
+type FinanceBudget struct {
+	PeriodMonth time.Time
+	AccountID   string
+	Amount      domain.Money
+	UpdatedAt   time.Time
+	UpdatedBy   *string
+}
+
+type FinanceDocument struct {
+	ID              string
+	Kind            string
+	Side            string
+	Number          string
+	Status          string
+	VendorID        *string
+	PartyName       string
+	PicName         string
+	Phone           string
+	Email           string
+	Address         string
+	Title           string
+	IssueDate       time.Time
+	DueDate         *time.Time
+	ExternalNumber  string
+	Notes           string
+	Items           []byte
+	DiscountPercent domain.Money
+	PpnPercent      domain.Money
+	Subtotal        domain.Money
+	DiscountAmount  domain.Money
+	TaxAmount       domain.Money
+	TotalAmount     domain.Money
+	AccountID       *string
+	SourceID        *string
+	LedgerInvoiceID *string
+	Letterhead      []byte
+	RejectReason    string
+	DecidedBy       *string
+	DecidedAt       *time.Time
+	CreatedAt       time.Time
+	CreatedBy       *string
+	UpdatedAt       time.Time
+	UpdatedBy       *string
 }
 
 type FinanceDocumentSequence struct {
@@ -85,6 +163,25 @@ type FinanceFiscalYear struct {
 	UpdatedBy *string
 	DeletedAt *time.Time
 	DeletedBy *string
+}
+
+type FinanceFixedAsset struct {
+	ID                string
+	Name              string
+	AcquiredOn        time.Time
+	Cost              domain.Money
+	Salvage           domain.Money
+	LifeMonths        int32
+	ExpenseAccountID  string
+	AccumAccountID    string
+	DepreciatedMonths int32
+	IsActive          bool
+	LastEntryID       *string
+	LastError         string
+	CreatedAt         time.Time
+	CreatedBy         *string
+	UpdatedAt         time.Time
+	UpdatedBy         *string
 }
 
 type FinanceInvoice struct {
@@ -224,6 +321,24 @@ type FinancePostingLog struct {
 	UpdatedAt     time.Time
 }
 
+type FinanceRecurringJournal struct {
+	ID          string
+	Name        string
+	Description string
+	Frequency   string
+	AnchorDay   int32
+	NextRun     time.Time
+	EndDate     *time.Time
+	Lines       []byte
+	IsActive    bool
+	LastEntryID *string
+	LastError   string
+	CreatedAt   time.Time
+	CreatedBy   *string
+	UpdatedAt   time.Time
+	UpdatedBy   *string
+}
+
 type FinanceReimbursementBatch struct {
 	ID             string
 	BatchNo        string
@@ -240,41 +355,43 @@ type FinanceReimbursementBatch struct {
 }
 
 type FinanceReimbursementClaim struct {
-	ID                string
-	ClaimNo           string
-	EmployeeID        string
-	EmployeeUserID    *string
-	EmployeeName      string
-	DepartmentName    string
-	ManagerEmployeeID *string
-	ManagerUserID     *string
-	Category          string
-	TransactionDate   time.Time
-	Amount            domain.Money
-	Description       string
-	ClientID          *string
-	Project           string
-	Status            string
-	OverLimit         bool
-	LimitNote         string
-	SubmittedAt       *time.Time
-	ManagerApprovedAt *time.Time
-	ManagerApprovedBy *string
-	FinanceApprovedAt *time.Time
-	FinanceApprovedBy *string
-	RejectedAt        *time.Time
-	RejectedBy        *string
-	RejectedStage     string
-	RejectReason      string
-	CancelledAt       *time.Time
-	PaidAt            *time.Time
-	PaidBy            *string
-	PaymentBatchID    *string
-	LastRemindedAt    *time.Time
-	CreatedAt         time.Time
-	CreatedBy         *string
-	UpdatedAt         time.Time
-	UpdatedBy         *string
+	ID                       string
+	ClaimNo                  string
+	EmployeeID               string
+	EmployeeUserID           *string
+	EmployeeName             string
+	DepartmentName           string
+	ManagerEmployeeID        *string
+	ManagerUserID            *string
+	Category                 string
+	TransactionDate          time.Time
+	Amount                   domain.Money
+	Description              string
+	ClientID                 *string
+	Project                  string
+	Status                   string
+	OverLimit                bool
+	LimitNote                string
+	SubmittedAt              *time.Time
+	ManagerApprovedAt        *time.Time
+	ManagerApprovedBy        *string
+	FinanceApprovedAt        *time.Time
+	FinanceApprovedBy        *string
+	RejectedAt               *time.Time
+	RejectedBy               *string
+	RejectedStage            string
+	RejectReason             string
+	CancelledAt              *time.Time
+	PaidAt                   *time.Time
+	PaidBy                   *string
+	PaymentBatchID           *string
+	LastRemindedAt           *time.Time
+	CreatedAt                time.Time
+	CreatedBy                *string
+	UpdatedAt                time.Time
+	UpdatedBy                *string
+	PreferredCashAccountID   *string
+	PreferredCashAccountName string
 }
 
 type FinanceReimbursementEvent struct {
@@ -308,4 +425,26 @@ type FinanceReimbursementReceipt struct {
 	SizeBytes   int64
 	CreatedAt   time.Time
 	CreatedBy   *string
+	ContentHash string
+	ImageHash   *int64
+}
+
+type FinanceVendor struct {
+	ID               string
+	Name             string
+	PicName          string
+	Phone            string
+	Email            string
+	Address          string
+	Npwp             string
+	BankName         string
+	BankAccountNo    string
+	BankAccountName  string
+	PaymentTermsDays int32
+	Notes            string
+	IsActive         bool
+	CreatedAt        time.Time
+	CreatedBy        *string
+	UpdatedAt        time.Time
+	UpdatedBy        *string
 }

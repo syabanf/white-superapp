@@ -71,7 +71,7 @@ func (q *Queries) DeleteMappingLines(ctx context.Context, mappingID string) erro
 
 const getAccount = `-- name: GetAccount :one
 SELECT a.id, a.code, a.name, a.parent_id, a.account_type_id, t.code AS type_code, t.name AS type_name,
-       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.cash_flow_category,
+       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.is_credit_card, a.cash_flow_category,
        a.description, a.is_active, a.created_at, a.updated_at
   FROM finance.accounts a
   JOIN finance.account_types t ON t.id = a.account_type_id
@@ -91,6 +91,7 @@ type GetAccountRow struct {
 	IsPostable       bool
 	IsContra         bool
 	IsCashBank       bool
+	IsCreditCard     bool
 	CashFlowCategory *string
 	Description      string
 	IsActive         bool
@@ -114,6 +115,7 @@ func (q *Queries) GetAccount(ctx context.Context, id string) (GetAccountRow, err
 		&i.IsPostable,
 		&i.IsContra,
 		&i.IsCashBank,
+		&i.IsCreditCard,
 		&i.CashFlowCategory,
 		&i.Description,
 		&i.IsActive,
@@ -219,8 +221,8 @@ func (q *Queries) GetMapping(ctx context.Context, id string) (GetMappingRow, err
 
 const insertAccount = `-- name: InsertAccount :exec
 INSERT INTO finance.accounts (id, code, name, parent_id, account_type_id, level, is_postable, is_contra, is_cash_bank,
-                              cash_flow_category, description, is_active, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, $9, $10, $11, $12, $12)
+                              cash_flow_category, description, is_active, is_credit_card, created_by, updated_by)
+VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, $9, $10, $11, $12, $13, $13)
 `
 
 type InsertAccountParams struct {
@@ -235,6 +237,7 @@ type InsertAccountParams struct {
 	CashFlowCategory *string
 	Description      string
 	IsActive         bool
+	IsCreditCard     bool
 	By               *string
 }
 
@@ -251,6 +254,7 @@ func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) er
 		arg.CashFlowCategory,
 		arg.Description,
 		arg.IsActive,
+		arg.IsCreditCard,
 		arg.By,
 	)
 	return err
@@ -362,7 +366,7 @@ func (q *Queries) ListAccountTypes(ctx context.Context, includeInactive bool) ([
 
 const listAccounts = `-- name: ListAccounts :many
 SELECT a.id, a.code, a.name, a.parent_id, a.account_type_id, t.code AS type_code, t.name AS type_name,
-       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.cash_flow_category,
+       t.normal_balance, a.level, a.is_postable, a.is_contra, a.is_cash_bank, a.is_credit_card, a.cash_flow_category,
        a.description, a.is_active, a.created_at, a.updated_at
   FROM finance.accounts a
   JOIN finance.account_types t ON t.id = a.account_type_id
@@ -398,6 +402,7 @@ type ListAccountsRow struct {
 	IsPostable       bool
 	IsContra         bool
 	IsCashBank       bool
+	IsCreditCard     bool
 	CashFlowCategory *string
 	Description      string
 	IsActive         bool
@@ -434,6 +439,7 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]L
 			&i.IsPostable,
 			&i.IsContra,
 			&i.IsCashBank,
+			&i.IsCreditCard,
 			&i.CashFlowCategory,
 			&i.Description,
 			&i.IsActive,
@@ -621,7 +627,7 @@ func (q *Queries) SoftDeleteMapping(ctx context.Context, arg SoftDeleteMappingPa
 const updateAccount = `-- name: UpdateAccount :exec
 UPDATE finance.accounts
    SET code = $2, name = $3, parent_id = $4, account_type_id = $5, level = $6, is_contra = $7, is_cash_bank = $8,
-       cash_flow_category = $9, description = $10, is_active = $11, updated_by = $12, updated_at = now()
+       cash_flow_category = $9, description = $10, is_active = $11, is_credit_card = $12, updated_by = $13, updated_at = now()
  WHERE id = $1 AND deleted_at IS NULL
 `
 
@@ -637,6 +643,7 @@ type UpdateAccountParams struct {
 	CashFlowCategory *string
 	Description      string
 	IsActive         bool
+	IsCreditCard     bool
 	By               *string
 }
 
@@ -653,6 +660,7 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) er
 		arg.CashFlowCategory,
 		arg.Description,
 		arg.IsActive,
+		arg.IsCreditCard,
 		arg.By,
 	)
 	return err

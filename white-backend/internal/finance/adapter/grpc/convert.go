@@ -164,7 +164,7 @@ func accountPB(a *domain.Account) *financev1.Account {
 	out := &financev1.Account{
 		Id: a.ID, Code: a.Code, CodeDisplay: domain.FormatAccountCodeDisplay(a.Code), Name: a.Name, AccountTypeId: a.AccountTypeID,
 		AccountTypeCode: a.TypeCode, AccountTypeName: a.TypeName, NormalBalance: sidePB(domain.EffectiveNormal(a.NormalBalance, a.IsContra)), Level: int32(a.Level),
-		IsPostable: a.IsPostable, IsContra: a.IsContra, IsCashBank: a.IsCashBank, CashFlowCategory: a.CashFlowCategory,
+		IsPostable: a.IsPostable, IsContra: a.IsContra, IsCashBank: a.IsCashBank, IsCreditCard: a.IsCreditCard, CashFlowCategory: a.CashFlowCategory,
 		Description: a.Description, IsActive: a.IsActive, CreatedAt: ts(a.CreatedAt), UpdatedAt: ts(a.UpdatedAt),
 	}
 	if a.ParentID != "" {
@@ -182,7 +182,7 @@ func postablePB(a domain.Account) *financev1.PostableAccount {
 
 func accountFrom(id string, in *financev1.AccountInput) domain.Account {
 	return domain.Account{ID: id, Code: in.GetCode(), Name: in.GetName(), ParentID: in.GetParentId(), AccountTypeID: in.GetAccountTypeId(),
-		IsContra: in.GetIsContra(), IsCashBank: in.GetIsCashBank(), CashFlowCategory: in.GetCashFlowCategory(), Description: in.GetDescription(), IsActive: in.GetIsActive()}
+		IsContra: in.GetIsContra(), IsCashBank: in.GetIsCashBank(), IsCreditCard: in.GetIsCreditCard(), CashFlowCategory: in.GetCashFlowCategory(), Description: in.GetDescription(), IsActive: in.GetIsActive()}
 }
 
 func mappingPB(m *domain.JournalMapping) *financev1.JournalMapping {
@@ -372,7 +372,7 @@ func paymentInputFrom(in *financev1.PaymentInput) (app.PaymentInput, error) {
 func claimFrom(in *financev1.ClaimInput) (app.ClaimInput, error) {
 	amount, err := money("amount", in.GetAmount())
 	return app.ClaimInput{Category: categoryFrom(in.GetCategory()), TransactionDate: in.GetTransactionDate(), Description: in.GetDescription(),
-		ClientID: in.GetClientId(), Project: in.GetProject(), Amount: amount}, err
+		ClientID: in.GetClientId(), Project: in.GetProject(), PreferredCashAccountID: in.GetPreferredCashAccountId(), Amount: amount}, err
 }
 
 func batchPB(b *domain.ReimbursementBatch) *financev1.ReimbursementBatch {

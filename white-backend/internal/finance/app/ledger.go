@@ -521,7 +521,8 @@ type SubsidiaryLine struct {
 }
 
 type SubsidiaryLedger struct {
-	Kind, Party, From, To   string
+	Kind, Party, AccountID  string
+	From, To                string
 	Opening, Closing        domain.Money
 	TotalDebit, TotalCredit domain.Money
 	Lines                   []SubsidiaryLine
@@ -529,22 +530,22 @@ type SubsidiaryLedger struct {
 
 // SubsidiaryLedger: invoices debit and allocations credit the party's
 // running balance.
-func (l *Ledgers) SubsidiaryLedger(ctx context.Context, kind, party, from, to string) (*SubsidiaryLedger, error) {
-	party = trim(party)
-	if party == "" {
-		return nil, apperr.Field("party_name", "Pihak wajib dipilih")
+func (l *Ledgers) SubsidiaryLedger(ctx context.Context, kind, party, accountID, from, to string) (*SubsidiaryLedger, error) {
+	party, accountID = trim(party), trim(accountID)
+	if party == "" && accountID == "" {
+		return nil, apperr.Field("party_name", "Pilih pihak atau akun COA")
 	}
 	from, to, err := ledgerRange(from, to)
 	if err != nil {
 		return nil, err
 	}
-	out := &SubsidiaryLedger{Kind: kind, Party: party, From: from, To: to}
+	out := &SubsidiaryLedger{Kind: kind, Party: party, AccountID: accountID, From: from, To: to}
 	if from != "" {
-		if out.Opening, err = l.Store.SubsidiaryOpening(ctx, kind, party, from); err != nil {
+		if out.Opening, err = l.Store.SubsidiaryOpening(ctx, kind, party, accountID, from); err != nil {
 			return nil, err
 		}
 	}
-	moves, err := l.Store.SubsidiaryMoves(ctx, kind, party, from, to)
+	moves, err := l.Store.SubsidiaryMoves(ctx, kind, party, accountID, from, to)
 	if err != nil {
 		return nil, err
 	}

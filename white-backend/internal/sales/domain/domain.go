@@ -68,6 +68,12 @@ type Account struct {
 	Notes       *string         `json:"notes"`
 	OwnerUserID *string         `json:"owner_user_id"`
 	Custom      json.RawMessage `json:"custom"`
+	// Billing master data.
+	BankName         *string `json:"bank_name"`
+	BankAccountNo    *string `json:"bank_account_no"`
+	BankAccountName  *string `json:"bank_account_name"`
+	BillingEmail     *string `json:"billing_email"`
+	PaymentTermsDays *int32  `json:"payment_terms_days"`
 	Audit
 }
 
@@ -338,17 +344,24 @@ type Invoice struct {
 	CancelledAt   *time.Time
 	CancelledBy   *string
 	CancelReason  *string
+	Note          *string
+	// Storage key and display name of the tax invoice attachment.
+	FakturPajakKey  *string
+	FakturPajakName *string
 	Audit
 	// Joined.
-	DealTitle  string
-	ClientName string
-	PaidTotal  Money
+	DealTitle   string
+	ClientName  string
+	QuoteNumber string
+	TermLabel   string
+	PaidTotal   Money
 }
 
 type InvoiceFilter struct {
 	DealID   string
 	Status   string
 	From, To *time.Time // issue time (sent, else created), [From, To)
+	Search   string
 	Limit    int
 }
 
@@ -724,6 +737,11 @@ type Store interface {
 	GetInvoice(ctx context.Context, id string) (*Invoice, error)
 	ListInvoices(ctx context.Context, f InvoiceFilter) ([]Invoice, error)
 	SaveInvoice(ctx context.Context, i *Invoice) error
+	// InsertFollowup reports false when that stage was queued before.
+	InsertFollowup(ctx context.Context, f InvoiceFollowup) (bool, error)
+	ListFollowups(ctx context.Context, status string, limit int) ([]InvoiceFollowup, error)
+	GetFollowup(ctx context.Context, id string) (*InvoiceFollowup, error)
+	UpdateFollowup(ctx context.Context, f InvoiceFollowup) error
 	GetPayment(ctx context.Context, id string) (*Payment, error)
 	ListPayments(ctx context.Context, dealID string) ([]Payment, error)
 	SavePayment(ctx context.Context, p *Payment) error

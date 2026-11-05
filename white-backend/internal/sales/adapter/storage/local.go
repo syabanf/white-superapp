@@ -55,3 +55,15 @@ func (l *Local) Get(_ context.Context, key string) ([]byte, error) {
 	}
 	return os.ReadFile(abs)
 }
+
+// Delete removes a file; a file already gone is not an error.
+func (l *Local) Delete(_ context.Context, key string) error {
+	abs, err := l.path(key)
+	if err != nil {
+		return err
+	}
+	if err := os.Remove(abs); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
+}

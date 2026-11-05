@@ -70,6 +70,7 @@ export function AccountDialog({
     accountTypeId: account?.accountTypeId ?? parent?.accountTypeId ?? accountTypes[0]?.id ?? "",
     isContra: account?.isContra ?? false,
     isCashBank: account?.isCashBank ?? false,
+    isCreditCard: account?.isCreditCard ?? false,
     cashFlowCategory: (account?.cashFlowCategory ?? "") as CashFlowCategory,
     description: account?.description ?? "",
     isActive: account?.isActive ?? true,
@@ -156,6 +157,7 @@ export function AccountDialog({
           <div className="grid gap-2 sm:grid-cols-2">
             <Toggle id="acc-contra" label={a.contra} hint={a.contraHint} checked={form.isContra} onChange={(v) => set("isContra", v)} />
             <Toggle id="acc-cash" label={a.cashBank} hint={a.cashBankHint} checked={form.isCashBank} onChange={(v) => set("isCashBank", v)} />
+            <Toggle id="acc-card" label={a.creditCard} hint={a.creditCardHint} checked={form.isCreditCard} onChange={(v) => set("isCreditCard", v)} />
             <Toggle id="acc-active" label={fs.active} checked={form.isActive} onChange={(v) => set("isActive", v)} />
           </div>
           <FormField label={fs.description} htmlFor="acc-desc">

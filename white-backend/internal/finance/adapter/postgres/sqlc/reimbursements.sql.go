@@ -45,7 +45,7 @@ func (q *Queries) ClaimEvents(ctx context.Context, claimID string) ([]FinanceRei
 }
 
 const claimReceipts = `-- name: ClaimReceipts :many
-SELECT id, claim_id, storage_key, filename, content_type, size_bytes, created_at, created_by FROM finance.reimbursement_receipts WHERE claim_id = ANY($1::text[]) ORDER BY created_at
+SELECT id, claim_id, storage_key, filename, content_type, size_bytes, created_at, created_by, content_hash, image_hash FROM finance.reimbursement_receipts WHERE claim_id = ANY($1::text[]) ORDER BY created_at
 `
 
 func (q *Queries) ClaimReceipts(ctx context.Context, claimIds []string) ([]FinanceReimbursementReceipt, error) {
@@ -66,6 +66,8 @@ func (q *Queries) ClaimReceipts(ctx context.Context, claimIds []string) ([]Finan
 			&i.SizeBytes,
 			&i.CreatedAt,
 			&i.CreatedBy,
+			&i.ContentHash,
+			&i.ImageHash,
 		); err != nil {
 			return nil, err
 		}
@@ -143,7 +145,7 @@ func (q *Queries) DraftClaimKeysOfUser(ctx context.Context, employeeUserID *stri
 }
 
 const getClaim = `-- name: GetClaim :one
-SELECT id, claim_no, employee_id, employee_user_id, employee_name, department_name, manager_employee_id, manager_user_id, category, transaction_date, amount, description, client_id, project, status, over_limit, limit_note, submitted_at, manager_approved_at, manager_approved_by, finance_approved_at, finance_approved_by, rejected_at, rejected_by, rejected_stage, reject_reason, cancelled_at, paid_at, paid_by, payment_batch_id, last_reminded_at, created_at, created_by, updated_at, updated_by FROM finance.reimbursement_claims WHERE id = $1
+SELECT id, claim_no, employee_id, employee_user_id, employee_name, department_name, manager_employee_id, manager_user_id, category, transaction_date, amount, description, client_id, project, status, over_limit, limit_note, submitted_at, manager_approved_at, manager_approved_by, finance_approved_at, finance_approved_by, rejected_at, rejected_by, rejected_stage, reject_reason, cancelled_at, paid_at, paid_by, payment_batch_id, last_reminded_at, created_at, created_by, updated_at, updated_by, preferred_cash_account_id, preferred_cash_account_name FROM finance.reimbursement_claims WHERE id = $1
 `
 
 func (q *Queries) GetClaim(ctx context.Context, id string) (FinanceReimbursementClaim, error) {
@@ -185,6 +187,8 @@ func (q *Queries) GetClaim(ctx context.Context, id string) (FinanceReimbursement
 		&i.CreatedBy,
 		&i.UpdatedAt,
 		&i.UpdatedBy,
+		&i.PreferredCashAccountID,
+		&i.PreferredCashAccountName,
 	)
 	return i, err
 }
@@ -221,7 +225,7 @@ func (q *Queries) GetPolicy(ctx context.Context, category string) (GetPolicyRow,
 }
 
 const getReceipt = `-- name: GetReceipt :one
-SELECT id, claim_id, storage_key, filename, content_type, size_bytes, created_at, created_by FROM finance.reimbursement_receipts WHERE id = $1
+SELECT id, claim_id, storage_key, filename, content_type, size_bytes, created_at, created_by, content_hash, image_hash FROM finance.reimbursement_receipts WHERE id = $1
 `
 
 func (q *Queries) GetReceipt(ctx context.Context, id string) (FinanceReimbursementReceipt, error) {
@@ -236,6 +240,8 @@ func (q *Queries) GetReceipt(ctx context.Context, id string) (FinanceReimburseme
 		&i.SizeBytes,
 		&i.CreatedAt,
 		&i.CreatedBy,
+		&i.ContentHash,
+		&i.ImageHash,
 	)
 	return i, err
 }
@@ -273,27 +279,29 @@ func (q *Queries) InsertBatch(ctx context.Context, arg InsertBatchParams) error 
 const insertClaim = `-- name: InsertClaim :exec
 INSERT INTO finance.reimbursement_claims (
   id, claim_no, employee_id, employee_user_id, employee_name, department_name, manager_employee_id, manager_user_id,
-  category, transaction_date, amount, description, client_id, project, status, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $16)
+  category, transaction_date, amount, description, client_id, project, status, preferred_cash_account_id, preferred_cash_account_name, created_by, updated_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $18)
 `
 
 type InsertClaimParams struct {
-	ID                string
-	ClaimNo           string
-	EmployeeID        string
-	EmployeeUserID    *string
-	EmployeeName      string
-	DepartmentName    string
-	ManagerEmployeeID *string
-	ManagerUserID     *string
-	Category          string
-	TransactionDate   time.Time
-	Amount            domain.Money
-	Description       string
-	ClientID          *string
-	Project           string
-	Status            string
-	By                *string
+	ID                       string
+	ClaimNo                  string
+	EmployeeID               string
+	EmployeeUserID           *string
+	EmployeeName             string
+	DepartmentName           string
+	ManagerEmployeeID        *string
+	ManagerUserID            *string
+	Category                 string
+	TransactionDate          time.Time
+	Amount                   domain.Money
+	Description              string
+	ClientID                 *string
+	Project                  string
+	Status                   string
+	PreferredCashAccountID   *string
+	PreferredCashAccountName string
+	By                       *string
 }
 
 func (q *Queries) InsertClaim(ctx context.Context, arg InsertClaimParams) error {
@@ -313,6 +321,8 @@ func (q *Queries) InsertClaim(ctx context.Context, arg InsertClaimParams) error 
 		arg.ClientID,
 		arg.Project,
 		arg.Status,
+		arg.PreferredCashAccountID,
+		arg.PreferredCashAccountName,
 		arg.By,
 	)
 	return err
@@ -374,8 +384,8 @@ func (q *Queries) InsertInsight(ctx context.Context, arg InsertInsightParams) er
 }
 
 const insertReceipt = `-- name: InsertReceipt :exec
-INSERT INTO finance.reimbursement_receipts (id, claim_id, storage_key, filename, content_type, size_bytes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO finance.reimbursement_receipts (id, claim_id, storage_key, filename, content_type, size_bytes, created_by, content_hash, image_hash)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 `
 
 type InsertReceiptParams struct {
@@ -386,6 +396,8 @@ type InsertReceiptParams struct {
 	ContentType string
 	SizeBytes   int64
 	CreatedBy   *string
+	ContentHash string
+	ImageHash   *int64
 }
 
 func (q *Queries) InsertReceipt(ctx context.Context, arg InsertReceiptParams) error {
@@ -397,6 +409,8 @@ func (q *Queries) InsertReceipt(ctx context.Context, arg InsertReceiptParams) er
 		arg.ContentType,
 		arg.SizeBytes,
 		arg.CreatedBy,
+		arg.ContentHash,
+		arg.ImageHash,
 	)
 	return err
 }
@@ -460,7 +474,7 @@ func (q *Queries) ListBatches(ctx context.Context, limit int32) ([]ListBatchesRo
 }
 
 const listClaims = `-- name: ListClaims :many
-SELECT c.id, c.claim_no, c.employee_id, c.employee_user_id, c.employee_name, c.department_name, c.manager_employee_id, c.manager_user_id, c.category, c.transaction_date, c.amount, c.description, c.client_id, c.project, c.status, c.over_limit, c.limit_note, c.submitted_at, c.manager_approved_at, c.manager_approved_by, c.finance_approved_at, c.finance_approved_by, c.rejected_at, c.rejected_by, c.rejected_stage, c.reject_reason, c.cancelled_at, c.paid_at, c.paid_by, c.payment_batch_id, c.last_reminded_at, c.created_at, c.created_by, c.updated_at, c.updated_by, count(*) OVER ()::int AS total, (SUM(c.amount) OVER ())::numeric AS total_amount
+SELECT c.id, c.claim_no, c.employee_id, c.employee_user_id, c.employee_name, c.department_name, c.manager_employee_id, c.manager_user_id, c.category, c.transaction_date, c.amount, c.description, c.client_id, c.project, c.status, c.over_limit, c.limit_note, c.submitted_at, c.manager_approved_at, c.manager_approved_by, c.finance_approved_at, c.finance_approved_by, c.rejected_at, c.rejected_by, c.rejected_stage, c.reject_reason, c.cancelled_at, c.paid_at, c.paid_by, c.payment_batch_id, c.last_reminded_at, c.created_at, c.created_by, c.updated_at, c.updated_by, c.preferred_cash_account_id, c.preferred_cash_account_name, count(*) OVER ()::int AS total, (SUM(c.amount) OVER ())::numeric AS total_amount
   FROM finance.reimbursement_claims c
  WHERE ($1::text[] IS NULL OR c.status = ANY($1::text[]))
    AND ($2::text IS NULL OR c.category = $2)
@@ -495,43 +509,45 @@ type ListClaimsParams struct {
 }
 
 type ListClaimsRow struct {
-	ID                string
-	ClaimNo           string
-	EmployeeID        string
-	EmployeeUserID    *string
-	EmployeeName      string
-	DepartmentName    string
-	ManagerEmployeeID *string
-	ManagerUserID     *string
-	Category          string
-	TransactionDate   time.Time
-	Amount            domain.Money
-	Description       string
-	ClientID          *string
-	Project           string
-	Status            string
-	OverLimit         bool
-	LimitNote         string
-	SubmittedAt       *time.Time
-	ManagerApprovedAt *time.Time
-	ManagerApprovedBy *string
-	FinanceApprovedAt *time.Time
-	FinanceApprovedBy *string
-	RejectedAt        *time.Time
-	RejectedBy        *string
-	RejectedStage     string
-	RejectReason      string
-	CancelledAt       *time.Time
-	PaidAt            *time.Time
-	PaidBy            *string
-	PaymentBatchID    *string
-	LastRemindedAt    *time.Time
-	CreatedAt         time.Time
-	CreatedBy         *string
-	UpdatedAt         time.Time
-	UpdatedBy         *string
-	Total             int32
-	TotalAmount       domain.Money
+	ID                       string
+	ClaimNo                  string
+	EmployeeID               string
+	EmployeeUserID           *string
+	EmployeeName             string
+	DepartmentName           string
+	ManagerEmployeeID        *string
+	ManagerUserID            *string
+	Category                 string
+	TransactionDate          time.Time
+	Amount                   domain.Money
+	Description              string
+	ClientID                 *string
+	Project                  string
+	Status                   string
+	OverLimit                bool
+	LimitNote                string
+	SubmittedAt              *time.Time
+	ManagerApprovedAt        *time.Time
+	ManagerApprovedBy        *string
+	FinanceApprovedAt        *time.Time
+	FinanceApprovedBy        *string
+	RejectedAt               *time.Time
+	RejectedBy               *string
+	RejectedStage            string
+	RejectReason             string
+	CancelledAt              *time.Time
+	PaidAt                   *time.Time
+	PaidBy                   *string
+	PaymentBatchID           *string
+	LastRemindedAt           *time.Time
+	CreatedAt                time.Time
+	CreatedBy                *string
+	UpdatedAt                time.Time
+	UpdatedBy                *string
+	PreferredCashAccountID   *string
+	PreferredCashAccountName string
+	Total                    int32
+	TotalAmount              domain.Money
 }
 
 func (q *Queries) ListClaims(ctx context.Context, arg ListClaimsParams) ([]ListClaimsRow, error) {
@@ -593,6 +609,8 @@ func (q *Queries) ListClaims(ctx context.Context, arg ListClaimsParams) ([]ListC
 			&i.CreatedBy,
 			&i.UpdatedAt,
 			&i.UpdatedBy,
+			&i.PreferredCashAccountID,
+			&i.PreferredCashAccountName,
 			&i.Total,
 			&i.TotalAmount,
 		); err != nil {
@@ -815,39 +833,41 @@ UPDATE finance.reimbursement_claims
        status = $12, over_limit = $13, limit_note = $14, submitted_at = $15,
        manager_approved_at = $16, manager_approved_by = $17, finance_approved_at = $18, finance_approved_by = $19,
        rejected_at = $20, rejected_by = $21, rejected_stage = $22, reject_reason = $23, cancelled_at = $24,
-       paid_at = $25, paid_by = $26, payment_batch_id = $27, updated_by = $28, updated_at = now()
+       paid_at = $25, paid_by = $26, payment_batch_id = $27, preferred_cash_account_id = $28, preferred_cash_account_name = $29, updated_by = $30, updated_at = now()
  WHERE id = $1
 `
 
 type UpdateClaimParams struct {
-	ID                string
-	EmployeeName      string
-	DepartmentName    string
-	ManagerEmployeeID *string
-	ManagerUserID     *string
-	Category          string
-	TransactionDate   time.Time
-	Amount            domain.Money
-	Description       string
-	ClientID          *string
-	Project           string
-	Status            string
-	OverLimit         bool
-	LimitNote         string
-	SubmittedAt       *time.Time
-	ManagerApprovedAt *time.Time
-	ManagerApprovedBy *string
-	FinanceApprovedAt *time.Time
-	FinanceApprovedBy *string
-	RejectedAt        *time.Time
-	RejectedBy        *string
-	RejectedStage     string
-	RejectReason      string
-	CancelledAt       *time.Time
-	PaidAt            *time.Time
-	PaidBy            *string
-	PaymentBatchID    *string
-	By                *string
+	ID                       string
+	EmployeeName             string
+	DepartmentName           string
+	ManagerEmployeeID        *string
+	ManagerUserID            *string
+	Category                 string
+	TransactionDate          time.Time
+	Amount                   domain.Money
+	Description              string
+	ClientID                 *string
+	Project                  string
+	Status                   string
+	OverLimit                bool
+	LimitNote                string
+	SubmittedAt              *time.Time
+	ManagerApprovedAt        *time.Time
+	ManagerApprovedBy        *string
+	FinanceApprovedAt        *time.Time
+	FinanceApprovedBy        *string
+	RejectedAt               *time.Time
+	RejectedBy               *string
+	RejectedStage            string
+	RejectReason             string
+	CancelledAt              *time.Time
+	PaidAt                   *time.Time
+	PaidBy                   *string
+	PaymentBatchID           *string
+	PreferredCashAccountID   *string
+	PreferredCashAccountName string
+	By                       *string
 }
 
 func (q *Queries) UpdateClaim(ctx context.Context, arg UpdateClaimParams) error {
@@ -879,6 +899,8 @@ func (q *Queries) UpdateClaim(ctx context.Context, arg UpdateClaimParams) error 
 		arg.PaidAt,
 		arg.PaidBy,
 		arg.PaymentBatchID,
+		arg.PreferredCashAccountID,
+		arg.PreferredCashAccountName,
 		arg.By,
 	)
 	return err

@@ -77,12 +77,14 @@ ORDER BY name LIMIT sqlc.arg('lim');
 
 -- name: UpsertAccount :exec
 INSERT INTO sales.accounts (id, name, account_type, industry, address, city, phone, email, website, npwp, notes,
-    owner_user_id, custom, created_by, updated_by, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    owner_user_id, custom, created_by, updated_by, created_at, updated_at, bank_name, bank_account_no, bank_account_name, billing_email, payment_terms_days)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, account_type = EXCLUDED.account_type, industry = EXCLUDED.industry,
     address = EXCLUDED.address, city = EXCLUDED.city, phone = EXCLUDED.phone, email = EXCLUDED.email,
     website = EXCLUDED.website, npwp = EXCLUDED.npwp, notes = EXCLUDED.notes, owner_user_id = EXCLUDED.owner_user_id,
-    custom = EXCLUDED.custom, updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at;
+    custom = EXCLUDED.custom, updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at,
+    bank_name = EXCLUDED.bank_name, bank_account_no = EXCLUDED.bank_account_no, bank_account_name = EXCLUDED.bank_account_name,
+    billing_email = EXCLUDED.billing_email, payment_terms_days = EXCLUDED.payment_terms_days;
 
 -- name: DeleteAccount :exec
 UPDATE sales.accounts SET deleted_at = $2 WHERE id = $1 AND deleted_at IS NULL;

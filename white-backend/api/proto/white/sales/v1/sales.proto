@@ -235,6 +235,12 @@ message Account {
   google.protobuf.Struct custom = 13;
   google.protobuf.Timestamp created_at = 14;
   google.protobuf.Timestamp updated_at = 15;
+  // Billing master data.
+  string bank_name = 16;
+  string bank_account_no = 17;
+  string bank_account_name = 18;
+  string billing_email = 19;
+  int32 payment_terms_days = 20;
 }
 
 message AccountInput {
@@ -251,6 +257,12 @@ message AccountInput {
   string notes = 11;
   string owner_user_id = 12;
   google.protobuf.Struct custom = 13;
+  // Billing master data.
+  string bank_name = 14;
+  string bank_account_no = 15;
+  string bank_account_name = 16;
+  string billing_email = 17;
+  int32 payment_terms_days = 18;
 }
 
 message ListAccountsRequest {
@@ -947,8 +959,31 @@ service BillingService {
   rpc CancelInvoice(CancelInvoiceRequest) returns (Invoice) {
     option (google.api.http) = {post: "/v1/sales/invoices/{id}:cancel" body: "*"};
   }
+  // finance.write: revises a diajukan invoice that has no payment yet.
+  rpc UpdateInvoice(UpdateInvoiceRequest) returns (Invoice) {
+    option (google.api.http) = {patch: "/v1/sales/invoices/{id}" body: "*"};
+  }
   // Internal: invoice PDF bytes for the gateway.
   rpc RenderInvoicePdf(IdRequest) returns (File);
+  // Internal: multipart upload through the gateway. finance.write; a new file
+  // replaces the old one.
+  rpc UploadInvoiceFakturPajak(UploadInvoiceFakturPajakRequest) returns (Invoice);
+  // Internal: the attached tax invoice for the gateway.
+  rpc GetInvoiceFakturPajak(IdRequest) returns (File);
+  rpc DeleteInvoiceFakturPajak(IdRequest) returns (Invoice) {
+    option (google.api.http) = {delete: "/v1/sales/invoices/{id}/faktur-pajak"};
+  }
+  // The follow-up queue: the daily job drafts, finance approves, then it sends.
+  rpc ListInvoiceFollowups(ListInvoiceFollowupsRequest) returns (ListInvoiceFollowupsResponse) {
+    option (google.api.http) = {get: "/v1/sales/invoice-followups"};
+  }
+  // finance.write. Sends now inside the window, otherwise on the next tick.
+  rpc ApproveInvoiceFollowup(ApproveInvoiceFollowupRequest) returns (InvoiceFollowup) {
+    option (google.api.http) = {post: "/v1/sales/invoice-followups/{id}:approve" body: "*"};
+  }
+  rpc SkipInvoiceFollowup(IdRequest) returns (InvoiceFollowup) {
+    option (google.api.http) = {post: "/v1/sales/invoice-followups/{id}:skip" body: "*"};
+  }
   rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse) {
     option (google.api.http) = {get: "/v1/sales/deals/{deal_id}/payments"};
   }
@@ -980,6 +1015,11 @@ message Invoice {
   string cancel_reason = 14;
   string paid_total = 15;
   google.protobuf.Timestamp created_at = 16;
+  string note = 17;
+  // Empty until finance attaches the tax invoice.
+  string faktur_pajak_name = 18;
+  string quote_number = 19;
+  string term_label = 20;
 }
 
 message ListInvoicesRequest {
@@ -989,6 +1029,8 @@ message ListInvoicesRequest {
   // Issue day range (sent, else created; YYYY-MM-DD, WIB, inclusive).
   string date_from = 4;
   string date_to = 5;
+  // Matches number, label, deal title and client name.
+  string q = 6;
 }
 
 message ListInvoicesResponse {
@@ -1009,6 +1051,48 @@ message SubmitInvoiceRequest {
 message CancelInvoiceRequest {
   string id = 1;
   string reason = 2;
+}
+message InvoiceFollowup {
+  string id = 1;
+  string invoice_id = 2;
+  string invoice_number = 3;
+  string deal_id = 4;
+  string client_name = 5;
+  // Days from the due date: -3, 0, 3 or 7.
+  int32 stage = 6;
+  string phone = 7;
+  string message = 8;
+  // PENDING, APPROVED, SENT or SKIPPED.
+  string status = 9;
+  string last_error = 10;
+  google.protobuf.Timestamp sent_at = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
+message ListInvoiceFollowupsRequest {
+  string status = 1;
+  int32 limit = 2;
+}
+message ListInvoiceFollowupsResponse {
+  repeated InvoiceFollowup followups = 1;
+  // False until WA_GATEWAY_URL and WA_GATEWAY_TOKEN are set.
+  bool whatsapp_enabled = 2;
+}
+message ApproveInvoiceFollowupRequest {
+  string id = 1;
+  string phone = 2;
+  string message = 3;
+}
+message UpdateInvoiceRequest {
+  string id = 1;
+  string label = 2;
+  string amount = 3;
+  string due_date = 4;
+  string note = 5;
+}
+message UploadInvoiceFakturPajakRequest {
+  string id = 1;
+  string filename = 2;
+  bytes data = 3;
 }
 
 message Payment {

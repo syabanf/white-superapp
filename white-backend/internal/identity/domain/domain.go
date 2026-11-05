@@ -189,7 +189,21 @@ type SessionRepo interface {
 
 // Store bundles every repository and can run a function inside one
 // transaction, handing it a Store bound to that transaction.
+// AuditLog is one change request.
+type AuditLog struct {
+	ID, UserID, UserName, Role, Method, Path, IP, UserAgent string
+	Status                                                  int
+	At                                                      time.Time
+}
+
+// AuditRepo is append-only.
+type AuditRepo interface {
+	InsertAuditLog(ctx context.Context, l AuditLog) error
+	ListAuditLogs(ctx context.Context, query string, failedOnly bool, from, to *time.Time, limit, offset int) ([]AuditLog, int, error)
+}
+
 type Store interface {
+	AuditRepo
 	UserRepo
 	ClientRepo
 	NotificationRepo

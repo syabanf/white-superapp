@@ -1186,24 +1186,30 @@ func (x *ListOwnersResponse) GetOwners() []*Owner {
 }
 
 type Account struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	AccountType   string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
-	Industry      string                 `protobuf:"bytes,4,opt,name=industry,proto3" json:"industry,omitempty"`
-	Address       string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
-	City          string                 `protobuf:"bytes,6,opt,name=city,proto3" json:"city,omitempty"`
-	Phone         string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
-	Email         string                 `protobuf:"bytes,8,opt,name=email,proto3" json:"email,omitempty"`
-	Website       string                 `protobuf:"bytes,9,opt,name=website,proto3" json:"website,omitempty"`
-	Npwp          string                 `protobuf:"bytes,10,opt,name=npwp,proto3" json:"npwp,omitempty"`
-	Notes         string                 `protobuf:"bytes,11,opt,name=notes,proto3" json:"notes,omitempty"`
-	OwnerUserId   string                 `protobuf:"bytes,12,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
-	Custom        *structpb.Struct       `protobuf:"bytes,13,opt,name=custom,proto3" json:"custom,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	AccountType string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
+	Industry    string                 `protobuf:"bytes,4,opt,name=industry,proto3" json:"industry,omitempty"`
+	Address     string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
+	City        string                 `protobuf:"bytes,6,opt,name=city,proto3" json:"city,omitempty"`
+	Phone       string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
+	Email       string                 `protobuf:"bytes,8,opt,name=email,proto3" json:"email,omitempty"`
+	Website     string                 `protobuf:"bytes,9,opt,name=website,proto3" json:"website,omitempty"`
+	Npwp        string                 `protobuf:"bytes,10,opt,name=npwp,proto3" json:"npwp,omitempty"`
+	Notes       string                 `protobuf:"bytes,11,opt,name=notes,proto3" json:"notes,omitempty"`
+	OwnerUserId string                 `protobuf:"bytes,12,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
+	Custom      *structpb.Struct       `protobuf:"bytes,13,opt,name=custom,proto3" json:"custom,omitempty"`
+	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Billing master data.
+	BankName         string `protobuf:"bytes,16,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccountNo    string `protobuf:"bytes,17,opt,name=bank_account_no,json=bankAccountNo,proto3" json:"bank_account_no,omitempty"`
+	BankAccountName  string `protobuf:"bytes,18,opt,name=bank_account_name,json=bankAccountName,proto3" json:"bank_account_name,omitempty"`
+	BillingEmail     string `protobuf:"bytes,19,opt,name=billing_email,json=billingEmail,proto3" json:"billing_email,omitempty"`
+	PaymentTermsDays int32  `protobuf:"varint,20,opt,name=payment_terms_days,json=paymentTermsDays,proto3" json:"payment_terms_days,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Account) Reset() {
@@ -1341,23 +1347,64 @@ func (x *Account) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Account) GetBankName() string {
+	if x != nil {
+		return x.BankName
+	}
+	return ""
+}
+
+func (x *Account) GetBankAccountNo() string {
+	if x != nil {
+		return x.BankAccountNo
+	}
+	return ""
+}
+
+func (x *Account) GetBankAccountName() string {
+	if x != nil {
+		return x.BankAccountName
+	}
+	return ""
+}
+
+func (x *Account) GetBillingEmail() string {
+	if x != nil {
+		return x.BillingEmail
+	}
+	return ""
+}
+
+func (x *Account) GetPaymentTermsDays() int32 {
+	if x != nil {
+		return x.PaymentTermsDays
+	}
+	return 0
+}
+
 type AccountInput struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	AccountType   string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
-	Industry      string                 `protobuf:"bytes,4,opt,name=industry,proto3" json:"industry,omitempty"`
-	Address       string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
-	City          string                 `protobuf:"bytes,6,opt,name=city,proto3" json:"city,omitempty"`
-	Phone         string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
-	Email         string                 `protobuf:"bytes,8,opt,name=email,proto3" json:"email,omitempty"`
-	Website       string                 `protobuf:"bytes,9,opt,name=website,proto3" json:"website,omitempty"`
-	Npwp          string                 `protobuf:"bytes,10,opt,name=npwp,proto3" json:"npwp,omitempty"`
-	Notes         string                 `protobuf:"bytes,11,opt,name=notes,proto3" json:"notes,omitempty"`
-	OwnerUserId   string                 `protobuf:"bytes,12,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
-	Custom        *structpb.Struct       `protobuf:"bytes,13,opt,name=custom,proto3" json:"custom,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	AccountType string                 `protobuf:"bytes,3,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
+	Industry    string                 `protobuf:"bytes,4,opt,name=industry,proto3" json:"industry,omitempty"`
+	Address     string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
+	City        string                 `protobuf:"bytes,6,opt,name=city,proto3" json:"city,omitempty"`
+	Phone       string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
+	Email       string                 `protobuf:"bytes,8,opt,name=email,proto3" json:"email,omitempty"`
+	Website     string                 `protobuf:"bytes,9,opt,name=website,proto3" json:"website,omitempty"`
+	Npwp        string                 `protobuf:"bytes,10,opt,name=npwp,proto3" json:"npwp,omitempty"`
+	Notes       string                 `protobuf:"bytes,11,opt,name=notes,proto3" json:"notes,omitempty"`
+	OwnerUserId string                 `protobuf:"bytes,12,opt,name=owner_user_id,json=ownerUserId,proto3" json:"owner_user_id,omitempty"`
+	Custom      *structpb.Struct       `protobuf:"bytes,13,opt,name=custom,proto3" json:"custom,omitempty"`
+	// Billing master data.
+	BankName         string `protobuf:"bytes,14,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
+	BankAccountNo    string `protobuf:"bytes,15,opt,name=bank_account_no,json=bankAccountNo,proto3" json:"bank_account_no,omitempty"`
+	BankAccountName  string `protobuf:"bytes,16,opt,name=bank_account_name,json=bankAccountName,proto3" json:"bank_account_name,omitempty"`
+	BillingEmail     string `protobuf:"bytes,17,opt,name=billing_email,json=billingEmail,proto3" json:"billing_email,omitempty"`
+	PaymentTermsDays int32  `protobuf:"varint,18,opt,name=payment_terms_days,json=paymentTermsDays,proto3" json:"payment_terms_days,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *AccountInput) Reset() {
@@ -1479,6 +1526,41 @@ func (x *AccountInput) GetCustom() *structpb.Struct {
 		return x.Custom
 	}
 	return nil
+}
+
+func (x *AccountInput) GetBankName() string {
+	if x != nil {
+		return x.BankName
+	}
+	return ""
+}
+
+func (x *AccountInput) GetBankAccountNo() string {
+	if x != nil {
+		return x.BankAccountNo
+	}
+	return ""
+}
+
+func (x *AccountInput) GetBankAccountName() string {
+	if x != nil {
+		return x.BankAccountName
+	}
+	return ""
+}
+
+func (x *AccountInput) GetBillingEmail() string {
+	if x != nil {
+		return x.BillingEmail
+	}
+	return ""
+}
+
+func (x *AccountInput) GetPaymentTermsDays() int32 {
+	if x != nil {
+		return x.PaymentTermsDays
+	}
+	return 0
 }
 
 type ListAccountsRequest struct {
@@ -6152,14 +6234,19 @@ type Invoice struct {
 	Amount        string `protobuf:"bytes,9,opt,name=amount,proto3" json:"amount,omitempty"`
 	DueDate       string `protobuf:"bytes,10,opt,name=due_date,json=dueDate,proto3" json:"due_date,omitempty"`
 	// diajukan | terkirim | batal
-	Status        string                 `protobuf:"bytes,11,opt,name=status,proto3" json:"status,omitempty"`
-	SentAt        *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
-	IssuedBy      string                 `protobuf:"bytes,13,opt,name=issued_by,json=issuedBy,proto3" json:"issued_by,omitempty"`
-	CancelReason  string                 `protobuf:"bytes,14,opt,name=cancel_reason,json=cancelReason,proto3" json:"cancel_reason,omitempty"`
-	PaidTotal     string                 `protobuf:"bytes,15,opt,name=paid_total,json=paidTotal,proto3" json:"paid_total,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Status       string                 `protobuf:"bytes,11,opt,name=status,proto3" json:"status,omitempty"`
+	SentAt       *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	IssuedBy     string                 `protobuf:"bytes,13,opt,name=issued_by,json=issuedBy,proto3" json:"issued_by,omitempty"`
+	CancelReason string                 `protobuf:"bytes,14,opt,name=cancel_reason,json=cancelReason,proto3" json:"cancel_reason,omitempty"`
+	PaidTotal    string                 `protobuf:"bytes,15,opt,name=paid_total,json=paidTotal,proto3" json:"paid_total,omitempty"`
+	CreatedAt    *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Note         string                 `protobuf:"bytes,17,opt,name=note,proto3" json:"note,omitempty"`
+	// Empty until finance attaches the tax invoice.
+	FakturPajakName string `protobuf:"bytes,18,opt,name=faktur_pajak_name,json=fakturPajakName,proto3" json:"faktur_pajak_name,omitempty"`
+	QuoteNumber     string `protobuf:"bytes,19,opt,name=quote_number,json=quoteNumber,proto3" json:"quote_number,omitempty"`
+	TermLabel       string `protobuf:"bytes,20,opt,name=term_label,json=termLabel,proto3" json:"term_label,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Invoice) Reset() {
@@ -6304,14 +6391,44 @@ func (x *Invoice) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Invoice) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *Invoice) GetFakturPajakName() string {
+	if x != nil {
+		return x.FakturPajakName
+	}
+	return ""
+}
+
+func (x *Invoice) GetQuoteNumber() string {
+	if x != nil {
+		return x.QuoteNumber
+	}
+	return ""
+}
+
+func (x *Invoice) GetTermLabel() string {
+	if x != nil {
+		return x.TermLabel
+	}
+	return ""
+}
+
 type ListInvoicesRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	DealId string                 `protobuf:"bytes,1,opt,name=deal_id,json=dealId,proto3" json:"deal_id,omitempty"`
 	Status string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	Limit  int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	// Issue day range (sent, else created; YYYY-MM-DD, WIB, inclusive).
-	DateFrom      string `protobuf:"bytes,4,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
-	DateTo        string `protobuf:"bytes,5,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
+	DateFrom string `protobuf:"bytes,4,opt,name=date_from,json=dateFrom,proto3" json:"date_from,omitempty"`
+	DateTo   string `protobuf:"bytes,5,opt,name=date_to,json=dateTo,proto3" json:"date_to,omitempty"`
+	// Matches number, label, deal title and client name.
+	Q             string `protobuf:"bytes,6,opt,name=q,proto3" json:"q,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6377,6 +6494,13 @@ func (x *ListInvoicesRequest) GetDateFrom() string {
 func (x *ListInvoicesRequest) GetDateTo() string {
 	if x != nil {
 		return x.DateTo
+	}
+	return ""
+}
+
+func (x *ListInvoicesRequest) GetQ() string {
+	if x != nil {
+		return x.Q
 	}
 	return ""
 }
@@ -6563,6 +6687,441 @@ func (x *CancelInvoiceRequest) GetReason() string {
 	return ""
 }
 
+type InvoiceFollowup struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InvoiceId     string                 `protobuf:"bytes,2,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	InvoiceNumber string                 `protobuf:"bytes,3,opt,name=invoice_number,json=invoiceNumber,proto3" json:"invoice_number,omitempty"`
+	DealId        string                 `protobuf:"bytes,4,opt,name=deal_id,json=dealId,proto3" json:"deal_id,omitempty"`
+	ClientName    string                 `protobuf:"bytes,5,opt,name=client_name,json=clientName,proto3" json:"client_name,omitempty"`
+	// Days from the due date: -3, 0, 3 or 7.
+	Stage   int32  `protobuf:"varint,6,opt,name=stage,proto3" json:"stage,omitempty"`
+	Phone   string `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
+	Message string `protobuf:"bytes,8,opt,name=message,proto3" json:"message,omitempty"`
+	// PENDING, APPROVED, SENT or SKIPPED.
+	Status        string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	LastError     string                 `protobuf:"bytes,10,opt,name=last_error,json=lastError,proto3" json:"last_error,omitempty"`
+	SentAt        *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InvoiceFollowup) Reset() {
+	*x = InvoiceFollowup{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[77]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvoiceFollowup) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvoiceFollowup) ProtoMessage() {}
+
+func (x *InvoiceFollowup) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[77]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvoiceFollowup.ProtoReflect.Descriptor instead.
+func (*InvoiceFollowup) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{77}
+}
+
+func (x *InvoiceFollowup) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetInvoiceId() string {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetInvoiceNumber() string {
+	if x != nil {
+		return x.InvoiceNumber
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetDealId() string {
+	if x != nil {
+		return x.DealId
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetClientName() string {
+	if x != nil {
+		return x.ClientName
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetStage() int32 {
+	if x != nil {
+		return x.Stage
+	}
+	return 0
+}
+
+func (x *InvoiceFollowup) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetLastError() string {
+	if x != nil {
+		return x.LastError
+	}
+	return ""
+}
+
+func (x *InvoiceFollowup) GetSentAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.SentAt
+	}
+	return nil
+}
+
+func (x *InvoiceFollowup) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type ListInvoiceFollowupsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListInvoiceFollowupsRequest) Reset() {
+	*x = ListInvoiceFollowupsRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[78]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInvoiceFollowupsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInvoiceFollowupsRequest) ProtoMessage() {}
+
+func (x *ListInvoiceFollowupsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[78]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInvoiceFollowupsRequest.ProtoReflect.Descriptor instead.
+func (*ListInvoiceFollowupsRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{78}
+}
+
+func (x *ListInvoiceFollowupsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListInvoiceFollowupsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListInvoiceFollowupsResponse struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Followups []*InvoiceFollowup     `protobuf:"bytes,1,rep,name=followups,proto3" json:"followups,omitempty"`
+	// False until WA_GATEWAY_URL and WA_GATEWAY_TOKEN are set.
+	WhatsappEnabled bool `protobuf:"varint,2,opt,name=whatsapp_enabled,json=whatsappEnabled,proto3" json:"whatsapp_enabled,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListInvoiceFollowupsResponse) Reset() {
+	*x = ListInvoiceFollowupsResponse{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[79]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInvoiceFollowupsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInvoiceFollowupsResponse) ProtoMessage() {}
+
+func (x *ListInvoiceFollowupsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[79]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInvoiceFollowupsResponse.ProtoReflect.Descriptor instead.
+func (*ListInvoiceFollowupsResponse) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{79}
+}
+
+func (x *ListInvoiceFollowupsResponse) GetFollowups() []*InvoiceFollowup {
+	if x != nil {
+		return x.Followups
+	}
+	return nil
+}
+
+func (x *ListInvoiceFollowupsResponse) GetWhatsappEnabled() bool {
+	if x != nil {
+		return x.WhatsappEnabled
+	}
+	return false
+}
+
+type ApproveInvoiceFollowupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Phone         string                 `protobuf:"bytes,2,opt,name=phone,proto3" json:"phone,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApproveInvoiceFollowupRequest) Reset() {
+	*x = ApproveInvoiceFollowupRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[80]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveInvoiceFollowupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveInvoiceFollowupRequest) ProtoMessage() {}
+
+func (x *ApproveInvoiceFollowupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[80]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveInvoiceFollowupRequest.ProtoReflect.Descriptor instead.
+func (*ApproveInvoiceFollowupRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{80}
+}
+
+func (x *ApproveInvoiceFollowupRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ApproveInvoiceFollowupRequest) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *ApproveInvoiceFollowupRequest) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type UpdateInvoiceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Amount        string                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	DueDate       string                 `protobuf:"bytes,4,opt,name=due_date,json=dueDate,proto3" json:"due_date,omitempty"`
+	Note          string                 `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateInvoiceRequest) Reset() {
+	*x = UpdateInvoiceRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[81]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateInvoiceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateInvoiceRequest) ProtoMessage() {}
+
+func (x *UpdateInvoiceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[81]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateInvoiceRequest.ProtoReflect.Descriptor instead.
+func (*UpdateInvoiceRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{81}
+}
+
+func (x *UpdateInvoiceRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateInvoiceRequest) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *UpdateInvoiceRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *UpdateInvoiceRequest) GetDueDate() string {
+	if x != nil {
+		return x.DueDate
+	}
+	return ""
+}
+
+func (x *UpdateInvoiceRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type UploadInvoiceFakturPajakRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
+	Data          []byte                 `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadInvoiceFakturPajakRequest) Reset() {
+	*x = UploadInvoiceFakturPajakRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[82]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadInvoiceFakturPajakRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadInvoiceFakturPajakRequest) ProtoMessage() {}
+
+func (x *UploadInvoiceFakturPajakRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[82]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadInvoiceFakturPajakRequest.ProtoReflect.Descriptor instead.
+func (*UploadInvoiceFakturPajakRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{82}
+}
+
+func (x *UploadInvoiceFakturPajakRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UploadInvoiceFakturPajakRequest) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+func (x *UploadInvoiceFakturPajakRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type Payment struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -6581,7 +7140,7 @@ type Payment struct {
 
 func (x *Payment) Reset() {
 	*x = Payment{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[77]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6593,7 +7152,7 @@ func (x *Payment) String() string {
 func (*Payment) ProtoMessage() {}
 
 func (x *Payment) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[77]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6606,7 +7165,7 @@ func (x *Payment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Payment.ProtoReflect.Descriptor instead.
 func (*Payment) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{77}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *Payment) GetId() string {
@@ -6681,7 +7240,7 @@ type ListPaymentsRequest struct {
 
 func (x *ListPaymentsRequest) Reset() {
 	*x = ListPaymentsRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[78]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6693,7 +7252,7 @@ func (x *ListPaymentsRequest) String() string {
 func (*ListPaymentsRequest) ProtoMessage() {}
 
 func (x *ListPaymentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[78]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6706,7 +7265,7 @@ func (x *ListPaymentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPaymentsRequest.ProtoReflect.Descriptor instead.
 func (*ListPaymentsRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{78}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *ListPaymentsRequest) GetDealId() string {
@@ -6726,7 +7285,7 @@ type ListPaymentsResponse struct {
 
 func (x *ListPaymentsResponse) Reset() {
 	*x = ListPaymentsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[79]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6738,7 +7297,7 @@ func (x *ListPaymentsResponse) String() string {
 func (*ListPaymentsResponse) ProtoMessage() {}
 
 func (x *ListPaymentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[79]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6751,7 +7310,7 @@ func (x *ListPaymentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPaymentsResponse.ProtoReflect.Descriptor instead.
 func (*ListPaymentsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{79}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *ListPaymentsResponse) GetPayments() []*Payment {
@@ -6782,7 +7341,7 @@ type RecordPaymentRequest struct {
 
 func (x *RecordPaymentRequest) Reset() {
 	*x = RecordPaymentRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[80]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6794,7 +7353,7 @@ func (x *RecordPaymentRequest) String() string {
 func (*RecordPaymentRequest) ProtoMessage() {}
 
 func (x *RecordPaymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[80]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6807,7 +7366,7 @@ func (x *RecordPaymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RecordPaymentRequest.ProtoReflect.Descriptor instead.
 func (*RecordPaymentRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{80}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *RecordPaymentRequest) GetDealId() string {
@@ -6863,7 +7422,7 @@ type SalesTarget struct {
 
 func (x *SalesTarget) Reset() {
 	*x = SalesTarget{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[81]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6875,7 +7434,7 @@ func (x *SalesTarget) String() string {
 func (*SalesTarget) ProtoMessage() {}
 
 func (x *SalesTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[81]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6888,7 +7447,7 @@ func (x *SalesTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SalesTarget.ProtoReflect.Descriptor instead.
 func (*SalesTarget) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{81}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *SalesTarget) GetUserId() string {
@@ -6922,7 +7481,7 @@ type ListTargetsRequest struct {
 
 func (x *ListTargetsRequest) Reset() {
 	*x = ListTargetsRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[82]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6934,7 +7493,7 @@ func (x *ListTargetsRequest) String() string {
 func (*ListTargetsRequest) ProtoMessage() {}
 
 func (x *ListTargetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[82]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6947,7 +7506,7 @@ func (x *ListTargetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTargetsRequest.ProtoReflect.Descriptor instead.
 func (*ListTargetsRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{82}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *ListTargetsRequest) GetMonth() string {
@@ -6967,7 +7526,7 @@ type ListTargetsResponse struct {
 
 func (x *ListTargetsResponse) Reset() {
 	*x = ListTargetsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[83]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6979,7 +7538,7 @@ func (x *ListTargetsResponse) String() string {
 func (*ListTargetsResponse) ProtoMessage() {}
 
 func (x *ListTargetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[83]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6992,7 +7551,7 @@ func (x *ListTargetsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTargetsResponse.ProtoReflect.Descriptor instead.
 func (*ListTargetsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{83}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *ListTargetsResponse) GetMonth() string {
@@ -7019,7 +7578,7 @@ type SaveTargetsRequest struct {
 
 func (x *SaveTargetsRequest) Reset() {
 	*x = SaveTargetsRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[84]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7031,7 +7590,7 @@ func (x *SaveTargetsRequest) String() string {
 func (*SaveTargetsRequest) ProtoMessage() {}
 
 func (x *SaveTargetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[84]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7044,7 +7603,7 @@ func (x *SaveTargetsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveTargetsRequest.ProtoReflect.Descriptor instead.
 func (*SaveTargetsRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{84}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *SaveTargetsRequest) GetMonth() string {
@@ -7070,7 +7629,7 @@ type GetForecastRequest struct {
 
 func (x *GetForecastRequest) Reset() {
 	*x = GetForecastRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[85]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7082,7 +7641,7 @@ func (x *GetForecastRequest) String() string {
 func (*GetForecastRequest) ProtoMessage() {}
 
 func (x *GetForecastRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[85]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7095,7 +7654,7 @@ func (x *GetForecastRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetForecastRequest.ProtoReflect.Descriptor instead.
 func (*GetForecastRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{85}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *GetForecastRequest) GetMonth() string {
@@ -7126,7 +7685,7 @@ type ForecastRow struct {
 
 func (x *ForecastRow) Reset() {
 	*x = ForecastRow{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[86]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7138,7 +7697,7 @@ func (x *ForecastRow) String() string {
 func (*ForecastRow) ProtoMessage() {}
 
 func (x *ForecastRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[86]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7151,7 +7710,7 @@ func (x *ForecastRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForecastRow.ProtoReflect.Descriptor instead.
 func (*ForecastRow) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{86}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *ForecastRow) GetUserId() string {
@@ -7258,7 +7817,7 @@ type Forecast struct {
 
 func (x *Forecast) Reset() {
 	*x = Forecast{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[87]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7270,7 +7829,7 @@ func (x *Forecast) String() string {
 func (*Forecast) ProtoMessage() {}
 
 func (x *Forecast) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[87]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7283,7 +7842,7 @@ func (x *Forecast) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Forecast.ProtoReflect.Descriptor instead.
 func (*Forecast) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{87}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *Forecast) GetMonth() string {
@@ -7332,7 +7891,7 @@ type GetFunnelReportRequest struct {
 
 func (x *GetFunnelReportRequest) Reset() {
 	*x = GetFunnelReportRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[88]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7344,7 +7903,7 @@ func (x *GetFunnelReportRequest) String() string {
 func (*GetFunnelReportRequest) ProtoMessage() {}
 
 func (x *GetFunnelReportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[88]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7357,7 +7916,7 @@ func (x *GetFunnelReportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFunnelReportRequest.ProtoReflect.Descriptor instead.
 func (*GetFunnelReportRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{88}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *GetFunnelReportRequest) GetFrom() string {
@@ -7386,7 +7945,7 @@ type FunnelStage struct {
 
 func (x *FunnelStage) Reset() {
 	*x = FunnelStage{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[89]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7398,7 +7957,7 @@ func (x *FunnelStage) String() string {
 func (*FunnelStage) ProtoMessage() {}
 
 func (x *FunnelStage) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[89]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7411,7 +7970,7 @@ func (x *FunnelStage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FunnelStage.ProtoReflect.Descriptor instead.
 func (*FunnelStage) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{89}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *FunnelStage) GetStageId() string {
@@ -7453,7 +8012,7 @@ type FunnelSource struct {
 
 func (x *FunnelSource) Reset() {
 	*x = FunnelSource{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[90]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7465,7 +8024,7 @@ func (x *FunnelSource) String() string {
 func (*FunnelSource) ProtoMessage() {}
 
 func (x *FunnelSource) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[90]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7478,7 +8037,7 @@ func (x *FunnelSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FunnelSource.ProtoReflect.Descriptor instead.
 func (*FunnelSource) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{90}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *FunnelSource) GetSource() string {
@@ -7513,7 +8072,7 @@ type FunnelReason struct {
 
 func (x *FunnelReason) Reset() {
 	*x = FunnelReason{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[91]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7525,7 +8084,7 @@ func (x *FunnelReason) String() string {
 func (*FunnelReason) ProtoMessage() {}
 
 func (x *FunnelReason) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[91]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7538,7 +8097,7 @@ func (x *FunnelReason) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FunnelReason.ProtoReflect.Descriptor instead.
 func (*FunnelReason) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{91}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *FunnelReason) GetReasonId() string {
@@ -7586,7 +8145,7 @@ type FunnelReport struct {
 
 func (x *FunnelReport) Reset() {
 	*x = FunnelReport{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[92]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7598,7 +8157,7 @@ func (x *FunnelReport) String() string {
 func (*FunnelReport) ProtoMessage() {}
 
 func (x *FunnelReport) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[92]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7611,7 +8170,7 @@ func (x *FunnelReport) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FunnelReport.ProtoReflect.Descriptor instead.
 func (*FunnelReport) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{92}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *FunnelReport) GetFrom() string {
@@ -7744,7 +8303,7 @@ type DashboardRequest struct {
 
 func (x *DashboardRequest) Reset() {
 	*x = DashboardRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[93]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7756,7 +8315,7 @@ func (x *DashboardRequest) String() string {
 func (*DashboardRequest) ProtoMessage() {}
 
 func (x *DashboardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[93]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7769,7 +8328,7 @@ func (x *DashboardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardRequest.ProtoReflect.Descriptor instead.
 func (*DashboardRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{93}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *DashboardRequest) GetFrom() string {
@@ -7838,7 +8397,7 @@ type DashboardPeriod struct {
 
 func (x *DashboardPeriod) Reset() {
 	*x = DashboardPeriod{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[94]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7850,7 +8409,7 @@ func (x *DashboardPeriod) String() string {
 func (*DashboardPeriod) ProtoMessage() {}
 
 func (x *DashboardPeriod) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[94]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7863,7 +8422,7 @@ func (x *DashboardPeriod) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardPeriod.ProtoReflect.Descriptor instead.
 func (*DashboardPeriod) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{94}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *DashboardPeriod) GetFrom() string {
@@ -7929,7 +8488,7 @@ type DashboardKpi struct {
 
 func (x *DashboardKpi) Reset() {
 	*x = DashboardKpi{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[95]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7941,7 +8500,7 @@ func (x *DashboardKpi) String() string {
 func (*DashboardKpi) ProtoMessage() {}
 
 func (x *DashboardKpi) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[95]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7954,7 +8513,7 @@ func (x *DashboardKpi) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardKpi.ProtoReflect.Descriptor instead.
 func (*DashboardKpi) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{95}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *DashboardKpi) GetKey() string {
@@ -7998,7 +8557,7 @@ type DashboardSeries struct {
 
 func (x *DashboardSeries) Reset() {
 	*x = DashboardSeries{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[96]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8010,7 +8569,7 @@ func (x *DashboardSeries) String() string {
 func (*DashboardSeries) ProtoMessage() {}
 
 func (x *DashboardSeries) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[96]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8023,7 +8582,7 @@ func (x *DashboardSeries) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardSeries.ProtoReflect.Descriptor instead.
 func (*DashboardSeries) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{96}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *DashboardSeries) GetKey() string {
@@ -8063,7 +8622,7 @@ type DashboardSlice struct {
 
 func (x *DashboardSlice) Reset() {
 	*x = DashboardSlice{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[97]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8075,7 +8634,7 @@ func (x *DashboardSlice) String() string {
 func (*DashboardSlice) ProtoMessage() {}
 
 func (x *DashboardSlice) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[97]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8088,7 +8647,7 @@ func (x *DashboardSlice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardSlice.ProtoReflect.Descriptor instead.
 func (*DashboardSlice) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{97}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *DashboardSlice) GetKey() string {
@@ -8149,7 +8708,7 @@ type DashboardSummary struct {
 
 func (x *DashboardSummary) Reset() {
 	*x = DashboardSummary{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[98]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8161,7 +8720,7 @@ func (x *DashboardSummary) String() string {
 func (*DashboardSummary) ProtoMessage() {}
 
 func (x *DashboardSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[98]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8174,7 +8733,7 @@ func (x *DashboardSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardSummary.ProtoReflect.Descriptor instead.
 func (*DashboardSummary) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{98}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *DashboardSummary) GetPeriod() *DashboardPeriod {
@@ -8223,7 +8782,7 @@ type DashboardDeal struct {
 
 func (x *DashboardDeal) Reset() {
 	*x = DashboardDeal{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[99]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8235,7 +8794,7 @@ func (x *DashboardDeal) String() string {
 func (*DashboardDeal) ProtoMessage() {}
 
 func (x *DashboardDeal) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[99]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8248,7 +8807,7 @@ func (x *DashboardDeal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardDeal.ProtoReflect.Descriptor instead.
 func (*DashboardDeal) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{99}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *DashboardDeal) GetId() string {
@@ -8346,7 +8905,7 @@ type DashboardPipeline struct {
 
 func (x *DashboardPipeline) Reset() {
 	*x = DashboardPipeline{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[100]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8358,7 +8917,7 @@ func (x *DashboardPipeline) String() string {
 func (*DashboardPipeline) ProtoMessage() {}
 
 func (x *DashboardPipeline) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[100]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8371,7 +8930,7 @@ func (x *DashboardPipeline) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardPipeline.ProtoReflect.Descriptor instead.
 func (*DashboardPipeline) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{100}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *DashboardPipeline) GetPeriod() *DashboardPeriod {
@@ -8454,7 +9013,7 @@ type DashboardSales struct {
 
 func (x *DashboardSales) Reset() {
 	*x = DashboardSales{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[101]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8466,7 +9025,7 @@ func (x *DashboardSales) String() string {
 func (*DashboardSales) ProtoMessage() {}
 
 func (x *DashboardSales) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[101]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8479,7 +9038,7 @@ func (x *DashboardSales) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardSales.ProtoReflect.Descriptor instead.
 func (*DashboardSales) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{101}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *DashboardSales) GetPeriod() *DashboardPeriod {
@@ -8560,7 +9119,7 @@ type DashboardMember struct {
 
 func (x *DashboardMember) Reset() {
 	*x = DashboardMember{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[102]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8572,7 +9131,7 @@ func (x *DashboardMember) String() string {
 func (*DashboardMember) ProtoMessage() {}
 
 func (x *DashboardMember) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[102]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8585,7 +9144,7 @@ func (x *DashboardMember) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardMember.ProtoReflect.Descriptor instead.
 func (*DashboardMember) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{102}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *DashboardMember) GetUserId() string {
@@ -8693,7 +9252,7 @@ type DashboardTeam struct {
 
 func (x *DashboardTeam) Reset() {
 	*x = DashboardTeam{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[103]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8705,7 +9264,7 @@ func (x *DashboardTeam) String() string {
 func (*DashboardTeam) ProtoMessage() {}
 
 func (x *DashboardTeam) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[103]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8718,7 +9277,7 @@ func (x *DashboardTeam) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardTeam.ProtoReflect.Descriptor instead.
 func (*DashboardTeam) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{103}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *DashboardTeam) GetPeriod() *DashboardPeriod {
@@ -8776,7 +9335,7 @@ type DashboardLeads struct {
 
 func (x *DashboardLeads) Reset() {
 	*x = DashboardLeads{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[104]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8788,7 +9347,7 @@ func (x *DashboardLeads) String() string {
 func (*DashboardLeads) ProtoMessage() {}
 
 func (x *DashboardLeads) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[104]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8801,7 +9360,7 @@ func (x *DashboardLeads) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardLeads.ProtoReflect.Descriptor instead.
 func (*DashboardLeads) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{104}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *DashboardLeads) GetPeriod() *DashboardPeriod {
@@ -8877,7 +9436,7 @@ type DashboardInvoice struct {
 
 func (x *DashboardInvoice) Reset() {
 	*x = DashboardInvoice{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[105]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8889,7 +9448,7 @@ func (x *DashboardInvoice) String() string {
 func (*DashboardInvoice) ProtoMessage() {}
 
 func (x *DashboardInvoice) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[105]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8902,7 +9461,7 @@ func (x *DashboardInvoice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardInvoice.ProtoReflect.Descriptor instead.
 func (*DashboardInvoice) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{105}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *DashboardInvoice) GetId() string {
@@ -8984,7 +9543,7 @@ type DashboardTerm struct {
 
 func (x *DashboardTerm) Reset() {
 	*x = DashboardTerm{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[106]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8996,7 +9555,7 @@ func (x *DashboardTerm) String() string {
 func (*DashboardTerm) ProtoMessage() {}
 
 func (x *DashboardTerm) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[106]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9009,7 +9568,7 @@ func (x *DashboardTerm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardTerm.ProtoReflect.Descriptor instead.
 func (*DashboardTerm) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{106}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *DashboardTerm) GetDealId() string {
@@ -9089,7 +9648,7 @@ type DashboardBilling struct {
 
 func (x *DashboardBilling) Reset() {
 	*x = DashboardBilling{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[107]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9101,7 +9660,7 @@ func (x *DashboardBilling) String() string {
 func (*DashboardBilling) ProtoMessage() {}
 
 func (x *DashboardBilling) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[107]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9114,7 +9673,7 @@ func (x *DashboardBilling) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DashboardBilling.ProtoReflect.Descriptor instead.
 func (*DashboardBilling) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{107}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *DashboardBilling) GetPeriod() *DashboardPeriod {
@@ -9171,7 +9730,7 @@ type WorkflowCondition struct {
 
 func (x *WorkflowCondition) Reset() {
 	*x = WorkflowCondition{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[108]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9183,7 +9742,7 @@ func (x *WorkflowCondition) String() string {
 func (*WorkflowCondition) ProtoMessage() {}
 
 func (x *WorkflowCondition) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[108]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9196,7 +9755,7 @@ func (x *WorkflowCondition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowCondition.ProtoReflect.Descriptor instead.
 func (*WorkflowCondition) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{108}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *WorkflowCondition) GetField() string {
@@ -9250,7 +9809,7 @@ type WorkflowAction struct {
 
 func (x *WorkflowAction) Reset() {
 	*x = WorkflowAction{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[109]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9262,7 +9821,7 @@ func (x *WorkflowAction) String() string {
 func (*WorkflowAction) ProtoMessage() {}
 
 func (x *WorkflowAction) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[109]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9275,7 +9834,7 @@ func (x *WorkflowAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowAction.ProtoReflect.Descriptor instead.
 func (*WorkflowAction) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{109}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *WorkflowAction) GetType() string {
@@ -9425,7 +9984,7 @@ type WorkflowRule struct {
 
 func (x *WorkflowRule) Reset() {
 	*x = WorkflowRule{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[110]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9437,7 +9996,7 @@ func (x *WorkflowRule) String() string {
 func (*WorkflowRule) ProtoMessage() {}
 
 func (x *WorkflowRule) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[110]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9450,7 +10009,7 @@ func (x *WorkflowRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRule.ProtoReflect.Descriptor instead.
 func (*WorkflowRule) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{110}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *WorkflowRule) GetId() string {
@@ -9539,7 +10098,7 @@ type ListWorkflowRulesResponse struct {
 
 func (x *ListWorkflowRulesResponse) Reset() {
 	*x = ListWorkflowRulesResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[111]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9551,7 +10110,7 @@ func (x *ListWorkflowRulesResponse) String() string {
 func (*ListWorkflowRulesResponse) ProtoMessage() {}
 
 func (x *ListWorkflowRulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[111]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9564,7 +10123,7 @@ func (x *ListWorkflowRulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowRulesResponse.ProtoReflect.Descriptor instead.
 func (*ListWorkflowRulesResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{111}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *ListWorkflowRulesResponse) GetRules() []*WorkflowRule {
@@ -9590,7 +10149,7 @@ type WorkflowRun struct {
 
 func (x *WorkflowRun) Reset() {
 	*x = WorkflowRun{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[112]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9602,7 +10161,7 @@ func (x *WorkflowRun) String() string {
 func (*WorkflowRun) ProtoMessage() {}
 
 func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[112]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9615,7 +10174,7 @@ func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRun.ProtoReflect.Descriptor instead.
 func (*WorkflowRun) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{112}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *WorkflowRun) GetId() string {
@@ -9676,7 +10235,7 @@ type ListWorkflowRunsResponse struct {
 
 func (x *ListWorkflowRunsResponse) Reset() {
 	*x = ListWorkflowRunsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[113]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9688,7 +10247,7 @@ func (x *ListWorkflowRunsResponse) String() string {
 func (*ListWorkflowRunsResponse) ProtoMessage() {}
 
 func (x *ListWorkflowRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[113]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9701,7 +10260,7 @@ func (x *ListWorkflowRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowRunsResponse.ProtoReflect.Descriptor instead.
 func (*ListWorkflowRunsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{113}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *ListWorkflowRunsResponse) GetRuns() []*WorkflowRun {
@@ -9732,7 +10291,7 @@ type ScoringRule struct {
 
 func (x *ScoringRule) Reset() {
 	*x = ScoringRule{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[114]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9744,7 +10303,7 @@ func (x *ScoringRule) String() string {
 func (*ScoringRule) ProtoMessage() {}
 
 func (x *ScoringRule) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[114]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9757,7 +10316,7 @@ func (x *ScoringRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScoringRule.ProtoReflect.Descriptor instead.
 func (*ScoringRule) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{114}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *ScoringRule) GetId() string {
@@ -9846,7 +10405,7 @@ type ListScoringRulesResponse struct {
 
 func (x *ListScoringRulesResponse) Reset() {
 	*x = ListScoringRulesResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[115]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9858,7 +10417,7 @@ func (x *ListScoringRulesResponse) String() string {
 func (*ListScoringRulesResponse) ProtoMessage() {}
 
 func (x *ListScoringRulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[115]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9871,7 +10430,7 @@ func (x *ListScoringRulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListScoringRulesResponse.ProtoReflect.Descriptor instead.
 func (*ListScoringRulesResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{115}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *ListScoringRulesResponse) GetRules() []*ScoringRule {
@@ -9891,7 +10450,7 @@ type RecalculateScoresResponse struct {
 
 func (x *RecalculateScoresResponse) Reset() {
 	*x = RecalculateScoresResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[116]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[122]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9903,7 +10462,7 @@ func (x *RecalculateScoresResponse) String() string {
 func (*RecalculateScoresResponse) ProtoMessage() {}
 
 func (x *RecalculateScoresResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[116]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[122]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9916,7 +10475,7 @@ func (x *RecalculateScoresResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RecalculateScoresResponse.ProtoReflect.Descriptor instead.
 func (*RecalculateScoresResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{116}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{122}
 }
 
 func (x *RecalculateScoresResponse) GetLeads() int32 {
@@ -9948,7 +10507,7 @@ type FormField struct {
 
 func (x *FormField) Reset() {
 	*x = FormField{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[117]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[123]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9960,7 +10519,7 @@ func (x *FormField) String() string {
 func (*FormField) ProtoMessage() {}
 
 func (x *FormField) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[117]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[123]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9973,7 +10532,7 @@ func (x *FormField) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FormField.ProtoReflect.Descriptor instead.
 func (*FormField) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{117}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *FormField) GetKey() string {
@@ -10039,7 +10598,7 @@ type LeadForm struct {
 
 func (x *LeadForm) Reset() {
 	*x = LeadForm{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[118]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[124]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10051,7 +10610,7 @@ func (x *LeadForm) String() string {
 func (*LeadForm) ProtoMessage() {}
 
 func (x *LeadForm) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[118]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[124]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10064,7 +10623,7 @@ func (x *LeadForm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeadForm.ProtoReflect.Descriptor instead.
 func (*LeadForm) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{118}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{124}
 }
 
 func (x *LeadForm) GetId() string {
@@ -10167,7 +10726,7 @@ type ListFormsResponse struct {
 
 func (x *ListFormsResponse) Reset() {
 	*x = ListFormsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[119]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[125]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10179,7 +10738,7 @@ func (x *ListFormsResponse) String() string {
 func (*ListFormsResponse) ProtoMessage() {}
 
 func (x *ListFormsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[119]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[125]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10192,7 +10751,7 @@ func (x *ListFormsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFormsResponse.ProtoReflect.Descriptor instead.
 func (*ListFormsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{119}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *ListFormsResponse) GetForms() []*LeadForm {
@@ -10217,7 +10776,7 @@ type FormSubmission struct {
 
 func (x *FormSubmission) Reset() {
 	*x = FormSubmission{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[120]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[126]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10229,7 +10788,7 @@ func (x *FormSubmission) String() string {
 func (*FormSubmission) ProtoMessage() {}
 
 func (x *FormSubmission) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[120]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[126]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10242,7 +10801,7 @@ func (x *FormSubmission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FormSubmission.ProtoReflect.Descriptor instead.
 func (*FormSubmission) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{120}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *FormSubmission) GetId() string {
@@ -10296,7 +10855,7 @@ type ListFormSubmissionsResponse struct {
 
 func (x *ListFormSubmissionsResponse) Reset() {
 	*x = ListFormSubmissionsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[121]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[127]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10308,7 +10867,7 @@ func (x *ListFormSubmissionsResponse) String() string {
 func (*ListFormSubmissionsResponse) ProtoMessage() {}
 
 func (x *ListFormSubmissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[121]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[127]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10321,7 +10880,7 @@ func (x *ListFormSubmissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFormSubmissionsResponse.ProtoReflect.Descriptor instead.
 func (*ListFormSubmissionsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{121}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *ListFormSubmissionsResponse) GetSubmissions() []*FormSubmission {
@@ -10340,7 +10899,7 @@ type PublicFormRequest struct {
 
 func (x *PublicFormRequest) Reset() {
 	*x = PublicFormRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[122]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[128]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10352,7 +10911,7 @@ func (x *PublicFormRequest) String() string {
 func (*PublicFormRequest) ProtoMessage() {}
 
 func (x *PublicFormRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[122]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[128]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10365,7 +10924,7 @@ func (x *PublicFormRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicFormRequest.ProtoReflect.Descriptor instead.
 func (*PublicFormRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{122}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *PublicFormRequest) GetSlug() string {
@@ -10390,7 +10949,7 @@ type PublicForm struct {
 
 func (x *PublicForm) Reset() {
 	*x = PublicForm{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[123]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[129]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10402,7 +10961,7 @@ func (x *PublicForm) String() string {
 func (*PublicForm) ProtoMessage() {}
 
 func (x *PublicForm) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[123]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[129]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10415,7 +10974,7 @@ func (x *PublicForm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicForm.ProtoReflect.Descriptor instead.
 func (*PublicForm) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{123}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *PublicForm) GetSlug() string {
@@ -10477,7 +11036,7 @@ type SubmitPublicFormRequest struct {
 
 func (x *SubmitPublicFormRequest) Reset() {
 	*x = SubmitPublicFormRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[124]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[130]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10489,7 +11048,7 @@ func (x *SubmitPublicFormRequest) String() string {
 func (*SubmitPublicFormRequest) ProtoMessage() {}
 
 func (x *SubmitPublicFormRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[124]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[130]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10502,7 +11061,7 @@ func (x *SubmitPublicFormRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitPublicFormRequest.ProtoReflect.Descriptor instead.
 func (*SubmitPublicFormRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{124}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *SubmitPublicFormRequest) GetSlug() string {
@@ -10529,7 +11088,7 @@ type SubmitPublicFormFieldError struct {
 
 func (x *SubmitPublicFormFieldError) Reset() {
 	*x = SubmitPublicFormFieldError{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[125]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[131]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10541,7 +11100,7 @@ func (x *SubmitPublicFormFieldError) String() string {
 func (*SubmitPublicFormFieldError) ProtoMessage() {}
 
 func (x *SubmitPublicFormFieldError) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[125]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[131]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10554,7 +11113,7 @@ func (x *SubmitPublicFormFieldError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitPublicFormFieldError.ProtoReflect.Descriptor instead.
 func (*SubmitPublicFormFieldError) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{125}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{131}
 }
 
 func (x *SubmitPublicFormFieldError) GetKey() string {
@@ -10583,7 +11142,7 @@ type SubmitPublicFormResponse struct {
 
 func (x *SubmitPublicFormResponse) Reset() {
 	*x = SubmitPublicFormResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[126]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[132]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10595,7 +11154,7 @@ func (x *SubmitPublicFormResponse) String() string {
 func (*SubmitPublicFormResponse) ProtoMessage() {}
 
 func (x *SubmitPublicFormResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[126]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[132]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10608,7 +11167,7 @@ func (x *SubmitPublicFormResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitPublicFormResponse.ProtoReflect.Descriptor instead.
 func (*SubmitPublicFormResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{126}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{132}
 }
 
 func (x *SubmitPublicFormResponse) GetOk() bool {
@@ -10656,7 +11215,7 @@ type ContractTemplate struct {
 
 func (x *ContractTemplate) Reset() {
 	*x = ContractTemplate{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[127]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[133]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10668,7 +11227,7 @@ func (x *ContractTemplate) String() string {
 func (*ContractTemplate) ProtoMessage() {}
 
 func (x *ContractTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[127]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[133]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10681,7 +11240,7 @@ func (x *ContractTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractTemplate.ProtoReflect.Descriptor instead.
 func (*ContractTemplate) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{127}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{133}
 }
 
 func (x *ContractTemplate) GetId() string {
@@ -10737,7 +11296,7 @@ type ListContractTemplatesResponse struct {
 
 func (x *ListContractTemplatesResponse) Reset() {
 	*x = ListContractTemplatesResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[128]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[134]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10749,7 +11308,7 @@ func (x *ListContractTemplatesResponse) String() string {
 func (*ListContractTemplatesResponse) ProtoMessage() {}
 
 func (x *ListContractTemplatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[128]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[134]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10762,7 +11321,7 @@ func (x *ListContractTemplatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContractTemplatesResponse.ProtoReflect.Descriptor instead.
 func (*ListContractTemplatesResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{128}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{134}
 }
 
 func (x *ListContractTemplatesResponse) GetTemplates() []*ContractTemplate {
@@ -10812,7 +11371,7 @@ type Contract struct {
 
 func (x *Contract) Reset() {
 	*x = Contract{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[129]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[135]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10824,7 +11383,7 @@ func (x *Contract) String() string {
 func (*Contract) ProtoMessage() {}
 
 func (x *Contract) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[129]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[135]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10837,7 +11396,7 @@ func (x *Contract) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Contract.ProtoReflect.Descriptor instead.
 func (*Contract) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{129}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{135}
 }
 
 func (x *Contract) GetId() string {
@@ -11005,7 +11564,7 @@ type ListContractsRequest struct {
 
 func (x *ListContractsRequest) Reset() {
 	*x = ListContractsRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[130]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[136]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11017,7 +11576,7 @@ func (x *ListContractsRequest) String() string {
 func (*ListContractsRequest) ProtoMessage() {}
 
 func (x *ListContractsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[130]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[136]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11030,7 +11589,7 @@ func (x *ListContractsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContractsRequest.ProtoReflect.Descriptor instead.
 func (*ListContractsRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{130}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{136}
 }
 
 func (x *ListContractsRequest) GetDealId() string {
@@ -11063,7 +11622,7 @@ type ListContractsResponse struct {
 
 func (x *ListContractsResponse) Reset() {
 	*x = ListContractsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[131]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[137]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11075,7 +11634,7 @@ func (x *ListContractsResponse) String() string {
 func (*ListContractsResponse) ProtoMessage() {}
 
 func (x *ListContractsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[131]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[137]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11088,7 +11647,7 @@ func (x *ListContractsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContractsResponse.ProtoReflect.Descriptor instead.
 func (*ListContractsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{131}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *ListContractsResponse) GetContracts() []*Contract {
@@ -11111,7 +11670,7 @@ type GenerateContractRequest struct {
 
 func (x *GenerateContractRequest) Reset() {
 	*x = GenerateContractRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[132]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[138]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11123,7 +11682,7 @@ func (x *GenerateContractRequest) String() string {
 func (*GenerateContractRequest) ProtoMessage() {}
 
 func (x *GenerateContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[132]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[138]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11136,7 +11695,7 @@ func (x *GenerateContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateContractRequest.ProtoReflect.Descriptor instead.
 func (*GenerateContractRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{132}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *GenerateContractRequest) GetQuotationId() string {
@@ -11187,7 +11746,7 @@ type UpdateContractRequest struct {
 
 func (x *UpdateContractRequest) Reset() {
 	*x = UpdateContractRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[133]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[139]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11199,7 +11758,7 @@ func (x *UpdateContractRequest) String() string {
 func (*UpdateContractRequest) ProtoMessage() {}
 
 func (x *UpdateContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[133]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[139]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11212,7 +11771,7 @@ func (x *UpdateContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateContractRequest.ProtoReflect.Descriptor instead.
 func (*UpdateContractRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{133}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{139}
 }
 
 func (x *UpdateContractRequest) GetId() string {
@@ -11262,7 +11821,7 @@ type SetContractStatusRequest struct {
 
 func (x *SetContractStatusRequest) Reset() {
 	*x = SetContractStatusRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[134]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[140]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11274,7 +11833,7 @@ func (x *SetContractStatusRequest) String() string {
 func (*SetContractStatusRequest) ProtoMessage() {}
 
 func (x *SetContractStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[134]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[140]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11287,7 +11846,7 @@ func (x *SetContractStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetContractStatusRequest.ProtoReflect.Descriptor instead.
 func (*SetContractStatusRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{134}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *SetContractStatusRequest) GetId() string {
@@ -11321,7 +11880,7 @@ type RenderContractPdfRequest struct {
 
 func (x *RenderContractPdfRequest) Reset() {
 	*x = RenderContractPdfRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[135]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[141]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11333,7 +11892,7 @@ func (x *RenderContractPdfRequest) String() string {
 func (*RenderContractPdfRequest) ProtoMessage() {}
 
 func (x *RenderContractPdfRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[135]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[141]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11346,7 +11905,7 @@ func (x *RenderContractPdfRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenderContractPdfRequest.ProtoReflect.Descriptor instead.
 func (*RenderContractPdfRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{135}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{141}
 }
 
 func (x *RenderContractPdfRequest) GetId() string {
@@ -11372,7 +11931,7 @@ type PublicContractRequest struct {
 
 func (x *PublicContractRequest) Reset() {
 	*x = PublicContractRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[136]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[142]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11384,7 +11943,7 @@ func (x *PublicContractRequest) String() string {
 func (*PublicContractRequest) ProtoMessage() {}
 
 func (x *PublicContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[136]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[142]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11397,7 +11956,7 @@ func (x *PublicContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicContractRequest.ProtoReflect.Descriptor instead.
 func (*PublicContractRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{136}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{142}
 }
 
 func (x *PublicContractRequest) GetToken() string {
@@ -11424,7 +11983,7 @@ type PublicContract struct {
 
 func (x *PublicContract) Reset() {
 	*x = PublicContract{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[137]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[143]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11436,7 +11995,7 @@ func (x *PublicContract) String() string {
 func (*PublicContract) ProtoMessage() {}
 
 func (x *PublicContract) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[137]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[143]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11449,7 +12008,7 @@ func (x *PublicContract) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicContract.ProtoReflect.Descriptor instead.
 func (*PublicContract) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{137}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{143}
 }
 
 func (x *PublicContract) GetContractNumber() string {
@@ -11528,7 +12087,7 @@ type SignPublicContractRequest struct {
 
 func (x *SignPublicContractRequest) Reset() {
 	*x = SignPublicContractRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[138]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[144]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11540,7 +12099,7 @@ func (x *SignPublicContractRequest) String() string {
 func (*SignPublicContractRequest) ProtoMessage() {}
 
 func (x *SignPublicContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[138]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[144]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11553,7 +12112,7 @@ func (x *SignPublicContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignPublicContractRequest.ProtoReflect.Descriptor instead.
 func (*SignPublicContractRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{138}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{144}
 }
 
 func (x *SignPublicContractRequest) GetToken() string {
@@ -11597,7 +12156,7 @@ type DeckOptions struct {
 
 func (x *DeckOptions) Reset() {
 	*x = DeckOptions{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[139]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[145]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11609,7 +12168,7 @@ func (x *DeckOptions) String() string {
 func (*DeckOptions) ProtoMessage() {}
 
 func (x *DeckOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[139]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[145]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11622,7 +12181,7 @@ func (x *DeckOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeckOptions.ProtoReflect.Descriptor instead.
 func (*DeckOptions) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{139}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *DeckOptions) GetTone() string {
@@ -11665,7 +12224,7 @@ type Slide struct {
 
 func (x *Slide) Reset() {
 	*x = Slide{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[140]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[146]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11677,7 +12236,7 @@ func (x *Slide) String() string {
 func (*Slide) ProtoMessage() {}
 
 func (x *Slide) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[140]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[146]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11690,7 +12249,7 @@ func (x *Slide) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Slide.ProtoReflect.Descriptor instead.
 func (*Slide) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{140}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *Slide) GetKind() string {
@@ -11740,7 +12299,7 @@ type PitchDeck struct {
 
 func (x *PitchDeck) Reset() {
 	*x = PitchDeck{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[141]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[147]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11752,7 +12311,7 @@ func (x *PitchDeck) String() string {
 func (*PitchDeck) ProtoMessage() {}
 
 func (x *PitchDeck) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[141]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[147]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11765,7 +12324,7 @@ func (x *PitchDeck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PitchDeck.ProtoReflect.Descriptor instead.
 func (*PitchDeck) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{141}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{147}
 }
 
 func (x *PitchDeck) GetId() string {
@@ -11855,7 +12414,7 @@ type ListPitchDecksRequest struct {
 
 func (x *ListPitchDecksRequest) Reset() {
 	*x = ListPitchDecksRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[142]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[148]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11867,7 +12426,7 @@ func (x *ListPitchDecksRequest) String() string {
 func (*ListPitchDecksRequest) ProtoMessage() {}
 
 func (x *ListPitchDecksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[142]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[148]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11880,7 +12439,7 @@ func (x *ListPitchDecksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPitchDecksRequest.ProtoReflect.Descriptor instead.
 func (*ListPitchDecksRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{142}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{148}
 }
 
 func (x *ListPitchDecksRequest) GetDealId() string {
@@ -11906,7 +12465,7 @@ type ListPitchDecksResponse struct {
 
 func (x *ListPitchDecksResponse) Reset() {
 	*x = ListPitchDecksResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[143]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[149]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11918,7 +12477,7 @@ func (x *ListPitchDecksResponse) String() string {
 func (*ListPitchDecksResponse) ProtoMessage() {}
 
 func (x *ListPitchDecksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[143]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[149]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11931,7 +12490,7 @@ func (x *ListPitchDecksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPitchDecksResponse.ProtoReflect.Descriptor instead.
 func (*ListPitchDecksResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{143}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{149}
 }
 
 func (x *ListPitchDecksResponse) GetDecks() []*PitchDeck {
@@ -11953,7 +12512,7 @@ type GeneratePitchDeckRequest struct {
 
 func (x *GeneratePitchDeckRequest) Reset() {
 	*x = GeneratePitchDeckRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[144]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[150]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11965,7 +12524,7 @@ func (x *GeneratePitchDeckRequest) String() string {
 func (*GeneratePitchDeckRequest) ProtoMessage() {}
 
 func (x *GeneratePitchDeckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[144]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[150]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11978,7 +12537,7 @@ func (x *GeneratePitchDeckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GeneratePitchDeckRequest.ProtoReflect.Descriptor instead.
 func (*GeneratePitchDeckRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{144}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{150}
 }
 
 func (x *GeneratePitchDeckRequest) GetDealId() string {
@@ -12020,7 +12579,7 @@ type CaseStudy struct {
 
 func (x *CaseStudy) Reset() {
 	*x = CaseStudy{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[145]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[151]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12032,7 +12591,7 @@ func (x *CaseStudy) String() string {
 func (*CaseStudy) ProtoMessage() {}
 
 func (x *CaseStudy) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[145]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[151]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12045,7 +12604,7 @@ func (x *CaseStudy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CaseStudy.ProtoReflect.Descriptor instead.
 func (*CaseStudy) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{145}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{151}
 }
 
 func (x *CaseStudy) GetId() string {
@@ -12127,7 +12686,7 @@ type ListCaseStudiesResponse struct {
 
 func (x *ListCaseStudiesResponse) Reset() {
 	*x = ListCaseStudiesResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[146]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[152]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12139,7 +12698,7 @@ func (x *ListCaseStudiesResponse) String() string {
 func (*ListCaseStudiesResponse) ProtoMessage() {}
 
 func (x *ListCaseStudiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[146]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[152]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12152,7 +12711,7 @@ func (x *ListCaseStudiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCaseStudiesResponse.ProtoReflect.Descriptor instead.
 func (*ListCaseStudiesResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{146}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{152}
 }
 
 func (x *ListCaseStudiesResponse) GetCaseStudies() []*CaseStudy {
@@ -12182,7 +12741,7 @@ type OnboardingItem struct {
 
 func (x *OnboardingItem) Reset() {
 	*x = OnboardingItem{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[147]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[153]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12194,7 +12753,7 @@ func (x *OnboardingItem) String() string {
 func (*OnboardingItem) ProtoMessage() {}
 
 func (x *OnboardingItem) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[147]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[153]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12207,7 +12766,7 @@ func (x *OnboardingItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnboardingItem.ProtoReflect.Descriptor instead.
 func (*OnboardingItem) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{147}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{153}
 }
 
 func (x *OnboardingItem) GetId() string {
@@ -12293,7 +12852,7 @@ type OnboardingAsset struct {
 
 func (x *OnboardingAsset) Reset() {
 	*x = OnboardingAsset{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[148]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[154]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12305,7 +12864,7 @@ func (x *OnboardingAsset) String() string {
 func (*OnboardingAsset) ProtoMessage() {}
 
 func (x *OnboardingAsset) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[148]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[154]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12318,7 +12877,7 @@ func (x *OnboardingAsset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnboardingAsset.ProtoReflect.Descriptor instead.
 func (*OnboardingAsset) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{148}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{154}
 }
 
 func (x *OnboardingAsset) GetId() string {
@@ -12379,7 +12938,7 @@ type Onboarding struct {
 
 func (x *Onboarding) Reset() {
 	*x = Onboarding{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[149]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[155]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12391,7 +12950,7 @@ func (x *Onboarding) String() string {
 func (*Onboarding) ProtoMessage() {}
 
 func (x *Onboarding) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[149]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[155]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12404,7 +12963,7 @@ func (x *Onboarding) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Onboarding.ProtoReflect.Descriptor instead.
 func (*Onboarding) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{149}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{155}
 }
 
 func (x *Onboarding) GetId() string {
@@ -12507,7 +13066,7 @@ type ListOnboardingsRequest struct {
 
 func (x *ListOnboardingsRequest) Reset() {
 	*x = ListOnboardingsRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[150]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[156]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12519,7 +13078,7 @@ func (x *ListOnboardingsRequest) String() string {
 func (*ListOnboardingsRequest) ProtoMessage() {}
 
 func (x *ListOnboardingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[150]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[156]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12532,7 +13091,7 @@ func (x *ListOnboardingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOnboardingsRequest.ProtoReflect.Descriptor instead.
 func (*ListOnboardingsRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{150}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{156}
 }
 
 func (x *ListOnboardingsRequest) GetStatus() string {
@@ -12551,7 +13110,7 @@ type ListOnboardingsResponse struct {
 
 func (x *ListOnboardingsResponse) Reset() {
 	*x = ListOnboardingsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[151]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[157]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12563,7 +13122,7 @@ func (x *ListOnboardingsResponse) String() string {
 func (*ListOnboardingsResponse) ProtoMessage() {}
 
 func (x *ListOnboardingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[151]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[157]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12576,7 +13135,7 @@ func (x *ListOnboardingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOnboardingsResponse.ProtoReflect.Descriptor instead.
 func (*ListOnboardingsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{151}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{157}
 }
 
 func (x *ListOnboardingsResponse) GetOnboardings() []*Onboarding {
@@ -12595,7 +13154,7 @@ type StartOnboardingRequest struct {
 
 func (x *StartOnboardingRequest) Reset() {
 	*x = StartOnboardingRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[152]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[158]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12607,7 +13166,7 @@ func (x *StartOnboardingRequest) String() string {
 func (*StartOnboardingRequest) ProtoMessage() {}
 
 func (x *StartOnboardingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[152]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[158]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12620,7 +13179,7 @@ func (x *StartOnboardingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartOnboardingRequest.ProtoReflect.Descriptor instead.
 func (*StartOnboardingRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{152}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{158}
 }
 
 func (x *StartOnboardingRequest) GetDealId() string {
@@ -12643,7 +13202,7 @@ type UpdateOnboardingItemRequest struct {
 
 func (x *UpdateOnboardingItemRequest) Reset() {
 	*x = UpdateOnboardingItemRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[153]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[159]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12655,7 +13214,7 @@ func (x *UpdateOnboardingItemRequest) String() string {
 func (*UpdateOnboardingItemRequest) ProtoMessage() {}
 
 func (x *UpdateOnboardingItemRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[153]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[159]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12668,7 +13227,7 @@ func (x *UpdateOnboardingItemRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOnboardingItemRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOnboardingItemRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{153}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{159}
 }
 
 func (x *UpdateOnboardingItemRequest) GetId() string {
@@ -12712,7 +13271,7 @@ type CreateMarketingClientRequest struct {
 
 func (x *CreateMarketingClientRequest) Reset() {
 	*x = CreateMarketingClientRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[154]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[160]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12724,7 +13283,7 @@ func (x *CreateMarketingClientRequest) String() string {
 func (*CreateMarketingClientRequest) ProtoMessage() {}
 
 func (x *CreateMarketingClientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[154]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[160]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12737,7 +13296,7 @@ func (x *CreateMarketingClientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMarketingClientRequest.ProtoReflect.Descriptor instead.
 func (*CreateMarketingClientRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{154}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{160}
 }
 
 func (x *CreateMarketingClientRequest) GetId() string {
@@ -12788,7 +13347,7 @@ type OnboardingTemplateItem struct {
 
 func (x *OnboardingTemplateItem) Reset() {
 	*x = OnboardingTemplateItem{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[155]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[161]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12800,7 +13359,7 @@ func (x *OnboardingTemplateItem) String() string {
 func (*OnboardingTemplateItem) ProtoMessage() {}
 
 func (x *OnboardingTemplateItem) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[155]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[161]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12813,7 +13372,7 @@ func (x *OnboardingTemplateItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnboardingTemplateItem.ProtoReflect.Descriptor instead.
 func (*OnboardingTemplateItem) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{155}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{161}
 }
 
 func (x *OnboardingTemplateItem) GetKey() string {
@@ -12863,7 +13422,7 @@ type OnboardingTemplate struct {
 
 func (x *OnboardingTemplate) Reset() {
 	*x = OnboardingTemplate{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[156]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[162]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12875,7 +13434,7 @@ func (x *OnboardingTemplate) String() string {
 func (*OnboardingTemplate) ProtoMessage() {}
 
 func (x *OnboardingTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[156]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[162]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12888,7 +13447,7 @@ func (x *OnboardingTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnboardingTemplate.ProtoReflect.Descriptor instead.
 func (*OnboardingTemplate) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{156}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{162}
 }
 
 func (x *OnboardingTemplate) GetId() string {
@@ -12928,7 +13487,7 @@ type ListOnboardingTemplatesResponse struct {
 
 func (x *ListOnboardingTemplatesResponse) Reset() {
 	*x = ListOnboardingTemplatesResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[157]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[163]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12940,7 +13499,7 @@ func (x *ListOnboardingTemplatesResponse) String() string {
 func (*ListOnboardingTemplatesResponse) ProtoMessage() {}
 
 func (x *ListOnboardingTemplatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[157]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[163]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12953,7 +13512,7 @@ func (x *ListOnboardingTemplatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOnboardingTemplatesResponse.ProtoReflect.Descriptor instead.
 func (*ListOnboardingTemplatesResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{157}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{163}
 }
 
 func (x *ListOnboardingTemplatesResponse) GetTemplates() []*OnboardingTemplate {
@@ -12972,7 +13531,7 @@ type PublicOnboardingRequest struct {
 
 func (x *PublicOnboardingRequest) Reset() {
 	*x = PublicOnboardingRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[158]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[164]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12984,7 +13543,7 @@ func (x *PublicOnboardingRequest) String() string {
 func (*PublicOnboardingRequest) ProtoMessage() {}
 
 func (x *PublicOnboardingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[158]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[164]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12997,7 +13556,7 @@ func (x *PublicOnboardingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicOnboardingRequest.ProtoReflect.Descriptor instead.
 func (*PublicOnboardingRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{158}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{164}
 }
 
 func (x *PublicOnboardingRequest) GetToken() string {
@@ -13017,7 +13576,7 @@ type PublicOnboardingStep struct {
 
 func (x *PublicOnboardingStep) Reset() {
 	*x = PublicOnboardingStep{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[159]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[165]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13029,7 +13588,7 @@ func (x *PublicOnboardingStep) String() string {
 func (*PublicOnboardingStep) ProtoMessage() {}
 
 func (x *PublicOnboardingStep) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[159]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[165]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13042,7 +13601,7 @@ func (x *PublicOnboardingStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicOnboardingStep.ProtoReflect.Descriptor instead.
 func (*PublicOnboardingStep) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{159}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{165}
 }
 
 func (x *PublicOnboardingStep) GetTitle() string {
@@ -13074,7 +13633,7 @@ type PublicOnboarding struct {
 
 func (x *PublicOnboarding) Reset() {
 	*x = PublicOnboarding{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[160]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[166]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13086,7 +13645,7 @@ func (x *PublicOnboarding) String() string {
 func (*PublicOnboarding) ProtoMessage() {}
 
 func (x *PublicOnboarding) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[160]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[166]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13099,7 +13658,7 @@ func (x *PublicOnboarding) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicOnboarding.ProtoReflect.Descriptor instead.
 func (*PublicOnboarding) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{160}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{166}
 }
 
 func (x *PublicOnboarding) GetClientName() string {
@@ -13161,7 +13720,7 @@ type SubmitPublicBriefRequest struct {
 
 func (x *SubmitPublicBriefRequest) Reset() {
 	*x = SubmitPublicBriefRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[161]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[167]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13173,7 +13732,7 @@ func (x *SubmitPublicBriefRequest) String() string {
 func (*SubmitPublicBriefRequest) ProtoMessage() {}
 
 func (x *SubmitPublicBriefRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[161]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[167]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13186,7 +13745,7 @@ func (x *SubmitPublicBriefRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitPublicBriefRequest.ProtoReflect.Descriptor instead.
 func (*SubmitPublicBriefRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{161}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{167}
 }
 
 func (x *SubmitPublicBriefRequest) GetToken() string {
@@ -13214,7 +13773,7 @@ type UploadPublicAssetRequest struct {
 
 func (x *UploadPublicAssetRequest) Reset() {
 	*x = UploadPublicAssetRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[162]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[168]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13226,7 +13785,7 @@ func (x *UploadPublicAssetRequest) String() string {
 func (*UploadPublicAssetRequest) ProtoMessage() {}
 
 func (x *UploadPublicAssetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[162]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[168]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13239,7 +13798,7 @@ func (x *UploadPublicAssetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadPublicAssetRequest.ProtoReflect.Descriptor instead.
 func (*UploadPublicAssetRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{162}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{168}
 }
 
 func (x *UploadPublicAssetRequest) GetToken() string {
@@ -13295,7 +13854,7 @@ type Conversation struct {
 
 func (x *Conversation) Reset() {
 	*x = Conversation{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[163]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[169]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13307,7 +13866,7 @@ func (x *Conversation) String() string {
 func (*Conversation) ProtoMessage() {}
 
 func (x *Conversation) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[163]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[169]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13320,7 +13879,7 @@ func (x *Conversation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Conversation.ProtoReflect.Descriptor instead.
 func (*Conversation) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{163}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{169}
 }
 
 func (x *Conversation) GetId() string {
@@ -13496,7 +14055,7 @@ type ChatMessage struct {
 
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[164]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[170]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13508,7 +14067,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[164]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[170]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13521,7 +14080,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{164}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{170}
 }
 
 func (x *ChatMessage) GetId() string {
@@ -13592,7 +14151,7 @@ type ConversationNote struct {
 
 func (x *ConversationNote) Reset() {
 	*x = ConversationNote{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[165]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[171]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13604,7 +14163,7 @@ func (x *ConversationNote) String() string {
 func (*ConversationNote) ProtoMessage() {}
 
 func (x *ConversationNote) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[165]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[171]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13617,7 +14176,7 @@ func (x *ConversationNote) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConversationNote.ProtoReflect.Descriptor instead.
 func (*ConversationNote) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{165}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{171}
 }
 
 func (x *ConversationNote) GetId() string {
@@ -13666,7 +14225,7 @@ type ConversationInsight struct {
 
 func (x *ConversationInsight) Reset() {
 	*x = ConversationInsight{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[166]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[172]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13678,7 +14237,7 @@ func (x *ConversationInsight) String() string {
 func (*ConversationInsight) ProtoMessage() {}
 
 func (x *ConversationInsight) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[166]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[172]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13691,7 +14250,7 @@ func (x *ConversationInsight) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConversationInsight.ProtoReflect.Descriptor instead.
 func (*ConversationInsight) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{166}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{172}
 }
 
 func (x *ConversationInsight) GetSummary() string {
@@ -13762,7 +14321,7 @@ type ConversationDetail struct {
 
 func (x *ConversationDetail) Reset() {
 	*x = ConversationDetail{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[167]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[173]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13774,7 +14333,7 @@ func (x *ConversationDetail) String() string {
 func (*ConversationDetail) ProtoMessage() {}
 
 func (x *ConversationDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[167]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[173]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13787,7 +14346,7 @@ func (x *ConversationDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConversationDetail.ProtoReflect.Descriptor instead.
 func (*ConversationDetail) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{167}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{173}
 }
 
 func (x *ConversationDetail) GetConversation() *Conversation {
@@ -13831,7 +14390,7 @@ type ListConversationsRequest struct {
 
 func (x *ListConversationsRequest) Reset() {
 	*x = ListConversationsRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[168]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[174]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13843,7 +14402,7 @@ func (x *ListConversationsRequest) String() string {
 func (*ListConversationsRequest) ProtoMessage() {}
 
 func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[168]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[174]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13856,7 +14415,7 @@ func (x *ListConversationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsRequest.ProtoReflect.Descriptor instead.
 func (*ListConversationsRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{168}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{174}
 }
 
 func (x *ListConversationsRequest) GetStatus() string {
@@ -13903,7 +14462,7 @@ type ListConversationsResponse struct {
 
 func (x *ListConversationsResponse) Reset() {
 	*x = ListConversationsResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[169]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[175]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13915,7 +14474,7 @@ func (x *ListConversationsResponse) String() string {
 func (*ListConversationsResponse) ProtoMessage() {}
 
 func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[169]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[175]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13928,7 +14487,7 @@ func (x *ListConversationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConversationsResponse.ProtoReflect.Descriptor instead.
 func (*ListConversationsResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{169}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{175}
 }
 
 func (x *ListConversationsResponse) GetConversations() []*Conversation {
@@ -13948,7 +14507,7 @@ type ReplyConversationRequest struct {
 
 func (x *ReplyConversationRequest) Reset() {
 	*x = ReplyConversationRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[170]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[176]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13960,7 +14519,7 @@ func (x *ReplyConversationRequest) String() string {
 func (*ReplyConversationRequest) ProtoMessage() {}
 
 func (x *ReplyConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[170]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[176]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13973,7 +14532,7 @@ func (x *ReplyConversationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplyConversationRequest.ProtoReflect.Descriptor instead.
 func (*ReplyConversationRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{170}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{176}
 }
 
 func (x *ReplyConversationRequest) GetId() string {
@@ -14004,7 +14563,7 @@ type ConversationActionRequest struct {
 
 func (x *ConversationActionRequest) Reset() {
 	*x = ConversationActionRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[171]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[177]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14016,7 +14575,7 @@ func (x *ConversationActionRequest) String() string {
 func (*ConversationActionRequest) ProtoMessage() {}
 
 func (x *ConversationActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[171]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[177]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14029,7 +14588,7 @@ func (x *ConversationActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConversationActionRequest.ProtoReflect.Descriptor instead.
 func (*ConversationActionRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{171}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{177}
 }
 
 func (x *ConversationActionRequest) GetId() string {
@@ -14070,7 +14629,7 @@ type AddConversationNoteRequest struct {
 
 func (x *AddConversationNoteRequest) Reset() {
 	*x = AddConversationNoteRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[172]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[178]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14082,7 +14641,7 @@ func (x *AddConversationNoteRequest) String() string {
 func (*AddConversationNoteRequest) ProtoMessage() {}
 
 func (x *AddConversationNoteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[172]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[178]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14095,7 +14654,7 @@ func (x *AddConversationNoteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddConversationNoteRequest.ProtoReflect.Descriptor instead.
 func (*AddConversationNoteRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{172}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{178}
 }
 
 func (x *AddConversationNoteRequest) GetId() string {
@@ -14124,7 +14683,7 @@ type ReplyTemplate struct {
 
 func (x *ReplyTemplate) Reset() {
 	*x = ReplyTemplate{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[173]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[179]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14136,7 +14695,7 @@ func (x *ReplyTemplate) String() string {
 func (*ReplyTemplate) ProtoMessage() {}
 
 func (x *ReplyTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[173]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[179]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14149,7 +14708,7 @@ func (x *ReplyTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplyTemplate.ProtoReflect.Descriptor instead.
 func (*ReplyTemplate) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{173}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{179}
 }
 
 func (x *ReplyTemplate) GetId() string {
@@ -14189,7 +14748,7 @@ type ListReplyTemplatesResponse struct {
 
 func (x *ListReplyTemplatesResponse) Reset() {
 	*x = ListReplyTemplatesResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[174]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[180]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14201,7 +14760,7 @@ func (x *ListReplyTemplatesResponse) String() string {
 func (*ListReplyTemplatesResponse) ProtoMessage() {}
 
 func (x *ListReplyTemplatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[174]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[180]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14214,7 +14773,7 @@ func (x *ListReplyTemplatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListReplyTemplatesResponse.ProtoReflect.Descriptor instead.
 func (*ListReplyTemplatesResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{174}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{180}
 }
 
 func (x *ListReplyTemplatesResponse) GetTemplates() []*ReplyTemplate {
@@ -14249,7 +14808,7 @@ type ChatbotSettings struct {
 
 func (x *ChatbotSettings) Reset() {
 	*x = ChatbotSettings{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[175]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[181]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14261,7 +14820,7 @@ func (x *ChatbotSettings) String() string {
 func (*ChatbotSettings) ProtoMessage() {}
 
 func (x *ChatbotSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[175]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[181]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14274,7 +14833,7 @@ func (x *ChatbotSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatbotSettings.ProtoReflect.Descriptor instead.
 func (*ChatbotSettings) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{175}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{181}
 }
 
 func (x *ChatbotSettings) GetEnabled() bool {
@@ -14381,7 +14940,7 @@ type StartPublicChatRequest struct {
 
 func (x *StartPublicChatRequest) Reset() {
 	*x = StartPublicChatRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[176]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[182]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14393,7 +14952,7 @@ func (x *StartPublicChatRequest) String() string {
 func (*StartPublicChatRequest) ProtoMessage() {}
 
 func (x *StartPublicChatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[176]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[182]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14406,7 +14965,7 @@ func (x *StartPublicChatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartPublicChatRequest.ProtoReflect.Descriptor instead.
 func (*StartPublicChatRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{176}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{182}
 }
 
 func (x *StartPublicChatRequest) GetName() string {
@@ -14457,7 +15016,7 @@ type PublicChat struct {
 
 func (x *PublicChat) Reset() {
 	*x = PublicChat{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[177]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[183]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14469,7 +15028,7 @@ func (x *PublicChat) String() string {
 func (*PublicChat) ProtoMessage() {}
 
 func (x *PublicChat) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[177]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[183]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14482,7 +15041,7 @@ func (x *PublicChat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicChat.ProtoReflect.Descriptor instead.
 func (*PublicChat) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{177}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{183}
 }
 
 func (x *PublicChat) GetToken() string {
@@ -14523,7 +15082,7 @@ type SendPublicChatRequest struct {
 
 func (x *SendPublicChatRequest) Reset() {
 	*x = SendPublicChatRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[178]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[184]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14535,7 +15094,7 @@ func (x *SendPublicChatRequest) String() string {
 func (*SendPublicChatRequest) ProtoMessage() {}
 
 func (x *SendPublicChatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[178]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[184]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14548,7 +15107,7 @@ func (x *SendPublicChatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendPublicChatRequest.ProtoReflect.Descriptor instead.
 func (*SendPublicChatRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{178}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{184}
 }
 
 func (x *SendPublicChatRequest) GetToken() string {
@@ -14576,7 +15135,7 @@ type PollPublicChatRequest struct {
 
 func (x *PollPublicChatRequest) Reset() {
 	*x = PollPublicChatRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[179]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[185]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14588,7 +15147,7 @@ func (x *PollPublicChatRequest) String() string {
 func (*PollPublicChatRequest) ProtoMessage() {}
 
 func (x *PollPublicChatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[179]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[185]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14601,7 +15160,7 @@ func (x *PollPublicChatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PollPublicChatRequest.ProtoReflect.Descriptor instead.
 func (*PollPublicChatRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{179}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{185}
 }
 
 func (x *PollPublicChatRequest) GetToken() string {
@@ -14633,7 +15192,7 @@ type WhatsAppInbound struct {
 
 func (x *WhatsAppInbound) Reset() {
 	*x = WhatsAppInbound{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[180]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[186]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14645,7 +15204,7 @@ func (x *WhatsAppInbound) String() string {
 func (*WhatsAppInbound) ProtoMessage() {}
 
 func (x *WhatsAppInbound) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[180]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[186]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14658,7 +15217,7 @@ func (x *WhatsAppInbound) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WhatsAppInbound.ProtoReflect.Descriptor instead.
 func (*WhatsAppInbound) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{180}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{186}
 }
 
 func (x *WhatsAppInbound) GetRemoteJid() string {
@@ -14720,7 +15279,7 @@ type ReceiveWhatsAppRequest struct {
 
 func (x *ReceiveWhatsAppRequest) Reset() {
 	*x = ReceiveWhatsAppRequest{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[181]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[187]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14732,7 +15291,7 @@ func (x *ReceiveWhatsAppRequest) String() string {
 func (*ReceiveWhatsAppRequest) ProtoMessage() {}
 
 func (x *ReceiveWhatsAppRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[181]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[187]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14745,7 +15304,7 @@ func (x *ReceiveWhatsAppRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiveWhatsAppRequest.ProtoReflect.Descriptor instead.
 func (*ReceiveWhatsAppRequest) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{181}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{187}
 }
 
 func (x *ReceiveWhatsAppRequest) GetMessages() []*WhatsAppInbound {
@@ -14773,7 +15332,7 @@ type ReceiveWhatsAppResponse struct {
 
 func (x *ReceiveWhatsAppResponse) Reset() {
 	*x = ReceiveWhatsAppResponse{}
-	mi := &file_white_sales_v1_sales_proto_msgTypes[182]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[188]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14785,7 +15344,7 @@ func (x *ReceiveWhatsAppResponse) String() string {
 func (*ReceiveWhatsAppResponse) ProtoMessage() {}
 
 func (x *ReceiveWhatsAppResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_white_sales_v1_sales_proto_msgTypes[182]
+	mi := &file_white_sales_v1_sales_proto_msgTypes[188]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14798,7 +15357,7 @@ func (x *ReceiveWhatsAppResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiveWhatsAppResponse.ProtoReflect.Descriptor instead.
 func (*ReceiveWhatsAppResponse) Descriptor() ([]byte, []int) {
-	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{182}
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{188}
 }
 
 func (x *ReceiveWhatsAppResponse) GetSuccess() bool {
@@ -14940,7 +15499,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\"C\n" +
 	"\x12ListOwnersResponse\x12-\n" +
-	"\x06owners\x18\x01 \x03(\v2\x15.white.sales.v1.OwnerR\x06owners\"\xd5\x03\n" +
+	"\x06owners\x18\x01 \x03(\v2\x15.white.sales.v1.OwnerR\x06owners\"\x99\x05\n" +
 	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -14959,7 +15518,12 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xe4\x02\n" +
+	"updated_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1b\n" +
+	"\tbank_name\x18\x10 \x01(\tR\bbankName\x12&\n" +
+	"\x0fbank_account_no\x18\x11 \x01(\tR\rbankAccountNo\x12*\n" +
+	"\x11bank_account_name\x18\x12 \x01(\tR\x0fbankAccountName\x12#\n" +
+	"\rbilling_email\x18\x13 \x01(\tR\fbillingEmail\x12,\n" +
+	"\x12payment_terms_days\x18\x14 \x01(\x05R\x10paymentTermsDays\"\xa8\x04\n" +
 	"\fAccountInput\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -14974,7 +15538,12 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	" \x01(\tR\x04npwp\x12\x14\n" +
 	"\x05notes\x18\v \x01(\tR\x05notes\x12\"\n" +
 	"\rowner_user_id\x18\f \x01(\tR\vownerUserId\x12/\n" +
-	"\x06custom\x18\r \x01(\v2\x17.google.protobuf.StructR\x06custom\"9\n" +
+	"\x06custom\x18\r \x01(\v2\x17.google.protobuf.StructR\x06custom\x12\x1b\n" +
+	"\tbank_name\x18\x0e \x01(\tR\bbankName\x12&\n" +
+	"\x0fbank_account_no\x18\x0f \x01(\tR\rbankAccountNo\x12*\n" +
+	"\x11bank_account_name\x18\x10 \x01(\tR\x0fbankAccountName\x12#\n" +
+	"\rbilling_email\x18\x11 \x01(\tR\fbillingEmail\x12,\n" +
+	"\x12payment_terms_days\x18\x12 \x01(\x05R\x10paymentTermsDays\"9\n" +
 	"\x13ListAccountsRequest\x12\f\n" +
 	"\x01q\x18\x01 \x01(\tR\x01q\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\"K\n" +
@@ -15446,7 +16015,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1d\n" +
 	"\n" +
 	"next_level\x18\x02 \x01(\x05R\tnextLevel\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"\x87\x04\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"\x89\x05\n" +
 	"\aInvoice\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\adeal_id\x18\x02 \x01(\tR\x06dealId\x12\x1d\n" +
@@ -15468,13 +16037,19 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\n" +
 	"paid_total\x18\x0f \x01(\tR\tpaidTotal\x129\n" +
 	"\n" +
-	"created_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x92\x01\n" +
+	"created_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x12\n" +
+	"\x04note\x18\x11 \x01(\tR\x04note\x12*\n" +
+	"\x11faktur_pajak_name\x18\x12 \x01(\tR\x0ffakturPajakName\x12!\n" +
+	"\fquote_number\x18\x13 \x01(\tR\vquoteNumber\x12\x1d\n" +
+	"\n" +
+	"term_label\x18\x14 \x01(\tR\ttermLabel\"\xa0\x01\n" +
 	"\x13ListInvoicesRequest\x12\x17\n" +
 	"\adeal_id\x18\x01 \x01(\tR\x06dealId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x1b\n" +
 	"\tdate_from\x18\x04 \x01(\tR\bdateFrom\x12\x17\n" +
-	"\adate_to\x18\x05 \x01(\tR\x06dateTo\"K\n" +
+	"\adate_to\x18\x05 \x01(\tR\x06dateTo\x12\f\n" +
+	"\x01q\x18\x06 \x01(\tR\x01q\"K\n" +
 	"\x14ListInvoicesResponse\x123\n" +
 	"\binvoices\x18\x01 \x03(\v2\x17.white.sales.v1.InvoiceR\binvoices\"\xb4\x01\n" +
 	"\x14SubmitInvoiceRequest\x12\x17\n" +
@@ -15486,7 +16061,45 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\bdue_date\x18\x06 \x01(\tR\adueDate\">\n" +
 	"\x14CancelInvoiceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x88\x02\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\x8e\x03\n" +
+	"\x0fInvoiceFollowup\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x02 \x01(\tR\tinvoiceId\x12%\n" +
+	"\x0einvoice_number\x18\x03 \x01(\tR\rinvoiceNumber\x12\x17\n" +
+	"\adeal_id\x18\x04 \x01(\tR\x06dealId\x12\x1f\n" +
+	"\vclient_name\x18\x05 \x01(\tR\n" +
+	"clientName\x12\x14\n" +
+	"\x05stage\x18\x06 \x01(\x05R\x05stage\x12\x14\n" +
+	"\x05phone\x18\a \x01(\tR\x05phone\x12\x18\n" +
+	"\amessage\x18\b \x01(\tR\amessage\x12\x16\n" +
+	"\x06status\x18\t \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"last_error\x18\n" +
+	" \x01(\tR\tlastError\x123\n" +
+	"\asent_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\x06sentAt\x129\n" +
+	"\n" +
+	"created_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"K\n" +
+	"\x1bListInvoiceFollowupsRequest\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"\x88\x01\n" +
+	"\x1cListInvoiceFollowupsResponse\x12=\n" +
+	"\tfollowups\x18\x01 \x03(\v2\x1f.white.sales.v1.InvoiceFollowupR\tfollowups\x12)\n" +
+	"\x10whatsapp_enabled\x18\x02 \x01(\bR\x0fwhatsappEnabled\"_\n" +
+	"\x1dApproveInvoiceFollowupRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05phone\x18\x02 \x01(\tR\x05phone\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"\x83\x01\n" +
+	"\x14UpdateInvoiceRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\x12\x16\n" +
+	"\x06amount\x18\x03 \x01(\tR\x06amount\x12\x19\n" +
+	"\bdue_date\x18\x04 \x01(\tR\adueDate\x12\x12\n" +
+	"\x04note\x18\x05 \x01(\tR\x04note\"a\n" +
+	"\x1fUploadInvoiceFakturPajakRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x12\n" +
+	"\x04data\x18\x03 \x01(\fR\x04data\"\x88\x02\n" +
 	"\aPayment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\adeal_id\x18\x02 \x01(\tR\x06dealId\x12\x1d\n" +
@@ -16306,7 +16919,7 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x10SaveApprovalRule\x12\x1c.white.sales.v1.ApprovalRule\x1a\x1c.white.sales.v1.ApprovalRule\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/sales/approval-rules\x12n\n" +
 	"\x12DeleteApprovalRule\x12\x19.white.sales.v1.IdRequest\x1a\x16.google.protobuf.Empty\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/v1/sales/approval-rules/{id}\x12y\n" +
 	"\rListApprovals\x12$.white.sales.v1.ListApprovalsRequest\x1a%.white.sales.v1.ListApprovalsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/sales/approvals\x12\x8b\x01\n" +
-	"\x0eDecideApproval\x12%.white.sales.v1.DecideApprovalRequest\x1a&.white.sales.v1.DecideApprovalResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/sales/approvals/{id}:decide2\x8f\t\n" +
+	"\x0eDecideApproval\x12%.white.sales.v1.DecideApprovalRequest\x1a&.white.sales.v1.DecideApprovalResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/sales/approvals/{id}:decide2\xf0\x0f\n" +
 	"\x0eBillingService\x12u\n" +
 	"\fListInvoices\x12#.white.sales.v1.ListInvoicesRequest\x1a$.white.sales.v1.ListInvoicesResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/v1/sales/invoices\x12a\n" +
 	"\n" +
@@ -16314,8 +16927,15 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\rSubmitInvoice\x12$.white.sales.v1.SubmitInvoiceRequest\x1a\x17.white.sales.v1.Invoice\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/v1/sales/deals/{deal_id}/invoices\x12\x89\x01\n" +
 	"\x17SubmitInvoicesFromTerms\x12\x19.white.sales.v1.IdRequest\x1a$.white.sales.v1.ListInvoicesResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/v1/sales/quotations/{id}:invoices\x12l\n" +
 	"\fIssueInvoice\x12\x19.white.sales.v1.IdRequest\x1a\x17.white.sales.v1.Invoice\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/v1/sales/invoices/{id}:issue\x12y\n" +
-	"\rCancelInvoice\x12$.white.sales.v1.CancelInvoiceRequest\x1a\x17.white.sales.v1.Invoice\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/sales/invoices/{id}:cancel\x12C\n" +
-	"\x10RenderInvoicePdf\x12\x19.white.sales.v1.IdRequest\x1a\x14.white.sales.v1.File\x12\x85\x01\n" +
+	"\rCancelInvoice\x12$.white.sales.v1.CancelInvoiceRequest\x1a\x17.white.sales.v1.Invoice\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/sales/invoices/{id}:cancel\x12r\n" +
+	"\rUpdateInvoice\x12$.white.sales.v1.UpdateInvoiceRequest\x1a\x17.white.sales.v1.Invoice\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*2\x17/v1/sales/invoices/{id}\x12C\n" +
+	"\x10RenderInvoicePdf\x12\x19.white.sales.v1.IdRequest\x1a\x14.white.sales.v1.File\x12d\n" +
+	"\x18UploadInvoiceFakturPajak\x12/.white.sales.v1.UploadInvoiceFakturPajakRequest\x1a\x17.white.sales.v1.Invoice\x12H\n" +
+	"\x15GetInvoiceFakturPajak\x12\x19.white.sales.v1.IdRequest\x1a\x14.white.sales.v1.File\x12|\n" +
+	"\x18DeleteInvoiceFakturPajak\x12\x19.white.sales.v1.IdRequest\x1a\x17.white.sales.v1.Invoice\",\x82\xd3\xe4\x93\x02&*$/v1/sales/invoices/{id}/faktur-pajak\x12\x96\x01\n" +
+	"\x14ListInvoiceFollowups\x12+.white.sales.v1.ListInvoiceFollowupsRequest\x1a,.white.sales.v1.ListInvoiceFollowupsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/sales/invoice-followups\x12\x9d\x01\n" +
+	"\x16ApproveInvoiceFollowup\x12-.white.sales.v1.ApproveInvoiceFollowupRequest\x1a\x1f.white.sales.v1.InvoiceFollowup\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/v1/sales/invoice-followups/{id}:approve\x12\x83\x01\n" +
+	"\x13SkipInvoiceFollowup\x12\x19.white.sales.v1.IdRequest\x1a\x1f.white.sales.v1.InvoiceFollowup\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/v1/sales/invoice-followups/{id}:skip\x12\x85\x01\n" +
 	"\fListPayments\x12#.white.sales.v1.ListPaymentsRequest\x1a$.white.sales.v1.ListPaymentsResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/sales/deals/{deal_id}/payments\x12}\n" +
 	"\rRecordPayment\x12$.white.sales.v1.RecordPaymentRequest\x1a\x17.white.sales.v1.Payment\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/v1/sales/deals/{deal_id}/payments\x12c\n" +
 	"\rDeletePayment\x12\x19.white.sales.v1.IdRequest\x1a\x16.google.protobuf.Empty\"\x1f\x82\xd3\xe4\x93\x02\x19*\x17/v1/sales/payments/{id}2\xcc\t\n" +
@@ -16409,7 +17029,7 @@ func file_white_sales_v1_sales_proto_rawDescGZIP() []byte {
 	return file_white_sales_v1_sales_proto_rawDescData
 }
 
-var file_white_sales_v1_sales_proto_msgTypes = make([]protoimpl.MessageInfo, 188)
+var file_white_sales_v1_sales_proto_msgTypes = make([]protoimpl.MessageInfo, 194)
 var file_white_sales_v1_sales_proto_goTypes = []any{
 	(*File)(nil),                            // 0: white.sales.v1.File
 	(*IdRequest)(nil),                       // 1: white.sales.v1.IdRequest
@@ -16488,180 +17108,186 @@ var file_white_sales_v1_sales_proto_goTypes = []any{
 	(*ListInvoicesResponse)(nil),            // 74: white.sales.v1.ListInvoicesResponse
 	(*SubmitInvoiceRequest)(nil),            // 75: white.sales.v1.SubmitInvoiceRequest
 	(*CancelInvoiceRequest)(nil),            // 76: white.sales.v1.CancelInvoiceRequest
-	(*Payment)(nil),                         // 77: white.sales.v1.Payment
-	(*ListPaymentsRequest)(nil),             // 78: white.sales.v1.ListPaymentsRequest
-	(*ListPaymentsResponse)(nil),            // 79: white.sales.v1.ListPaymentsResponse
-	(*RecordPaymentRequest)(nil),            // 80: white.sales.v1.RecordPaymentRequest
-	(*SalesTarget)(nil),                     // 81: white.sales.v1.SalesTarget
-	(*ListTargetsRequest)(nil),              // 82: white.sales.v1.ListTargetsRequest
-	(*ListTargetsResponse)(nil),             // 83: white.sales.v1.ListTargetsResponse
-	(*SaveTargetsRequest)(nil),              // 84: white.sales.v1.SaveTargetsRequest
-	(*GetForecastRequest)(nil),              // 85: white.sales.v1.GetForecastRequest
-	(*ForecastRow)(nil),                     // 86: white.sales.v1.ForecastRow
-	(*Forecast)(nil),                        // 87: white.sales.v1.Forecast
-	(*GetFunnelReportRequest)(nil),          // 88: white.sales.v1.GetFunnelReportRequest
-	(*FunnelStage)(nil),                     // 89: white.sales.v1.FunnelStage
-	(*FunnelSource)(nil),                    // 90: white.sales.v1.FunnelSource
-	(*FunnelReason)(nil),                    // 91: white.sales.v1.FunnelReason
-	(*FunnelReport)(nil),                    // 92: white.sales.v1.FunnelReport
-	(*DashboardRequest)(nil),                // 93: white.sales.v1.DashboardRequest
-	(*DashboardPeriod)(nil),                 // 94: white.sales.v1.DashboardPeriod
-	(*DashboardKpi)(nil),                    // 95: white.sales.v1.DashboardKpi
-	(*DashboardSeries)(nil),                 // 96: white.sales.v1.DashboardSeries
-	(*DashboardSlice)(nil),                  // 97: white.sales.v1.DashboardSlice
-	(*DashboardSummary)(nil),                // 98: white.sales.v1.DashboardSummary
-	(*DashboardDeal)(nil),                   // 99: white.sales.v1.DashboardDeal
-	(*DashboardPipeline)(nil),               // 100: white.sales.v1.DashboardPipeline
-	(*DashboardSales)(nil),                  // 101: white.sales.v1.DashboardSales
-	(*DashboardMember)(nil),                 // 102: white.sales.v1.DashboardMember
-	(*DashboardTeam)(nil),                   // 103: white.sales.v1.DashboardTeam
-	(*DashboardLeads)(nil),                  // 104: white.sales.v1.DashboardLeads
-	(*DashboardInvoice)(nil),                // 105: white.sales.v1.DashboardInvoice
-	(*DashboardTerm)(nil),                   // 106: white.sales.v1.DashboardTerm
-	(*DashboardBilling)(nil),                // 107: white.sales.v1.DashboardBilling
-	(*WorkflowCondition)(nil),               // 108: white.sales.v1.WorkflowCondition
-	(*WorkflowAction)(nil),                  // 109: white.sales.v1.WorkflowAction
-	(*WorkflowRule)(nil),                    // 110: white.sales.v1.WorkflowRule
-	(*ListWorkflowRulesResponse)(nil),       // 111: white.sales.v1.ListWorkflowRulesResponse
-	(*WorkflowRun)(nil),                     // 112: white.sales.v1.WorkflowRun
-	(*ListWorkflowRunsResponse)(nil),        // 113: white.sales.v1.ListWorkflowRunsResponse
-	(*ScoringRule)(nil),                     // 114: white.sales.v1.ScoringRule
-	(*ListScoringRulesResponse)(nil),        // 115: white.sales.v1.ListScoringRulesResponse
-	(*RecalculateScoresResponse)(nil),       // 116: white.sales.v1.RecalculateScoresResponse
-	(*FormField)(nil),                       // 117: white.sales.v1.FormField
-	(*LeadForm)(nil),                        // 118: white.sales.v1.LeadForm
-	(*ListFormsResponse)(nil),               // 119: white.sales.v1.ListFormsResponse
-	(*FormSubmission)(nil),                  // 120: white.sales.v1.FormSubmission
-	(*ListFormSubmissionsResponse)(nil),     // 121: white.sales.v1.ListFormSubmissionsResponse
-	(*PublicFormRequest)(nil),               // 122: white.sales.v1.PublicFormRequest
-	(*PublicForm)(nil),                      // 123: white.sales.v1.PublicForm
-	(*SubmitPublicFormRequest)(nil),         // 124: white.sales.v1.SubmitPublicFormRequest
-	(*SubmitPublicFormFieldError)(nil),      // 125: white.sales.v1.SubmitPublicFormFieldError
-	(*SubmitPublicFormResponse)(nil),        // 126: white.sales.v1.SubmitPublicFormResponse
-	(*ContractTemplate)(nil),                // 127: white.sales.v1.ContractTemplate
-	(*ListContractTemplatesResponse)(nil),   // 128: white.sales.v1.ListContractTemplatesResponse
-	(*Contract)(nil),                        // 129: white.sales.v1.Contract
-	(*ListContractsRequest)(nil),            // 130: white.sales.v1.ListContractsRequest
-	(*ListContractsResponse)(nil),           // 131: white.sales.v1.ListContractsResponse
-	(*GenerateContractRequest)(nil),         // 132: white.sales.v1.GenerateContractRequest
-	(*UpdateContractRequest)(nil),           // 133: white.sales.v1.UpdateContractRequest
-	(*SetContractStatusRequest)(nil),        // 134: white.sales.v1.SetContractStatusRequest
-	(*RenderContractPdfRequest)(nil),        // 135: white.sales.v1.RenderContractPdfRequest
-	(*PublicContractRequest)(nil),           // 136: white.sales.v1.PublicContractRequest
-	(*PublicContract)(nil),                  // 137: white.sales.v1.PublicContract
-	(*SignPublicContractRequest)(nil),       // 138: white.sales.v1.SignPublicContractRequest
-	(*DeckOptions)(nil),                     // 139: white.sales.v1.DeckOptions
-	(*Slide)(nil),                           // 140: white.sales.v1.Slide
-	(*PitchDeck)(nil),                       // 141: white.sales.v1.PitchDeck
-	(*ListPitchDecksRequest)(nil),           // 142: white.sales.v1.ListPitchDecksRequest
-	(*ListPitchDecksResponse)(nil),          // 143: white.sales.v1.ListPitchDecksResponse
-	(*GeneratePitchDeckRequest)(nil),        // 144: white.sales.v1.GeneratePitchDeckRequest
-	(*CaseStudy)(nil),                       // 145: white.sales.v1.CaseStudy
-	(*ListCaseStudiesResponse)(nil),         // 146: white.sales.v1.ListCaseStudiesResponse
-	(*OnboardingItem)(nil),                  // 147: white.sales.v1.OnboardingItem
-	(*OnboardingAsset)(nil),                 // 148: white.sales.v1.OnboardingAsset
-	(*Onboarding)(nil),                      // 149: white.sales.v1.Onboarding
-	(*ListOnboardingsRequest)(nil),          // 150: white.sales.v1.ListOnboardingsRequest
-	(*ListOnboardingsResponse)(nil),         // 151: white.sales.v1.ListOnboardingsResponse
-	(*StartOnboardingRequest)(nil),          // 152: white.sales.v1.StartOnboardingRequest
-	(*UpdateOnboardingItemRequest)(nil),     // 153: white.sales.v1.UpdateOnboardingItemRequest
-	(*CreateMarketingClientRequest)(nil),    // 154: white.sales.v1.CreateMarketingClientRequest
-	(*OnboardingTemplateItem)(nil),          // 155: white.sales.v1.OnboardingTemplateItem
-	(*OnboardingTemplate)(nil),              // 156: white.sales.v1.OnboardingTemplate
-	(*ListOnboardingTemplatesResponse)(nil), // 157: white.sales.v1.ListOnboardingTemplatesResponse
-	(*PublicOnboardingRequest)(nil),         // 158: white.sales.v1.PublicOnboardingRequest
-	(*PublicOnboardingStep)(nil),            // 159: white.sales.v1.PublicOnboardingStep
-	(*PublicOnboarding)(nil),                // 160: white.sales.v1.PublicOnboarding
-	(*SubmitPublicBriefRequest)(nil),        // 161: white.sales.v1.SubmitPublicBriefRequest
-	(*UploadPublicAssetRequest)(nil),        // 162: white.sales.v1.UploadPublicAssetRequest
-	(*Conversation)(nil),                    // 163: white.sales.v1.Conversation
-	(*ChatMessage)(nil),                     // 164: white.sales.v1.ChatMessage
-	(*ConversationNote)(nil),                // 165: white.sales.v1.ConversationNote
-	(*ConversationInsight)(nil),             // 166: white.sales.v1.ConversationInsight
-	(*ConversationDetail)(nil),              // 167: white.sales.v1.ConversationDetail
-	(*ListConversationsRequest)(nil),        // 168: white.sales.v1.ListConversationsRequest
-	(*ListConversationsResponse)(nil),       // 169: white.sales.v1.ListConversationsResponse
-	(*ReplyConversationRequest)(nil),        // 170: white.sales.v1.ReplyConversationRequest
-	(*ConversationActionRequest)(nil),       // 171: white.sales.v1.ConversationActionRequest
-	(*AddConversationNoteRequest)(nil),      // 172: white.sales.v1.AddConversationNoteRequest
-	(*ReplyTemplate)(nil),                   // 173: white.sales.v1.ReplyTemplate
-	(*ListReplyTemplatesResponse)(nil),      // 174: white.sales.v1.ListReplyTemplatesResponse
-	(*ChatbotSettings)(nil),                 // 175: white.sales.v1.ChatbotSettings
-	(*StartPublicChatRequest)(nil),          // 176: white.sales.v1.StartPublicChatRequest
-	(*PublicChat)(nil),                      // 177: white.sales.v1.PublicChat
-	(*SendPublicChatRequest)(nil),           // 178: white.sales.v1.SendPublicChatRequest
-	(*PollPublicChatRequest)(nil),           // 179: white.sales.v1.PollPublicChatRequest
-	(*WhatsAppInbound)(nil),                 // 180: white.sales.v1.WhatsAppInbound
-	(*ReceiveWhatsAppRequest)(nil),          // 181: white.sales.v1.ReceiveWhatsAppRequest
-	(*ReceiveWhatsAppResponse)(nil),         // 182: white.sales.v1.ReceiveWhatsAppResponse
-	nil,                                     // 183: white.sales.v1.FunnelReport.ServiceLineWinsEntry
-	nil,                                     // 184: white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
-	nil,                                     // 185: white.sales.v1.Onboarding.BriefEntry
-	nil,                                     // 186: white.sales.v1.PublicOnboarding.BriefEntry
-	nil,                                     // 187: white.sales.v1.SubmitPublicBriefRequest.BriefEntry
-	(*structpb.Struct)(nil),                 // 188: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),           // 189: google.protobuf.Timestamp
-	(*structpb.Value)(nil),                  // 190: google.protobuf.Value
-	(*structpb.ListValue)(nil),              // 191: google.protobuf.ListValue
-	(*emptypb.Empty)(nil),                   // 192: google.protobuf.Empty
+	(*InvoiceFollowup)(nil),                 // 77: white.sales.v1.InvoiceFollowup
+	(*ListInvoiceFollowupsRequest)(nil),     // 78: white.sales.v1.ListInvoiceFollowupsRequest
+	(*ListInvoiceFollowupsResponse)(nil),    // 79: white.sales.v1.ListInvoiceFollowupsResponse
+	(*ApproveInvoiceFollowupRequest)(nil),   // 80: white.sales.v1.ApproveInvoiceFollowupRequest
+	(*UpdateInvoiceRequest)(nil),            // 81: white.sales.v1.UpdateInvoiceRequest
+	(*UploadInvoiceFakturPajakRequest)(nil), // 82: white.sales.v1.UploadInvoiceFakturPajakRequest
+	(*Payment)(nil),                         // 83: white.sales.v1.Payment
+	(*ListPaymentsRequest)(nil),             // 84: white.sales.v1.ListPaymentsRequest
+	(*ListPaymentsResponse)(nil),            // 85: white.sales.v1.ListPaymentsResponse
+	(*RecordPaymentRequest)(nil),            // 86: white.sales.v1.RecordPaymentRequest
+	(*SalesTarget)(nil),                     // 87: white.sales.v1.SalesTarget
+	(*ListTargetsRequest)(nil),              // 88: white.sales.v1.ListTargetsRequest
+	(*ListTargetsResponse)(nil),             // 89: white.sales.v1.ListTargetsResponse
+	(*SaveTargetsRequest)(nil),              // 90: white.sales.v1.SaveTargetsRequest
+	(*GetForecastRequest)(nil),              // 91: white.sales.v1.GetForecastRequest
+	(*ForecastRow)(nil),                     // 92: white.sales.v1.ForecastRow
+	(*Forecast)(nil),                        // 93: white.sales.v1.Forecast
+	(*GetFunnelReportRequest)(nil),          // 94: white.sales.v1.GetFunnelReportRequest
+	(*FunnelStage)(nil),                     // 95: white.sales.v1.FunnelStage
+	(*FunnelSource)(nil),                    // 96: white.sales.v1.FunnelSource
+	(*FunnelReason)(nil),                    // 97: white.sales.v1.FunnelReason
+	(*FunnelReport)(nil),                    // 98: white.sales.v1.FunnelReport
+	(*DashboardRequest)(nil),                // 99: white.sales.v1.DashboardRequest
+	(*DashboardPeriod)(nil),                 // 100: white.sales.v1.DashboardPeriod
+	(*DashboardKpi)(nil),                    // 101: white.sales.v1.DashboardKpi
+	(*DashboardSeries)(nil),                 // 102: white.sales.v1.DashboardSeries
+	(*DashboardSlice)(nil),                  // 103: white.sales.v1.DashboardSlice
+	(*DashboardSummary)(nil),                // 104: white.sales.v1.DashboardSummary
+	(*DashboardDeal)(nil),                   // 105: white.sales.v1.DashboardDeal
+	(*DashboardPipeline)(nil),               // 106: white.sales.v1.DashboardPipeline
+	(*DashboardSales)(nil),                  // 107: white.sales.v1.DashboardSales
+	(*DashboardMember)(nil),                 // 108: white.sales.v1.DashboardMember
+	(*DashboardTeam)(nil),                   // 109: white.sales.v1.DashboardTeam
+	(*DashboardLeads)(nil),                  // 110: white.sales.v1.DashboardLeads
+	(*DashboardInvoice)(nil),                // 111: white.sales.v1.DashboardInvoice
+	(*DashboardTerm)(nil),                   // 112: white.sales.v1.DashboardTerm
+	(*DashboardBilling)(nil),                // 113: white.sales.v1.DashboardBilling
+	(*WorkflowCondition)(nil),               // 114: white.sales.v1.WorkflowCondition
+	(*WorkflowAction)(nil),                  // 115: white.sales.v1.WorkflowAction
+	(*WorkflowRule)(nil),                    // 116: white.sales.v1.WorkflowRule
+	(*ListWorkflowRulesResponse)(nil),       // 117: white.sales.v1.ListWorkflowRulesResponse
+	(*WorkflowRun)(nil),                     // 118: white.sales.v1.WorkflowRun
+	(*ListWorkflowRunsResponse)(nil),        // 119: white.sales.v1.ListWorkflowRunsResponse
+	(*ScoringRule)(nil),                     // 120: white.sales.v1.ScoringRule
+	(*ListScoringRulesResponse)(nil),        // 121: white.sales.v1.ListScoringRulesResponse
+	(*RecalculateScoresResponse)(nil),       // 122: white.sales.v1.RecalculateScoresResponse
+	(*FormField)(nil),                       // 123: white.sales.v1.FormField
+	(*LeadForm)(nil),                        // 124: white.sales.v1.LeadForm
+	(*ListFormsResponse)(nil),               // 125: white.sales.v1.ListFormsResponse
+	(*FormSubmission)(nil),                  // 126: white.sales.v1.FormSubmission
+	(*ListFormSubmissionsResponse)(nil),     // 127: white.sales.v1.ListFormSubmissionsResponse
+	(*PublicFormRequest)(nil),               // 128: white.sales.v1.PublicFormRequest
+	(*PublicForm)(nil),                      // 129: white.sales.v1.PublicForm
+	(*SubmitPublicFormRequest)(nil),         // 130: white.sales.v1.SubmitPublicFormRequest
+	(*SubmitPublicFormFieldError)(nil),      // 131: white.sales.v1.SubmitPublicFormFieldError
+	(*SubmitPublicFormResponse)(nil),        // 132: white.sales.v1.SubmitPublicFormResponse
+	(*ContractTemplate)(nil),                // 133: white.sales.v1.ContractTemplate
+	(*ListContractTemplatesResponse)(nil),   // 134: white.sales.v1.ListContractTemplatesResponse
+	(*Contract)(nil),                        // 135: white.sales.v1.Contract
+	(*ListContractsRequest)(nil),            // 136: white.sales.v1.ListContractsRequest
+	(*ListContractsResponse)(nil),           // 137: white.sales.v1.ListContractsResponse
+	(*GenerateContractRequest)(nil),         // 138: white.sales.v1.GenerateContractRequest
+	(*UpdateContractRequest)(nil),           // 139: white.sales.v1.UpdateContractRequest
+	(*SetContractStatusRequest)(nil),        // 140: white.sales.v1.SetContractStatusRequest
+	(*RenderContractPdfRequest)(nil),        // 141: white.sales.v1.RenderContractPdfRequest
+	(*PublicContractRequest)(nil),           // 142: white.sales.v1.PublicContractRequest
+	(*PublicContract)(nil),                  // 143: white.sales.v1.PublicContract
+	(*SignPublicContractRequest)(nil),       // 144: white.sales.v1.SignPublicContractRequest
+	(*DeckOptions)(nil),                     // 145: white.sales.v1.DeckOptions
+	(*Slide)(nil),                           // 146: white.sales.v1.Slide
+	(*PitchDeck)(nil),                       // 147: white.sales.v1.PitchDeck
+	(*ListPitchDecksRequest)(nil),           // 148: white.sales.v1.ListPitchDecksRequest
+	(*ListPitchDecksResponse)(nil),          // 149: white.sales.v1.ListPitchDecksResponse
+	(*GeneratePitchDeckRequest)(nil),        // 150: white.sales.v1.GeneratePitchDeckRequest
+	(*CaseStudy)(nil),                       // 151: white.sales.v1.CaseStudy
+	(*ListCaseStudiesResponse)(nil),         // 152: white.sales.v1.ListCaseStudiesResponse
+	(*OnboardingItem)(nil),                  // 153: white.sales.v1.OnboardingItem
+	(*OnboardingAsset)(nil),                 // 154: white.sales.v1.OnboardingAsset
+	(*Onboarding)(nil),                      // 155: white.sales.v1.Onboarding
+	(*ListOnboardingsRequest)(nil),          // 156: white.sales.v1.ListOnboardingsRequest
+	(*ListOnboardingsResponse)(nil),         // 157: white.sales.v1.ListOnboardingsResponse
+	(*StartOnboardingRequest)(nil),          // 158: white.sales.v1.StartOnboardingRequest
+	(*UpdateOnboardingItemRequest)(nil),     // 159: white.sales.v1.UpdateOnboardingItemRequest
+	(*CreateMarketingClientRequest)(nil),    // 160: white.sales.v1.CreateMarketingClientRequest
+	(*OnboardingTemplateItem)(nil),          // 161: white.sales.v1.OnboardingTemplateItem
+	(*OnboardingTemplate)(nil),              // 162: white.sales.v1.OnboardingTemplate
+	(*ListOnboardingTemplatesResponse)(nil), // 163: white.sales.v1.ListOnboardingTemplatesResponse
+	(*PublicOnboardingRequest)(nil),         // 164: white.sales.v1.PublicOnboardingRequest
+	(*PublicOnboardingStep)(nil),            // 165: white.sales.v1.PublicOnboardingStep
+	(*PublicOnboarding)(nil),                // 166: white.sales.v1.PublicOnboarding
+	(*SubmitPublicBriefRequest)(nil),        // 167: white.sales.v1.SubmitPublicBriefRequest
+	(*UploadPublicAssetRequest)(nil),        // 168: white.sales.v1.UploadPublicAssetRequest
+	(*Conversation)(nil),                    // 169: white.sales.v1.Conversation
+	(*ChatMessage)(nil),                     // 170: white.sales.v1.ChatMessage
+	(*ConversationNote)(nil),                // 171: white.sales.v1.ConversationNote
+	(*ConversationInsight)(nil),             // 172: white.sales.v1.ConversationInsight
+	(*ConversationDetail)(nil),              // 173: white.sales.v1.ConversationDetail
+	(*ListConversationsRequest)(nil),        // 174: white.sales.v1.ListConversationsRequest
+	(*ListConversationsResponse)(nil),       // 175: white.sales.v1.ListConversationsResponse
+	(*ReplyConversationRequest)(nil),        // 176: white.sales.v1.ReplyConversationRequest
+	(*ConversationActionRequest)(nil),       // 177: white.sales.v1.ConversationActionRequest
+	(*AddConversationNoteRequest)(nil),      // 178: white.sales.v1.AddConversationNoteRequest
+	(*ReplyTemplate)(nil),                   // 179: white.sales.v1.ReplyTemplate
+	(*ListReplyTemplatesResponse)(nil),      // 180: white.sales.v1.ListReplyTemplatesResponse
+	(*ChatbotSettings)(nil),                 // 181: white.sales.v1.ChatbotSettings
+	(*StartPublicChatRequest)(nil),          // 182: white.sales.v1.StartPublicChatRequest
+	(*PublicChat)(nil),                      // 183: white.sales.v1.PublicChat
+	(*SendPublicChatRequest)(nil),           // 184: white.sales.v1.SendPublicChatRequest
+	(*PollPublicChatRequest)(nil),           // 185: white.sales.v1.PollPublicChatRequest
+	(*WhatsAppInbound)(nil),                 // 186: white.sales.v1.WhatsAppInbound
+	(*ReceiveWhatsAppRequest)(nil),          // 187: white.sales.v1.ReceiveWhatsAppRequest
+	(*ReceiveWhatsAppResponse)(nil),         // 188: white.sales.v1.ReceiveWhatsAppResponse
+	nil,                                     // 189: white.sales.v1.FunnelReport.ServiceLineWinsEntry
+	nil,                                     // 190: white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
+	nil,                                     // 191: white.sales.v1.Onboarding.BriefEntry
+	nil,                                     // 192: white.sales.v1.PublicOnboarding.BriefEntry
+	nil,                                     // 193: white.sales.v1.SubmitPublicBriefRequest.BriefEntry
+	(*structpb.Struct)(nil),                 // 194: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),           // 195: google.protobuf.Timestamp
+	(*structpb.Value)(nil),                  // 196: google.protobuf.Value
+	(*structpb.ListValue)(nil),              // 197: google.protobuf.ListValue
+	(*emptypb.Empty)(nil),                   // 198: google.protobuf.Empty
 }
 var file_white_sales_v1_sales_proto_depIdxs = []int32{
-	188, // 0: white.sales.v1.Lead.custom:type_name -> google.protobuf.Struct
+	194, // 0: white.sales.v1.Lead.custom:type_name -> google.protobuf.Struct
 	3,   // 1: white.sales.v1.Lead.score_breakdown:type_name -> white.sales.v1.ScoreItem
 	2,   // 2: white.sales.v1.Lead.attribution:type_name -> white.sales.v1.Attribution
-	189, // 3: white.sales.v1.Lead.created_at:type_name -> google.protobuf.Timestamp
-	189, // 4: white.sales.v1.Lead.updated_at:type_name -> google.protobuf.Timestamp
-	188, // 5: white.sales.v1.LeadInput.custom:type_name -> google.protobuf.Struct
+	195, // 3: white.sales.v1.Lead.created_at:type_name -> google.protobuf.Timestamp
+	195, // 4: white.sales.v1.Lead.updated_at:type_name -> google.protobuf.Timestamp
+	194, // 5: white.sales.v1.LeadInput.custom:type_name -> google.protobuf.Struct
 	2,   // 6: white.sales.v1.LeadInput.attribution:type_name -> white.sales.v1.Attribution
 	4,   // 7: white.sales.v1.ListLeadsResponse.leads:type_name -> white.sales.v1.Lead
 	4,   // 8: white.sales.v1.LeadDetail.lead:type_name -> white.sales.v1.Lead
 	31,  // 9: white.sales.v1.LeadDetail.deals:type_name -> white.sales.v1.Deal
 	43,  // 10: white.sales.v1.LeadDetail.activities:type_name -> white.sales.v1.Activity
-	163, // 11: white.sales.v1.LeadDetail.conversations:type_name -> white.sales.v1.Conversation
+	169, // 11: white.sales.v1.LeadDetail.conversations:type_name -> white.sales.v1.Conversation
 	10,  // 12: white.sales.v1.ImportLeadsResponse.errors:type_name -> white.sales.v1.ImportRowError
 	12,  // 13: white.sales.v1.ListOwnersResponse.owners:type_name -> white.sales.v1.Owner
-	188, // 14: white.sales.v1.Account.custom:type_name -> google.protobuf.Struct
-	189, // 15: white.sales.v1.Account.created_at:type_name -> google.protobuf.Timestamp
-	189, // 16: white.sales.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
-	188, // 17: white.sales.v1.AccountInput.custom:type_name -> google.protobuf.Struct
+	194, // 14: white.sales.v1.Account.custom:type_name -> google.protobuf.Struct
+	195, // 15: white.sales.v1.Account.created_at:type_name -> google.protobuf.Timestamp
+	195, // 16: white.sales.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
+	194, // 17: white.sales.v1.AccountInput.custom:type_name -> google.protobuf.Struct
 	14,  // 18: white.sales.v1.ListAccountsResponse.accounts:type_name -> white.sales.v1.Account
 	14,  // 19: white.sales.v1.AccountDetail.account:type_name -> white.sales.v1.Account
 	19,  // 20: white.sales.v1.AccountDetail.contacts:type_name -> white.sales.v1.Contact
 	31,  // 21: white.sales.v1.AccountDetail.deals:type_name -> white.sales.v1.Deal
-	188, // 22: white.sales.v1.Contact.custom:type_name -> google.protobuf.Struct
-	189, // 23: white.sales.v1.Contact.created_at:type_name -> google.protobuf.Timestamp
-	188, // 24: white.sales.v1.ContactInput.custom:type_name -> google.protobuf.Struct
+	194, // 22: white.sales.v1.Contact.custom:type_name -> google.protobuf.Struct
+	195, // 23: white.sales.v1.Contact.created_at:type_name -> google.protobuf.Timestamp
+	194, // 24: white.sales.v1.ContactInput.custom:type_name -> google.protobuf.Struct
 	19,  // 25: white.sales.v1.ListContactsResponse.contacts:type_name -> white.sales.v1.Contact
 	23,  // 26: white.sales.v1.ListCustomFieldsResponse.fields:type_name -> white.sales.v1.CustomField
 	26,  // 27: white.sales.v1.Pipeline.stages:type_name -> white.sales.v1.Stage
 	27,  // 28: white.sales.v1.ListPipelinesResponse.pipelines:type_name -> white.sales.v1.Pipeline
 	29,  // 29: white.sales.v1.ListLostReasonsResponse.reasons:type_name -> white.sales.v1.LostReason
-	189, // 30: white.sales.v1.Deal.entered_stage_at:type_name -> google.protobuf.Timestamp
-	189, // 31: white.sales.v1.Deal.closed_at:type_name -> google.protobuf.Timestamp
-	188, // 32: white.sales.v1.Deal.custom:type_name -> google.protobuf.Struct
-	189, // 33: white.sales.v1.Deal.created_at:type_name -> google.protobuf.Timestamp
-	189, // 34: white.sales.v1.Deal.updated_at:type_name -> google.protobuf.Timestamp
-	188, // 35: white.sales.v1.DealInput.custom:type_name -> google.protobuf.Struct
+	195, // 30: white.sales.v1.Deal.entered_stage_at:type_name -> google.protobuf.Timestamp
+	195, // 31: white.sales.v1.Deal.closed_at:type_name -> google.protobuf.Timestamp
+	194, // 32: white.sales.v1.Deal.custom:type_name -> google.protobuf.Struct
+	195, // 33: white.sales.v1.Deal.created_at:type_name -> google.protobuf.Timestamp
+	195, // 34: white.sales.v1.Deal.updated_at:type_name -> google.protobuf.Timestamp
+	194, // 35: white.sales.v1.DealInput.custom:type_name -> google.protobuf.Struct
 	31,  // 36: white.sales.v1.ListDealsResponse.deals:type_name -> white.sales.v1.Deal
 	36,  // 37: white.sales.v1.SetDealMembersRequest.members:type_name -> white.sales.v1.DealMember
 	36,  // 38: white.sales.v1.SetDealMembersResponse.members:type_name -> white.sales.v1.DealMember
-	189, // 39: white.sales.v1.StageHistoryEntry.entered_at:type_name -> google.protobuf.Timestamp
+	195, // 39: white.sales.v1.StageHistoryEntry.entered_at:type_name -> google.protobuf.Timestamp
 	31,  // 40: white.sales.v1.DealDetail.deal:type_name -> white.sales.v1.Deal
 	36,  // 41: white.sales.v1.DealDetail.members:type_name -> white.sales.v1.DealMember
 	39,  // 42: white.sales.v1.DealDetail.stage_history:type_name -> white.sales.v1.StageHistoryEntry
 	55,  // 43: white.sales.v1.DealDetail.quotations:type_name -> white.sales.v1.Quotation
 	72,  // 44: white.sales.v1.DealDetail.invoices:type_name -> white.sales.v1.Invoice
-	77,  // 45: white.sales.v1.DealDetail.payments:type_name -> white.sales.v1.Payment
+	83,  // 45: white.sales.v1.DealDetail.payments:type_name -> white.sales.v1.Payment
 	40,  // 46: white.sales.v1.DealDetail.term_progress:type_name -> white.sales.v1.TermProgress
-	129, // 47: white.sales.v1.DealDetail.contracts:type_name -> white.sales.v1.Contract
-	149, // 48: white.sales.v1.DealDetail.onboarding:type_name -> white.sales.v1.Onboarding
-	189, // 49: white.sales.v1.Activity.due_at:type_name -> google.protobuf.Timestamp
-	189, // 50: white.sales.v1.Activity.done_at:type_name -> google.protobuf.Timestamp
-	189, // 51: white.sales.v1.Activity.reminder_at:type_name -> google.protobuf.Timestamp
+	135, // 47: white.sales.v1.DealDetail.contracts:type_name -> white.sales.v1.Contract
+	155, // 48: white.sales.v1.DealDetail.onboarding:type_name -> white.sales.v1.Onboarding
+	195, // 49: white.sales.v1.Activity.due_at:type_name -> google.protobuf.Timestamp
+	195, // 50: white.sales.v1.Activity.done_at:type_name -> google.protobuf.Timestamp
+	195, // 51: white.sales.v1.Activity.reminder_at:type_name -> google.protobuf.Timestamp
 	42,  // 52: white.sales.v1.Activity.recurrence:type_name -> white.sales.v1.Recurrence
-	189, // 53: white.sales.v1.Activity.created_at:type_name -> google.protobuf.Timestamp
-	189, // 54: white.sales.v1.ActivityInput.due_at:type_name -> google.protobuf.Timestamp
-	189, // 55: white.sales.v1.ActivityInput.reminder_at:type_name -> google.protobuf.Timestamp
+	195, // 53: white.sales.v1.Activity.created_at:type_name -> google.protobuf.Timestamp
+	195, // 54: white.sales.v1.ActivityInput.due_at:type_name -> google.protobuf.Timestamp
+	195, // 55: white.sales.v1.ActivityInput.reminder_at:type_name -> google.protobuf.Timestamp
 	42,  // 56: white.sales.v1.ActivityInput.recurrence:type_name -> white.sales.v1.Recurrence
 	43,  // 57: white.sales.v1.ListActivitiesResponse.activities:type_name -> white.sales.v1.Activity
 	47,  // 58: white.sales.v1.CatalogItem.tiers:type_name -> white.sales.v1.CatalogTier
@@ -16669,408 +17295,425 @@ var file_white_sales_v1_sales_proto_depIdxs = []int32{
 	51,  // 60: white.sales.v1.RetainerDiscounts.rules:type_name -> white.sales.v1.RetainerDiscount
 	53,  // 61: white.sales.v1.Quotation.items:type_name -> white.sales.v1.QuotationItem
 	54,  // 62: white.sales.v1.Quotation.terms:type_name -> white.sales.v1.QuotationTerm
-	189, // 63: white.sales.v1.Quotation.sent_at:type_name -> google.protobuf.Timestamp
-	189, // 64: white.sales.v1.Quotation.created_at:type_name -> google.protobuf.Timestamp
-	189, // 65: white.sales.v1.Quotation.updated_at:type_name -> google.protobuf.Timestamp
+	195, // 63: white.sales.v1.Quotation.sent_at:type_name -> google.protobuf.Timestamp
+	195, // 64: white.sales.v1.Quotation.created_at:type_name -> google.protobuf.Timestamp
+	195, // 65: white.sales.v1.Quotation.updated_at:type_name -> google.protobuf.Timestamp
 	56,  // 66: white.sales.v1.QuotationInput.items:type_name -> white.sales.v1.QuotationItemInput
 	57,  // 67: white.sales.v1.QuotationInput.terms:type_name -> white.sales.v1.QuotationTermInput
 	55,  // 68: white.sales.v1.ListQuotationsResponse.quotations:type_name -> white.sales.v1.Quotation
 	55,  // 69: white.sales.v1.GenerateQuotationDraftResponse.quotation:type_name -> white.sales.v1.Quotation
 	64,  // 70: white.sales.v1.ListApprovalRulesResponse.rules:type_name -> white.sales.v1.ApprovalRule
-	189, // 71: white.sales.v1.ApprovalStep.decided_at:type_name -> google.protobuf.Timestamp
-	189, // 72: white.sales.v1.ApprovalRequest.created_at:type_name -> google.protobuf.Timestamp
-	189, // 73: white.sales.v1.ApprovalRequest.resolved_at:type_name -> google.protobuf.Timestamp
+	195, // 71: white.sales.v1.ApprovalStep.decided_at:type_name -> google.protobuf.Timestamp
+	195, // 72: white.sales.v1.ApprovalRequest.created_at:type_name -> google.protobuf.Timestamp
+	195, // 73: white.sales.v1.ApprovalRequest.resolved_at:type_name -> google.protobuf.Timestamp
 	66,  // 74: white.sales.v1.ApprovalRequest.steps:type_name -> white.sales.v1.ApprovalStep
 	67,  // 75: white.sales.v1.ListApprovalsResponse.requests:type_name -> white.sales.v1.ApprovalRequest
-	189, // 76: white.sales.v1.Invoice.sent_at:type_name -> google.protobuf.Timestamp
-	189, // 77: white.sales.v1.Invoice.created_at:type_name -> google.protobuf.Timestamp
+	195, // 76: white.sales.v1.Invoice.sent_at:type_name -> google.protobuf.Timestamp
+	195, // 77: white.sales.v1.Invoice.created_at:type_name -> google.protobuf.Timestamp
 	72,  // 78: white.sales.v1.ListInvoicesResponse.invoices:type_name -> white.sales.v1.Invoice
-	189, // 79: white.sales.v1.Payment.created_at:type_name -> google.protobuf.Timestamp
-	77,  // 80: white.sales.v1.ListPaymentsResponse.payments:type_name -> white.sales.v1.Payment
-	81,  // 81: white.sales.v1.ListTargetsResponse.targets:type_name -> white.sales.v1.SalesTarget
-	81,  // 82: white.sales.v1.SaveTargetsRequest.targets:type_name -> white.sales.v1.SalesTarget
-	86,  // 83: white.sales.v1.Forecast.rows:type_name -> white.sales.v1.ForecastRow
-	86,  // 84: white.sales.v1.Forecast.total:type_name -> white.sales.v1.ForecastRow
-	89,  // 85: white.sales.v1.FunnelReport.stages:type_name -> white.sales.v1.FunnelStage
-	90,  // 86: white.sales.v1.FunnelReport.sources:type_name -> white.sales.v1.FunnelSource
-	91,  // 87: white.sales.v1.FunnelReport.lost_reasons:type_name -> white.sales.v1.FunnelReason
-	183, // 88: white.sales.v1.FunnelReport.service_line_wins:type_name -> white.sales.v1.FunnelReport.ServiceLineWinsEntry
-	94,  // 89: white.sales.v1.DashboardSummary.period:type_name -> white.sales.v1.DashboardPeriod
-	95,  // 90: white.sales.v1.DashboardSummary.kpis:type_name -> white.sales.v1.DashboardKpi
-	96,  // 91: white.sales.v1.DashboardSummary.trend:type_name -> white.sales.v1.DashboardSeries
-	97,  // 92: white.sales.v1.DashboardSummary.stages:type_name -> white.sales.v1.DashboardSlice
-	94,  // 93: white.sales.v1.DashboardPipeline.period:type_name -> white.sales.v1.DashboardPeriod
-	95,  // 94: white.sales.v1.DashboardPipeline.kpis:type_name -> white.sales.v1.DashboardKpi
-	97,  // 95: white.sales.v1.DashboardPipeline.funnel:type_name -> white.sales.v1.DashboardSlice
-	97,  // 96: white.sales.v1.DashboardPipeline.stage_lines:type_name -> white.sales.v1.DashboardSlice
-	97,  // 97: white.sales.v1.DashboardPipeline.aging:type_name -> white.sales.v1.DashboardSlice
-	97,  // 98: white.sales.v1.DashboardPipeline.stage_days:type_name -> white.sales.v1.DashboardSlice
-	99,  // 99: white.sales.v1.DashboardPipeline.stuck:type_name -> white.sales.v1.DashboardDeal
-	94,  // 100: white.sales.v1.DashboardSales.period:type_name -> white.sales.v1.DashboardPeriod
-	95,  // 101: white.sales.v1.DashboardSales.kpis:type_name -> white.sales.v1.DashboardKpi
-	96,  // 102: white.sales.v1.DashboardSales.monthly:type_name -> white.sales.v1.DashboardSeries
-	97,  // 103: white.sales.v1.DashboardSales.service_lines:type_name -> white.sales.v1.DashboardSlice
-	97,  // 104: white.sales.v1.DashboardSales.industries:type_name -> white.sales.v1.DashboardSlice
-	97,  // 105: white.sales.v1.DashboardSales.lost_reasons:type_name -> white.sales.v1.DashboardSlice
-	97,  // 106: white.sales.v1.DashboardSales.quote_statuses:type_name -> white.sales.v1.DashboardSlice
-	97,  // 107: white.sales.v1.DashboardSales.sources:type_name -> white.sales.v1.DashboardSlice
-	94,  // 108: white.sales.v1.DashboardTeam.period:type_name -> white.sales.v1.DashboardPeriod
-	95,  // 109: white.sales.v1.DashboardTeam.kpis:type_name -> white.sales.v1.DashboardKpi
-	102, // 110: white.sales.v1.DashboardTeam.members:type_name -> white.sales.v1.DashboardMember
-	96,  // 111: white.sales.v1.DashboardTeam.won_by_owner:type_name -> white.sales.v1.DashboardSeries
-	94,  // 112: white.sales.v1.DashboardLeads.period:type_name -> white.sales.v1.DashboardPeriod
-	95,  // 113: white.sales.v1.DashboardLeads.kpis:type_name -> white.sales.v1.DashboardKpi
-	97,  // 114: white.sales.v1.DashboardLeads.monthly_sources:type_name -> white.sales.v1.DashboardSlice
-	97,  // 115: white.sales.v1.DashboardLeads.sources:type_name -> white.sales.v1.DashboardSlice
-	97,  // 116: white.sales.v1.DashboardLeads.scores:type_name -> white.sales.v1.DashboardSlice
-	96,  // 117: white.sales.v1.DashboardLeads.response:type_name -> white.sales.v1.DashboardSeries
-	97,  // 118: white.sales.v1.DashboardLeads.channels:type_name -> white.sales.v1.DashboardSlice
-	97,  // 119: white.sales.v1.DashboardLeads.forms:type_name -> white.sales.v1.DashboardSlice
-	94,  // 120: white.sales.v1.DashboardBilling.period:type_name -> white.sales.v1.DashboardPeriod
-	95,  // 121: white.sales.v1.DashboardBilling.kpis:type_name -> white.sales.v1.DashboardKpi
-	96,  // 122: white.sales.v1.DashboardBilling.monthly:type_name -> white.sales.v1.DashboardSeries
-	97,  // 123: white.sales.v1.DashboardBilling.aging:type_name -> white.sales.v1.DashboardSlice
-	105, // 124: white.sales.v1.DashboardBilling.overdue:type_name -> white.sales.v1.DashboardInvoice
-	106, // 125: white.sales.v1.DashboardBilling.terms:type_name -> white.sales.v1.DashboardTerm
-	190, // 126: white.sales.v1.WorkflowCondition.value:type_name -> google.protobuf.Value
-	190, // 127: white.sales.v1.WorkflowAction.value:type_name -> google.protobuf.Value
-	188, // 128: white.sales.v1.WorkflowRule.trigger_config:type_name -> google.protobuf.Struct
-	108, // 129: white.sales.v1.WorkflowRule.conditions:type_name -> white.sales.v1.WorkflowCondition
-	109, // 130: white.sales.v1.WorkflowRule.actions:type_name -> white.sales.v1.WorkflowAction
-	189, // 131: white.sales.v1.WorkflowRule.last_run_at:type_name -> google.protobuf.Timestamp
-	110, // 132: white.sales.v1.ListWorkflowRulesResponse.rules:type_name -> white.sales.v1.WorkflowRule
-	191, // 133: white.sales.v1.WorkflowRun.actions_result:type_name -> google.protobuf.ListValue
-	189, // 134: white.sales.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
-	112, // 135: white.sales.v1.ListWorkflowRunsResponse.runs:type_name -> white.sales.v1.WorkflowRun
-	190, // 136: white.sales.v1.ScoringRule.value:type_name -> google.protobuf.Value
-	114, // 137: white.sales.v1.ListScoringRulesResponse.rules:type_name -> white.sales.v1.ScoringRule
-	117, // 138: white.sales.v1.LeadForm.fields:type_name -> white.sales.v1.FormField
-	118, // 139: white.sales.v1.ListFormsResponse.forms:type_name -> white.sales.v1.LeadForm
-	188, // 140: white.sales.v1.FormSubmission.payload:type_name -> google.protobuf.Struct
-	189, // 141: white.sales.v1.FormSubmission.created_at:type_name -> google.protobuf.Timestamp
-	120, // 142: white.sales.v1.ListFormSubmissionsResponse.submissions:type_name -> white.sales.v1.FormSubmission
-	117, // 143: white.sales.v1.PublicForm.fields:type_name -> white.sales.v1.FormField
-	188, // 144: white.sales.v1.SubmitPublicFormRequest.payload:type_name -> google.protobuf.Struct
-	125, // 145: white.sales.v1.SubmitPublicFormResponse.errors:type_name -> white.sales.v1.SubmitPublicFormFieldError
-	127, // 146: white.sales.v1.ListContractTemplatesResponse.templates:type_name -> white.sales.v1.ContractTemplate
-	184, // 147: white.sales.v1.ListContractTemplatesResponse.placeholders:type_name -> white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
-	189, // 148: white.sales.v1.Contract.sent_at:type_name -> google.protobuf.Timestamp
-	189, // 149: white.sales.v1.Contract.signed_at:type_name -> google.protobuf.Timestamp
-	189, // 150: white.sales.v1.Contract.activated_at:type_name -> google.protobuf.Timestamp
-	189, // 151: white.sales.v1.Contract.ended_at:type_name -> google.protobuf.Timestamp
-	189, // 152: white.sales.v1.Contract.cancelled_at:type_name -> google.protobuf.Timestamp
-	189, // 153: white.sales.v1.Contract.created_at:type_name -> google.protobuf.Timestamp
-	129, // 154: white.sales.v1.ListContractsResponse.contracts:type_name -> white.sales.v1.Contract
-	189, // 155: white.sales.v1.PublicContract.signed_at:type_name -> google.protobuf.Timestamp
-	139, // 156: white.sales.v1.PitchDeck.options:type_name -> white.sales.v1.DeckOptions
-	140, // 157: white.sales.v1.PitchDeck.slides:type_name -> white.sales.v1.Slide
-	189, // 158: white.sales.v1.PitchDeck.created_at:type_name -> google.protobuf.Timestamp
-	141, // 159: white.sales.v1.ListPitchDecksResponse.decks:type_name -> white.sales.v1.PitchDeck
-	139, // 160: white.sales.v1.GeneratePitchDeckRequest.options:type_name -> white.sales.v1.DeckOptions
-	145, // 161: white.sales.v1.ListCaseStudiesResponse.case_studies:type_name -> white.sales.v1.CaseStudy
-	189, // 162: white.sales.v1.OnboardingItem.done_at:type_name -> google.protobuf.Timestamp
-	189, // 163: white.sales.v1.OnboardingAsset.created_at:type_name -> google.protobuf.Timestamp
-	185, // 164: white.sales.v1.Onboarding.brief:type_name -> white.sales.v1.Onboarding.BriefEntry
-	189, // 165: white.sales.v1.Onboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
-	147, // 166: white.sales.v1.Onboarding.items:type_name -> white.sales.v1.OnboardingItem
-	148, // 167: white.sales.v1.Onboarding.assets:type_name -> white.sales.v1.OnboardingAsset
-	189, // 168: white.sales.v1.Onboarding.created_at:type_name -> google.protobuf.Timestamp
-	189, // 169: white.sales.v1.Onboarding.completed_at:type_name -> google.protobuf.Timestamp
-	149, // 170: white.sales.v1.ListOnboardingsResponse.onboardings:type_name -> white.sales.v1.Onboarding
-	155, // 171: white.sales.v1.OnboardingTemplate.items:type_name -> white.sales.v1.OnboardingTemplateItem
-	156, // 172: white.sales.v1.ListOnboardingTemplatesResponse.templates:type_name -> white.sales.v1.OnboardingTemplate
-	117, // 173: white.sales.v1.PublicOnboarding.brief_fields:type_name -> white.sales.v1.FormField
-	186, // 174: white.sales.v1.PublicOnboarding.brief:type_name -> white.sales.v1.PublicOnboarding.BriefEntry
-	189, // 175: white.sales.v1.PublicOnboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
-	148, // 176: white.sales.v1.PublicOnboarding.assets:type_name -> white.sales.v1.OnboardingAsset
-	159, // 177: white.sales.v1.PublicOnboarding.steps:type_name -> white.sales.v1.PublicOnboardingStep
-	187, // 178: white.sales.v1.SubmitPublicBriefRequest.brief:type_name -> white.sales.v1.SubmitPublicBriefRequest.BriefEntry
-	189, // 179: white.sales.v1.Conversation.handoff_at:type_name -> google.protobuf.Timestamp
-	189, // 180: white.sales.v1.Conversation.last_message_at:type_name -> google.protobuf.Timestamp
-	189, // 181: white.sales.v1.Conversation.awaiting_since:type_name -> google.protobuf.Timestamp
-	189, // 182: white.sales.v1.Conversation.resolved_at:type_name -> google.protobuf.Timestamp
-	189, // 183: white.sales.v1.Conversation.created_at:type_name -> google.protobuf.Timestamp
-	189, // 184: white.sales.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	189, // 185: white.sales.v1.ConversationNote.created_at:type_name -> google.protobuf.Timestamp
-	189, // 186: white.sales.v1.ConversationInsight.analyzed_at:type_name -> google.protobuf.Timestamp
-	163, // 187: white.sales.v1.ConversationDetail.conversation:type_name -> white.sales.v1.Conversation
-	164, // 188: white.sales.v1.ConversationDetail.messages:type_name -> white.sales.v1.ChatMessage
-	165, // 189: white.sales.v1.ConversationDetail.notes:type_name -> white.sales.v1.ConversationNote
-	166, // 190: white.sales.v1.ConversationDetail.insight:type_name -> white.sales.v1.ConversationInsight
-	163, // 191: white.sales.v1.ListConversationsResponse.conversations:type_name -> white.sales.v1.Conversation
-	173, // 192: white.sales.v1.ListReplyTemplatesResponse.templates:type_name -> white.sales.v1.ReplyTemplate
-	189, // 193: white.sales.v1.ChatbotSettings.updated_at:type_name -> google.protobuf.Timestamp
-	2,   // 194: white.sales.v1.StartPublicChatRequest.attribution:type_name -> white.sales.v1.Attribution
-	164, // 195: white.sales.v1.PublicChat.messages:type_name -> white.sales.v1.ChatMessage
-	189, // 196: white.sales.v1.PollPublicChatRequest.after:type_name -> google.protobuf.Timestamp
-	180, // 197: white.sales.v1.ReceiveWhatsAppRequest.messages:type_name -> white.sales.v1.WhatsAppInbound
-	6,   // 198: white.sales.v1.LeadService.ListLeads:input_type -> white.sales.v1.ListLeadsRequest
-	1,   // 199: white.sales.v1.LeadService.GetLead:input_type -> white.sales.v1.IdRequest
-	5,   // 200: white.sales.v1.LeadService.CreateLead:input_type -> white.sales.v1.LeadInput
-	5,   // 201: white.sales.v1.LeadService.UpdateLead:input_type -> white.sales.v1.LeadInput
-	1,   // 202: white.sales.v1.LeadService.DeleteLead:input_type -> white.sales.v1.IdRequest
-	9,   // 203: white.sales.v1.LeadService.ImportLeads:input_type -> white.sales.v1.ImportLeadsRequest
-	192, // 204: white.sales.v1.LeadService.ListOwners:input_type -> google.protobuf.Empty
-	16,  // 205: white.sales.v1.LeadService.ListAccounts:input_type -> white.sales.v1.ListAccountsRequest
-	1,   // 206: white.sales.v1.LeadService.GetAccount:input_type -> white.sales.v1.IdRequest
-	15,  // 207: white.sales.v1.LeadService.CreateAccount:input_type -> white.sales.v1.AccountInput
-	15,  // 208: white.sales.v1.LeadService.UpdateAccount:input_type -> white.sales.v1.AccountInput
-	1,   // 209: white.sales.v1.LeadService.DeleteAccount:input_type -> white.sales.v1.IdRequest
-	21,  // 210: white.sales.v1.LeadService.ListContacts:input_type -> white.sales.v1.ListContactsRequest
-	20,  // 211: white.sales.v1.LeadService.CreateContact:input_type -> white.sales.v1.ContactInput
-	20,  // 212: white.sales.v1.LeadService.UpdateContact:input_type -> white.sales.v1.ContactInput
-	1,   // 213: white.sales.v1.LeadService.DeleteContact:input_type -> white.sales.v1.IdRequest
-	24,  // 214: white.sales.v1.LeadService.ListCustomFields:input_type -> white.sales.v1.ListCustomFieldsRequest
-	23,  // 215: white.sales.v1.LeadService.SaveCustomField:input_type -> white.sales.v1.CustomField
-	1,   // 216: white.sales.v1.LeadService.DeleteCustomField:input_type -> white.sales.v1.IdRequest
-	192, // 217: white.sales.v1.PipelineService.ListPipelines:input_type -> google.protobuf.Empty
-	27,  // 218: white.sales.v1.PipelineService.SavePipeline:input_type -> white.sales.v1.Pipeline
-	26,  // 219: white.sales.v1.PipelineService.SaveStage:input_type -> white.sales.v1.Stage
-	192, // 220: white.sales.v1.PipelineService.ListLostReasons:input_type -> google.protobuf.Empty
-	33,  // 221: white.sales.v1.PipelineService.ListDeals:input_type -> white.sales.v1.ListDealsRequest
-	1,   // 222: white.sales.v1.PipelineService.GetDeal:input_type -> white.sales.v1.IdRequest
-	32,  // 223: white.sales.v1.PipelineService.CreateDeal:input_type -> white.sales.v1.DealInput
-	32,  // 224: white.sales.v1.PipelineService.UpdateDeal:input_type -> white.sales.v1.DealInput
-	1,   // 225: white.sales.v1.PipelineService.DeleteDeal:input_type -> white.sales.v1.IdRequest
-	35,  // 226: white.sales.v1.PipelineService.MoveDealStage:input_type -> white.sales.v1.MoveDealStageRequest
-	37,  // 227: white.sales.v1.PipelineService.SetDealMembers:input_type -> white.sales.v1.SetDealMembersRequest
-	45,  // 228: white.sales.v1.PipelineService.ListActivities:input_type -> white.sales.v1.ListActivitiesRequest
-	44,  // 229: white.sales.v1.PipelineService.CreateActivity:input_type -> white.sales.v1.ActivityInput
-	44,  // 230: white.sales.v1.PipelineService.UpdateActivity:input_type -> white.sales.v1.ActivityInput
-	1,   // 231: white.sales.v1.PipelineService.DeleteActivity:input_type -> white.sales.v1.IdRequest
-	49,  // 232: white.sales.v1.QuotationService.ListCatalog:input_type -> white.sales.v1.ListCatalogRequest
-	48,  // 233: white.sales.v1.QuotationService.SaveCatalogItem:input_type -> white.sales.v1.CatalogItem
-	192, // 234: white.sales.v1.QuotationService.ListRetainerDiscounts:input_type -> google.protobuf.Empty
-	52,  // 235: white.sales.v1.QuotationService.SaveRetainerDiscounts:input_type -> white.sales.v1.RetainerDiscounts
-	59,  // 236: white.sales.v1.QuotationService.ListQuotations:input_type -> white.sales.v1.ListQuotationsRequest
-	1,   // 237: white.sales.v1.QuotationService.GetQuotation:input_type -> white.sales.v1.IdRequest
-	58,  // 238: white.sales.v1.QuotationService.CreateQuotation:input_type -> white.sales.v1.QuotationInput
-	58,  // 239: white.sales.v1.QuotationService.UpdateQuotation:input_type -> white.sales.v1.QuotationInput
-	61,  // 240: white.sales.v1.QuotationService.SetQuotationStatus:input_type -> white.sales.v1.SetQuotationStatusRequest
-	1,   // 241: white.sales.v1.QuotationService.ReviseQuotation:input_type -> white.sales.v1.IdRequest
-	1,   // 242: white.sales.v1.QuotationService.DeleteQuotation:input_type -> white.sales.v1.IdRequest
-	62,  // 243: white.sales.v1.QuotationService.GenerateQuotationDraft:input_type -> white.sales.v1.GenerateQuotationDraftRequest
-	1,   // 244: white.sales.v1.QuotationService.RenderQuotationPdf:input_type -> white.sales.v1.IdRequest
-	192, // 245: white.sales.v1.QuotationService.ListApprovalRules:input_type -> google.protobuf.Empty
-	64,  // 246: white.sales.v1.QuotationService.SaveApprovalRule:input_type -> white.sales.v1.ApprovalRule
-	1,   // 247: white.sales.v1.QuotationService.DeleteApprovalRule:input_type -> white.sales.v1.IdRequest
-	68,  // 248: white.sales.v1.QuotationService.ListApprovals:input_type -> white.sales.v1.ListApprovalsRequest
-	70,  // 249: white.sales.v1.QuotationService.DecideApproval:input_type -> white.sales.v1.DecideApprovalRequest
-	73,  // 250: white.sales.v1.BillingService.ListInvoices:input_type -> white.sales.v1.ListInvoicesRequest
-	1,   // 251: white.sales.v1.BillingService.GetInvoice:input_type -> white.sales.v1.IdRequest
-	75,  // 252: white.sales.v1.BillingService.SubmitInvoice:input_type -> white.sales.v1.SubmitInvoiceRequest
-	1,   // 253: white.sales.v1.BillingService.SubmitInvoicesFromTerms:input_type -> white.sales.v1.IdRequest
-	1,   // 254: white.sales.v1.BillingService.IssueInvoice:input_type -> white.sales.v1.IdRequest
-	76,  // 255: white.sales.v1.BillingService.CancelInvoice:input_type -> white.sales.v1.CancelInvoiceRequest
-	1,   // 256: white.sales.v1.BillingService.RenderInvoicePdf:input_type -> white.sales.v1.IdRequest
-	78,  // 257: white.sales.v1.BillingService.ListPayments:input_type -> white.sales.v1.ListPaymentsRequest
-	80,  // 258: white.sales.v1.BillingService.RecordPayment:input_type -> white.sales.v1.RecordPaymentRequest
-	1,   // 259: white.sales.v1.BillingService.DeletePayment:input_type -> white.sales.v1.IdRequest
-	82,  // 260: white.sales.v1.InsightService.ListTargets:input_type -> white.sales.v1.ListTargetsRequest
-	84,  // 261: white.sales.v1.InsightService.SaveTargets:input_type -> white.sales.v1.SaveTargetsRequest
-	85,  // 262: white.sales.v1.InsightService.GetForecast:input_type -> white.sales.v1.GetForecastRequest
-	88,  // 263: white.sales.v1.InsightService.GetFunnelReport:input_type -> white.sales.v1.GetFunnelReportRequest
-	93,  // 264: white.sales.v1.InsightService.GetDashboardSummary:input_type -> white.sales.v1.DashboardRequest
-	93,  // 265: white.sales.v1.InsightService.GetDashboardPipeline:input_type -> white.sales.v1.DashboardRequest
-	93,  // 266: white.sales.v1.InsightService.GetDashboardSales:input_type -> white.sales.v1.DashboardRequest
-	93,  // 267: white.sales.v1.InsightService.GetDashboardTeam:input_type -> white.sales.v1.DashboardRequest
-	93,  // 268: white.sales.v1.InsightService.GetDashboardLeads:input_type -> white.sales.v1.DashboardRequest
-	93,  // 269: white.sales.v1.InsightService.GetDashboardBilling:input_type -> white.sales.v1.DashboardRequest
-	192, // 270: white.sales.v1.AutomationService.ListWorkflowRules:input_type -> google.protobuf.Empty
-	110, // 271: white.sales.v1.AutomationService.SaveWorkflowRule:input_type -> white.sales.v1.WorkflowRule
-	1,   // 272: white.sales.v1.AutomationService.DeleteWorkflowRule:input_type -> white.sales.v1.IdRequest
-	1,   // 273: white.sales.v1.AutomationService.ListWorkflowRuns:input_type -> white.sales.v1.IdRequest
-	192, // 274: white.sales.v1.AutomationService.ListScoringRules:input_type -> google.protobuf.Empty
-	114, // 275: white.sales.v1.AutomationService.SaveScoringRule:input_type -> white.sales.v1.ScoringRule
-	1,   // 276: white.sales.v1.AutomationService.DeleteScoringRule:input_type -> white.sales.v1.IdRequest
-	192, // 277: white.sales.v1.AutomationService.RecalculateScores:input_type -> google.protobuf.Empty
-	192, // 278: white.sales.v1.FormService.ListForms:input_type -> google.protobuf.Empty
-	118, // 279: white.sales.v1.FormService.SaveForm:input_type -> white.sales.v1.LeadForm
-	1,   // 280: white.sales.v1.FormService.DeleteForm:input_type -> white.sales.v1.IdRequest
-	1,   // 281: white.sales.v1.FormService.ListFormSubmissions:input_type -> white.sales.v1.IdRequest
-	122, // 282: white.sales.v1.FormService.GetPublicForm:input_type -> white.sales.v1.PublicFormRequest
-	124, // 283: white.sales.v1.FormService.SubmitPublicForm:input_type -> white.sales.v1.SubmitPublicFormRequest
-	192, // 284: white.sales.v1.ContractService.ListContractTemplates:input_type -> google.protobuf.Empty
-	127, // 285: white.sales.v1.ContractService.SaveContractTemplate:input_type -> white.sales.v1.ContractTemplate
-	1,   // 286: white.sales.v1.ContractService.DeleteContractTemplate:input_type -> white.sales.v1.IdRequest
-	130, // 287: white.sales.v1.ContractService.ListContracts:input_type -> white.sales.v1.ListContractsRequest
-	1,   // 288: white.sales.v1.ContractService.GetContract:input_type -> white.sales.v1.IdRequest
-	132, // 289: white.sales.v1.ContractService.GenerateContract:input_type -> white.sales.v1.GenerateContractRequest
-	133, // 290: white.sales.v1.ContractService.UpdateContract:input_type -> white.sales.v1.UpdateContractRequest
-	1,   // 291: white.sales.v1.ContractService.SendContract:input_type -> white.sales.v1.IdRequest
-	134, // 292: white.sales.v1.ContractService.SetContractStatus:input_type -> white.sales.v1.SetContractStatusRequest
-	135, // 293: white.sales.v1.ContractService.RenderContractPdf:input_type -> white.sales.v1.RenderContractPdfRequest
-	136, // 294: white.sales.v1.ContractService.GetPublicContract:input_type -> white.sales.v1.PublicContractRequest
-	138, // 295: white.sales.v1.ContractService.SignPublicContract:input_type -> white.sales.v1.SignPublicContractRequest
-	142, // 296: white.sales.v1.PitchDeckService.ListPitchDecks:input_type -> white.sales.v1.ListPitchDecksRequest
-	1,   // 297: white.sales.v1.PitchDeckService.GetPitchDeck:input_type -> white.sales.v1.IdRequest
-	144, // 298: white.sales.v1.PitchDeckService.GeneratePitchDeck:input_type -> white.sales.v1.GeneratePitchDeckRequest
-	1,   // 299: white.sales.v1.PitchDeckService.GetPitchDeckFile:input_type -> white.sales.v1.IdRequest
-	192, // 300: white.sales.v1.PitchDeckService.ListCaseStudies:input_type -> google.protobuf.Empty
-	145, // 301: white.sales.v1.PitchDeckService.SaveCaseStudy:input_type -> white.sales.v1.CaseStudy
-	1,   // 302: white.sales.v1.PitchDeckService.DeleteCaseStudy:input_type -> white.sales.v1.IdRequest
-	150, // 303: white.sales.v1.OnboardingService.ListOnboardings:input_type -> white.sales.v1.ListOnboardingsRequest
-	1,   // 304: white.sales.v1.OnboardingService.GetOnboarding:input_type -> white.sales.v1.IdRequest
-	152, // 305: white.sales.v1.OnboardingService.StartOnboarding:input_type -> white.sales.v1.StartOnboardingRequest
-	153, // 306: white.sales.v1.OnboardingService.UpdateOnboardingItem:input_type -> white.sales.v1.UpdateOnboardingItemRequest
-	154, // 307: white.sales.v1.OnboardingService.CreateMarketingClient:input_type -> white.sales.v1.CreateMarketingClientRequest
-	192, // 308: white.sales.v1.OnboardingService.ListOnboardingTemplates:input_type -> google.protobuf.Empty
-	156, // 309: white.sales.v1.OnboardingService.SaveOnboardingTemplate:input_type -> white.sales.v1.OnboardingTemplate
-	1,   // 310: white.sales.v1.OnboardingService.GetOnboardingAsset:input_type -> white.sales.v1.IdRequest
-	158, // 311: white.sales.v1.OnboardingService.GetPublicOnboarding:input_type -> white.sales.v1.PublicOnboardingRequest
-	161, // 312: white.sales.v1.OnboardingService.SubmitPublicBrief:input_type -> white.sales.v1.SubmitPublicBriefRequest
-	162, // 313: white.sales.v1.OnboardingService.UploadPublicAsset:input_type -> white.sales.v1.UploadPublicAssetRequest
-	168, // 314: white.sales.v1.ChatService.ListConversations:input_type -> white.sales.v1.ListConversationsRequest
-	1,   // 315: white.sales.v1.ChatService.GetConversation:input_type -> white.sales.v1.IdRequest
-	170, // 316: white.sales.v1.ChatService.ReplyConversation:input_type -> white.sales.v1.ReplyConversationRequest
-	171, // 317: white.sales.v1.ChatService.ConversationAction:input_type -> white.sales.v1.ConversationActionRequest
-	172, // 318: white.sales.v1.ChatService.AddConversationNote:input_type -> white.sales.v1.AddConversationNoteRequest
-	1,   // 319: white.sales.v1.ChatService.AnalyzeConversation:input_type -> white.sales.v1.IdRequest
-	192, // 320: white.sales.v1.ChatService.ListReplyTemplates:input_type -> google.protobuf.Empty
-	173, // 321: white.sales.v1.ChatService.SaveReplyTemplate:input_type -> white.sales.v1.ReplyTemplate
-	1,   // 322: white.sales.v1.ChatService.DeleteReplyTemplate:input_type -> white.sales.v1.IdRequest
-	192, // 323: white.sales.v1.ChatService.GetChatbotSettings:input_type -> google.protobuf.Empty
-	175, // 324: white.sales.v1.ChatService.SaveChatbotSettings:input_type -> white.sales.v1.ChatbotSettings
-	176, // 325: white.sales.v1.ChatService.StartPublicChat:input_type -> white.sales.v1.StartPublicChatRequest
-	178, // 326: white.sales.v1.ChatService.SendPublicChat:input_type -> white.sales.v1.SendPublicChatRequest
-	179, // 327: white.sales.v1.ChatService.PollPublicChat:input_type -> white.sales.v1.PollPublicChatRequest
-	181, // 328: white.sales.v1.ChatService.ReceiveWhatsApp:input_type -> white.sales.v1.ReceiveWhatsAppRequest
-	7,   // 329: white.sales.v1.LeadService.ListLeads:output_type -> white.sales.v1.ListLeadsResponse
-	8,   // 330: white.sales.v1.LeadService.GetLead:output_type -> white.sales.v1.LeadDetail
-	4,   // 331: white.sales.v1.LeadService.CreateLead:output_type -> white.sales.v1.Lead
-	4,   // 332: white.sales.v1.LeadService.UpdateLead:output_type -> white.sales.v1.Lead
-	192, // 333: white.sales.v1.LeadService.DeleteLead:output_type -> google.protobuf.Empty
-	11,  // 334: white.sales.v1.LeadService.ImportLeads:output_type -> white.sales.v1.ImportLeadsResponse
-	13,  // 335: white.sales.v1.LeadService.ListOwners:output_type -> white.sales.v1.ListOwnersResponse
-	17,  // 336: white.sales.v1.LeadService.ListAccounts:output_type -> white.sales.v1.ListAccountsResponse
-	18,  // 337: white.sales.v1.LeadService.GetAccount:output_type -> white.sales.v1.AccountDetail
-	14,  // 338: white.sales.v1.LeadService.CreateAccount:output_type -> white.sales.v1.Account
-	14,  // 339: white.sales.v1.LeadService.UpdateAccount:output_type -> white.sales.v1.Account
-	192, // 340: white.sales.v1.LeadService.DeleteAccount:output_type -> google.protobuf.Empty
-	22,  // 341: white.sales.v1.LeadService.ListContacts:output_type -> white.sales.v1.ListContactsResponse
-	19,  // 342: white.sales.v1.LeadService.CreateContact:output_type -> white.sales.v1.Contact
-	19,  // 343: white.sales.v1.LeadService.UpdateContact:output_type -> white.sales.v1.Contact
-	192, // 344: white.sales.v1.LeadService.DeleteContact:output_type -> google.protobuf.Empty
-	25,  // 345: white.sales.v1.LeadService.ListCustomFields:output_type -> white.sales.v1.ListCustomFieldsResponse
-	23,  // 346: white.sales.v1.LeadService.SaveCustomField:output_type -> white.sales.v1.CustomField
-	192, // 347: white.sales.v1.LeadService.DeleteCustomField:output_type -> google.protobuf.Empty
-	28,  // 348: white.sales.v1.PipelineService.ListPipelines:output_type -> white.sales.v1.ListPipelinesResponse
-	27,  // 349: white.sales.v1.PipelineService.SavePipeline:output_type -> white.sales.v1.Pipeline
-	26,  // 350: white.sales.v1.PipelineService.SaveStage:output_type -> white.sales.v1.Stage
-	30,  // 351: white.sales.v1.PipelineService.ListLostReasons:output_type -> white.sales.v1.ListLostReasonsResponse
-	34,  // 352: white.sales.v1.PipelineService.ListDeals:output_type -> white.sales.v1.ListDealsResponse
-	41,  // 353: white.sales.v1.PipelineService.GetDeal:output_type -> white.sales.v1.DealDetail
-	31,  // 354: white.sales.v1.PipelineService.CreateDeal:output_type -> white.sales.v1.Deal
-	31,  // 355: white.sales.v1.PipelineService.UpdateDeal:output_type -> white.sales.v1.Deal
-	192, // 356: white.sales.v1.PipelineService.DeleteDeal:output_type -> google.protobuf.Empty
-	31,  // 357: white.sales.v1.PipelineService.MoveDealStage:output_type -> white.sales.v1.Deal
-	38,  // 358: white.sales.v1.PipelineService.SetDealMembers:output_type -> white.sales.v1.SetDealMembersResponse
-	46,  // 359: white.sales.v1.PipelineService.ListActivities:output_type -> white.sales.v1.ListActivitiesResponse
-	43,  // 360: white.sales.v1.PipelineService.CreateActivity:output_type -> white.sales.v1.Activity
-	43,  // 361: white.sales.v1.PipelineService.UpdateActivity:output_type -> white.sales.v1.Activity
-	192, // 362: white.sales.v1.PipelineService.DeleteActivity:output_type -> google.protobuf.Empty
-	50,  // 363: white.sales.v1.QuotationService.ListCatalog:output_type -> white.sales.v1.ListCatalogResponse
-	48,  // 364: white.sales.v1.QuotationService.SaveCatalogItem:output_type -> white.sales.v1.CatalogItem
-	52,  // 365: white.sales.v1.QuotationService.ListRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
-	52,  // 366: white.sales.v1.QuotationService.SaveRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
-	60,  // 367: white.sales.v1.QuotationService.ListQuotations:output_type -> white.sales.v1.ListQuotationsResponse
-	55,  // 368: white.sales.v1.QuotationService.GetQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 369: white.sales.v1.QuotationService.CreateQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 370: white.sales.v1.QuotationService.UpdateQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 371: white.sales.v1.QuotationService.SetQuotationStatus:output_type -> white.sales.v1.Quotation
-	55,  // 372: white.sales.v1.QuotationService.ReviseQuotation:output_type -> white.sales.v1.Quotation
-	192, // 373: white.sales.v1.QuotationService.DeleteQuotation:output_type -> google.protobuf.Empty
-	63,  // 374: white.sales.v1.QuotationService.GenerateQuotationDraft:output_type -> white.sales.v1.GenerateQuotationDraftResponse
-	0,   // 375: white.sales.v1.QuotationService.RenderQuotationPdf:output_type -> white.sales.v1.File
-	65,  // 376: white.sales.v1.QuotationService.ListApprovalRules:output_type -> white.sales.v1.ListApprovalRulesResponse
-	64,  // 377: white.sales.v1.QuotationService.SaveApprovalRule:output_type -> white.sales.v1.ApprovalRule
-	192, // 378: white.sales.v1.QuotationService.DeleteApprovalRule:output_type -> google.protobuf.Empty
-	69,  // 379: white.sales.v1.QuotationService.ListApprovals:output_type -> white.sales.v1.ListApprovalsResponse
-	71,  // 380: white.sales.v1.QuotationService.DecideApproval:output_type -> white.sales.v1.DecideApprovalResponse
-	74,  // 381: white.sales.v1.BillingService.ListInvoices:output_type -> white.sales.v1.ListInvoicesResponse
-	72,  // 382: white.sales.v1.BillingService.GetInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 383: white.sales.v1.BillingService.SubmitInvoice:output_type -> white.sales.v1.Invoice
-	74,  // 384: white.sales.v1.BillingService.SubmitInvoicesFromTerms:output_type -> white.sales.v1.ListInvoicesResponse
-	72,  // 385: white.sales.v1.BillingService.IssueInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 386: white.sales.v1.BillingService.CancelInvoice:output_type -> white.sales.v1.Invoice
-	0,   // 387: white.sales.v1.BillingService.RenderInvoicePdf:output_type -> white.sales.v1.File
-	79,  // 388: white.sales.v1.BillingService.ListPayments:output_type -> white.sales.v1.ListPaymentsResponse
-	77,  // 389: white.sales.v1.BillingService.RecordPayment:output_type -> white.sales.v1.Payment
-	192, // 390: white.sales.v1.BillingService.DeletePayment:output_type -> google.protobuf.Empty
-	83,  // 391: white.sales.v1.InsightService.ListTargets:output_type -> white.sales.v1.ListTargetsResponse
-	83,  // 392: white.sales.v1.InsightService.SaveTargets:output_type -> white.sales.v1.ListTargetsResponse
-	87,  // 393: white.sales.v1.InsightService.GetForecast:output_type -> white.sales.v1.Forecast
-	92,  // 394: white.sales.v1.InsightService.GetFunnelReport:output_type -> white.sales.v1.FunnelReport
-	98,  // 395: white.sales.v1.InsightService.GetDashboardSummary:output_type -> white.sales.v1.DashboardSummary
-	100, // 396: white.sales.v1.InsightService.GetDashboardPipeline:output_type -> white.sales.v1.DashboardPipeline
-	101, // 397: white.sales.v1.InsightService.GetDashboardSales:output_type -> white.sales.v1.DashboardSales
-	103, // 398: white.sales.v1.InsightService.GetDashboardTeam:output_type -> white.sales.v1.DashboardTeam
-	104, // 399: white.sales.v1.InsightService.GetDashboardLeads:output_type -> white.sales.v1.DashboardLeads
-	107, // 400: white.sales.v1.InsightService.GetDashboardBilling:output_type -> white.sales.v1.DashboardBilling
-	111, // 401: white.sales.v1.AutomationService.ListWorkflowRules:output_type -> white.sales.v1.ListWorkflowRulesResponse
-	110, // 402: white.sales.v1.AutomationService.SaveWorkflowRule:output_type -> white.sales.v1.WorkflowRule
-	192, // 403: white.sales.v1.AutomationService.DeleteWorkflowRule:output_type -> google.protobuf.Empty
-	113, // 404: white.sales.v1.AutomationService.ListWorkflowRuns:output_type -> white.sales.v1.ListWorkflowRunsResponse
-	115, // 405: white.sales.v1.AutomationService.ListScoringRules:output_type -> white.sales.v1.ListScoringRulesResponse
-	114, // 406: white.sales.v1.AutomationService.SaveScoringRule:output_type -> white.sales.v1.ScoringRule
-	192, // 407: white.sales.v1.AutomationService.DeleteScoringRule:output_type -> google.protobuf.Empty
-	116, // 408: white.sales.v1.AutomationService.RecalculateScores:output_type -> white.sales.v1.RecalculateScoresResponse
-	119, // 409: white.sales.v1.FormService.ListForms:output_type -> white.sales.v1.ListFormsResponse
-	118, // 410: white.sales.v1.FormService.SaveForm:output_type -> white.sales.v1.LeadForm
-	192, // 411: white.sales.v1.FormService.DeleteForm:output_type -> google.protobuf.Empty
-	121, // 412: white.sales.v1.FormService.ListFormSubmissions:output_type -> white.sales.v1.ListFormSubmissionsResponse
-	123, // 413: white.sales.v1.FormService.GetPublicForm:output_type -> white.sales.v1.PublicForm
-	126, // 414: white.sales.v1.FormService.SubmitPublicForm:output_type -> white.sales.v1.SubmitPublicFormResponse
-	128, // 415: white.sales.v1.ContractService.ListContractTemplates:output_type -> white.sales.v1.ListContractTemplatesResponse
-	127, // 416: white.sales.v1.ContractService.SaveContractTemplate:output_type -> white.sales.v1.ContractTemplate
-	192, // 417: white.sales.v1.ContractService.DeleteContractTemplate:output_type -> google.protobuf.Empty
-	131, // 418: white.sales.v1.ContractService.ListContracts:output_type -> white.sales.v1.ListContractsResponse
-	129, // 419: white.sales.v1.ContractService.GetContract:output_type -> white.sales.v1.Contract
-	129, // 420: white.sales.v1.ContractService.GenerateContract:output_type -> white.sales.v1.Contract
-	129, // 421: white.sales.v1.ContractService.UpdateContract:output_type -> white.sales.v1.Contract
-	129, // 422: white.sales.v1.ContractService.SendContract:output_type -> white.sales.v1.Contract
-	129, // 423: white.sales.v1.ContractService.SetContractStatus:output_type -> white.sales.v1.Contract
-	0,   // 424: white.sales.v1.ContractService.RenderContractPdf:output_type -> white.sales.v1.File
-	137, // 425: white.sales.v1.ContractService.GetPublicContract:output_type -> white.sales.v1.PublicContract
-	137, // 426: white.sales.v1.ContractService.SignPublicContract:output_type -> white.sales.v1.PublicContract
-	143, // 427: white.sales.v1.PitchDeckService.ListPitchDecks:output_type -> white.sales.v1.ListPitchDecksResponse
-	141, // 428: white.sales.v1.PitchDeckService.GetPitchDeck:output_type -> white.sales.v1.PitchDeck
-	141, // 429: white.sales.v1.PitchDeckService.GeneratePitchDeck:output_type -> white.sales.v1.PitchDeck
-	0,   // 430: white.sales.v1.PitchDeckService.GetPitchDeckFile:output_type -> white.sales.v1.File
-	146, // 431: white.sales.v1.PitchDeckService.ListCaseStudies:output_type -> white.sales.v1.ListCaseStudiesResponse
-	145, // 432: white.sales.v1.PitchDeckService.SaveCaseStudy:output_type -> white.sales.v1.CaseStudy
-	192, // 433: white.sales.v1.PitchDeckService.DeleteCaseStudy:output_type -> google.protobuf.Empty
-	151, // 434: white.sales.v1.OnboardingService.ListOnboardings:output_type -> white.sales.v1.ListOnboardingsResponse
-	149, // 435: white.sales.v1.OnboardingService.GetOnboarding:output_type -> white.sales.v1.Onboarding
-	149, // 436: white.sales.v1.OnboardingService.StartOnboarding:output_type -> white.sales.v1.Onboarding
-	149, // 437: white.sales.v1.OnboardingService.UpdateOnboardingItem:output_type -> white.sales.v1.Onboarding
-	149, // 438: white.sales.v1.OnboardingService.CreateMarketingClient:output_type -> white.sales.v1.Onboarding
-	157, // 439: white.sales.v1.OnboardingService.ListOnboardingTemplates:output_type -> white.sales.v1.ListOnboardingTemplatesResponse
-	156, // 440: white.sales.v1.OnboardingService.SaveOnboardingTemplate:output_type -> white.sales.v1.OnboardingTemplate
-	0,   // 441: white.sales.v1.OnboardingService.GetOnboardingAsset:output_type -> white.sales.v1.File
-	160, // 442: white.sales.v1.OnboardingService.GetPublicOnboarding:output_type -> white.sales.v1.PublicOnboarding
-	160, // 443: white.sales.v1.OnboardingService.SubmitPublicBrief:output_type -> white.sales.v1.PublicOnboarding
-	160, // 444: white.sales.v1.OnboardingService.UploadPublicAsset:output_type -> white.sales.v1.PublicOnboarding
-	169, // 445: white.sales.v1.ChatService.ListConversations:output_type -> white.sales.v1.ListConversationsResponse
-	167, // 446: white.sales.v1.ChatService.GetConversation:output_type -> white.sales.v1.ConversationDetail
-	167, // 447: white.sales.v1.ChatService.ReplyConversation:output_type -> white.sales.v1.ConversationDetail
-	163, // 448: white.sales.v1.ChatService.ConversationAction:output_type -> white.sales.v1.Conversation
-	165, // 449: white.sales.v1.ChatService.AddConversationNote:output_type -> white.sales.v1.ConversationNote
-	166, // 450: white.sales.v1.ChatService.AnalyzeConversation:output_type -> white.sales.v1.ConversationInsight
-	174, // 451: white.sales.v1.ChatService.ListReplyTemplates:output_type -> white.sales.v1.ListReplyTemplatesResponse
-	173, // 452: white.sales.v1.ChatService.SaveReplyTemplate:output_type -> white.sales.v1.ReplyTemplate
-	192, // 453: white.sales.v1.ChatService.DeleteReplyTemplate:output_type -> google.protobuf.Empty
-	175, // 454: white.sales.v1.ChatService.GetChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
-	175, // 455: white.sales.v1.ChatService.SaveChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
-	177, // 456: white.sales.v1.ChatService.StartPublicChat:output_type -> white.sales.v1.PublicChat
-	177, // 457: white.sales.v1.ChatService.SendPublicChat:output_type -> white.sales.v1.PublicChat
-	177, // 458: white.sales.v1.ChatService.PollPublicChat:output_type -> white.sales.v1.PublicChat
-	182, // 459: white.sales.v1.ChatService.ReceiveWhatsApp:output_type -> white.sales.v1.ReceiveWhatsAppResponse
-	329, // [329:460] is the sub-list for method output_type
-	198, // [198:329] is the sub-list for method input_type
-	198, // [198:198] is the sub-list for extension type_name
-	198, // [198:198] is the sub-list for extension extendee
-	0,   // [0:198] is the sub-list for field type_name
+	195, // 79: white.sales.v1.InvoiceFollowup.sent_at:type_name -> google.protobuf.Timestamp
+	195, // 80: white.sales.v1.InvoiceFollowup.created_at:type_name -> google.protobuf.Timestamp
+	77,  // 81: white.sales.v1.ListInvoiceFollowupsResponse.followups:type_name -> white.sales.v1.InvoiceFollowup
+	195, // 82: white.sales.v1.Payment.created_at:type_name -> google.protobuf.Timestamp
+	83,  // 83: white.sales.v1.ListPaymentsResponse.payments:type_name -> white.sales.v1.Payment
+	87,  // 84: white.sales.v1.ListTargetsResponse.targets:type_name -> white.sales.v1.SalesTarget
+	87,  // 85: white.sales.v1.SaveTargetsRequest.targets:type_name -> white.sales.v1.SalesTarget
+	92,  // 86: white.sales.v1.Forecast.rows:type_name -> white.sales.v1.ForecastRow
+	92,  // 87: white.sales.v1.Forecast.total:type_name -> white.sales.v1.ForecastRow
+	95,  // 88: white.sales.v1.FunnelReport.stages:type_name -> white.sales.v1.FunnelStage
+	96,  // 89: white.sales.v1.FunnelReport.sources:type_name -> white.sales.v1.FunnelSource
+	97,  // 90: white.sales.v1.FunnelReport.lost_reasons:type_name -> white.sales.v1.FunnelReason
+	189, // 91: white.sales.v1.FunnelReport.service_line_wins:type_name -> white.sales.v1.FunnelReport.ServiceLineWinsEntry
+	100, // 92: white.sales.v1.DashboardSummary.period:type_name -> white.sales.v1.DashboardPeriod
+	101, // 93: white.sales.v1.DashboardSummary.kpis:type_name -> white.sales.v1.DashboardKpi
+	102, // 94: white.sales.v1.DashboardSummary.trend:type_name -> white.sales.v1.DashboardSeries
+	103, // 95: white.sales.v1.DashboardSummary.stages:type_name -> white.sales.v1.DashboardSlice
+	100, // 96: white.sales.v1.DashboardPipeline.period:type_name -> white.sales.v1.DashboardPeriod
+	101, // 97: white.sales.v1.DashboardPipeline.kpis:type_name -> white.sales.v1.DashboardKpi
+	103, // 98: white.sales.v1.DashboardPipeline.funnel:type_name -> white.sales.v1.DashboardSlice
+	103, // 99: white.sales.v1.DashboardPipeline.stage_lines:type_name -> white.sales.v1.DashboardSlice
+	103, // 100: white.sales.v1.DashboardPipeline.aging:type_name -> white.sales.v1.DashboardSlice
+	103, // 101: white.sales.v1.DashboardPipeline.stage_days:type_name -> white.sales.v1.DashboardSlice
+	105, // 102: white.sales.v1.DashboardPipeline.stuck:type_name -> white.sales.v1.DashboardDeal
+	100, // 103: white.sales.v1.DashboardSales.period:type_name -> white.sales.v1.DashboardPeriod
+	101, // 104: white.sales.v1.DashboardSales.kpis:type_name -> white.sales.v1.DashboardKpi
+	102, // 105: white.sales.v1.DashboardSales.monthly:type_name -> white.sales.v1.DashboardSeries
+	103, // 106: white.sales.v1.DashboardSales.service_lines:type_name -> white.sales.v1.DashboardSlice
+	103, // 107: white.sales.v1.DashboardSales.industries:type_name -> white.sales.v1.DashboardSlice
+	103, // 108: white.sales.v1.DashboardSales.lost_reasons:type_name -> white.sales.v1.DashboardSlice
+	103, // 109: white.sales.v1.DashboardSales.quote_statuses:type_name -> white.sales.v1.DashboardSlice
+	103, // 110: white.sales.v1.DashboardSales.sources:type_name -> white.sales.v1.DashboardSlice
+	100, // 111: white.sales.v1.DashboardTeam.period:type_name -> white.sales.v1.DashboardPeriod
+	101, // 112: white.sales.v1.DashboardTeam.kpis:type_name -> white.sales.v1.DashboardKpi
+	108, // 113: white.sales.v1.DashboardTeam.members:type_name -> white.sales.v1.DashboardMember
+	102, // 114: white.sales.v1.DashboardTeam.won_by_owner:type_name -> white.sales.v1.DashboardSeries
+	100, // 115: white.sales.v1.DashboardLeads.period:type_name -> white.sales.v1.DashboardPeriod
+	101, // 116: white.sales.v1.DashboardLeads.kpis:type_name -> white.sales.v1.DashboardKpi
+	103, // 117: white.sales.v1.DashboardLeads.monthly_sources:type_name -> white.sales.v1.DashboardSlice
+	103, // 118: white.sales.v1.DashboardLeads.sources:type_name -> white.sales.v1.DashboardSlice
+	103, // 119: white.sales.v1.DashboardLeads.scores:type_name -> white.sales.v1.DashboardSlice
+	102, // 120: white.sales.v1.DashboardLeads.response:type_name -> white.sales.v1.DashboardSeries
+	103, // 121: white.sales.v1.DashboardLeads.channels:type_name -> white.sales.v1.DashboardSlice
+	103, // 122: white.sales.v1.DashboardLeads.forms:type_name -> white.sales.v1.DashboardSlice
+	100, // 123: white.sales.v1.DashboardBilling.period:type_name -> white.sales.v1.DashboardPeriod
+	101, // 124: white.sales.v1.DashboardBilling.kpis:type_name -> white.sales.v1.DashboardKpi
+	102, // 125: white.sales.v1.DashboardBilling.monthly:type_name -> white.sales.v1.DashboardSeries
+	103, // 126: white.sales.v1.DashboardBilling.aging:type_name -> white.sales.v1.DashboardSlice
+	111, // 127: white.sales.v1.DashboardBilling.overdue:type_name -> white.sales.v1.DashboardInvoice
+	112, // 128: white.sales.v1.DashboardBilling.terms:type_name -> white.sales.v1.DashboardTerm
+	196, // 129: white.sales.v1.WorkflowCondition.value:type_name -> google.protobuf.Value
+	196, // 130: white.sales.v1.WorkflowAction.value:type_name -> google.protobuf.Value
+	194, // 131: white.sales.v1.WorkflowRule.trigger_config:type_name -> google.protobuf.Struct
+	114, // 132: white.sales.v1.WorkflowRule.conditions:type_name -> white.sales.v1.WorkflowCondition
+	115, // 133: white.sales.v1.WorkflowRule.actions:type_name -> white.sales.v1.WorkflowAction
+	195, // 134: white.sales.v1.WorkflowRule.last_run_at:type_name -> google.protobuf.Timestamp
+	116, // 135: white.sales.v1.ListWorkflowRulesResponse.rules:type_name -> white.sales.v1.WorkflowRule
+	197, // 136: white.sales.v1.WorkflowRun.actions_result:type_name -> google.protobuf.ListValue
+	195, // 137: white.sales.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
+	118, // 138: white.sales.v1.ListWorkflowRunsResponse.runs:type_name -> white.sales.v1.WorkflowRun
+	196, // 139: white.sales.v1.ScoringRule.value:type_name -> google.protobuf.Value
+	120, // 140: white.sales.v1.ListScoringRulesResponse.rules:type_name -> white.sales.v1.ScoringRule
+	123, // 141: white.sales.v1.LeadForm.fields:type_name -> white.sales.v1.FormField
+	124, // 142: white.sales.v1.ListFormsResponse.forms:type_name -> white.sales.v1.LeadForm
+	194, // 143: white.sales.v1.FormSubmission.payload:type_name -> google.protobuf.Struct
+	195, // 144: white.sales.v1.FormSubmission.created_at:type_name -> google.protobuf.Timestamp
+	126, // 145: white.sales.v1.ListFormSubmissionsResponse.submissions:type_name -> white.sales.v1.FormSubmission
+	123, // 146: white.sales.v1.PublicForm.fields:type_name -> white.sales.v1.FormField
+	194, // 147: white.sales.v1.SubmitPublicFormRequest.payload:type_name -> google.protobuf.Struct
+	131, // 148: white.sales.v1.SubmitPublicFormResponse.errors:type_name -> white.sales.v1.SubmitPublicFormFieldError
+	133, // 149: white.sales.v1.ListContractTemplatesResponse.templates:type_name -> white.sales.v1.ContractTemplate
+	190, // 150: white.sales.v1.ListContractTemplatesResponse.placeholders:type_name -> white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
+	195, // 151: white.sales.v1.Contract.sent_at:type_name -> google.protobuf.Timestamp
+	195, // 152: white.sales.v1.Contract.signed_at:type_name -> google.protobuf.Timestamp
+	195, // 153: white.sales.v1.Contract.activated_at:type_name -> google.protobuf.Timestamp
+	195, // 154: white.sales.v1.Contract.ended_at:type_name -> google.protobuf.Timestamp
+	195, // 155: white.sales.v1.Contract.cancelled_at:type_name -> google.protobuf.Timestamp
+	195, // 156: white.sales.v1.Contract.created_at:type_name -> google.protobuf.Timestamp
+	135, // 157: white.sales.v1.ListContractsResponse.contracts:type_name -> white.sales.v1.Contract
+	195, // 158: white.sales.v1.PublicContract.signed_at:type_name -> google.protobuf.Timestamp
+	145, // 159: white.sales.v1.PitchDeck.options:type_name -> white.sales.v1.DeckOptions
+	146, // 160: white.sales.v1.PitchDeck.slides:type_name -> white.sales.v1.Slide
+	195, // 161: white.sales.v1.PitchDeck.created_at:type_name -> google.protobuf.Timestamp
+	147, // 162: white.sales.v1.ListPitchDecksResponse.decks:type_name -> white.sales.v1.PitchDeck
+	145, // 163: white.sales.v1.GeneratePitchDeckRequest.options:type_name -> white.sales.v1.DeckOptions
+	151, // 164: white.sales.v1.ListCaseStudiesResponse.case_studies:type_name -> white.sales.v1.CaseStudy
+	195, // 165: white.sales.v1.OnboardingItem.done_at:type_name -> google.protobuf.Timestamp
+	195, // 166: white.sales.v1.OnboardingAsset.created_at:type_name -> google.protobuf.Timestamp
+	191, // 167: white.sales.v1.Onboarding.brief:type_name -> white.sales.v1.Onboarding.BriefEntry
+	195, // 168: white.sales.v1.Onboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
+	153, // 169: white.sales.v1.Onboarding.items:type_name -> white.sales.v1.OnboardingItem
+	154, // 170: white.sales.v1.Onboarding.assets:type_name -> white.sales.v1.OnboardingAsset
+	195, // 171: white.sales.v1.Onboarding.created_at:type_name -> google.protobuf.Timestamp
+	195, // 172: white.sales.v1.Onboarding.completed_at:type_name -> google.protobuf.Timestamp
+	155, // 173: white.sales.v1.ListOnboardingsResponse.onboardings:type_name -> white.sales.v1.Onboarding
+	161, // 174: white.sales.v1.OnboardingTemplate.items:type_name -> white.sales.v1.OnboardingTemplateItem
+	162, // 175: white.sales.v1.ListOnboardingTemplatesResponse.templates:type_name -> white.sales.v1.OnboardingTemplate
+	123, // 176: white.sales.v1.PublicOnboarding.brief_fields:type_name -> white.sales.v1.FormField
+	192, // 177: white.sales.v1.PublicOnboarding.brief:type_name -> white.sales.v1.PublicOnboarding.BriefEntry
+	195, // 178: white.sales.v1.PublicOnboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
+	154, // 179: white.sales.v1.PublicOnboarding.assets:type_name -> white.sales.v1.OnboardingAsset
+	165, // 180: white.sales.v1.PublicOnboarding.steps:type_name -> white.sales.v1.PublicOnboardingStep
+	193, // 181: white.sales.v1.SubmitPublicBriefRequest.brief:type_name -> white.sales.v1.SubmitPublicBriefRequest.BriefEntry
+	195, // 182: white.sales.v1.Conversation.handoff_at:type_name -> google.protobuf.Timestamp
+	195, // 183: white.sales.v1.Conversation.last_message_at:type_name -> google.protobuf.Timestamp
+	195, // 184: white.sales.v1.Conversation.awaiting_since:type_name -> google.protobuf.Timestamp
+	195, // 185: white.sales.v1.Conversation.resolved_at:type_name -> google.protobuf.Timestamp
+	195, // 186: white.sales.v1.Conversation.created_at:type_name -> google.protobuf.Timestamp
+	195, // 187: white.sales.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	195, // 188: white.sales.v1.ConversationNote.created_at:type_name -> google.protobuf.Timestamp
+	195, // 189: white.sales.v1.ConversationInsight.analyzed_at:type_name -> google.protobuf.Timestamp
+	169, // 190: white.sales.v1.ConversationDetail.conversation:type_name -> white.sales.v1.Conversation
+	170, // 191: white.sales.v1.ConversationDetail.messages:type_name -> white.sales.v1.ChatMessage
+	171, // 192: white.sales.v1.ConversationDetail.notes:type_name -> white.sales.v1.ConversationNote
+	172, // 193: white.sales.v1.ConversationDetail.insight:type_name -> white.sales.v1.ConversationInsight
+	169, // 194: white.sales.v1.ListConversationsResponse.conversations:type_name -> white.sales.v1.Conversation
+	179, // 195: white.sales.v1.ListReplyTemplatesResponse.templates:type_name -> white.sales.v1.ReplyTemplate
+	195, // 196: white.sales.v1.ChatbotSettings.updated_at:type_name -> google.protobuf.Timestamp
+	2,   // 197: white.sales.v1.StartPublicChatRequest.attribution:type_name -> white.sales.v1.Attribution
+	170, // 198: white.sales.v1.PublicChat.messages:type_name -> white.sales.v1.ChatMessage
+	195, // 199: white.sales.v1.PollPublicChatRequest.after:type_name -> google.protobuf.Timestamp
+	186, // 200: white.sales.v1.ReceiveWhatsAppRequest.messages:type_name -> white.sales.v1.WhatsAppInbound
+	6,   // 201: white.sales.v1.LeadService.ListLeads:input_type -> white.sales.v1.ListLeadsRequest
+	1,   // 202: white.sales.v1.LeadService.GetLead:input_type -> white.sales.v1.IdRequest
+	5,   // 203: white.sales.v1.LeadService.CreateLead:input_type -> white.sales.v1.LeadInput
+	5,   // 204: white.sales.v1.LeadService.UpdateLead:input_type -> white.sales.v1.LeadInput
+	1,   // 205: white.sales.v1.LeadService.DeleteLead:input_type -> white.sales.v1.IdRequest
+	9,   // 206: white.sales.v1.LeadService.ImportLeads:input_type -> white.sales.v1.ImportLeadsRequest
+	198, // 207: white.sales.v1.LeadService.ListOwners:input_type -> google.protobuf.Empty
+	16,  // 208: white.sales.v1.LeadService.ListAccounts:input_type -> white.sales.v1.ListAccountsRequest
+	1,   // 209: white.sales.v1.LeadService.GetAccount:input_type -> white.sales.v1.IdRequest
+	15,  // 210: white.sales.v1.LeadService.CreateAccount:input_type -> white.sales.v1.AccountInput
+	15,  // 211: white.sales.v1.LeadService.UpdateAccount:input_type -> white.sales.v1.AccountInput
+	1,   // 212: white.sales.v1.LeadService.DeleteAccount:input_type -> white.sales.v1.IdRequest
+	21,  // 213: white.sales.v1.LeadService.ListContacts:input_type -> white.sales.v1.ListContactsRequest
+	20,  // 214: white.sales.v1.LeadService.CreateContact:input_type -> white.sales.v1.ContactInput
+	20,  // 215: white.sales.v1.LeadService.UpdateContact:input_type -> white.sales.v1.ContactInput
+	1,   // 216: white.sales.v1.LeadService.DeleteContact:input_type -> white.sales.v1.IdRequest
+	24,  // 217: white.sales.v1.LeadService.ListCustomFields:input_type -> white.sales.v1.ListCustomFieldsRequest
+	23,  // 218: white.sales.v1.LeadService.SaveCustomField:input_type -> white.sales.v1.CustomField
+	1,   // 219: white.sales.v1.LeadService.DeleteCustomField:input_type -> white.sales.v1.IdRequest
+	198, // 220: white.sales.v1.PipelineService.ListPipelines:input_type -> google.protobuf.Empty
+	27,  // 221: white.sales.v1.PipelineService.SavePipeline:input_type -> white.sales.v1.Pipeline
+	26,  // 222: white.sales.v1.PipelineService.SaveStage:input_type -> white.sales.v1.Stage
+	198, // 223: white.sales.v1.PipelineService.ListLostReasons:input_type -> google.protobuf.Empty
+	33,  // 224: white.sales.v1.PipelineService.ListDeals:input_type -> white.sales.v1.ListDealsRequest
+	1,   // 225: white.sales.v1.PipelineService.GetDeal:input_type -> white.sales.v1.IdRequest
+	32,  // 226: white.sales.v1.PipelineService.CreateDeal:input_type -> white.sales.v1.DealInput
+	32,  // 227: white.sales.v1.PipelineService.UpdateDeal:input_type -> white.sales.v1.DealInput
+	1,   // 228: white.sales.v1.PipelineService.DeleteDeal:input_type -> white.sales.v1.IdRequest
+	35,  // 229: white.sales.v1.PipelineService.MoveDealStage:input_type -> white.sales.v1.MoveDealStageRequest
+	37,  // 230: white.sales.v1.PipelineService.SetDealMembers:input_type -> white.sales.v1.SetDealMembersRequest
+	45,  // 231: white.sales.v1.PipelineService.ListActivities:input_type -> white.sales.v1.ListActivitiesRequest
+	44,  // 232: white.sales.v1.PipelineService.CreateActivity:input_type -> white.sales.v1.ActivityInput
+	44,  // 233: white.sales.v1.PipelineService.UpdateActivity:input_type -> white.sales.v1.ActivityInput
+	1,   // 234: white.sales.v1.PipelineService.DeleteActivity:input_type -> white.sales.v1.IdRequest
+	49,  // 235: white.sales.v1.QuotationService.ListCatalog:input_type -> white.sales.v1.ListCatalogRequest
+	48,  // 236: white.sales.v1.QuotationService.SaveCatalogItem:input_type -> white.sales.v1.CatalogItem
+	198, // 237: white.sales.v1.QuotationService.ListRetainerDiscounts:input_type -> google.protobuf.Empty
+	52,  // 238: white.sales.v1.QuotationService.SaveRetainerDiscounts:input_type -> white.sales.v1.RetainerDiscounts
+	59,  // 239: white.sales.v1.QuotationService.ListQuotations:input_type -> white.sales.v1.ListQuotationsRequest
+	1,   // 240: white.sales.v1.QuotationService.GetQuotation:input_type -> white.sales.v1.IdRequest
+	58,  // 241: white.sales.v1.QuotationService.CreateQuotation:input_type -> white.sales.v1.QuotationInput
+	58,  // 242: white.sales.v1.QuotationService.UpdateQuotation:input_type -> white.sales.v1.QuotationInput
+	61,  // 243: white.sales.v1.QuotationService.SetQuotationStatus:input_type -> white.sales.v1.SetQuotationStatusRequest
+	1,   // 244: white.sales.v1.QuotationService.ReviseQuotation:input_type -> white.sales.v1.IdRequest
+	1,   // 245: white.sales.v1.QuotationService.DeleteQuotation:input_type -> white.sales.v1.IdRequest
+	62,  // 246: white.sales.v1.QuotationService.GenerateQuotationDraft:input_type -> white.sales.v1.GenerateQuotationDraftRequest
+	1,   // 247: white.sales.v1.QuotationService.RenderQuotationPdf:input_type -> white.sales.v1.IdRequest
+	198, // 248: white.sales.v1.QuotationService.ListApprovalRules:input_type -> google.protobuf.Empty
+	64,  // 249: white.sales.v1.QuotationService.SaveApprovalRule:input_type -> white.sales.v1.ApprovalRule
+	1,   // 250: white.sales.v1.QuotationService.DeleteApprovalRule:input_type -> white.sales.v1.IdRequest
+	68,  // 251: white.sales.v1.QuotationService.ListApprovals:input_type -> white.sales.v1.ListApprovalsRequest
+	70,  // 252: white.sales.v1.QuotationService.DecideApproval:input_type -> white.sales.v1.DecideApprovalRequest
+	73,  // 253: white.sales.v1.BillingService.ListInvoices:input_type -> white.sales.v1.ListInvoicesRequest
+	1,   // 254: white.sales.v1.BillingService.GetInvoice:input_type -> white.sales.v1.IdRequest
+	75,  // 255: white.sales.v1.BillingService.SubmitInvoice:input_type -> white.sales.v1.SubmitInvoiceRequest
+	1,   // 256: white.sales.v1.BillingService.SubmitInvoicesFromTerms:input_type -> white.sales.v1.IdRequest
+	1,   // 257: white.sales.v1.BillingService.IssueInvoice:input_type -> white.sales.v1.IdRequest
+	76,  // 258: white.sales.v1.BillingService.CancelInvoice:input_type -> white.sales.v1.CancelInvoiceRequest
+	81,  // 259: white.sales.v1.BillingService.UpdateInvoice:input_type -> white.sales.v1.UpdateInvoiceRequest
+	1,   // 260: white.sales.v1.BillingService.RenderInvoicePdf:input_type -> white.sales.v1.IdRequest
+	82,  // 261: white.sales.v1.BillingService.UploadInvoiceFakturPajak:input_type -> white.sales.v1.UploadInvoiceFakturPajakRequest
+	1,   // 262: white.sales.v1.BillingService.GetInvoiceFakturPajak:input_type -> white.sales.v1.IdRequest
+	1,   // 263: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:input_type -> white.sales.v1.IdRequest
+	78,  // 264: white.sales.v1.BillingService.ListInvoiceFollowups:input_type -> white.sales.v1.ListInvoiceFollowupsRequest
+	80,  // 265: white.sales.v1.BillingService.ApproveInvoiceFollowup:input_type -> white.sales.v1.ApproveInvoiceFollowupRequest
+	1,   // 266: white.sales.v1.BillingService.SkipInvoiceFollowup:input_type -> white.sales.v1.IdRequest
+	84,  // 267: white.sales.v1.BillingService.ListPayments:input_type -> white.sales.v1.ListPaymentsRequest
+	86,  // 268: white.sales.v1.BillingService.RecordPayment:input_type -> white.sales.v1.RecordPaymentRequest
+	1,   // 269: white.sales.v1.BillingService.DeletePayment:input_type -> white.sales.v1.IdRequest
+	88,  // 270: white.sales.v1.InsightService.ListTargets:input_type -> white.sales.v1.ListTargetsRequest
+	90,  // 271: white.sales.v1.InsightService.SaveTargets:input_type -> white.sales.v1.SaveTargetsRequest
+	91,  // 272: white.sales.v1.InsightService.GetForecast:input_type -> white.sales.v1.GetForecastRequest
+	94,  // 273: white.sales.v1.InsightService.GetFunnelReport:input_type -> white.sales.v1.GetFunnelReportRequest
+	99,  // 274: white.sales.v1.InsightService.GetDashboardSummary:input_type -> white.sales.v1.DashboardRequest
+	99,  // 275: white.sales.v1.InsightService.GetDashboardPipeline:input_type -> white.sales.v1.DashboardRequest
+	99,  // 276: white.sales.v1.InsightService.GetDashboardSales:input_type -> white.sales.v1.DashboardRequest
+	99,  // 277: white.sales.v1.InsightService.GetDashboardTeam:input_type -> white.sales.v1.DashboardRequest
+	99,  // 278: white.sales.v1.InsightService.GetDashboardLeads:input_type -> white.sales.v1.DashboardRequest
+	99,  // 279: white.sales.v1.InsightService.GetDashboardBilling:input_type -> white.sales.v1.DashboardRequest
+	198, // 280: white.sales.v1.AutomationService.ListWorkflowRules:input_type -> google.protobuf.Empty
+	116, // 281: white.sales.v1.AutomationService.SaveWorkflowRule:input_type -> white.sales.v1.WorkflowRule
+	1,   // 282: white.sales.v1.AutomationService.DeleteWorkflowRule:input_type -> white.sales.v1.IdRequest
+	1,   // 283: white.sales.v1.AutomationService.ListWorkflowRuns:input_type -> white.sales.v1.IdRequest
+	198, // 284: white.sales.v1.AutomationService.ListScoringRules:input_type -> google.protobuf.Empty
+	120, // 285: white.sales.v1.AutomationService.SaveScoringRule:input_type -> white.sales.v1.ScoringRule
+	1,   // 286: white.sales.v1.AutomationService.DeleteScoringRule:input_type -> white.sales.v1.IdRequest
+	198, // 287: white.sales.v1.AutomationService.RecalculateScores:input_type -> google.protobuf.Empty
+	198, // 288: white.sales.v1.FormService.ListForms:input_type -> google.protobuf.Empty
+	124, // 289: white.sales.v1.FormService.SaveForm:input_type -> white.sales.v1.LeadForm
+	1,   // 290: white.sales.v1.FormService.DeleteForm:input_type -> white.sales.v1.IdRequest
+	1,   // 291: white.sales.v1.FormService.ListFormSubmissions:input_type -> white.sales.v1.IdRequest
+	128, // 292: white.sales.v1.FormService.GetPublicForm:input_type -> white.sales.v1.PublicFormRequest
+	130, // 293: white.sales.v1.FormService.SubmitPublicForm:input_type -> white.sales.v1.SubmitPublicFormRequest
+	198, // 294: white.sales.v1.ContractService.ListContractTemplates:input_type -> google.protobuf.Empty
+	133, // 295: white.sales.v1.ContractService.SaveContractTemplate:input_type -> white.sales.v1.ContractTemplate
+	1,   // 296: white.sales.v1.ContractService.DeleteContractTemplate:input_type -> white.sales.v1.IdRequest
+	136, // 297: white.sales.v1.ContractService.ListContracts:input_type -> white.sales.v1.ListContractsRequest
+	1,   // 298: white.sales.v1.ContractService.GetContract:input_type -> white.sales.v1.IdRequest
+	138, // 299: white.sales.v1.ContractService.GenerateContract:input_type -> white.sales.v1.GenerateContractRequest
+	139, // 300: white.sales.v1.ContractService.UpdateContract:input_type -> white.sales.v1.UpdateContractRequest
+	1,   // 301: white.sales.v1.ContractService.SendContract:input_type -> white.sales.v1.IdRequest
+	140, // 302: white.sales.v1.ContractService.SetContractStatus:input_type -> white.sales.v1.SetContractStatusRequest
+	141, // 303: white.sales.v1.ContractService.RenderContractPdf:input_type -> white.sales.v1.RenderContractPdfRequest
+	142, // 304: white.sales.v1.ContractService.GetPublicContract:input_type -> white.sales.v1.PublicContractRequest
+	144, // 305: white.sales.v1.ContractService.SignPublicContract:input_type -> white.sales.v1.SignPublicContractRequest
+	148, // 306: white.sales.v1.PitchDeckService.ListPitchDecks:input_type -> white.sales.v1.ListPitchDecksRequest
+	1,   // 307: white.sales.v1.PitchDeckService.GetPitchDeck:input_type -> white.sales.v1.IdRequest
+	150, // 308: white.sales.v1.PitchDeckService.GeneratePitchDeck:input_type -> white.sales.v1.GeneratePitchDeckRequest
+	1,   // 309: white.sales.v1.PitchDeckService.GetPitchDeckFile:input_type -> white.sales.v1.IdRequest
+	198, // 310: white.sales.v1.PitchDeckService.ListCaseStudies:input_type -> google.protobuf.Empty
+	151, // 311: white.sales.v1.PitchDeckService.SaveCaseStudy:input_type -> white.sales.v1.CaseStudy
+	1,   // 312: white.sales.v1.PitchDeckService.DeleteCaseStudy:input_type -> white.sales.v1.IdRequest
+	156, // 313: white.sales.v1.OnboardingService.ListOnboardings:input_type -> white.sales.v1.ListOnboardingsRequest
+	1,   // 314: white.sales.v1.OnboardingService.GetOnboarding:input_type -> white.sales.v1.IdRequest
+	158, // 315: white.sales.v1.OnboardingService.StartOnboarding:input_type -> white.sales.v1.StartOnboardingRequest
+	159, // 316: white.sales.v1.OnboardingService.UpdateOnboardingItem:input_type -> white.sales.v1.UpdateOnboardingItemRequest
+	160, // 317: white.sales.v1.OnboardingService.CreateMarketingClient:input_type -> white.sales.v1.CreateMarketingClientRequest
+	198, // 318: white.sales.v1.OnboardingService.ListOnboardingTemplates:input_type -> google.protobuf.Empty
+	162, // 319: white.sales.v1.OnboardingService.SaveOnboardingTemplate:input_type -> white.sales.v1.OnboardingTemplate
+	1,   // 320: white.sales.v1.OnboardingService.GetOnboardingAsset:input_type -> white.sales.v1.IdRequest
+	164, // 321: white.sales.v1.OnboardingService.GetPublicOnboarding:input_type -> white.sales.v1.PublicOnboardingRequest
+	167, // 322: white.sales.v1.OnboardingService.SubmitPublicBrief:input_type -> white.sales.v1.SubmitPublicBriefRequest
+	168, // 323: white.sales.v1.OnboardingService.UploadPublicAsset:input_type -> white.sales.v1.UploadPublicAssetRequest
+	174, // 324: white.sales.v1.ChatService.ListConversations:input_type -> white.sales.v1.ListConversationsRequest
+	1,   // 325: white.sales.v1.ChatService.GetConversation:input_type -> white.sales.v1.IdRequest
+	176, // 326: white.sales.v1.ChatService.ReplyConversation:input_type -> white.sales.v1.ReplyConversationRequest
+	177, // 327: white.sales.v1.ChatService.ConversationAction:input_type -> white.sales.v1.ConversationActionRequest
+	178, // 328: white.sales.v1.ChatService.AddConversationNote:input_type -> white.sales.v1.AddConversationNoteRequest
+	1,   // 329: white.sales.v1.ChatService.AnalyzeConversation:input_type -> white.sales.v1.IdRequest
+	198, // 330: white.sales.v1.ChatService.ListReplyTemplates:input_type -> google.protobuf.Empty
+	179, // 331: white.sales.v1.ChatService.SaveReplyTemplate:input_type -> white.sales.v1.ReplyTemplate
+	1,   // 332: white.sales.v1.ChatService.DeleteReplyTemplate:input_type -> white.sales.v1.IdRequest
+	198, // 333: white.sales.v1.ChatService.GetChatbotSettings:input_type -> google.protobuf.Empty
+	181, // 334: white.sales.v1.ChatService.SaveChatbotSettings:input_type -> white.sales.v1.ChatbotSettings
+	182, // 335: white.sales.v1.ChatService.StartPublicChat:input_type -> white.sales.v1.StartPublicChatRequest
+	184, // 336: white.sales.v1.ChatService.SendPublicChat:input_type -> white.sales.v1.SendPublicChatRequest
+	185, // 337: white.sales.v1.ChatService.PollPublicChat:input_type -> white.sales.v1.PollPublicChatRequest
+	187, // 338: white.sales.v1.ChatService.ReceiveWhatsApp:input_type -> white.sales.v1.ReceiveWhatsAppRequest
+	7,   // 339: white.sales.v1.LeadService.ListLeads:output_type -> white.sales.v1.ListLeadsResponse
+	8,   // 340: white.sales.v1.LeadService.GetLead:output_type -> white.sales.v1.LeadDetail
+	4,   // 341: white.sales.v1.LeadService.CreateLead:output_type -> white.sales.v1.Lead
+	4,   // 342: white.sales.v1.LeadService.UpdateLead:output_type -> white.sales.v1.Lead
+	198, // 343: white.sales.v1.LeadService.DeleteLead:output_type -> google.protobuf.Empty
+	11,  // 344: white.sales.v1.LeadService.ImportLeads:output_type -> white.sales.v1.ImportLeadsResponse
+	13,  // 345: white.sales.v1.LeadService.ListOwners:output_type -> white.sales.v1.ListOwnersResponse
+	17,  // 346: white.sales.v1.LeadService.ListAccounts:output_type -> white.sales.v1.ListAccountsResponse
+	18,  // 347: white.sales.v1.LeadService.GetAccount:output_type -> white.sales.v1.AccountDetail
+	14,  // 348: white.sales.v1.LeadService.CreateAccount:output_type -> white.sales.v1.Account
+	14,  // 349: white.sales.v1.LeadService.UpdateAccount:output_type -> white.sales.v1.Account
+	198, // 350: white.sales.v1.LeadService.DeleteAccount:output_type -> google.protobuf.Empty
+	22,  // 351: white.sales.v1.LeadService.ListContacts:output_type -> white.sales.v1.ListContactsResponse
+	19,  // 352: white.sales.v1.LeadService.CreateContact:output_type -> white.sales.v1.Contact
+	19,  // 353: white.sales.v1.LeadService.UpdateContact:output_type -> white.sales.v1.Contact
+	198, // 354: white.sales.v1.LeadService.DeleteContact:output_type -> google.protobuf.Empty
+	25,  // 355: white.sales.v1.LeadService.ListCustomFields:output_type -> white.sales.v1.ListCustomFieldsResponse
+	23,  // 356: white.sales.v1.LeadService.SaveCustomField:output_type -> white.sales.v1.CustomField
+	198, // 357: white.sales.v1.LeadService.DeleteCustomField:output_type -> google.protobuf.Empty
+	28,  // 358: white.sales.v1.PipelineService.ListPipelines:output_type -> white.sales.v1.ListPipelinesResponse
+	27,  // 359: white.sales.v1.PipelineService.SavePipeline:output_type -> white.sales.v1.Pipeline
+	26,  // 360: white.sales.v1.PipelineService.SaveStage:output_type -> white.sales.v1.Stage
+	30,  // 361: white.sales.v1.PipelineService.ListLostReasons:output_type -> white.sales.v1.ListLostReasonsResponse
+	34,  // 362: white.sales.v1.PipelineService.ListDeals:output_type -> white.sales.v1.ListDealsResponse
+	41,  // 363: white.sales.v1.PipelineService.GetDeal:output_type -> white.sales.v1.DealDetail
+	31,  // 364: white.sales.v1.PipelineService.CreateDeal:output_type -> white.sales.v1.Deal
+	31,  // 365: white.sales.v1.PipelineService.UpdateDeal:output_type -> white.sales.v1.Deal
+	198, // 366: white.sales.v1.PipelineService.DeleteDeal:output_type -> google.protobuf.Empty
+	31,  // 367: white.sales.v1.PipelineService.MoveDealStage:output_type -> white.sales.v1.Deal
+	38,  // 368: white.sales.v1.PipelineService.SetDealMembers:output_type -> white.sales.v1.SetDealMembersResponse
+	46,  // 369: white.sales.v1.PipelineService.ListActivities:output_type -> white.sales.v1.ListActivitiesResponse
+	43,  // 370: white.sales.v1.PipelineService.CreateActivity:output_type -> white.sales.v1.Activity
+	43,  // 371: white.sales.v1.PipelineService.UpdateActivity:output_type -> white.sales.v1.Activity
+	198, // 372: white.sales.v1.PipelineService.DeleteActivity:output_type -> google.protobuf.Empty
+	50,  // 373: white.sales.v1.QuotationService.ListCatalog:output_type -> white.sales.v1.ListCatalogResponse
+	48,  // 374: white.sales.v1.QuotationService.SaveCatalogItem:output_type -> white.sales.v1.CatalogItem
+	52,  // 375: white.sales.v1.QuotationService.ListRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
+	52,  // 376: white.sales.v1.QuotationService.SaveRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
+	60,  // 377: white.sales.v1.QuotationService.ListQuotations:output_type -> white.sales.v1.ListQuotationsResponse
+	55,  // 378: white.sales.v1.QuotationService.GetQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 379: white.sales.v1.QuotationService.CreateQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 380: white.sales.v1.QuotationService.UpdateQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 381: white.sales.v1.QuotationService.SetQuotationStatus:output_type -> white.sales.v1.Quotation
+	55,  // 382: white.sales.v1.QuotationService.ReviseQuotation:output_type -> white.sales.v1.Quotation
+	198, // 383: white.sales.v1.QuotationService.DeleteQuotation:output_type -> google.protobuf.Empty
+	63,  // 384: white.sales.v1.QuotationService.GenerateQuotationDraft:output_type -> white.sales.v1.GenerateQuotationDraftResponse
+	0,   // 385: white.sales.v1.QuotationService.RenderQuotationPdf:output_type -> white.sales.v1.File
+	65,  // 386: white.sales.v1.QuotationService.ListApprovalRules:output_type -> white.sales.v1.ListApprovalRulesResponse
+	64,  // 387: white.sales.v1.QuotationService.SaveApprovalRule:output_type -> white.sales.v1.ApprovalRule
+	198, // 388: white.sales.v1.QuotationService.DeleteApprovalRule:output_type -> google.protobuf.Empty
+	69,  // 389: white.sales.v1.QuotationService.ListApprovals:output_type -> white.sales.v1.ListApprovalsResponse
+	71,  // 390: white.sales.v1.QuotationService.DecideApproval:output_type -> white.sales.v1.DecideApprovalResponse
+	74,  // 391: white.sales.v1.BillingService.ListInvoices:output_type -> white.sales.v1.ListInvoicesResponse
+	72,  // 392: white.sales.v1.BillingService.GetInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 393: white.sales.v1.BillingService.SubmitInvoice:output_type -> white.sales.v1.Invoice
+	74,  // 394: white.sales.v1.BillingService.SubmitInvoicesFromTerms:output_type -> white.sales.v1.ListInvoicesResponse
+	72,  // 395: white.sales.v1.BillingService.IssueInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 396: white.sales.v1.BillingService.CancelInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 397: white.sales.v1.BillingService.UpdateInvoice:output_type -> white.sales.v1.Invoice
+	0,   // 398: white.sales.v1.BillingService.RenderInvoicePdf:output_type -> white.sales.v1.File
+	72,  // 399: white.sales.v1.BillingService.UploadInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
+	0,   // 400: white.sales.v1.BillingService.GetInvoiceFakturPajak:output_type -> white.sales.v1.File
+	72,  // 401: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
+	79,  // 402: white.sales.v1.BillingService.ListInvoiceFollowups:output_type -> white.sales.v1.ListInvoiceFollowupsResponse
+	77,  // 403: white.sales.v1.BillingService.ApproveInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
+	77,  // 404: white.sales.v1.BillingService.SkipInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
+	85,  // 405: white.sales.v1.BillingService.ListPayments:output_type -> white.sales.v1.ListPaymentsResponse
+	83,  // 406: white.sales.v1.BillingService.RecordPayment:output_type -> white.sales.v1.Payment
+	198, // 407: white.sales.v1.BillingService.DeletePayment:output_type -> google.protobuf.Empty
+	89,  // 408: white.sales.v1.InsightService.ListTargets:output_type -> white.sales.v1.ListTargetsResponse
+	89,  // 409: white.sales.v1.InsightService.SaveTargets:output_type -> white.sales.v1.ListTargetsResponse
+	93,  // 410: white.sales.v1.InsightService.GetForecast:output_type -> white.sales.v1.Forecast
+	98,  // 411: white.sales.v1.InsightService.GetFunnelReport:output_type -> white.sales.v1.FunnelReport
+	104, // 412: white.sales.v1.InsightService.GetDashboardSummary:output_type -> white.sales.v1.DashboardSummary
+	106, // 413: white.sales.v1.InsightService.GetDashboardPipeline:output_type -> white.sales.v1.DashboardPipeline
+	107, // 414: white.sales.v1.InsightService.GetDashboardSales:output_type -> white.sales.v1.DashboardSales
+	109, // 415: white.sales.v1.InsightService.GetDashboardTeam:output_type -> white.sales.v1.DashboardTeam
+	110, // 416: white.sales.v1.InsightService.GetDashboardLeads:output_type -> white.sales.v1.DashboardLeads
+	113, // 417: white.sales.v1.InsightService.GetDashboardBilling:output_type -> white.sales.v1.DashboardBilling
+	117, // 418: white.sales.v1.AutomationService.ListWorkflowRules:output_type -> white.sales.v1.ListWorkflowRulesResponse
+	116, // 419: white.sales.v1.AutomationService.SaveWorkflowRule:output_type -> white.sales.v1.WorkflowRule
+	198, // 420: white.sales.v1.AutomationService.DeleteWorkflowRule:output_type -> google.protobuf.Empty
+	119, // 421: white.sales.v1.AutomationService.ListWorkflowRuns:output_type -> white.sales.v1.ListWorkflowRunsResponse
+	121, // 422: white.sales.v1.AutomationService.ListScoringRules:output_type -> white.sales.v1.ListScoringRulesResponse
+	120, // 423: white.sales.v1.AutomationService.SaveScoringRule:output_type -> white.sales.v1.ScoringRule
+	198, // 424: white.sales.v1.AutomationService.DeleteScoringRule:output_type -> google.protobuf.Empty
+	122, // 425: white.sales.v1.AutomationService.RecalculateScores:output_type -> white.sales.v1.RecalculateScoresResponse
+	125, // 426: white.sales.v1.FormService.ListForms:output_type -> white.sales.v1.ListFormsResponse
+	124, // 427: white.sales.v1.FormService.SaveForm:output_type -> white.sales.v1.LeadForm
+	198, // 428: white.sales.v1.FormService.DeleteForm:output_type -> google.protobuf.Empty
+	127, // 429: white.sales.v1.FormService.ListFormSubmissions:output_type -> white.sales.v1.ListFormSubmissionsResponse
+	129, // 430: white.sales.v1.FormService.GetPublicForm:output_type -> white.sales.v1.PublicForm
+	132, // 431: white.sales.v1.FormService.SubmitPublicForm:output_type -> white.sales.v1.SubmitPublicFormResponse
+	134, // 432: white.sales.v1.ContractService.ListContractTemplates:output_type -> white.sales.v1.ListContractTemplatesResponse
+	133, // 433: white.sales.v1.ContractService.SaveContractTemplate:output_type -> white.sales.v1.ContractTemplate
+	198, // 434: white.sales.v1.ContractService.DeleteContractTemplate:output_type -> google.protobuf.Empty
+	137, // 435: white.sales.v1.ContractService.ListContracts:output_type -> white.sales.v1.ListContractsResponse
+	135, // 436: white.sales.v1.ContractService.GetContract:output_type -> white.sales.v1.Contract
+	135, // 437: white.sales.v1.ContractService.GenerateContract:output_type -> white.sales.v1.Contract
+	135, // 438: white.sales.v1.ContractService.UpdateContract:output_type -> white.sales.v1.Contract
+	135, // 439: white.sales.v1.ContractService.SendContract:output_type -> white.sales.v1.Contract
+	135, // 440: white.sales.v1.ContractService.SetContractStatus:output_type -> white.sales.v1.Contract
+	0,   // 441: white.sales.v1.ContractService.RenderContractPdf:output_type -> white.sales.v1.File
+	143, // 442: white.sales.v1.ContractService.GetPublicContract:output_type -> white.sales.v1.PublicContract
+	143, // 443: white.sales.v1.ContractService.SignPublicContract:output_type -> white.sales.v1.PublicContract
+	149, // 444: white.sales.v1.PitchDeckService.ListPitchDecks:output_type -> white.sales.v1.ListPitchDecksResponse
+	147, // 445: white.sales.v1.PitchDeckService.GetPitchDeck:output_type -> white.sales.v1.PitchDeck
+	147, // 446: white.sales.v1.PitchDeckService.GeneratePitchDeck:output_type -> white.sales.v1.PitchDeck
+	0,   // 447: white.sales.v1.PitchDeckService.GetPitchDeckFile:output_type -> white.sales.v1.File
+	152, // 448: white.sales.v1.PitchDeckService.ListCaseStudies:output_type -> white.sales.v1.ListCaseStudiesResponse
+	151, // 449: white.sales.v1.PitchDeckService.SaveCaseStudy:output_type -> white.sales.v1.CaseStudy
+	198, // 450: white.sales.v1.PitchDeckService.DeleteCaseStudy:output_type -> google.protobuf.Empty
+	157, // 451: white.sales.v1.OnboardingService.ListOnboardings:output_type -> white.sales.v1.ListOnboardingsResponse
+	155, // 452: white.sales.v1.OnboardingService.GetOnboarding:output_type -> white.sales.v1.Onboarding
+	155, // 453: white.sales.v1.OnboardingService.StartOnboarding:output_type -> white.sales.v1.Onboarding
+	155, // 454: white.sales.v1.OnboardingService.UpdateOnboardingItem:output_type -> white.sales.v1.Onboarding
+	155, // 455: white.sales.v1.OnboardingService.CreateMarketingClient:output_type -> white.sales.v1.Onboarding
+	163, // 456: white.sales.v1.OnboardingService.ListOnboardingTemplates:output_type -> white.sales.v1.ListOnboardingTemplatesResponse
+	162, // 457: white.sales.v1.OnboardingService.SaveOnboardingTemplate:output_type -> white.sales.v1.OnboardingTemplate
+	0,   // 458: white.sales.v1.OnboardingService.GetOnboardingAsset:output_type -> white.sales.v1.File
+	166, // 459: white.sales.v1.OnboardingService.GetPublicOnboarding:output_type -> white.sales.v1.PublicOnboarding
+	166, // 460: white.sales.v1.OnboardingService.SubmitPublicBrief:output_type -> white.sales.v1.PublicOnboarding
+	166, // 461: white.sales.v1.OnboardingService.UploadPublicAsset:output_type -> white.sales.v1.PublicOnboarding
+	175, // 462: white.sales.v1.ChatService.ListConversations:output_type -> white.sales.v1.ListConversationsResponse
+	173, // 463: white.sales.v1.ChatService.GetConversation:output_type -> white.sales.v1.ConversationDetail
+	173, // 464: white.sales.v1.ChatService.ReplyConversation:output_type -> white.sales.v1.ConversationDetail
+	169, // 465: white.sales.v1.ChatService.ConversationAction:output_type -> white.sales.v1.Conversation
+	171, // 466: white.sales.v1.ChatService.AddConversationNote:output_type -> white.sales.v1.ConversationNote
+	172, // 467: white.sales.v1.ChatService.AnalyzeConversation:output_type -> white.sales.v1.ConversationInsight
+	180, // 468: white.sales.v1.ChatService.ListReplyTemplates:output_type -> white.sales.v1.ListReplyTemplatesResponse
+	179, // 469: white.sales.v1.ChatService.SaveReplyTemplate:output_type -> white.sales.v1.ReplyTemplate
+	198, // 470: white.sales.v1.ChatService.DeleteReplyTemplate:output_type -> google.protobuf.Empty
+	181, // 471: white.sales.v1.ChatService.GetChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
+	181, // 472: white.sales.v1.ChatService.SaveChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
+	183, // 473: white.sales.v1.ChatService.StartPublicChat:output_type -> white.sales.v1.PublicChat
+	183, // 474: white.sales.v1.ChatService.SendPublicChat:output_type -> white.sales.v1.PublicChat
+	183, // 475: white.sales.v1.ChatService.PollPublicChat:output_type -> white.sales.v1.PublicChat
+	188, // 476: white.sales.v1.ChatService.ReceiveWhatsApp:output_type -> white.sales.v1.ReceiveWhatsAppResponse
+	339, // [339:477] is the sub-list for method output_type
+	201, // [201:339] is the sub-list for method input_type
+	201, // [201:201] is the sub-list for extension type_name
+	201, // [201:201] is the sub-list for extension extendee
+	0,   // [0:201] is the sub-list for field type_name
 }
 
 func init() { file_white_sales_v1_sales_proto_init() }
@@ -17080,14 +17723,14 @@ func file_white_sales_v1_sales_proto_init() {
 	}
 	file_white_sales_v1_sales_proto_msgTypes[6].OneofWrappers = []any{}
 	file_white_sales_v1_sales_proto_msgTypes[62].OneofWrappers = []any{}
-	file_white_sales_v1_sales_proto_msgTypes[153].OneofWrappers = []any{}
+	file_white_sales_v1_sales_proto_msgTypes[159].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_sales_v1_sales_proto_rawDesc), len(file_white_sales_v1_sales_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   188,
+			NumMessages:   194,
 			NumExtensions: 0,
 			NumServices:   11,
 		},

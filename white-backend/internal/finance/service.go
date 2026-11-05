@@ -19,6 +19,7 @@ import (
 	grpcapi "github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/grpc"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/postgres"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/providers/openrouter"
+	"github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/render"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/storage"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/xlsx"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/app"
@@ -93,15 +94,17 @@ func wire(d pkgapp.Deps) (*wiring, error) {
 	}
 	w.integrations = clients.NewIntegrations(integrationsConn)
 	w.deps = app.Deps{
-		Store:     postgres.NewStore(d.Pool),
-		Identity:  clients.NewIdentity(identityConn),
-		HR:        clients.NewHR(hrConn),
-		Storage:   storage.NewLocal(config.Env("FINANCE_UPLOAD_DIR", "")),
-		Insights:  openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
-		Events:    d.Events,
-		ReadSheet: xlsx.ReadCoaSheet,
-		Clock:     clock.Real{},
-		Logger:    d.Logger,
+		Store:          postgres.NewStore(d.Pool),
+		Identity:       clients.NewIdentity(identityConn),
+		HR:             clients.NewHR(hrConn),
+		Storage:        storage.NewLocal(config.Env("FINANCE_UPLOAD_DIR", "")),
+		Insights:       openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
+		Events:         d.Events,
+		ReadSheet:      xlsx.ReadCoaSheet,
+		Company:        render.CompanyFromEnv(),
+		RenderDocument: render.DocumentPDF,
+		Clock:          clock.Real{},
+		Logger:         d.Logger,
 	}
 	return w, nil
 }
@@ -124,6 +127,9 @@ func register(ctx context.Context, d pkgapp.Deps, s *grpc.Server) error {
 		Reports:        app.NewReports(w.deps),
 		Reimbursements: app.NewReimbursements(w.deps),
 		Analysis:       app.NewAnalysis(w.deps),
+		Banking:        app.NewBanking(w.deps),
+		Schedules:      app.NewSchedules(w.deps),
+		Documents:      app.NewDocuments(w.deps),
 	})
 	return nil
 }
@@ -155,11 +161,12 @@ type Handler struct {
 	deps       app.Deps
 	autoPost   *app.AutoPost
 	reimb      *app.Reimbursements
+	schedules  *app.Schedules
 	invalidate func()
 }
 
 func NewHandler(deps app.Deps, invalidate func()) *Handler {
-	return &Handler{deps: deps, autoPost: app.NewAutoPost(deps), reimb: app.NewReimbursements(deps), invalidate: invalidate}
+	return &Handler{deps: deps, autoPost: app.NewAutoPost(deps), reimb: app.NewReimbursements(deps), schedules: app.NewSchedules(deps), invalidate: invalidate}
 }
 
 // Handle acknowledges events that can never succeed (bad payload,
@@ -211,11 +218,15 @@ func (h *Handler) handle(ctx context.Context, msg events.Message) error {
 		if err := decode(msg, &p); err != nil {
 			return err
 		}
+		res, schedErr := h.schedules.RunDue(ctx)
+		if res.Posted+res.Failed > 0 {
+			h.deps.Logger.Info("finance schedules", "posted", res.Posted, "failed", res.Failed)
+		}
 		n, err := h.reimb.RemindApprovers(ctx, p.RunAt)
 		if err == nil && n > 0 {
 			h.deps.Logger.Info("reimbursement reminders", "claims", n)
 		}
-		return err
+		return errors.Join(schedErr, err)
 	case events.UserDeleted:
 		var p events.UserDeletedPayload
 		if err := decode(msg, &p); err != nil {

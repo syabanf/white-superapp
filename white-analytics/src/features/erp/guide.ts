@@ -65,7 +65,35 @@ export const ERP_GUIDE_SECTIONS: GuideSection[] = [
           },
           {
             title: "Catat jurnal",
-            text: "Keuangan → Jurnal → “Jurnal baru”. Isi tanggal, keterangan, dan minimal dua baris dengan akun berbeda. Simpan sebagai draf, atau langsung “Simpan & posting” bila Anda punya finance.approve. Jurnal draf manual bisa diubah dan dihapus; jurnal posted masuk buku besar dan terkunci.",
+            text: "Keuangan → Jurnal → “Jurnal baru”. Isi tanggal, keterangan, dan minimal dua baris dengan akun berbeda. Simpan sebagai draf, atau langsung “Simpan & posting” bila Anda punya finance.approve. Jurnal draf manual bisa diubah dan dihapus; jurnal posted masuk buku besar dan terkunci. Tab Riwayat menampilkan jurnal yang sudah diposting, dengan baris yang bisa dibuka dan filter akun.",
+          },
+          {
+            title: "Proses invoice dari Sales",
+            text: "Keuangan → Invoice penjualan menampilkan semua invoice yang diajukan Sales. Buka satu invoice untuk “Revisi” selama statusnya masih Diajukan dan belum ada pembayaran; nominal invoice termin mengikuti quotation. “Terbitkan” mencatatnya sebagai piutang, lalu “Catat pembayaran” mengisi penerimaannya. Lampirkan faktur pajak (PDF, JPG, PNG, atau WebP, maks. 10 MB) di panel kanan; file baru menggantikan file lama.",
+          },
+          {
+            title: "Anggaran dan laporan tambahan",
+            text: "Keuangan → Laporan keuangan menyediakan Budget vs Actual, Perubahan ekuitas, Ekonomi klien, dan Kesehatan neraca. Isi rencana lewat “Atur anggaran” di Budget vs Actual: pilih tahun, isi nominal per akun dan bulan, lalu simpan. Laporan membandingkan per bulan penuh, dan selisih positif berarti lebih baik dari rencana.",
+          },
+          {
+            title: "Pengadaan: dari PR sampai tagihan",
+            text: "Keuangan → Pengadaan. Buat purchase request lalu “Ajukan”. Orang lain dengan izin finance.approve memberi “Setujui” atau “Tolak”; pembuat dokumen tidak bisa memutuskan dokumennya sendiri, kecuali Admin. “Buat PO” dari PR yang disetujui, pilih vendor, ajukan, dan setujui. “Jadikan tagihan” membuat draf di Hutang usaha, yang tetap perlu diposting di sana. Data pemasok ada di Keuangan → Vendor.",
+          },
+          {
+            title: "Dokumen komersial berkop surat",
+            text: "Keuangan → Dokumen komersial untuk quotation dan invoice di luar deal Sales. Quotation yang diterima bisa dijadikan invoice, dan invoice bisa dijadikan tagihan di Piutang atau Hutang usaha. Tombol “PDF” mencetak dokumen dengan kop surat yang tersimpan saat dokumen keluar dari draf.",
+          },
+          {
+            title: "Rekonsiliasi bank dan kartu kredit",
+            text: "Keuangan → Rekonsiliasi. Pilih rekening, lalu unggah mutasi CSV. Sistem mencocokkan otomatis hanya bila nominal, tanggal, dan nama sama. Sisanya berstatus Ada usulan atau Belum cocok. Klik “Verifikasi” untuk memilih jurnal atau invoice, membuat jurnal baru, atau mengabaikan dengan alasan. Satu jurnal hanya bisa dipakai satu baris mutasi, jadi transaksi kartu tidak tercatat ganda. Tandai akun kartu kredit lewat Bagan akun.",
+          },
+          {
+            title: "Jurnal berulang dan penyusutan",
+            text: "Keuangan → Jurnal berulang & aset. Buat jadwal jurnal bulanan, tiga bulanan, atau tahunan, dan daftarkan aset dengan harga, nilai sisa, dan umur manfaat. Sistem memposting otomatis tiap hari. Bila periodenya tertutup, jadwal menampilkan alasannya dan mengejar setelah periode dibuka.",
+          },
+          {
+            title: "Follow-up invoice lewat WhatsApp",
+            text: "Keuangan → Invoice penjualan → Follow-up WhatsApp. Sistem menyiapkan draf pesan pada H-3, jatuh tempo, H+3, dan H+7. Finance memeriksa nomor dan isi pesan, lalu “Setujui”. Tidak ada pesan yang terkirim tanpa persetujuan.",
           },
           {
             title: "Kas, hutang, dan piutang",

@@ -47,6 +47,7 @@ type Account struct {
 	IsPostable       bool
 	IsContra         bool
 	IsCashBank       bool
+	IsCreditCard     bool
 	CashFlowCategory string
 	Description      string
 	IsActive         bool
@@ -381,29 +382,33 @@ type Claim struct {
 	Description       string
 	ClientID          string
 	Project           string
-	Status            ClaimStatus
-	OverLimit         bool
-	LimitNote         string
-	SubmittedAt       *time.Time
-	ManagerApprovedAt *time.Time
-	ManagerApprovedBy string
-	FinanceApprovedAt *time.Time
-	FinanceApprovedBy string
-	RejectedAt        *time.Time
-	RejectedBy        string
-	RejectedStage     string
-	RejectReason      string
-	CancelledAt       *time.Time
-	PaidAt            *time.Time
-	PaidBy            string
-	PaymentBatchID    string
-	LastRemindedAt    *time.Time
-	Receipts          []Receipt
-	History           []ClaimEvent
-	CreatedBy         string
-	CreatedAt         time.Time
-	UpdatedBy         string
-	UpdatedAt         time.Time
+	// The account the claimant asks finance to pay from.
+	PreferredCashAccountID   string
+	PreferredCashAccountName string
+	Status                   ClaimStatus
+	OverLimit                bool
+	LimitNote                string
+	SubmittedAt              *time.Time
+	ManagerApprovedAt        *time.Time
+	ManagerApprovedBy        string
+	FinanceApprovedAt        *time.Time
+	FinanceApprovedBy        string
+	RejectedAt               *time.Time
+	RejectedBy               string
+	RejectedStage            string
+	RejectReason             string
+	CancelledAt              *time.Time
+	PaidAt                   *time.Time
+	PaidBy                   string
+	PaymentBatchID           string
+	LastRemindedAt           *time.Time
+	Receipts                 []Receipt
+	Duplicates               []DuplicateReceipt
+	History                  []ClaimEvent
+	CreatedBy                string
+	CreatedAt                time.Time
+	UpdatedBy                string
+	UpdatedAt                time.Time
 }
 
 type Receipt struct {
@@ -413,6 +418,8 @@ type Receipt struct {
 	Filename    string
 	ContentType string
 	SizeBytes   int64
+	ContentHash string
+	ImageHash   *int64
 	CreatedBy   string
 	CreatedAt   time.Time
 }
@@ -585,8 +592,8 @@ type InvoiceRepo interface {
 	SetPaymentJournal(ctx context.Context, id, entryID string) error
 
 	SubsidiaryParties(ctx context.Context, kind string) ([]SubsidiaryParty, error)
-	SubsidiaryMoves(ctx context.Context, kind, party, from, to string) ([]SubsidiaryMove, error)
-	SubsidiaryOpening(ctx context.Context, kind, party, before string) (Money, error)
+	SubsidiaryMoves(ctx context.Context, kind, party, accountID, from, to string) ([]SubsidiaryMove, error)
+	SubsidiaryOpening(ctx context.Context, kind, party, accountID, before string) (Money, error)
 }
 
 type ReimbursementRepo interface {
@@ -616,6 +623,42 @@ type ReimbursementRepo interface {
 	CountPendingClaims(ctx context.Context) (int, error)
 }
 
+// BankingRepo stores statements, schedules and the fixed asset register.
+type BankingRepo interface {
+	InsertBankStatement(ctx context.Context, id, accountID, filename, by string) error
+	SetBankStatementCount(ctx context.Context, id string, n int) error
+	// InsertStatementLine reports false when the row was uploaded before.
+	InsertStatementLine(ctx context.Context, l StatementLine) (bool, error)
+	ListStatementLines(ctx context.Context, f StatementFilter) ([]StatementLine, int, error)
+	PendingStatementLines(ctx context.Context, accountID string) ([]StatementLine, error)
+	GetStatementLine(ctx context.Context, id string) (*StatementLine, error)
+	UpdateStatementLine(ctx context.Context, l StatementLine) error
+	StatementLineCounts(ctx context.Context, accountID string) (map[string]int, error)
+	OpenJournalLines(ctx context.Context, accountID, side string, amount Money, from, to string) ([]LedgerLine, error)
+	GetJournalLineForMatch(ctx context.Context, id string) (*MatchableLine, error)
+	JournalLineOnAccount(ctx context.Context, entryID, accountID, side string, amount Money) (string, error)
+
+	ListRecurringJournals(ctx context.Context) ([]RecurringJournal, error)
+	GetRecurringJournal(ctx context.Context, id string) (*RecurringJournal, error)
+	DueRecurringJournals(ctx context.Context, today string) ([]RecurringJournal, error)
+	InsertRecurringJournal(ctx context.Context, r RecurringJournal) error
+	UpdateRecurringRun(ctx context.Context, r RecurringJournal) error
+	SetRecurringActive(ctx context.Context, id string, active bool, by string) error
+	DeleteRecurringJournal(ctx context.Context, id string) error
+
+	ListFixedAssets(ctx context.Context, activeOnly bool) ([]FixedAsset, error)
+	GetFixedAsset(ctx context.Context, id string) (*FixedAsset, error)
+	InsertFixedAsset(ctx context.Context, a FixedAsset) error
+	UpdateFixedAssetRun(ctx context.Context, a FixedAsset) error
+	SetFixedAssetActive(ctx context.Context, id string, active bool, by string) error
+	DeleteFixedAsset(ctx context.Context, id string) error
+
+	ListBudgets(ctx context.Context, from, to string) ([]Budget, error)
+	// SaveBudget removes the row when the amount is zero.
+	SaveBudget(ctx context.Context, b Budget, by string) error
+	ClientEconomics(ctx context.Context, from, to string) ([]ClientEconomics, error)
+}
+
 type InsightRepo interface {
 	InsertInsight(ctx context.Context, i FinancialInsight) error
 	ListInsights(ctx context.Context, limit int) ([]FinancialInsight, error)
@@ -630,6 +673,8 @@ type Store interface {
 	BalanceRepo
 	InvoiceRepo
 	ReimbursementRepo
+	BankingRepo
+	DocumentRepo
 	InsightRepo
 	AnalyticsRepo
 	WithTx(ctx context.Context, fn func(tx Store) error) error

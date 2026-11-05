@@ -93,9 +93,15 @@ export const erpNav: { label: string; items: NavItem[] }[] = [
         perm: "finance.read",
         children: [
           { label: e.financeAnalysis, href: "/erp/finance/analysis" },
+          { label: e.financeInvoices, href: "/erp/finance/invoices" },
           { label: e.journals, href: "/erp/finance/journals" },
           { label: e.accounts, href: "/erp/finance/accounts" },
           { label: e.cashBank, href: "/erp/finance/cash-bank" },
+          { label: e.reconciliation, href: "/erp/finance/reconciliation" },
+          { label: e.schedules, href: "/erp/finance/schedules" },
+          { label: e.purchasing, href: "/erp/finance/purchasing" },
+          { label: e.vendors, href: "/erp/finance/vendors" },
+          { label: e.commercialDocs, href: "/erp/finance/documents" },
           { label: e.payables, href: "/erp/finance/payables" },
           { label: e.receivables, href: "/erp/finance/receivables" },
           { label: e.financeReports, href: "/erp/finance/reports" },
@@ -273,6 +279,7 @@ export function clientNav(slug: string): NavItem[] {
 export const adminNav: NavItem[] = [
   { label: t.nav.setup, href: "/setup", icon: Plug, exact: true },
   { label: t.nav.users, href: "/admin/users", icon: Users },
+  { label: t.nav.auditTrail, href: "/admin/audit", icon: ShieldCheck },
 ];
 
 export const moduleIcons = { social: Share2, seo: Search, ads: Megaphone, analytics: BarChart3 };

@@ -20,6 +20,8 @@ import type {
   Forecast,
   FormSubmission,
   Invoice,
+  InvoiceFollowup,
+  Payment,
   LeadDetail,
   LeadForm,
   ListContractTemplatesResponse,
@@ -133,10 +135,14 @@ export const listApprovals = async (p: { view?: string; status?: string } = {}) 
 // Billing and insight
 
 export const listInvoices = async (
-  p: { dealId?: string; status?: string; dateFrom?: string; dateTo?: string; limit?: number } = {},
+  p: { dealId?: string; status?: string; dateFrom?: string; dateTo?: string; q?: string; limit?: number } = {},
 ) =>
   (await get<{ invoices: Invoice[] }>(`/invoices${qs(p)}`)).invoices;
 export const getInvoice = (id: string) => get<Invoice>(`/invoices/${id}`);
+export const listInvoiceFollowups = (p: { status?: string } = {}) =>
+  get<{ followups: InvoiceFollowup[]; whatsappEnabled: boolean }>(`/invoice-followups${qs(p)}`);
+export const listDealPayments = async (dealId: string) =>
+  (await get<{ payments: Payment[] }>(`/deals/${dealId}/payments`)).payments;
 export const listTargets = (month?: string) => get<ListTargetsResponse>(`/targets${qs({ month })}`);
 export const getForecast = (month?: string) => get<Forecast>(`/forecast${qs({ month })}`);
 

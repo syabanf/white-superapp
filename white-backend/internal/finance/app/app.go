@@ -90,8 +90,11 @@ type Deps struct {
 	Insights  InsightGenerator
 	Events    events.Publisher
 	ReadSheet SheetReader
-	Clock     clock.Clock
-	Logger    *slog.Logger
+	// Company is the letterhead; RenderDocument prints a document on one.
+	Company        domain.Company
+	RenderDocument func(domain.Document, domain.Company) ([]byte, error)
+	Clock          clock.Clock
+	Logger         *slog.Logger
 }
 
 func (d Deps) now() time.Time { return d.Clock.Now() }

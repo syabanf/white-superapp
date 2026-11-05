@@ -123,7 +123,11 @@ func leadInput(r *salesv1.LeadInput) app.LeadInput {
 }
 
 func accountPB(a domain.Account) *salesv1.Account {
-	return &salesv1.Account{Id: a.ID, Name: a.Name, AccountType: a.AccountType, Industry: str(a.Industry), Address: str(a.Address), City: str(a.City), Phone: str(a.Phone), Email: str(a.Email), Website: str(a.Website), Npwp: str(a.Npwp), Notes: str(a.Notes), OwnerUserId: str(a.OwnerUserID), Custom: structOf(a.Custom), CreatedAt: ts(a.CreatedAt), UpdatedAt: ts(a.UpdatedAt)}
+	var terms int32
+	if a.PaymentTermsDays != nil {
+		terms = *a.PaymentTermsDays
+	}
+	return &salesv1.Account{BankName: str(a.BankName), BankAccountNo: str(a.BankAccountNo), BankAccountName: str(a.BankAccountName), BillingEmail: str(a.BillingEmail), PaymentTermsDays: terms, Id: a.ID, Name: a.Name, AccountType: a.AccountType, Industry: str(a.Industry), Address: str(a.Address), City: str(a.City), Phone: str(a.Phone), Email: str(a.Email), Website: str(a.Website), Npwp: str(a.Npwp), Notes: str(a.Notes), OwnerUserId: str(a.OwnerUserID), Custom: structOf(a.Custom), CreatedAt: ts(a.CreatedAt), UpdatedAt: ts(a.UpdatedAt)}
 }
 
 func contactPB(c domain.Contact) *salesv1.Contact {
@@ -257,7 +261,12 @@ func approvalPB(v app.ApprovalView) *salesv1.ApprovalRequest {
 }
 
 func invoicePB(i domain.Invoice) *salesv1.Invoice {
-	return &salesv1.Invoice{Id: i.ID, DealId: i.DealID, DealTitle: i.DealTitle, ClientName: i.ClientName, QuotationId: str(i.QuotationID), TermId: str(i.TermID), InvoiceNumber: i.InvoiceNumber, Label: i.Label, Amount: i.Amount.String(), DueDate: domain.FormatDay(i.DueDate), Status: i.Status, SentAt: tsPtr(i.SentAt), IssuedBy: str(i.IssuedBy), CancelReason: str(i.CancelReason), PaidTotal: i.PaidTotal.String(), CreatedAt: ts(i.CreatedAt)}
+	return &salesv1.Invoice{Id: i.ID, DealId: i.DealID, DealTitle: i.DealTitle, ClientName: i.ClientName, QuotationId: str(i.QuotationID), TermId: str(i.TermID), InvoiceNumber: i.InvoiceNumber, Label: i.Label, Amount: i.Amount.String(), DueDate: domain.FormatDay(i.DueDate), Status: i.Status, SentAt: tsPtr(i.SentAt), IssuedBy: str(i.IssuedBy), CancelReason: str(i.CancelReason), PaidTotal: i.PaidTotal.String(), CreatedAt: ts(i.CreatedAt), Note: str(i.Note), FakturPajakName: str(i.FakturPajakName), QuoteNumber: i.QuoteNumber, TermLabel: i.TermLabel}
+}
+
+func followupPB(f domain.InvoiceFollowup) *salesv1.InvoiceFollowup {
+	return &salesv1.InvoiceFollowup{Id: f.ID, InvoiceId: f.InvoiceID, InvoiceNumber: f.InvoiceNumber, DealId: f.DealID, ClientName: f.ClientName, Stage: int32(f.Stage), Phone: f.Phone,
+		Message: f.Message, Status: f.Status, LastError: f.LastError, SentAt: tsPtr(f.SentAt), CreatedAt: ts(f.CreatedAt)}
 }
 
 func invoicesPB(is []domain.Invoice) []*salesv1.Invoice {

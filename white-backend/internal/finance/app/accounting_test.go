@@ -300,7 +300,7 @@ func TestPayablesPaymentAndVoid(t *testing.T) {
 	if reversal == nil || reversal.Lines[0].Side != domain.Credit {
 		t.Fatalf("reversal %+v", reversal)
 	}
-	sub, err := l.SubsidiaryLedger(h.ctx, domain.KindAP, "PT Telkom", "", "")
+	sub, err := l.SubsidiaryLedger(h.ctx, domain.KindAP, "PT Telkom", "", "", "")
 	h.ok(err)
 	if sub.Closing != rp(4_995_000) || len(sub.Lines) != 1 {
 		t.Fatalf("subsidiary %+v", sub)

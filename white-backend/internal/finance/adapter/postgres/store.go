@@ -3,6 +3,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -153,7 +154,7 @@ func toAccount(r sqlc.ListAccountsRow) domain.Account {
 	return domain.Account{
 		ID: r.ID, Code: r.Code, Name: r.Name, ParentID: str(r.ParentID), AccountTypeID: r.AccountTypeID, TypeCode: r.TypeCode,
 		TypeName: r.TypeName, NormalBalance: r.NormalBalance, Level: int(r.Level), IsPostable: r.IsPostable, IsContra: r.IsContra,
-		IsCashBank: r.IsCashBank, CashFlowCategory: str(r.CashFlowCategory), Description: r.Description, IsActive: r.IsActive,
+		IsCashBank: r.IsCashBank, IsCreditCard: r.IsCreditCard, CashFlowCategory: str(r.CashFlowCategory), Description: r.Description, IsActive: r.IsActive,
 		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	}
 }
@@ -181,11 +182,11 @@ func (s *Store) AccountsByCode(ctx context.Context) (map[string]domain.Account, 
 }
 
 func (s *Store) InsertAccount(ctx context.Context, a domain.Account, by string) error {
-	return wrap(s.q.InsertAccount(ctx, sqlc.InsertAccountParams{ID: a.ID, Code: a.Code, Name: a.Name, ParentID: sp(a.ParentID), AccountTypeID: a.AccountTypeID, Level: int32(a.Level), IsContra: a.IsContra, IsCashBank: a.IsCashBank, CashFlowCategory: sp(a.CashFlowCategory), Description: a.Description, IsActive: a.IsActive, By: sp(by)}))
+	return wrap(s.q.InsertAccount(ctx, sqlc.InsertAccountParams{ID: a.ID, IsCreditCard: a.IsCreditCard, Code: a.Code, Name: a.Name, ParentID: sp(a.ParentID), AccountTypeID: a.AccountTypeID, Level: int32(a.Level), IsContra: a.IsContra, IsCashBank: a.IsCashBank, CashFlowCategory: sp(a.CashFlowCategory), Description: a.Description, IsActive: a.IsActive, By: sp(by)}))
 }
 
 func (s *Store) UpdateAccount(ctx context.Context, a domain.Account, by string) error {
-	return wrap(s.q.UpdateAccount(ctx, sqlc.UpdateAccountParams{ID: a.ID, Code: a.Code, Name: a.Name, ParentID: sp(a.ParentID), AccountTypeID: a.AccountTypeID, Level: int32(a.Level), IsContra: a.IsContra, IsCashBank: a.IsCashBank, CashFlowCategory: sp(a.CashFlowCategory), Description: a.Description, IsActive: a.IsActive, By: sp(by)}))
+	return wrap(s.q.UpdateAccount(ctx, sqlc.UpdateAccountParams{ID: a.ID, IsCreditCard: a.IsCreditCard, Code: a.Code, Name: a.Name, ParentID: sp(a.ParentID), AccountTypeID: a.AccountTypeID, Level: int32(a.Level), IsContra: a.IsContra, IsCashBank: a.IsCashBank, CashFlowCategory: sp(a.CashFlowCategory), Description: a.Description, IsActive: a.IsActive, By: sp(by)}))
 }
 
 func (s *Store) SoftDeleteAccount(ctx context.Context, id, by string) error {
@@ -816,12 +817,12 @@ func (s *Store) SubsidiaryParties(ctx context.Context, kind string) ([]domain.Su
 	}), err
 }
 
-func (s *Store) SubsidiaryMoves(ctx context.Context, kind, party, from, to string) ([]domain.SubsidiaryMove, error) {
-	invs, err := s.q.SubsidiaryInvoices(ctx, sqlc.SubsidiaryInvoicesParams{Kind: kind, PartyName: party, DateFrom: dayp(from), DateTo: dayp(to)})
+func (s *Store) SubsidiaryMoves(ctx context.Context, kind, party, accountID, from, to string) ([]domain.SubsidiaryMove, error) {
+	invs, err := s.q.SubsidiaryInvoices(ctx, sqlc.SubsidiaryInvoicesParams{Kind: kind, Party: sp(party), Account: sp(accountID), DateFrom: dayp(from), DateTo: dayp(to)})
 	if err != nil {
 		return nil, err
 	}
-	allocs, err := s.q.SubsidiaryAllocations(ctx, sqlc.SubsidiaryAllocationsParams{Kind: kind, PartyName: party, DateFrom: dayp(from), DateTo: dayp(to)})
+	allocs, err := s.q.SubsidiaryAllocations(ctx, sqlc.SubsidiaryAllocationsParams{Kind: kind, Party: sp(party), Account: sp(accountID), DateFrom: dayp(from), DateTo: dayp(to)})
 	if err != nil {
 		return nil, err
 	}
@@ -835,8 +836,8 @@ func (s *Store) SubsidiaryMoves(ctx context.Context, kind, party, from, to strin
 	return out, nil
 }
 
-func (s *Store) SubsidiaryOpening(ctx context.Context, kind, party, before string) (domain.Money, error) {
-	return s.q.SubsidiaryOpening(ctx, sqlc.SubsidiaryOpeningParams{Kind: kind, PartyName: party, Before: day(before)})
+func (s *Store) SubsidiaryOpening(ctx context.Context, kind, party, accountID, before string) (domain.Money, error) {
+	return s.q.SubsidiaryOpening(ctx, sqlc.SubsidiaryOpeningParams{Kind: kind, Party: sp(party), Account: sp(accountID), Before: day(before)})
 }
 
 // ─── Reimbursement ──────────────────────────────────────────
@@ -861,6 +862,7 @@ func (s *Store) UpsertPolicy(ctx context.Context, p domain.Policy, by string) er
 
 func (s *Store) InsertClaim(ctx context.Context, c domain.Claim) error {
 	return wrap(s.q.InsertClaim(ctx, sqlc.InsertClaimParams{
+		PreferredCashAccountID: sp(c.PreferredCashAccountID), PreferredCashAccountName: c.PreferredCashAccountName,
 		ID: c.ID, ClaimNo: c.ClaimNo, EmployeeID: c.EmployeeID, EmployeeUserID: sp(c.EmployeeUserID), EmployeeName: c.EmployeeName,
 		DepartmentName: c.DepartmentName, ManagerEmployeeID: sp(c.ManagerEmployeeID), ManagerUserID: sp(c.ManagerUserID),
 		Category: c.Category, TransactionDate: day(c.TransactionDate), Amount: c.Amount, Description: c.Description,
@@ -870,6 +872,7 @@ func (s *Store) InsertClaim(ctx context.Context, c domain.Claim) error {
 
 func (s *Store) UpdateClaim(ctx context.Context, c domain.Claim) error {
 	return s.q.UpdateClaim(ctx, sqlc.UpdateClaimParams{
+		PreferredCashAccountID: sp(c.PreferredCashAccountID), PreferredCashAccountName: c.PreferredCashAccountName,
 		ID: c.ID, EmployeeName: c.EmployeeName, DepartmentName: c.DepartmentName, ManagerEmployeeID: sp(c.ManagerEmployeeID),
 		ManagerUserID: sp(c.ManagerUserID), Category: c.Category, TransactionDate: day(c.TransactionDate), Amount: c.Amount,
 		Description: c.Description, ClientID: sp(c.ClientID), Project: c.Project, Status: string(c.Status), OverLimit: c.OverLimit,
@@ -882,6 +885,7 @@ func (s *Store) UpdateClaim(ctx context.Context, c domain.Claim) error {
 
 func toClaim(r sqlc.FinanceReimbursementClaim) domain.Claim {
 	return domain.Claim{
+		PreferredCashAccountID: str(r.PreferredCashAccountID), PreferredCashAccountName: r.PreferredCashAccountName,
 		ID: r.ID, ClaimNo: r.ClaimNo, EmployeeID: r.EmployeeID, EmployeeUserID: str(r.EmployeeUserID), EmployeeName: r.EmployeeName,
 		DepartmentName: r.DepartmentName, ManagerEmployeeID: str(r.ManagerEmployeeID), ManagerUserID: str(r.ManagerUserID),
 		Category: r.Category, TransactionDate: ds(r.TransactionDate), Amount: r.Amount, Description: r.Description,
@@ -895,7 +899,7 @@ func toClaim(r sqlc.FinanceReimbursementClaim) domain.Claim {
 }
 
 func toReceipt(r sqlc.FinanceReimbursementReceipt) domain.Receipt {
-	return domain.Receipt{ID: r.ID, ClaimID: r.ClaimID, StorageKey: r.StorageKey, Filename: r.Filename, ContentType: r.ContentType, SizeBytes: r.SizeBytes, CreatedBy: str(r.CreatedBy), CreatedAt: r.CreatedAt}
+	return domain.Receipt{ContentHash: r.ContentHash, ImageHash: r.ImageHash, ID: r.ID, ClaimID: r.ClaimID, StorageKey: r.StorageKey, Filename: r.Filename, ContentType: r.ContentType, SizeBytes: r.SizeBytes, CreatedBy: str(r.CreatedBy), CreatedAt: r.CreatedAt}
 }
 
 func (s *Store) withReceipts(ctx context.Context, cs []domain.Claim) ([]domain.Claim, error) {
@@ -927,6 +931,9 @@ func (s *Store) GetClaim(ctx context.Context, id string) (*domain.Claim, error) 
 	}
 	out, err := s.withReceipts(ctx, []domain.Claim{*c})
 	if err != nil {
+		return nil, err
+	}
+	if out[0].Duplicates, err = s.claimDuplicates(ctx, out[0]); err != nil {
 		return nil, err
 	}
 	events, err := s.q.ClaimEvents(ctx, id)
@@ -972,7 +979,7 @@ func (s *Store) MonthToDate(ctx context.Context, employeeID, category, from, to,
 }
 
 func (s *Store) InsertReceipt(ctx context.Context, r domain.Receipt) error {
-	return s.q.InsertReceipt(ctx, sqlc.InsertReceiptParams{ID: r.ID, ClaimID: r.ClaimID, StorageKey: r.StorageKey, Filename: r.Filename, ContentType: r.ContentType, SizeBytes: r.SizeBytes, CreatedBy: sp(r.CreatedBy)})
+	return s.q.InsertReceipt(ctx, sqlc.InsertReceiptParams{ContentHash: r.ContentHash, ImageHash: r.ImageHash, ID: r.ID, ClaimID: r.ClaimID, StorageKey: r.StorageKey, Filename: r.Filename, ContentType: r.ContentType, SizeBytes: r.SizeBytes, CreatedBy: sp(r.CreatedBy)})
 }
 
 func (s *Store) DeleteReceipt(ctx context.Context, id string) error {
@@ -1087,4 +1094,301 @@ func (s *Store) ClaimFacts(ctx context.Context, from, to, department string) ([]
 
 func (s *Store) ClaimDepartments(ctx context.Context) ([]string, error) {
 	return s.q.ClaimDepartments(ctx)
+}
+
+// ─── Banking ─────────────────────────────────
+
+func (s *Store) claimDuplicates(ctx context.Context, c domain.Claim) ([]domain.DuplicateReceipt, error) {
+	if len(c.Receipts) == 0 {
+		return nil, nil
+	}
+	rows, err := s.q.ReceiptPrintsOutside(ctx, c.ID)
+	if err != nil {
+		return nil, err
+	}
+	own := make([]domain.ReceiptPrint, len(c.Receipts))
+	for i, r := range c.Receipts {
+		own[i] = domain.ReceiptPrint{ReceiptID: r.ID, ContentHash: r.ContentHash, ImageHash: r.ImageHash}
+	}
+	return domain.FindDuplicates(own, mapAll(rows, func(r sqlc.ReceiptPrintsOutsideRow) domain.ReceiptPrint {
+		return domain.ReceiptPrint{ReceiptID: r.ID, ClaimID: r.ClaimID, ClaimNo: r.ClaimNo, Filename: r.Filename, ContentHash: r.ContentHash, ImageHash: r.ImageHash}
+	})), nil
+}
+
+func (s *Store) InsertBankStatement(ctx context.Context, id, accountID, filename, by string) error {
+	return s.q.InsertBankStatement(ctx, sqlc.InsertBankStatementParams{ID: id, AccountID: accountID, Filename: filename, By: sp(by)})
+}
+
+func (s *Store) SetBankStatementCount(ctx context.Context, id string, n int) error {
+	return s.q.SetBankStatementCount(ctx, sqlc.SetBankStatementCountParams{ID: id, LineCount: int32(n)})
+}
+
+func (s *Store) InsertStatementLine(ctx context.Context, l domain.StatementLine) (bool, error) {
+	n, err := s.q.InsertStatementLine(ctx, sqlc.InsertStatementLineParams{ID: l.ID, StatementID: l.StatementID, AccountID: l.AccountID,
+		LineDate: day(l.LineDate), Description: l.Description, SenderName: l.SenderName, Amount: l.Amount, DedupeKey: l.DedupeKey})
+	return n > 0, err
+}
+
+func toStatementLine(r sqlc.FinanceBankStatementLine) domain.StatementLine {
+	return domain.StatementLine{ID: r.ID, StatementID: r.StatementID, AccountID: r.AccountID, LineDate: ds(r.LineDate), Description: r.Description,
+		SenderName: r.SenderName, Amount: r.Amount, DedupeKey: r.DedupeKey, Status: r.Status, SuggestedKind: r.SuggestedKind, SuggestedRef: r.SuggestedRef,
+		SuggestedLabel: r.SuggestedLabel, SuggestedScore: int(r.SuggestedScore), SuggestedReason: r.SuggestedReason, MatchedLineID: str(r.MatchedLineID),
+		MatchedEntryID: str(r.MatchedEntryID), Note: r.Note, VerifiedBy: str(r.VerifiedBy), VerifiedAt: r.VerifiedAt}
+}
+
+func (s *Store) ListStatementLines(ctx context.Context, f domain.StatementFilter) ([]domain.StatementLine, int, error) {
+	rows, err := s.q.ListStatementLines(ctx, sqlc.ListStatementLinesParams{AccountID: f.AccountID, Status: sp(f.Status), DateFrom: dayp(f.DateFrom),
+		DateTo: dayp(f.DateTo), Lim: int32(f.PageSize), Off: int32((f.Page - 1) * f.PageSize)})
+	if err != nil {
+		return nil, 0, err
+	}
+	total := 0
+	out := make([]domain.StatementLine, len(rows))
+	for i, r := range rows {
+		out[i] = toStatementLine(r.FinanceBankStatementLine)
+		out[i].MatchedEntryNo, total = r.MatchedEntryNo, int(r.Total)
+	}
+	return out, total, nil
+}
+
+func (s *Store) PendingStatementLines(ctx context.Context, accountID string) ([]domain.StatementLine, error) {
+	rows, err := s.q.PendingStatementLines(ctx, accountID)
+	return mapAll(rows, toStatementLine), err
+}
+
+func (s *Store) GetStatementLine(ctx context.Context, id string) (*domain.StatementLine, error) {
+	r, err := s.q.GetStatementLine(ctx, id)
+	return one(r, err, toStatementLine)
+}
+
+func (s *Store) UpdateStatementLine(ctx context.Context, l domain.StatementLine) error {
+	return wrap(s.q.UpdateStatementLine(ctx, sqlc.UpdateStatementLineParams{ID: l.ID, Status: l.Status, SuggestedKind: l.SuggestedKind, SuggestedRef: l.SuggestedRef,
+		SuggestedLabel: l.SuggestedLabel, SuggestedScore: int32(l.SuggestedScore), SuggestedReason: l.SuggestedReason, MatchedLineID: sp(l.MatchedLineID),
+		MatchedEntryID: sp(l.MatchedEntryID), Note: l.Note, VerifiedBy: sp(l.VerifiedBy), VerifiedAt: l.VerifiedAt}))
+}
+
+func (s *Store) StatementLineCounts(ctx context.Context, accountID string) (map[string]int, error) {
+	rows, err := s.q.StatementLineCounts(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]int{}
+	for _, r := range rows {
+		out[r.Status] = int(r.N)
+	}
+	return out, nil
+}
+
+func (s *Store) OpenJournalLines(ctx context.Context, accountID, side string, amount domain.Money, from, to string) ([]domain.LedgerLine, error) {
+	rows, err := s.q.OpenJournalLines(ctx, sqlc.OpenJournalLinesParams{AccountID: accountID, EntrySide: side, Amount: amount, DateFrom: day(from), DateTo: day(to)})
+	return mapAll(rows, func(r sqlc.OpenJournalLinesRow) domain.LedgerLine {
+		return domain.LedgerLine{LineID: r.ID, EntryID: r.EntryID, EntryNo: r.EntryNo, EntryDate: ds(r.EntryDate), EntryType: r.EntryType, Description: r.Description, Memo: r.Memo, Side: r.EntrySide, Amount: r.Amount}
+	}), err
+}
+
+func (s *Store) GetJournalLineForMatch(ctx context.Context, id string) (*domain.MatchableLine, error) {
+	r, err := s.q.GetJournalLineForMatch(ctx, id)
+	return one(r, err, func(r sqlc.GetJournalLineForMatchRow) domain.MatchableLine {
+		return domain.MatchableLine{AccountID: r.AccountID, Status: r.Status, LedgerLine: domain.LedgerLine{LineID: r.ID, EntryID: r.EntryID, EntryNo: r.EntryNo, EntryDate: ds(r.EntryDate),
+			EntryType: r.EntryType, Description: r.Description, Memo: r.Memo, Side: r.EntrySide, Amount: r.Amount}}
+	})
+}
+
+func (s *Store) JournalLineOnAccount(ctx context.Context, entryID, accountID, side string, amount domain.Money) (string, error) {
+	id, err := s.q.JournalLineOnAccount(ctx, sqlc.JournalLineOnAccountParams{EntryID: entryID, AccountID: accountID, EntrySide: side, Amount: amount})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", nil
+	}
+	return id, err
+}
+
+func toRecurring(r sqlc.FinanceRecurringJournal) domain.RecurringJournal {
+	out := domain.RecurringJournal{ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency, AnchorDay: int(r.AnchorDay), NextRun: ds(r.NextRun),
+		EndDate: dsp(r.EndDate), IsActive: r.IsActive, LastEntryID: str(r.LastEntryID), LastError: r.LastError, CreatedBy: str(r.CreatedBy), UpdatedBy: str(r.UpdatedBy)}
+	_ = json.Unmarshal(r.Lines, &out.Lines) // Written by InsertRecurringJournal only.
+	return out
+}
+
+func (s *Store) ListRecurringJournals(ctx context.Context) ([]domain.RecurringJournal, error) {
+	rows, err := s.q.ListRecurringJournals(ctx)
+	return mapAll(rows, toRecurring), err
+}
+
+func (s *Store) GetRecurringJournal(ctx context.Context, id string) (*domain.RecurringJournal, error) {
+	r, err := s.q.GetRecurringJournal(ctx, id)
+	return one(r, err, toRecurring)
+}
+
+func (s *Store) DueRecurringJournals(ctx context.Context, today string) ([]domain.RecurringJournal, error) {
+	rows, err := s.q.DueRecurringJournals(ctx, day(today))
+	return mapAll(rows, toRecurring), err
+}
+
+func (s *Store) InsertRecurringJournal(ctx context.Context, r domain.RecurringJournal) error {
+	lines, err := json.Marshal(r.Lines)
+	if err != nil {
+		return err
+	}
+	return wrap(s.q.InsertRecurringJournal(ctx, sqlc.InsertRecurringJournalParams{ID: r.ID, Name: r.Name, Description: r.Description, Frequency: r.Frequency,
+		AnchorDay: int32(r.AnchorDay), NextRun: day(r.NextRun), EndDate: dayp(r.EndDate), Lines: lines, By: sp(r.CreatedBy)}))
+}
+
+func (s *Store) UpdateRecurringRun(ctx context.Context, r domain.RecurringJournal) error {
+	return s.q.UpdateRecurringRun(ctx, sqlc.UpdateRecurringRunParams{ID: r.ID, NextRun: day(r.NextRun), IsActive: r.IsActive, LastEntryID: sp(r.LastEntryID), LastError: r.LastError})
+}
+
+func (s *Store) SetRecurringActive(ctx context.Context, id string, active bool, by string) error {
+	return s.q.SetRecurringActive(ctx, sqlc.SetRecurringActiveParams{ID: id, IsActive: active, By: sp(by)})
+}
+
+func (s *Store) DeleteRecurringJournal(ctx context.Context, id string) error {
+	return s.q.DeleteRecurringJournal(ctx, id)
+}
+
+func toFixedAsset(r sqlc.ListFixedAssetsRow) domain.FixedAsset {
+	return domain.FixedAsset{ID: r.ID, Name: r.Name, AcquiredOn: ds(r.AcquiredOn), Cost: r.Cost, Salvage: r.Salvage, LifeMonths: int(r.LifeMonths),
+		ExpenseAccountID: r.ExpenseAccountID, AccumAccountID: r.AccumAccountID, ExpenseAccountName: r.ExpenseAccountName, AccumAccountName: r.AccumAccountName,
+		DepreciatedMonths: int(r.DepreciatedMonths), IsActive: r.IsActive, LastEntryID: str(r.LastEntryID), LastError: r.LastError, CreatedBy: str(r.CreatedBy), UpdatedBy: str(r.UpdatedBy)}
+}
+
+func (s *Store) ListFixedAssets(ctx context.Context, activeOnly bool) ([]domain.FixedAsset, error) {
+	var active *bool
+	if activeOnly {
+		active = &activeOnly
+	}
+	rows, err := s.q.ListFixedAssets(ctx, sqlc.ListFixedAssetsParams{Active: active})
+	return mapAll(rows, toFixedAsset), err
+}
+
+func (s *Store) GetFixedAsset(ctx context.Context, id string) (*domain.FixedAsset, error) {
+	rows, err := s.q.ListFixedAssets(ctx, sqlc.ListFixedAssetsParams{ID: &id})
+	if err != nil || len(rows) == 0 {
+		return nil, err
+	}
+	a := toFixedAsset(rows[0])
+	return &a, nil
+}
+
+func (s *Store) InsertFixedAsset(ctx context.Context, a domain.FixedAsset) error {
+	return wrap(s.q.InsertFixedAsset(ctx, sqlc.InsertFixedAssetParams{ID: a.ID, Name: a.Name, AcquiredOn: day(a.AcquiredOn), Cost: a.Cost, Salvage: a.Salvage,
+		LifeMonths: int32(a.LifeMonths), ExpenseAccountID: a.ExpenseAccountID, AccumAccountID: a.AccumAccountID, By: sp(a.CreatedBy)}))
+}
+
+func (s *Store) UpdateFixedAssetRun(ctx context.Context, a domain.FixedAsset) error {
+	return s.q.UpdateFixedAssetRun(ctx, sqlc.UpdateFixedAssetRunParams{ID: a.ID, DepreciatedMonths: int32(a.DepreciatedMonths), IsActive: a.IsActive, LastEntryID: sp(a.LastEntryID), LastError: a.LastError})
+}
+
+func (s *Store) SetFixedAssetActive(ctx context.Context, id string, active bool, by string) error {
+	return s.q.SetFixedAssetActive(ctx, sqlc.SetFixedAssetActiveParams{ID: id, IsActive: active, By: sp(by)})
+}
+
+func (s *Store) DeleteFixedAsset(ctx context.Context, id string) error {
+	return s.q.DeleteFixedAsset(ctx, id)
+}
+
+// ─── Budgets and client economics ────────────
+
+func (s *Store) ListBudgets(ctx context.Context, from, to string) ([]domain.Budget, error) {
+	rows, err := s.q.ListBudgets(ctx, sqlc.ListBudgetsParams{DateFrom: day(from), DateTo: day(to)})
+	return mapAll(rows, func(r sqlc.ListBudgetsRow) domain.Budget {
+		return domain.Budget{Month: ds(r.PeriodMonth)[:7], AccountID: r.AccountID, Amount: r.Amount}
+	}), err
+}
+
+func (s *Store) SaveBudget(ctx context.Context, b domain.Budget, by string) error {
+	month := day(b.Month + "-01")
+	if b.Amount == 0 {
+		return s.q.DeleteBudget(ctx, sqlc.DeleteBudgetParams{PeriodMonth: month, AccountID: b.AccountID})
+	}
+	return wrap(s.q.UpsertBudget(ctx, sqlc.UpsertBudgetParams{PeriodMonth: month, AccountID: b.AccountID, Amount: b.Amount, By: sp(by)}))
+}
+
+func (s *Store) ClientEconomics(ctx context.Context, from, to string) ([]domain.ClientEconomics, error) {
+	rows, err := s.q.ClientEconomics(ctx, sqlc.ClientEconomicsParams{DateFrom: day(from), DateTo: day(to)})
+	return mapAll(rows, func(r sqlc.ClientEconomicsRow) domain.ClientEconomics {
+		return domain.ClientEconomics{Party: r.PartyName, InvoiceCount: int(r.InvoiceCount), Invoiced: r.Invoiced, Collected: r.Collected, PaidDays: r.PaidDays}
+	}), err
+}
+
+// ─── Vendors and documents ───────────────────
+
+func toVendor(r sqlc.FinanceVendor) domain.Vendor {
+	return domain.Vendor{ID: r.ID, Name: r.Name, PicName: r.PicName, Phone: r.Phone, Email: r.Email, Address: r.Address, NPWP: r.Npwp, BankName: r.BankName,
+		BankAccountNo: r.BankAccountNo, BankAccountName: r.BankAccountName, PaymentTermsDays: int(r.PaymentTermsDays), Notes: r.Notes, IsActive: r.IsActive}
+}
+
+func (s *Store) ListVendors(ctx context.Context, query string, activeOnly bool) ([]domain.Vendor, error) {
+	params := sqlc.ListVendorsParams{Q: sp(query)}
+	if activeOnly {
+		params.Active = &activeOnly
+	}
+	rows, err := s.q.ListVendors(ctx, params)
+	return mapAll(rows, toVendor), err
+}
+
+func (s *Store) GetVendor(ctx context.Context, id string) (*domain.Vendor, error) {
+	r, err := s.q.GetVendor(ctx, id)
+	return one(r, err, toVendor)
+}
+
+func (s *Store) SaveVendor(ctx context.Context, v domain.Vendor) error {
+	return wrap(s.q.UpsertVendor(ctx, sqlc.UpsertVendorParams{ID: v.ID, Name: v.Name, PicName: v.PicName, Phone: v.Phone, Email: v.Email, Address: v.Address, Npwp: v.NPWP,
+		BankName: v.BankName, BankAccountNo: v.BankAccountNo, BankAccountName: v.BankAccountName, PaymentTermsDays: int32(v.PaymentTermsDays), Notes: v.Notes, IsActive: v.IsActive, By: sp(v.By)}))
+}
+
+func toDocument(r sqlc.FinanceDocument) domain.Document {
+	d := domain.Document{ID: r.ID, Kind: r.Kind, Side: r.Side, Number: r.Number, Status: r.Status, VendorID: str(r.VendorID), PartyName: r.PartyName, PicName: r.PicName,
+		Phone: r.Phone, Email: r.Email, Address: r.Address, Title: r.Title, IssueDate: ds(r.IssueDate), DueDate: dsp(r.DueDate), ExternalNumber: r.ExternalNumber, Notes: r.Notes,
+		DiscountPercent: r.DiscountPercent, PPNPercent: r.PpnPercent, Subtotal: r.Subtotal, Discount: r.DiscountAmount, Tax: r.TaxAmount, Total: r.TotalAmount,
+		AccountID: str(r.AccountID), SourceID: str(r.SourceID), LedgerInvoiceID: str(r.LedgerInvoiceID), Letterhead: r.Letterhead, RejectReason: r.RejectReason,
+		DecidedBy: str(r.DecidedBy), DecidedAt: r.DecidedAt, CreatedBy: str(r.CreatedBy), UpdatedBy: str(r.UpdatedBy), CreatedAt: r.CreatedAt}
+	_ = json.Unmarshal(r.Items, &d.Items) // Written by this store only.
+	return d
+}
+
+func (s *Store) ListDocuments(ctx context.Context, f domain.DocumentFilter) ([]domain.Document, int, error) {
+	rows, err := s.q.ListDocuments(ctx, sqlc.ListDocumentsParams{Kind: f.Kind, Status: sp(f.Status), Q: sp(f.Query), Lim: int32(f.Limit), Off: int32(f.Offset)})
+	if err != nil {
+		return nil, 0, err
+	}
+	total := 0
+	out := make([]domain.Document, len(rows))
+	for i, r := range rows {
+		out[i] = toDocument(sqlc.FinanceDocument{ID: r.ID, Kind: r.Kind, Side: r.Side, Number: r.Number, Status: r.Status, VendorID: r.VendorID, PartyName: r.PartyName, PicName: r.PicName,
+			Phone: r.Phone, Email: r.Email, Address: r.Address, Title: r.Title, IssueDate: r.IssueDate, DueDate: r.DueDate, ExternalNumber: r.ExternalNumber, Notes: r.Notes, Items: r.Items,
+			DiscountPercent: r.DiscountPercent, PpnPercent: r.PpnPercent, Subtotal: r.Subtotal, DiscountAmount: r.DiscountAmount, TaxAmount: r.TaxAmount, TotalAmount: r.TotalAmount,
+			AccountID: r.AccountID, SourceID: r.SourceID, LedgerInvoiceID: r.LedgerInvoiceID, RejectReason: r.RejectReason, CreatedBy: r.CreatedBy, CreatedAt: r.CreatedAt})
+		total = int(r.Total)
+	}
+	return out, total, nil
+}
+
+func (s *Store) GetDocument(ctx context.Context, id string) (*domain.Document, error) {
+	r, err := s.q.GetDocument(ctx, id)
+	return one(r, err, toDocument)
+}
+
+func (s *Store) InsertDocument(ctx context.Context, d domain.Document) error {
+	items, err := json.Marshal(d.Items)
+	if err != nil {
+		return err
+	}
+	return wrap(s.q.InsertDocument(ctx, sqlc.InsertDocumentParams{ID: d.ID, Kind: d.Kind, Side: d.Side, Number: d.Number, Status: d.Status, VendorID: sp(d.VendorID), PartyName: d.PartyName, PicName: d.PicName,
+		Phone: d.Phone, Email: d.Email, Address: d.Address, Title: d.Title, IssueDate: day(d.IssueDate), DueDate: dayp(d.DueDate), ExternalNumber: d.ExternalNumber, Notes: d.Notes, Items: items,
+		DiscountPercent: d.DiscountPercent, PpnPercent: d.PPNPercent, Subtotal: d.Subtotal, DiscountAmount: d.Discount, TaxAmount: d.Tax, TotalAmount: d.Total, AccountID: sp(d.AccountID), SourceID: sp(d.SourceID), By: sp(d.CreatedBy)}))
+}
+
+func (s *Store) UpdateDocument(ctx context.Context, d domain.Document) error {
+	items, err := json.Marshal(d.Items)
+	if err != nil {
+		return err
+	}
+	return wrap(s.q.UpdateDocument(ctx, sqlc.UpdateDocumentParams{ID: d.ID, VendorID: sp(d.VendorID), PartyName: d.PartyName, PicName: d.PicName, Phone: d.Phone, Email: d.Email, Address: d.Address, Title: d.Title,
+		IssueDate: day(d.IssueDate), DueDate: dayp(d.DueDate), ExternalNumber: d.ExternalNumber, Notes: d.Notes, Items: items, DiscountPercent: d.DiscountPercent, PpnPercent: d.PPNPercent, Subtotal: d.Subtotal,
+		DiscountAmount: d.Discount, TaxAmount: d.Tax, TotalAmount: d.Total, AccountID: sp(d.AccountID), Status: d.Status, LedgerInvoiceID: sp(d.LedgerInvoiceID), Letterhead: d.Letterhead, RejectReason: d.RejectReason,
+		DecidedBy: sp(d.DecidedBy), DecidedAt: d.DecidedAt, By: sp(d.UpdatedBy)}))
+}
+
+func (s *Store) DeleteDocument(ctx context.Context, id string) error {
+	return s.q.DeleteDocument(ctx, id)
 }

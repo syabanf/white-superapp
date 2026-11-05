@@ -53,6 +53,9 @@ func registerErp(ctx context.Context, mux *runtime.ServeMux, u *Upstreams) error
 			financev1.RegisterReportServiceHandler,
 			financev1.RegisterReimbursementServiceHandler,
 			financev1.RegisterAnalysisServiceHandler,
+			financev1.RegisterBankReconServiceHandler,
+			financev1.RegisterScheduleServiceHandler,
+			financev1.RegisterDocumentServiceHandler,
 		}},
 		{u.HR, []handlerReg{
 			hrv1.RegisterEmployeeServiceHandler,
@@ -116,6 +119,10 @@ const maxUploadFile = 11 << 20 // 10 MB file plus multipart overhead
 
 func (b *BrowserRoutes) mountErpFiles(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/finance/reimbursements/{id}/receipts", b.uploadReceipt)
+	mux.HandleFunc("POST /api/finance/recon/accounts/{id}/statements", b.importStatement)
+	mux.HandleFunc("GET /api/finance/documents/{id}/pdf", fileRoute(func(ctx context.Context, r *http.Request) (*financev1.DocumentPdf, error) {
+		return financev1.NewDocumentServiceClient(b.up.Finance).RenderDocumentPdf(ctx, &financev1.IdRequest{Id: r.PathValue("id")})
+	}))
 	mux.HandleFunc("GET /api/finance/receipts/{receipt_id}", fileRoute(func(ctx context.Context, r *http.Request) (*financev1.ReceiptFile, error) {
 		return financev1.NewReimbursementServiceClient(b.up.Finance).GetReceiptFile(ctx, &financev1.GetReceiptFileRequest{ReceiptId: r.PathValue("receipt_id")})
 	}))
@@ -125,6 +132,10 @@ func (b *BrowserRoutes) mountErpFiles(mux *http.ServeMux) {
 	}))
 	mux.HandleFunc("GET /api/sales/invoices/{id}/pdf", fileRoute(func(ctx context.Context, r *http.Request) (*salesv1.File, error) {
 		return salesv1.NewBillingServiceClient(b.up.Sales).RenderInvoicePdf(ctx, id(r))
+	}))
+	mux.HandleFunc("POST /api/sales/invoices/{id}/faktur-pajak", b.uploadFakturPajak)
+	mux.HandleFunc("GET /api/sales/invoices/{id}/faktur-pajak", fileRoute(func(ctx context.Context, r *http.Request) (*salesv1.File, error) {
+		return salesv1.NewBillingServiceClient(b.up.Sales).GetInvoiceFakturPajak(ctx, id(r))
 	}))
 	mux.HandleFunc("GET /api/sales/contracts/{id}/pdf", fileRoute(func(ctx context.Context, r *http.Request) (*salesv1.File, error) {
 		return salesv1.NewContractServiceClient(b.up.Sales).RenderContractPdf(ctx, &salesv1.RenderContractPdfRequest{Id: r.PathValue("id")})
@@ -168,6 +179,28 @@ func (b *BrowserRoutes) uploadReceipt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := financev1.NewReimbursementServiceClient(b.up.Finance).UploadReceipt(userCtx(r), &financev1.UploadReceiptRequest{
+		Id: r.PathValue("id"), Filename: name, Data: data,
+	})
+	writeResult(w, res, err)
+}
+
+func (b *BrowserRoutes) importStatement(w http.ResponseWriter, r *http.Request) {
+	data, name, _, ok := readUpload(w, r)
+	if !ok {
+		return
+	}
+	res, err := financev1.NewBankReconServiceClient(b.up.Finance).ImportStatement(userCtx(r), &financev1.ImportStatementRequest{
+		AccountId: r.PathValue("id"), Filename: name, Data: data,
+	})
+	writeResult(w, res, err)
+}
+
+func (b *BrowserRoutes) uploadFakturPajak(w http.ResponseWriter, r *http.Request) {
+	data, name, _, ok := readUpload(w, r)
+	if !ok {
+		return
+	}
+	res, err := salesv1.NewBillingServiceClient(b.up.Sales).UploadInvoiceFakturPajak(userCtx(r), &salesv1.UploadInvoiceFakturPajakRequest{
 		Id: r.PathValue("id"), Filename: name, Data: data,
 	})
 	writeResult(w, res, err)

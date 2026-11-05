@@ -12,7 +12,7 @@ import { DownloadButton } from "@/features/erp/shared/download-button";
 import { Money } from "@/features/erp/shared/money-display";
 import { MoneyInput } from "@/features/erp/shared/money-input";
 import { DatePicker, DateRangeFilter, toIsoDate } from "@/features/erp/shared/period-picker";
-import { ResetFilters, SelectFilter } from "@/features/erp/shared/url-filters";
+import { ResetFilters, SearchFilter, SelectFilter } from "@/features/erp/shared/url-filters";
 import { formatDate } from "@/lib/format";
 import {
   cancelInvoiceAction,
@@ -59,14 +59,18 @@ export function InvoiceActions({ inv, caps }: { inv: Invoice; caps: SalesCaps })
   );
 }
 
-export function InvoicesTable({ invoices, caps, showDeal = true }: { invoices: Invoice[]; caps: SalesCaps; showDeal?: boolean }) {
+/**
+ * `finance` is the Finance module's view: rows open the Finance detail page,
+ * and the deal is plain text because finance users may have no sales access.
+ */
+export function InvoicesTable({ invoices, caps, showDeal = true, finance = false }: { invoices: Invoice[]; caps: SalesCaps; showDeal?: boolean; finance?: boolean }) {
   const columns: ColumnDef<Invoice, unknown>[] = [
     {
       accessorKey: "invoiceNumber",
       header: s.number,
       cell: ({ row }) => (
         <div className="min-w-0">
-          <Link href={`/erp/sales/invoices/${row.original.id}`} className="font-medium tabular underline-offset-4 hover:underline">
+          <Link href={`${finance ? "/erp/finance" : "/erp/sales"}/invoices/${row.original.id}`} className="font-medium tabular underline-offset-4 hover:underline">
             {row.original.invoiceNumber}
           </Link>
           <div className="truncate text-xs text-muted-foreground">{row.original.label}</div>
@@ -78,12 +82,20 @@ export function InvoicesTable({ invoices, caps, showDeal = true }: { invoices: I
           {
             accessorKey: "clientName",
             header: ss.quotations.client,
-            cell: ({ row }: { row: { original: Invoice } }) => (
-              <Link href={`/erp/sales/pipeline/${row.original.dealId}`} className="min-w-0 hover:underline" onClick={(e) => e.stopPropagation()}>
-                <div className="truncate">{row.original.clientName}</div>
-                <div className="truncate text-xs text-muted-foreground">{row.original.dealTitle}</div>
-              </Link>
-            ),
+            cell: ({ row }: { row: { original: Invoice } }) => {
+              const party = (
+                <>
+                  <div className="truncate">{row.original.clientName}</div>
+                  <div className="truncate text-xs text-muted-foreground">{row.original.dealTitle}</div>
+                </>
+              );
+              if (finance) return <div className="min-w-0">{party}</div>;
+              return (
+                <Link href={`/erp/sales/pipeline/${row.original.dealId}`} className="min-w-0 hover:underline" onClick={(e) => e.stopPropagation()}>
+                  {party}
+                </Link>
+              );
+            },
           } satisfies ColumnDef<Invoice, unknown>,
         ]
       : []),
@@ -111,9 +123,10 @@ export function InvoicesTable({ invoices, caps, showDeal = true }: { invoices: I
       toolbar={
         showDeal ? (
           <>
+            {finance ? <SearchFilter placeholder={s.searchPh} /> : null}
             <SelectFilter param="status" label={s.status} allLabel={s.allStatus} options={opts(INVOICE_STATUS)} />
             <DateRangeFilter placeholder={s.issuedRange} />
-            <ResetFilters params={["status", "from", "to"]} />
+            <ResetFilters params={["q", "status", "from", "to"]} />
           </>
         ) : undefined
       }
@@ -310,7 +323,8 @@ function SubmitInvoiceForm({ dealId, accepted, close }: { dealId: string; accept
   );
 }
 
-function PaymentDialog({ dealId, invoices }: { dealId: string; invoices: Invoice[] }) {
+/** `preset` opens the form on one invoice with its remaining amount filled in. */
+export function PaymentDialog({ dealId, invoices, preset }: { dealId: string; invoices: Invoice[]; preset?: { invoiceId: string; amount: string } }) {
   return (
     <FormDialog
       title={s.paymentTitle}
@@ -320,15 +334,15 @@ function PaymentDialog({ dealId, invoices }: { dealId: string; invoices: Invoice
         </Button>
       }
     >
-      {(close) => <PaymentForm dealId={dealId} invoices={invoices} close={close} />}
+      {(close) => <PaymentForm dealId={dealId} invoices={invoices} preset={preset} close={close} />}
     </FormDialog>
   );
 }
 
-function PaymentForm({ dealId, invoices, close }: { dealId: string; invoices: Invoice[]; close: () => void }) {
+function PaymentForm({ dealId, invoices, preset, close }: { dealId: string; invoices: Invoice[]; preset?: { invoiceId: string; amount: string }; close: () => void }) {
   const [v, setV] = React.useState<PaymentValues>({
-    invoiceId: "",
-    amount: "",
+    invoiceId: preset?.invoiceId ?? "",
+    amount: preset?.amount ?? "",
     method: "transfer",
     paidOn: toIsoDate(new Date()),
     note: "",

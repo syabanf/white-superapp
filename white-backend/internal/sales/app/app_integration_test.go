@@ -134,7 +134,7 @@ func setup(t *testing.T) *env {
 	cl := &clients{}
 	deps := &app.Deps{Store: postgres.NewStore(pool), Clock: clock.Real{}, Events: rec, Notifier: rec, Directory: directory{}, Clients: cl, AI: mockAI{}, WhatsApp: wa, Files: storage.NewLocal(t.TempDir()), Renderer: render.New()}
 	svc := sales.Services(deps)
-	return &env{svc: svc, deps: deps, rec: rec, wa: wa, cl: cl, store: deps.Store, jobs: app.NewJobs(deps, svc.Automation, svc.Pipeline, svc.Chat, svc.Onboarding)}
+	return &env{svc: svc, deps: deps, rec: rec, wa: wa, cl: cl, store: deps.Store, jobs: app.NewJobs(deps, svc.Automation, svc.Pipeline, svc.Chat, svc.Onboarding, svc.Billing)}
 }
 
 // must panics on error; the test fails with the stack trace.
@@ -277,6 +277,103 @@ func TestQuotationContractOnboardingFlow(t *testing.T) {
 	}
 	_, err = e.svc.Billing.CancelInvoice(ctx, adminActor, first.ID, "salah")
 	code(t, err, apperr.Conflict)
+
+	// Client billing data.
+	acc := must(e.svc.Leads.CreateAccount(ctx, salesActor, app.AccountInput{Name: "PT Tepat", Phone: "62811", BankName: "Mandiri", BankAccountNo: "123", PaymentTermsDays: 30}))
+	if acc.BankName == nil || *acc.BankName != "Mandiri" || acc.PaymentTermsDays == nil || *acc.PaymentTermsDays != 30 {
+		t.Fatalf("billing data %+v", acc)
+	}
+	_, err = e.svc.Leads.CreateAccount(ctx, salesActor, app.AccountInput{Name: "X", PaymentTermsDays: 400})
+	code(t, err, apperr.Validation)
+
+	// Finance revises a submitted invoice; issued and paid ones stay fixed.
+	_, err = e.svc.Billing.UpdateInvoice(ctx, adminActor, first.ID, app.InvoiceRevision{Label: "Revisi", Amount: first.Amount.String()})
+	code(t, err, apperr.Conflict)
+	second := invs[1]
+	_, err = e.svc.Billing.UpdateInvoice(ctx, adminActor, second.ID, app.InvoiceRevision{Label: "Revisi", Amount: (second.Amount + 1).String()})
+	code(t, err, apperr.Validation)
+	revised := must(e.svc.Billing.UpdateInvoice(ctx, adminActor, second.ID, app.InvoiceRevision{Label: "Revisi termin", Amount: second.Amount.String(), DueDate: "2030-01-15", Note: "Sesuai PO"}))
+	if revised.Label != "Revisi termin" || revised.Note == nil || *revised.Note != "Sesuai PO" || domain.FormatDay(revised.DueDate) != "2030-01-15" {
+		t.Fatalf("revised %+v", revised)
+	}
+	found := must(e.svc.Billing.ListInvoices(ctx, domain.InvoiceFilter{Search: "revisi TERMIN"}))
+	if len(found) != 1 || found[0].ID != second.ID || found[0].QuoteNumber == "" || found[0].TermLabel == "" {
+		t.Fatalf("search %+v", found)
+	}
+
+	// Tax invoice: type checked, a new file replaces the old one, delete clears it.
+	_, err = e.svc.Billing.UploadFakturPajak(ctx, adminActor, second.ID, "faktur.exe", []byte("MZ not a document"))
+	code(t, err, apperr.Validation)
+	withFile := must(e.svc.Billing.UploadFakturPajak(ctx, adminActor, second.ID, "../lama.pdf", []byte("%PDF-1.4 lama")))
+	if withFile.FakturPajakName == nil || *withFile.FakturPajakName != "lama.pdf" {
+		t.Fatalf("faktur name %+v", withFile.FakturPajakName)
+	}
+	must(e.svc.Billing.UploadFakturPajak(ctx, adminActor, second.ID, "baru.pdf", []byte("%PDF-1.4 baru")))
+	name, contentType, data, err := e.svc.Billing.FakturPajak(ctx, second.ID)
+	if err != nil || name != "baru.pdf" || contentType != "application/pdf" || string(data) != "%PDF-1.4 baru" {
+		t.Fatalf("faktur %q %q %q %v", name, contentType, data, err)
+	}
+	if cleared := must(e.svc.Billing.DeleteFakturPajak(ctx, adminActor, second.ID)); cleared.FakturPajakName != nil {
+		t.Fatalf("cleared %+v", cleared)
+	}
+	_, _, _, err = e.svc.Billing.FakturPajak(ctx, second.ID)
+	code(t, err, apperr.NotFound)
+
+	// Follow-up: drafted by the daily job, sent only after approval and inside the window.
+	realClock := e.deps.Clock
+	defer func() { e.deps.Clock = realClock }()
+	e.deps.Clock = clock.At("2026-11-04T03:00:00Z") // Wednesday 10.00 WIB.
+	due := must(e.svc.Billing.SubmitInvoice(ctx, salesActor, app.InvoiceInput{DealID: deal.ID, Label: "Tambahan", Amount: "1000000", DueDate: "2026-11-04"}))
+	must(e.svc.Billing.IssueInvoice(ctx, adminActor, due.ID))
+	if n := must(e.svc.Billing.QueueFollowups(ctx)); n != 1 {
+		t.Fatalf("queued %d", n)
+	}
+	if n := must(e.svc.Billing.QueueFollowups(ctx)); n != 0 {
+		t.Fatalf("a stage queues once, got %d", n)
+	}
+	queue := must(e.svc.Billing.ListFollowups(ctx, domain.FollowupPending, 10))
+	if len(queue) != 1 || queue[0].InvoiceID != due.ID || queue[0].Stage != 0 || !strings.Contains(queue[0].Message, due.InvoiceNumber) {
+		t.Fatalf("queue %+v", queue)
+	}
+	if len(e.wa.sent) != 0 {
+		t.Fatal("nothing goes out before approval")
+	}
+	fu := must(e.svc.Billing.ApproveFollowup(ctx, adminActor, queue[0].ID, "62811", "")) // Gateway off.
+	if fu.Status != domain.FollowupApproved || !strings.Contains(fu.LastError, "belum aktif") {
+		t.Fatalf("gateway off %+v", fu)
+	}
+	e.wa.enabled = true
+	e.deps.Clock = clock.At("2026-11-07T03:00:00Z") // Saturday.
+	if n := must(e.svc.Billing.SendApprovedFollowups(ctx)); n != 0 || len(e.wa.sent) != 0 {
+		t.Fatalf("sent outside the window: %d", n)
+	}
+	e.deps.Clock = clock.At("2026-11-09T03:00:00Z") // Monday.
+	if n := must(e.svc.Billing.SendApprovedFollowups(ctx)); n != 1 || len(e.wa.sent) != 1 || !strings.HasPrefix(e.wa.sent[0], "62811: ") {
+		t.Fatalf("send %d %v", n, e.wa.sent)
+	}
+	_, err = e.svc.Billing.ApproveFollowup(ctx, adminActor, queue[0].ID, "", "")
+	code(t, err, apperr.Conflict)
+
+	// A client who pays after the draft gets nothing.
+	paidLate := must(e.svc.Billing.SubmitInvoice(ctx, salesActor, app.InvoiceInput{DealID: deal.ID, Label: "Lunas", Amount: "2000000", DueDate: "2026-11-09"}))
+	must(e.svc.Billing.IssueInvoice(ctx, adminActor, paidLate.ID))
+	must(e.svc.Billing.QueueFollowups(ctx))
+	var late *domain.InvoiceFollowup
+	for _, f := range must(e.svc.Billing.ListFollowups(ctx, domain.FollowupPending, 10)) {
+		if f.InvoiceID == paidLate.ID {
+			late = &f
+		}
+	}
+	if late == nil {
+		t.Fatal("no draft for the second invoice")
+	}
+	must(e.svc.Billing.RecordPayment(ctx, salesActor, app.PaymentInput{DealID: deal.ID, InvoiceID: paidLate.ID, Amount: "2000000", Method: "transfer"}))
+	sentBefore := len(e.wa.sent)
+	skipped := must(e.svc.Billing.ApproveFollowup(ctx, adminActor, late.ID, "62811", ""))
+	if skipped.Status != domain.FollowupSkipped || len(e.wa.sent) != sentBefore {
+		t.Fatalf("paid invoice followed up: %+v", skipped)
+	}
+	e.deps.Clock = realClock
 	detail := must(e.svc.Pipeline.GetDeal(ctx, deal.ID))
 	if detail.PaymentStatus != "sebagian" || detail.TermProgress[0].Status != "lunas" {
 		t.Fatalf("detail %+v", detail.TermProgress)

@@ -2226,16 +2226,23 @@ var QuotationService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	BillingService_ListInvoices_FullMethodName            = "/white.sales.v1.BillingService/ListInvoices"
-	BillingService_GetInvoice_FullMethodName              = "/white.sales.v1.BillingService/GetInvoice"
-	BillingService_SubmitInvoice_FullMethodName           = "/white.sales.v1.BillingService/SubmitInvoice"
-	BillingService_SubmitInvoicesFromTerms_FullMethodName = "/white.sales.v1.BillingService/SubmitInvoicesFromTerms"
-	BillingService_IssueInvoice_FullMethodName            = "/white.sales.v1.BillingService/IssueInvoice"
-	BillingService_CancelInvoice_FullMethodName           = "/white.sales.v1.BillingService/CancelInvoice"
-	BillingService_RenderInvoicePdf_FullMethodName        = "/white.sales.v1.BillingService/RenderInvoicePdf"
-	BillingService_ListPayments_FullMethodName            = "/white.sales.v1.BillingService/ListPayments"
-	BillingService_RecordPayment_FullMethodName           = "/white.sales.v1.BillingService/RecordPayment"
-	BillingService_DeletePayment_FullMethodName           = "/white.sales.v1.BillingService/DeletePayment"
+	BillingService_ListInvoices_FullMethodName             = "/white.sales.v1.BillingService/ListInvoices"
+	BillingService_GetInvoice_FullMethodName               = "/white.sales.v1.BillingService/GetInvoice"
+	BillingService_SubmitInvoice_FullMethodName            = "/white.sales.v1.BillingService/SubmitInvoice"
+	BillingService_SubmitInvoicesFromTerms_FullMethodName  = "/white.sales.v1.BillingService/SubmitInvoicesFromTerms"
+	BillingService_IssueInvoice_FullMethodName             = "/white.sales.v1.BillingService/IssueInvoice"
+	BillingService_CancelInvoice_FullMethodName            = "/white.sales.v1.BillingService/CancelInvoice"
+	BillingService_UpdateInvoice_FullMethodName            = "/white.sales.v1.BillingService/UpdateInvoice"
+	BillingService_RenderInvoicePdf_FullMethodName         = "/white.sales.v1.BillingService/RenderInvoicePdf"
+	BillingService_UploadInvoiceFakturPajak_FullMethodName = "/white.sales.v1.BillingService/UploadInvoiceFakturPajak"
+	BillingService_GetInvoiceFakturPajak_FullMethodName    = "/white.sales.v1.BillingService/GetInvoiceFakturPajak"
+	BillingService_DeleteInvoiceFakturPajak_FullMethodName = "/white.sales.v1.BillingService/DeleteInvoiceFakturPajak"
+	BillingService_ListInvoiceFollowups_FullMethodName     = "/white.sales.v1.BillingService/ListInvoiceFollowups"
+	BillingService_ApproveInvoiceFollowup_FullMethodName   = "/white.sales.v1.BillingService/ApproveInvoiceFollowup"
+	BillingService_SkipInvoiceFollowup_FullMethodName      = "/white.sales.v1.BillingService/SkipInvoiceFollowup"
+	BillingService_ListPayments_FullMethodName             = "/white.sales.v1.BillingService/ListPayments"
+	BillingService_RecordPayment_FullMethodName            = "/white.sales.v1.BillingService/RecordPayment"
+	BillingService_DeletePayment_FullMethodName            = "/white.sales.v1.BillingService/DeletePayment"
 )
 
 // BillingServiceClient is the client API for BillingService service.
@@ -2253,8 +2260,21 @@ type BillingServiceClient interface {
 	IssueInvoice(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*Invoice, error)
 	// finance.write: -> batal (refused once a payment is recorded).
 	CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*Invoice, error)
+	// finance.write: revises a diajukan invoice that has no payment yet.
+	UpdateInvoice(ctx context.Context, in *UpdateInvoiceRequest, opts ...grpc.CallOption) (*Invoice, error)
 	// Internal: invoice PDF bytes for the gateway.
 	RenderInvoicePdf(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*File, error)
+	// Internal: multipart upload through the gateway. finance.write; a new file
+	// replaces the old one.
+	UploadInvoiceFakturPajak(ctx context.Context, in *UploadInvoiceFakturPajakRequest, opts ...grpc.CallOption) (*Invoice, error)
+	// Internal: the attached tax invoice for the gateway.
+	GetInvoiceFakturPajak(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*File, error)
+	DeleteInvoiceFakturPajak(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*Invoice, error)
+	// The follow-up queue: the daily job drafts, finance approves, then it sends.
+	ListInvoiceFollowups(ctx context.Context, in *ListInvoiceFollowupsRequest, opts ...grpc.CallOption) (*ListInvoiceFollowupsResponse, error)
+	// finance.write. Sends now inside the window, otherwise on the next tick.
+	ApproveInvoiceFollowup(ctx context.Context, in *ApproveInvoiceFollowupRequest, opts ...grpc.CallOption) (*InvoiceFollowup, error)
+	SkipInvoiceFollowup(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*InvoiceFollowup, error)
 	ListPayments(ctx context.Context, in *ListPaymentsRequest, opts ...grpc.CallOption) (*ListPaymentsResponse, error)
 	// Publishes white.sales.payment.recorded.
 	RecordPayment(ctx context.Context, in *RecordPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
@@ -2329,10 +2349,80 @@ func (c *billingServiceClient) CancelInvoice(ctx context.Context, in *CancelInvo
 	return out, nil
 }
 
+func (c *billingServiceClient) UpdateInvoice(ctx context.Context, in *UpdateInvoiceRequest, opts ...grpc.CallOption) (*Invoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Invoice)
+	err := c.cc.Invoke(ctx, BillingService_UpdateInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *billingServiceClient) RenderInvoicePdf(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*File, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(File)
 	err := c.cc.Invoke(ctx, BillingService_RenderInvoicePdf_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) UploadInvoiceFakturPajak(ctx context.Context, in *UploadInvoiceFakturPajakRequest, opts ...grpc.CallOption) (*Invoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Invoice)
+	err := c.cc.Invoke(ctx, BillingService_UploadInvoiceFakturPajak_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) GetInvoiceFakturPajak(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*File, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(File)
+	err := c.cc.Invoke(ctx, BillingService_GetInvoiceFakturPajak_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) DeleteInvoiceFakturPajak(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*Invoice, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Invoice)
+	err := c.cc.Invoke(ctx, BillingService_DeleteInvoiceFakturPajak_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) ListInvoiceFollowups(ctx context.Context, in *ListInvoiceFollowupsRequest, opts ...grpc.CallOption) (*ListInvoiceFollowupsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInvoiceFollowupsResponse)
+	err := c.cc.Invoke(ctx, BillingService_ListInvoiceFollowups_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) ApproveInvoiceFollowup(ctx context.Context, in *ApproveInvoiceFollowupRequest, opts ...grpc.CallOption) (*InvoiceFollowup, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InvoiceFollowup)
+	err := c.cc.Invoke(ctx, BillingService_ApproveInvoiceFollowup_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) SkipInvoiceFollowup(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*InvoiceFollowup, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InvoiceFollowup)
+	err := c.cc.Invoke(ctx, BillingService_SkipInvoiceFollowup_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2384,8 +2474,21 @@ type BillingServiceServer interface {
 	IssueInvoice(context.Context, *IdRequest) (*Invoice, error)
 	// finance.write: -> batal (refused once a payment is recorded).
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*Invoice, error)
+	// finance.write: revises a diajukan invoice that has no payment yet.
+	UpdateInvoice(context.Context, *UpdateInvoiceRequest) (*Invoice, error)
 	// Internal: invoice PDF bytes for the gateway.
 	RenderInvoicePdf(context.Context, *IdRequest) (*File, error)
+	// Internal: multipart upload through the gateway. finance.write; a new file
+	// replaces the old one.
+	UploadInvoiceFakturPajak(context.Context, *UploadInvoiceFakturPajakRequest) (*Invoice, error)
+	// Internal: the attached tax invoice for the gateway.
+	GetInvoiceFakturPajak(context.Context, *IdRequest) (*File, error)
+	DeleteInvoiceFakturPajak(context.Context, *IdRequest) (*Invoice, error)
+	// The follow-up queue: the daily job drafts, finance approves, then it sends.
+	ListInvoiceFollowups(context.Context, *ListInvoiceFollowupsRequest) (*ListInvoiceFollowupsResponse, error)
+	// finance.write. Sends now inside the window, otherwise on the next tick.
+	ApproveInvoiceFollowup(context.Context, *ApproveInvoiceFollowupRequest) (*InvoiceFollowup, error)
+	SkipInvoiceFollowup(context.Context, *IdRequest) (*InvoiceFollowup, error)
 	ListPayments(context.Context, *ListPaymentsRequest) (*ListPaymentsResponse, error)
 	// Publishes white.sales.payment.recorded.
 	RecordPayment(context.Context, *RecordPaymentRequest) (*Payment, error)
@@ -2418,8 +2521,29 @@ func (UnimplementedBillingServiceServer) IssueInvoice(context.Context, *IdReques
 func (UnimplementedBillingServiceServer) CancelInvoice(context.Context, *CancelInvoiceRequest) (*Invoice, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelInvoice not implemented")
 }
+func (UnimplementedBillingServiceServer) UpdateInvoice(context.Context, *UpdateInvoiceRequest) (*Invoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateInvoice not implemented")
+}
 func (UnimplementedBillingServiceServer) RenderInvoicePdf(context.Context, *IdRequest) (*File, error) {
 	return nil, status.Error(codes.Unimplemented, "method RenderInvoicePdf not implemented")
+}
+func (UnimplementedBillingServiceServer) UploadInvoiceFakturPajak(context.Context, *UploadInvoiceFakturPajakRequest) (*Invoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method UploadInvoiceFakturPajak not implemented")
+}
+func (UnimplementedBillingServiceServer) GetInvoiceFakturPajak(context.Context, *IdRequest) (*File, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInvoiceFakturPajak not implemented")
+}
+func (UnimplementedBillingServiceServer) DeleteInvoiceFakturPajak(context.Context, *IdRequest) (*Invoice, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteInvoiceFakturPajak not implemented")
+}
+func (UnimplementedBillingServiceServer) ListInvoiceFollowups(context.Context, *ListInvoiceFollowupsRequest) (*ListInvoiceFollowupsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInvoiceFollowups not implemented")
+}
+func (UnimplementedBillingServiceServer) ApproveInvoiceFollowup(context.Context, *ApproveInvoiceFollowupRequest) (*InvoiceFollowup, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApproveInvoiceFollowup not implemented")
+}
+func (UnimplementedBillingServiceServer) SkipInvoiceFollowup(context.Context, *IdRequest) (*InvoiceFollowup, error) {
+	return nil, status.Error(codes.Unimplemented, "method SkipInvoiceFollowup not implemented")
 }
 func (UnimplementedBillingServiceServer) ListPayments(context.Context, *ListPaymentsRequest) (*ListPaymentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPayments not implemented")
@@ -2559,6 +2683,24 @@ func _BillingService_CancelInvoice_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BillingService_UpdateInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).UpdateInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_UpdateInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).UpdateInvoice(ctx, req.(*UpdateInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BillingService_RenderInvoicePdf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IdRequest)
 	if err := dec(in); err != nil {
@@ -2573,6 +2715,114 @@ func _BillingService_RenderInvoicePdf_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BillingServiceServer).RenderInvoicePdf(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_UploadInvoiceFakturPajak_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadInvoiceFakturPajakRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).UploadInvoiceFakturPajak(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_UploadInvoiceFakturPajak_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).UploadInvoiceFakturPajak(ctx, req.(*UploadInvoiceFakturPajakRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_GetInvoiceFakturPajak_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).GetInvoiceFakturPajak(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_GetInvoiceFakturPajak_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).GetInvoiceFakturPajak(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_DeleteInvoiceFakturPajak_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).DeleteInvoiceFakturPajak(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_DeleteInvoiceFakturPajak_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).DeleteInvoiceFakturPajak(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_ListInvoiceFollowups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInvoiceFollowupsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).ListInvoiceFollowups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_ListInvoiceFollowups_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).ListInvoiceFollowups(ctx, req.(*ListInvoiceFollowupsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_ApproveInvoiceFollowup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApproveInvoiceFollowupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).ApproveInvoiceFollowup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_ApproveInvoiceFollowup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).ApproveInvoiceFollowup(ctx, req.(*ApproveInvoiceFollowupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_SkipInvoiceFollowup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).SkipInvoiceFollowup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_SkipInvoiceFollowup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).SkipInvoiceFollowup(ctx, req.(*IdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2663,8 +2913,36 @@ var BillingService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BillingService_CancelInvoice_Handler,
 		},
 		{
+			MethodName: "UpdateInvoice",
+			Handler:    _BillingService_UpdateInvoice_Handler,
+		},
+		{
 			MethodName: "RenderInvoicePdf",
 			Handler:    _BillingService_RenderInvoicePdf_Handler,
+		},
+		{
+			MethodName: "UploadInvoiceFakturPajak",
+			Handler:    _BillingService_UploadInvoiceFakturPajak_Handler,
+		},
+		{
+			MethodName: "GetInvoiceFakturPajak",
+			Handler:    _BillingService_GetInvoiceFakturPajak_Handler,
+		},
+		{
+			MethodName: "DeleteInvoiceFakturPajak",
+			Handler:    _BillingService_DeleteInvoiceFakturPajak_Handler,
+		},
+		{
+			MethodName: "ListInvoiceFollowups",
+			Handler:    _BillingService_ListInvoiceFollowups_Handler,
+		},
+		{
+			MethodName: "ApproveInvoiceFollowup",
+			Handler:    _BillingService_ApproveInvoiceFollowup_Handler,
+		},
+		{
+			MethodName: "SkipInvoiceFollowup",
+			Handler:    _BillingService_SkipInvoiceFollowup_Handler,
 		},
 		{
 			MethodName: "ListPayments",

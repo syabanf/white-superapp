@@ -32,7 +32,10 @@ func claimPB(p authn.Principal, c *domain.Claim) *financev1.Claim {
 		Amount: c.Amount.String(), Description: c.Description, ClientId: c.ClientID, Project: c.Project, Status: claimStatusPB(c.Status),
 		OverLimit: c.OverLimit, LimitNote: c.LimitNote, RejectReason: c.RejectReason, RejectedStage: c.RejectedStage, SubmittedAt: tsPtr(c.SubmittedAt),
 		PaidAt: tsPtr(c.PaidAt), PaymentBatchId: c.PaymentBatchID, CreatedAt: ts(c.CreatedAt), UpdatedAt: ts(c.UpdatedAt),
-		CanEdit: app.CanEditClaim(p, c), CanApprove: app.CanApprove(p, c),
+		CanEdit: app.CanEditClaim(p, c), CanApprove: app.CanApprove(p, c), PreferredCashAccountId: c.PreferredCashAccountID, PreferredCashAccountName: c.PreferredCashAccountName,
+	}
+	for _, d := range c.Duplicates {
+		out.Duplicates = append(out.Duplicates, &financev1.ClaimDuplicate{ReceiptId: d.ReceiptID, ClaimNo: d.ClaimNo, Filename: d.Filename, Exact: d.Exact})
 	}
 	for _, r := range c.Receipts {
 		out.Receipts = append(out.Receipts, &financev1.ClaimReceipt{Id: r.ID, Filename: r.Filename, ContentType: r.ContentType, SizeBytes: r.SizeBytes, CreatedAt: ts(r.CreatedAt)})
@@ -336,4 +339,19 @@ func (s *reimbursementServer) GetReceiptFile(ctx context.Context, req *financev1
 		return nil, err
 	}
 	return &financev1.ReceiptFile{Data: data, ContentType: rec.ContentType, Filename: rec.Filename, Etag: etag}, nil
+}
+
+func (s *reimbursementServer) ListClaimPayAccounts(ctx context.Context, _ *emptypb.Empty) (*financev1.ListClaimPayAccountsResponse, error) {
+	if _, err := authn.RequirePerm(ctx, authn.PermSelfService); err != nil {
+		return nil, err
+	}
+	rows, err := s.svc.Reimbursements.PayAccounts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := &financev1.ListClaimPayAccountsResponse{}
+	for _, a := range rows {
+		out.Accounts = append(out.Accounts, &financev1.ClaimPayAccount{Id: a.ID, Name: a.Name})
+	}
+	return out, nil
 }

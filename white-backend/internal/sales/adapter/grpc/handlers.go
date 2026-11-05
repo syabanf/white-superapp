@@ -184,7 +184,7 @@ func (s *leadServer) ListOwners(ctx context.Context, _ *emptypb.Empty) (*salesv1
 }
 
 func accountInput(r *salesv1.AccountInput) app.AccountInput {
-	return app.AccountInput{ID: r.Id, Name: r.Name, AccountType: r.AccountType, Industry: r.Industry, Address: r.Address, City: r.City, Phone: r.Phone, Email: r.Email, Website: r.Website, Npwp: r.Npwp, Notes: r.Notes, OwnerUserID: r.OwnerUserId, Custom: rawOf(r.Custom)}
+	return app.AccountInput{BankName: r.BankName, BankAccountNo: r.BankAccountNo, BankAccountName: r.BankAccountName, BillingEmail: r.BillingEmail, PaymentTermsDays: r.PaymentTermsDays, ID: r.Id, Name: r.Name, AccountType: r.AccountType, Industry: r.Industry, Address: r.Address, City: r.City, Phone: r.Phone, Email: r.Email, Website: r.Website, Npwp: r.Npwp, Notes: r.Notes, OwnerUserID: r.OwnerUserId, Custom: rawOf(r.Custom)}
 }
 
 func (s *leadServer) ListAccounts(ctx context.Context, r *salesv1.ListAccountsRequest) (*salesv1.ListAccountsResponse, error) {
@@ -801,6 +801,18 @@ func salesOrFinance(ctx context.Context) error {
 	return nil
 }
 
+// salesOrFinanceWriter lets finance record payments without sales access.
+func salesOrFinanceWriter(ctx context.Context) (app.Actor, error) {
+	p, err := authn.Require(ctx)
+	if err != nil {
+		return app.Actor{}, err
+	}
+	if !p.Can(authn.PermSalesWrite) && !p.Can(authn.PermFinanceWrite) {
+		return app.Actor{}, apperr.New(apperr.Unauthorized, "")
+	}
+	return app.Actor{UserID: p.UserID, Admin: p.IsAdmin(), Approver: p.Can(authn.PermSalesApprove)}, nil
+}
+
 // finance is finance.write (invoice issue and cancel are finance's call).
 func finance(ctx context.Context) (app.Actor, error) { return actor(ctx, authn.PermFinanceWrite) }
 
@@ -812,7 +824,7 @@ func (s *billingServer) ListInvoices(ctx context.Context, r *salesv1.ListInvoice
 	if bad != "" {
 		return nil, apperr.Field(bad, "Tanggal tidak valid")
 	}
-	is, err := s.svc.Billing.ListInvoices(ctx, domain.InvoiceFilter{DealID: r.DealId, Status: r.Status, From: from, To: to, Limit: int(r.Limit)})
+	is, err := s.svc.Billing.ListInvoices(ctx, domain.InvoiceFilter{DealID: r.DealId, Status: r.Status, From: from, To: to, Search: r.Q, Limit: int(r.Limit)})
 	if err != nil {
 		return nil, err
 	}
@@ -878,6 +890,53 @@ func (s *billingServer) CancelInvoice(ctx context.Context, r *salesv1.CancelInvo
 	return invoicePB(*inv), nil
 }
 
+func (s *billingServer) UpdateInvoice(ctx context.Context, r *salesv1.UpdateInvoiceRequest) (*salesv1.Invoice, error) {
+	a, err := finance(ctx)
+	if err != nil {
+		return nil, err
+	}
+	inv, err := s.svc.Billing.UpdateInvoice(ctx, a, r.Id, app.InvoiceRevision{Label: r.Label, Amount: r.Amount, DueDate: r.DueDate, Note: r.Note})
+	if err != nil {
+		return nil, err
+	}
+	return invoicePB(*inv), nil
+}
+
+func (s *billingServer) UploadInvoiceFakturPajak(ctx context.Context, r *salesv1.UploadInvoiceFakturPajakRequest) (*salesv1.Invoice, error) {
+	a, err := finance(ctx)
+	if err != nil {
+		return nil, err
+	}
+	inv, err := s.svc.Billing.UploadFakturPajak(ctx, a, r.Id, r.Filename, r.Data)
+	if err != nil {
+		return nil, err
+	}
+	return invoicePB(*inv), nil
+}
+
+func (s *billingServer) GetInvoiceFakturPajak(ctx context.Context, r *salesv1.IdRequest) (*salesv1.File, error) {
+	if err := salesOrFinance(ctx); err != nil {
+		return nil, err
+	}
+	name, contentType, data, err := s.svc.Billing.FakturPajak(ctx, r.Id)
+	if err != nil {
+		return nil, err
+	}
+	return file(name, contentType, data), nil
+}
+
+func (s *billingServer) DeleteInvoiceFakturPajak(ctx context.Context, r *salesv1.IdRequest) (*salesv1.Invoice, error) {
+	a, err := finance(ctx)
+	if err != nil {
+		return nil, err
+	}
+	inv, err := s.svc.Billing.DeleteFakturPajak(ctx, a, r.Id)
+	if err != nil {
+		return nil, err
+	}
+	return invoicePB(*inv), nil
+}
+
 func (s *billingServer) RenderInvoicePdf(ctx context.Context, r *salesv1.IdRequest) (*salesv1.File, error) {
 	if err := salesOrFinance(ctx); err != nil {
 		return nil, err
@@ -889,8 +948,46 @@ func (s *billingServer) RenderInvoicePdf(ctx context.Context, r *salesv1.IdReque
 	return file(name, "application/pdf", data), nil
 }
 
+func (s *billingServer) ListInvoiceFollowups(ctx context.Context, r *salesv1.ListInvoiceFollowupsRequest) (*salesv1.ListInvoiceFollowupsResponse, error) {
+	if err := salesOrFinance(ctx); err != nil {
+		return nil, err
+	}
+	rows, err := s.svc.Billing.ListFollowups(ctx, r.Status, int(r.Limit))
+	if err != nil {
+		return nil, err
+	}
+	out := &salesv1.ListInvoiceFollowupsResponse{WhatsappEnabled: s.svc.Billing.WhatsAppEnabled()}
+	for _, f := range rows {
+		out.Followups = append(out.Followups, followupPB(f))
+	}
+	return out, nil
+}
+
+func (s *billingServer) ApproveInvoiceFollowup(ctx context.Context, r *salesv1.ApproveInvoiceFollowupRequest) (*salesv1.InvoiceFollowup, error) {
+	a, err := finance(ctx)
+	if err != nil {
+		return nil, err
+	}
+	f, err := s.svc.Billing.ApproveFollowup(ctx, a, r.Id, r.Phone, r.Message)
+	if err != nil {
+		return nil, err
+	}
+	return followupPB(*f), nil
+}
+
+func (s *billingServer) SkipInvoiceFollowup(ctx context.Context, r *salesv1.IdRequest) (*salesv1.InvoiceFollowup, error) {
+	if _, err := finance(ctx); err != nil {
+		return nil, err
+	}
+	f, err := s.svc.Billing.SkipFollowup(ctx, r.Id)
+	if err != nil {
+		return nil, err
+	}
+	return followupPB(*f), nil
+}
+
 func (s *billingServer) ListPayments(ctx context.Context, r *salesv1.ListPaymentsRequest) (*salesv1.ListPaymentsResponse, error) {
-	if _, err := reader(ctx); err != nil {
+	if err := salesOrFinance(ctx); err != nil {
 		return nil, err
 	}
 	ps, total, err := s.svc.Billing.ListPayments(ctx, r.DealId)
@@ -901,7 +998,7 @@ func (s *billingServer) ListPayments(ctx context.Context, r *salesv1.ListPayment
 }
 
 func (s *billingServer) RecordPayment(ctx context.Context, r *salesv1.RecordPaymentRequest) (*salesv1.Payment, error) {
-	a, err := writer(ctx)
+	a, err := salesOrFinanceWriter(ctx)
 	if err != nil {
 		return nil, err
 	}

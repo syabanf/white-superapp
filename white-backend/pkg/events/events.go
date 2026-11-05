@@ -24,6 +24,8 @@ const (
 	ClientCreated = "white.client.created"
 	ClientDeleted = "white.client.deleted"
 	UserDeleted   = "white.user.deleted"
+	// Published by the gateway for each change request; identity stores it.
+	AuditSubject = "white.audit.recorded"
 	// Published by integrations when credentials change (cache bust).
 	IntegrationUpdated = "white.integration.updated"
 	ConnectionDeleted  = "white.connection.deleted"
@@ -203,3 +205,16 @@ func (n Noop) Publish(_ context.Context, subject string, payload any) error {
 }
 
 var ErrNoBus = errors.New("NATS tidak dikonfigurasi")
+
+// AuditRecorded is one change request seen at the gateway.
+type AuditRecorded struct {
+	At        time.Time `json:"at"`
+	UserID    string    `json:"userId"`
+	UserName  string    `json:"userName"`
+	Role      string    `json:"role"`
+	Method    string    `json:"method"`
+	Path      string    `json:"path"`
+	Status    int       `json:"status"`
+	IP        string    `json:"ip"`
+	UserAgent string    `json:"userAgent"`
+}

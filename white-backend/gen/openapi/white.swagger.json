@@ -61,6 +61,18 @@
       "name": "ReimbursementService"
     },
     {
+      "name": "BankReconService",
+      "description": "Bank and credit card reconciliation."
+    },
+    {
+      "name": "ScheduleService",
+      "description": "Recurring journals and fixed asset depreciation."
+    },
+    {
+      "name": "DocumentService",
+      "description": "Vendors, purchase requests, purchase orders and letterhead documents."
+    },
+    {
       "name": "AnalysisService"
     },
     {
@@ -71,9 +83,6 @@
     },
     {
       "name": "AttendanceService"
-    },
-    {
-      "name": "ScheduleService"
     },
     {
       "name": "LeaveService"
@@ -116,6 +125,10 @@
     },
     {
       "name": "ShareService"
+    },
+    {
+      "name": "AuditService",
+      "description": "Change log recorded at the gateway. Admin only."
     },
     {
       "name": "WorkspaceService"
@@ -221,6 +234,64 @@
     "application/json"
   ],
   "paths": {
+    "/v1/audit-logs": {
+      "get": {
+        "operationId": "AuditService_ListAuditLogs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListAuditLogsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "description": "Matches the path or the user's name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "failedOnly",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "dateFrom",
+            "description": "YYYY-MM-DD, WIB, inclusive.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "AuditService"
+        ]
+      }
+    },
     "/v1/auth/login": {
       "post": {
         "operationId": "AuthService_Login",
@@ -6121,6 +6192,63 @@
         ]
       }
     },
+    "/v1/finance/budgets/{year}": {
+      "get": {
+        "operationId": "ReportService_GetBudgetYear",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1BudgetYear"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "ReportService"
+        ]
+      },
+      "put": {
+        "summary": "finance.write. Replaces the given account-months; zero removes the row.",
+        "operationId": "ReportService_SaveBudgetYear",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1BudgetYear"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReportServiceSaveBudgetYearBody"
+            }
+          }
+        ],
+        "tags": [
+          "ReportService"
+        ]
+      }
+    },
     "/v1/finance/cash-bank": {
       "get": {
         "operationId": "CashBankService_ListCashBankAccounts",
@@ -6712,6 +6840,259 @@
         ]
       }
     },
+    "/v1/finance/documents": {
+      "get": {
+        "operationId": "DocumentService_ListDocuments",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListDocumentsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      },
+      "post": {
+        "operationId": "DocumentService_CreateDocument",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FinanceDocument"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1DocumentInput"
+            }
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      }
+    },
+    "/v1/finance/documents/{id}": {
+      "get": {
+        "operationId": "DocumentService_GetDocument",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FinanceDocument"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      },
+      "delete": {
+        "summary": "Draft only. A converted source becomes convertible again.",
+        "operationId": "DocumentService_DeleteDocument",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      },
+      "patch": {
+        "summary": "Draft only.",
+        "operationId": "DocumentService_UpdateDocument",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FinanceDocument"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Empty on create.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DocumentServiceUpdateDocumentBody"
+            }
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      }
+    },
+    "/v1/finance/documents/{id}:act": {
+      "post": {
+        "summary": "submit, send, accept, decline, reopen: finance.write.\napprove, reject: finance.approve, and only Admin may decide their own.",
+        "operationId": "DocumentService_ActOnDocument",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FinanceDocument"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DocumentServiceActOnDocumentBody"
+            }
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      }
+    },
+    "/v1/finance/documents/{id}:convert": {
+      "post": {
+        "summary": "Approved PR to PO, accepted quotation to invoice. The new document is a draft.",
+        "operationId": "DocumentService_ConvertDocument",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FinanceDocument"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DocumentServiceConvertDocumentBody"
+            }
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      }
+    },
+    "/v1/finance/documents/{id}:issue": {
+      "post": {
+        "summary": "Approved PO or draft invoice to a draft payable or receivable, once.",
+        "operationId": "DocumentService_IssueDocument",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FinanceDocument"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DocumentServiceIssueDocumentBody"
+            }
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      }
+    },
     "/v1/finance/fiscal-coverage": {
       "get": {
         "summary": "Whether a journal can be dated on `date`, and how to open its period.",
@@ -7041,6 +7422,103 @@
         ],
         "tags": [
           "FiscalService"
+        ]
+      }
+    },
+    "/v1/finance/fixed-assets": {
+      "get": {
+        "operationId": "ScheduleService_ListFixedAssets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFixedAssetsResponse"
+            }
+          }
+        },
+        "tags": [
+          "ScheduleService"
+        ]
+      },
+      "post": {
+        "operationId": "ScheduleService_CreateFixedAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FixedAsset"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1FixedAssetInput"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/fixed-assets/{id}": {
+      "delete": {
+        "operationId": "ScheduleService_DeleteFixedAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/fixed-assets/{id}:active": {
+      "post": {
+        "operationId": "ScheduleService_SetFixedAssetActive",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FixedAsset"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ScheduleServiceSetFixedAssetActiveBody"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
         ]
       }
     },
@@ -7503,6 +7981,361 @@
         ]
       }
     },
+    "/v1/finance/recon/accounts": {
+      "get": {
+        "operationId": "BankReconService_ListReconAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListReconAccountsResponse"
+            }
+          }
+        },
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recon/accounts/{accountId}:rematch": {
+      "post": {
+        "operationId": "BankReconService_RematchStatements",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ImportStatementResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BankReconServiceRematchStatementsBody"
+            }
+          }
+        ],
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recon/lines": {
+      "get": {
+        "operationId": "BankReconService_ListStatementLines",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListStatementLinesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recon/lines/{id}/candidates": {
+      "get": {
+        "operationId": "BankReconService_ListMatchCandidates",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListMatchCandidatesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recon/lines/{id}:ignore": {
+      "post": {
+        "operationId": "BankReconService_IgnoreStatementLine",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatementLine"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BankReconServiceIgnoreStatementLineBody"
+            }
+          }
+        ],
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recon/lines/{id}:match": {
+      "post": {
+        "summary": "finance.write for a journal; finance.approve for an invoice, which records a payment.",
+        "operationId": "BankReconService_MatchStatementLine",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatementLine"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BankReconServiceMatchStatementLineBody"
+            }
+          }
+        ],
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recon/lines/{id}:record": {
+      "post": {
+        "summary": "Posts a new journal for the row (bank fee, card charge).",
+        "operationId": "BankReconService_RecordStatementLine",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatementLine"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BankReconServiceRecordStatementLineBody"
+            }
+          }
+        ],
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recon/lines/{id}:reopen": {
+      "post": {
+        "operationId": "BankReconService_ReopenStatementLine",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StatementLine"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BankReconServiceReopenStatementLineBody"
+            }
+          }
+        ],
+        "tags": [
+          "BankReconService"
+        ]
+      }
+    },
+    "/v1/finance/recurring-journals": {
+      "get": {
+        "operationId": "ScheduleService_ListRecurringJournals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListRecurringJournalsResponse"
+            }
+          }
+        },
+        "tags": [
+          "ScheduleService"
+        ]
+      },
+      "post": {
+        "operationId": "ScheduleService_CreateRecurringJournal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RecurringJournal"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RecurringJournalInput"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/recurring-journals/{id}": {
+      "delete": {
+        "operationId": "ScheduleService_DeleteRecurringJournal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/recurring-journals/{id}:active": {
+      "post": {
+        "operationId": "ScheduleService_SetRecurringJournalActive",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RecurringJournal"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ScheduleServiceSetRecurringJournalActiveBody"
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
     "/v1/finance/reimbursement-batches": {
       "get": {
         "operationId": "ReimbursementService_ListPaymentBatches",
@@ -7724,6 +8557,23 @@
             }
           }
         ],
+        "tags": [
+          "ReimbursementService"
+        ]
+      }
+    },
+    "/v1/finance/reimbursements/pay-accounts": {
+      "get": {
+        "summary": "Accounts a claimant may ask to be paid from (self.service).",
+        "operationId": "ReimbursementService_ListClaimPayAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListClaimPayAccountsResponse"
+            }
+          }
+        },
         "tags": [
           "ReimbursementService"
         ]
@@ -8041,6 +8891,37 @@
         ]
       }
     },
+    "/v1/finance/reports/budget-vs-actual": {
+      "get": {
+        "operationId": "ReportService_GetBudgetVsActual",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1BudgetVsActual"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "description": "Defaults to the first day of the current month and today.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ReportService"
+        ]
+      }
+    },
     "/v1/finance/reports/cash-flow": {
       "get": {
         "operationId": "ReportService_GetCashFlow",
@@ -8049,6 +8930,68 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/v1CashFlow"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "description": "Defaults to the first day of the current month and today.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ReportService"
+        ]
+      }
+    },
+    "/v1/finance/reports/client-economics": {
+      "get": {
+        "operationId": "ReportService_GetClientEconomics",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ClientEconomicsReport"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "description": "Defaults to the first day of the current month and today.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ReportService"
+        ]
+      }
+    },
+    "/v1/finance/reports/equity-changes": {
+      "get": {
+        "operationId": "ReportService_GetEquityChanges",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EquityChanges"
             }
           }
         },
@@ -8205,6 +9148,13 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "accountId",
+            "description": "Limits the ledger to invoices booked on one account; party_name may then be empty.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -8264,6 +9214,88 @@
         ],
         "tags": [
           "ReportService"
+        ]
+      }
+    },
+    "/v1/finance/schedules:run": {
+      "post": {
+        "summary": "Posts everything due now; the daily tick does the same.",
+        "operationId": "ScheduleService_RunSchedules",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RunSchedulesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "ScheduleService"
+        ]
+      }
+    },
+    "/v1/finance/vendors": {
+      "get": {
+        "operationId": "DocumentService_ListVendors",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListVendorsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "DocumentService"
+        ]
+      },
+      "post": {
+        "operationId": "DocumentService_SaveVendor",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Vendor"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1VendorInput"
+            }
+          }
+        ],
+        "tags": [
+          "DocumentService"
         ]
       }
     },
@@ -19647,6 +20679,103 @@
         ]
       }
     },
+    "/v1/sales/invoice-followups": {
+      "get": {
+        "summary": "The follow-up queue: the daily job drafts, finance approves, then it sends.",
+        "operationId": "BillingService_ListInvoiceFollowups",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListInvoiceFollowupsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "BillingService"
+        ]
+      }
+    },
+    "/v1/sales/invoice-followups/{id}:approve": {
+      "post": {
+        "summary": "finance.write. Sends now inside the window, otherwise on the next tick.",
+        "operationId": "BillingService_ApproveInvoiceFollowup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1InvoiceFollowup"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BillingServiceApproveInvoiceFollowupBody"
+            }
+          }
+        ],
+        "tags": [
+          "BillingService"
+        ]
+      }
+    },
+    "/v1/sales/invoice-followups/{id}:skip": {
+      "post": {
+        "operationId": "BillingService_SkipInvoiceFollowup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1InvoiceFollowup"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BillingServiceSkipInvoiceFollowupBody"
+            }
+          }
+        ],
+        "tags": [
+          "BillingService"
+        ]
+      }
+    },
     "/v1/sales/invoices": {
       "get": {
         "operationId": "BillingService_ListInvoices",
@@ -19690,6 +20819,13 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "q",
+            "description": "Matches number, label, deal title and client name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -19700,6 +20836,61 @@
     "/v1/sales/invoices/{id}": {
       "get": {
         "operationId": "BillingService_GetInvoice",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteSalesV1Invoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BillingService"
+        ]
+      },
+      "patch": {
+        "summary": "finance.write: revises a diajukan invoice that has no payment yet.",
+        "operationId": "BillingService_UpdateInvoice",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteSalesV1Invoice"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BillingServiceUpdateInvoiceBody"
+            }
+          }
+        ],
+        "tags": [
+          "BillingService"
+        ]
+      }
+    },
+    "/v1/sales/invoices/{id}/faktur-pajak": {
+      "delete": {
+        "operationId": "BillingService_DeleteInvoiceFakturPajak",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -21396,6 +22587,53 @@
         }
       }
     },
+    "BankReconServiceIgnoreStatementLineBody": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "BankReconServiceMatchStatementLineBody": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string"
+        }
+      }
+    },
+    "BankReconServiceRecordStatementLineBody": {
+      "type": "object",
+      "properties": {
+        "counterAccountId": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "BankReconServiceRematchStatementsBody": {
+      "type": "object"
+    },
+    "BankReconServiceReopenStatementLineBody": {
+      "type": "object"
+    },
+    "BillingServiceApproveInvoiceFollowupBody": {
+      "type": "object",
+      "properties": {
+        "phone": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "BillingServiceCancelInvoiceBody": {
       "type": "object",
       "properties": {
@@ -21427,6 +22665,9 @@
         }
       }
     },
+    "BillingServiceSkipInvoiceFollowupBody": {
+      "type": "object"
+    },
     "BillingServiceSubmitInvoiceBody": {
       "type": "object",
       "properties": {
@@ -21451,6 +22692,23 @@
     },
     "BillingServiceSubmitInvoicesFromTermsBody": {
       "type": "object"
+    },
+    "BillingServiceUpdateInvoiceBody": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
     },
     "CandidateServiceAddNoteBody": {
       "type": "object",
@@ -21756,6 +23014,98 @@
         "note": {
           "type": "string",
           "description": "Optional feedback note posted with the version."
+        }
+      }
+    },
+    "DocumentServiceActOnDocumentBody": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "DocumentServiceConvertDocumentBody": {
+      "type": "object",
+      "properties": {
+        "vendorId": {
+          "type": "string",
+          "description": "Required when a purchase request becomes a purchase order."
+        }
+      }
+    },
+    "DocumentServiceIssueDocumentBody": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "Expense account for a PO or supplier invoice, revenue account for a client invoice."
+        },
+        "dueDate": {
+          "type": "string"
+        }
+      }
+    },
+    "DocumentServiceUpdateDocumentBody": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string"
+        },
+        "vendorId": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "picName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "issueDate": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string"
+        },
+        "externalNumber": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1DocumentItem"
+          }
+        },
+        "discountPercent": {
+          "type": "string"
+        },
+        "ppnPercent": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
         }
       }
     },
@@ -23474,6 +24824,18 @@
         }
       }
     },
+    "ReportServiceSaveBudgetYearBody": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1BudgetEntry"
+          }
+        }
+      }
+    },
     "ReviewServiceCloseReviewCycleBody": {
       "type": "object"
     },
@@ -23526,6 +24888,22 @@
             "type": "object",
             "$ref": "#/definitions/v1ScheduleDay"
           }
+        }
+      }
+    },
+    "ScheduleServiceSetFixedAssetActiveBody": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ScheduleServiceSetRecurringJournalActiveBody": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
         }
       }
     },
@@ -25740,6 +27118,43 @@
         }
       }
     },
+    "v1AuditLog": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string"
+        }
+      }
+    },
     "v1AuditRow": {
       "type": "object",
       "properties": {
@@ -26247,6 +27662,94 @@
         "contribution": {
           "type": "number",
           "format": "double"
+        }
+      }
+    },
+    "v1BudgetEntry": {
+      "type": "object",
+      "properties": {
+        "month": {
+          "type": "string",
+          "description": "YYYY-MM."
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        }
+      }
+    },
+    "v1BudgetRow": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "codeDisplay": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "typeCode": {
+          "type": "string"
+        },
+        "budget": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "string"
+        },
+        "variance": {
+          "type": "string",
+          "description": "Positive is favorable: more revenue or less cost than planned."
+        }
+      }
+    },
+    "v1BudgetVsActual": {
+      "type": "object",
+      "properties": {
+        "dateFrom": {
+          "type": "string"
+        },
+        "dateTo": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1BudgetRow"
+          }
+        },
+        "totalBudgetRevenue": {
+          "type": "string"
+        },
+        "totalActualRevenue": {
+          "type": "string"
+        },
+        "totalBudgetCost": {
+          "type": "string"
+        },
+        "totalActualCost": {
+          "type": "string"
+        }
+      }
+    },
+    "v1BudgetYear": {
+      "type": "object",
+      "properties": {
+        "year": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1BudgetEntry"
+          }
         }
       }
     },
@@ -27074,6 +28577,20 @@
         },
         "canApprove": {
           "type": "boolean"
+        },
+        "preferredCashAccountId": {
+          "type": "string"
+        },
+        "preferredCashAccountName": {
+          "type": "string"
+        },
+        "duplicates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClaimDuplicate"
+          },
+          "description": "Receipts that also appear on other claims. A warning for approvers."
         }
       }
     },
@@ -27088,6 +28605,24 @@
         "LAINNYA"
       ],
       "default": "CLAIM_CATEGORY_UNSPECIFIED"
+    },
+    "v1ClaimDuplicate": {
+      "type": "object",
+      "properties": {
+        "receiptId": {
+          "type": "string"
+        },
+        "claimNo": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "exact": {
+          "type": "boolean",
+          "description": "Byte-identical; otherwise the image looks the same."
+        }
+      }
     },
     "v1ClaimHistory": {
       "type": "object",
@@ -27129,6 +28664,21 @@
           "type": "string"
         },
         "project": {
+          "type": "string"
+        },
+        "preferredCashAccountId": {
+          "type": "string",
+          "description": "The account the claimant asks finance to pay from."
+        }
+      }
+    },
+    "v1ClaimPayAccount": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
           "type": "string"
         }
       }
@@ -27265,6 +28815,81 @@
         }
       },
       "description": "What the caller may do with a client. Admins get role ADMIN_OVERRIDE."
+    },
+    "v1ClientEconomicsReport": {
+      "type": "object",
+      "properties": {
+        "dateFrom": {
+          "type": "string"
+        },
+        "dateTo": {
+          "type": "string"
+        },
+        "clients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClientEconomicsRow"
+          }
+        },
+        "totalInvoiced": {
+          "type": "string"
+        },
+        "totalCollected": {
+          "type": "string"
+        },
+        "averagePerClient": {
+          "type": "string"
+        },
+        "collectionRate": {
+          "type": "number",
+          "format": "double",
+          "description": "Percentages of the invoiced total."
+        },
+        "topClientShare": {
+          "type": "number",
+          "format": "double"
+        },
+        "topThreeShare": {
+          "type": "number",
+          "format": "double"
+        },
+        "avgDaysToPay": {
+          "type": "number",
+          "format": "double"
+        },
+        "hasPayments": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1ClientEconomicsRow": {
+      "type": "object",
+      "properties": {
+        "party": {
+          "type": "string"
+        },
+        "invoiceCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "invoiced": {
+          "type": "string"
+        },
+        "collected": {
+          "type": "string"
+        },
+        "outstanding": {
+          "type": "string"
+        },
+        "avgDaysToPay": {
+          "type": "number",
+          "format": "double"
+        },
+        "hasPayments": {
+          "type": "boolean"
+        }
+      }
     },
     "v1ClientMember": {
       "type": "object",
@@ -30581,6 +32206,90 @@
         }
       }
     },
+    "v1DocumentInput": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Empty on create."
+        },
+        "kind": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string"
+        },
+        "vendorId": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "picName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "issueDate": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string"
+        },
+        "externalNumber": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1DocumentItem"
+          }
+        },
+        "discountPercent": {
+          "type": "string"
+        },
+        "ppnPercent": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1DocumentItem": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "qty": {
+          "type": "string"
+        },
+        "unitPrice": {
+          "type": "string"
+        },
+        "lineTotal": {
+          "type": "string"
+        }
+      }
+    },
     "v1DocumentStatus": {
       "type": "string",
       "enum": [
@@ -31003,6 +32712,57 @@
         "AUTO"
       ],
       "default": "ENTRY_TYPE_UNSPECIFIED"
+    },
+    "v1EquityChanges": {
+      "type": "object",
+      "properties": {
+        "dateFrom": {
+          "type": "string"
+        },
+        "dateTo": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1EquityRow"
+          }
+        },
+        "totalOpening": {
+          "type": "string"
+        },
+        "totalMovement": {
+          "type": "string"
+        },
+        "totalClosing": {
+          "type": "string"
+        }
+      }
+    },
+    "v1EquityRow": {
+      "type": "object",
+      "properties": {
+        "codeDisplay": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "opening": {
+          "type": "string"
+        },
+        "movement": {
+          "type": "string"
+        },
+        "closing": {
+          "type": "string"
+        },
+        "isEarnings": {
+          "type": "boolean",
+          "description": "Earnings of the fiscal year, which live on no equity account until closed."
+        }
+      }
     },
     "v1ErByType": {
       "type": "object",
@@ -31475,6 +33235,104 @@
             "type": "object",
             "$ref": "#/definitions/v1CashAccountSummary"
           }
+        }
+      }
+    },
+    "v1FinanceDocument": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "description": "PR, PO, QUOTATION or INVOICE."
+        },
+        "side": {
+          "type": "string",
+          "description": "B2B or SUPPLIER."
+        },
+        "number": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "vendorId": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "picName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "issueDate": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string"
+        },
+        "externalNumber": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1DocumentItem"
+          }
+        },
+        "discountPercent": {
+          "type": "string"
+        },
+        "ppnPercent": {
+          "type": "string"
+        },
+        "subtotal": {
+          "type": "string"
+        },
+        "discountAmount": {
+          "type": "string"
+        },
+        "taxAmount": {
+          "type": "string"
+        },
+        "totalAmount": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "sourceId": {
+          "type": "string"
+        },
+        "ledgerInvoiceId": {
+          "type": "string"
+        },
+        "rejectReason": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "decidedBy": {
+          "type": "string"
         }
       }
     },
@@ -31965,6 +33823,91 @@
             "$ref": "#/definitions/v1FiscalPeriodInput"
           },
           "description": "Empty: twelve monthly periods are generated, all CLOSED except the first."
+        }
+      }
+    },
+    "v1FixedAsset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "acquiredOn": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "string"
+        },
+        "salvage": {
+          "type": "string"
+        },
+        "lifeMonths": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "monthlyAmount": {
+          "type": "string"
+        },
+        "depreciatedMonths": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "accumulated": {
+          "type": "string"
+        },
+        "bookValue": {
+          "type": "string"
+        },
+        "expenseAccountId": {
+          "type": "string"
+        },
+        "expenseAccountName": {
+          "type": "string"
+        },
+        "accumAccountId": {
+          "type": "string"
+        },
+        "accumAccountName": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "lastEntryId": {
+          "type": "string"
+        },
+        "lastError": {
+          "type": "string"
+        }
+      }
+    },
+    "v1FixedAssetInput": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "acquiredOn": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "string"
+        },
+        "salvage": {
+          "type": "string"
+        },
+        "lifeMonths": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "expenseAccountId": {
+          "type": "string"
+        },
+        "accumAccountId": {
+          "type": "string"
         }
       }
     },
@@ -33604,6 +35547,31 @@
         }
       }
     },
+    "v1ImportStatementResponse": {
+      "type": "object",
+      "properties": {
+        "inserted": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "skipped": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "matched": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "suggested": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "unmatched": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ImportSummary": {
       "type": "object",
       "properties": {
@@ -34403,6 +36371,52 @@
         "avgScore": {
           "type": "number",
           "format": "double"
+        }
+      }
+    },
+    "v1InvoiceFollowup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
+        "invoiceNumber": {
+          "type": "string"
+        },
+        "dealId": {
+          "type": "string"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Days from the due date: -3, 0, 3 or 7."
+        },
+        "phone": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "description": "PENDING, APPROVED, SENT or SKIPPED."
+        },
+        "lastError": {
+          "type": "string"
+        },
+        "sentAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -35550,6 +37564,23 @@
         },
         "custom": {
           "type": "object"
+        },
+        "bankName": {
+          "type": "string",
+          "description": "Billing master data."
+        },
+        "bankAccountNo": {
+          "type": "string"
+        },
+        "bankAccountName": {
+          "type": "string"
+        },
+        "billingEmail": {
+          "type": "string"
+        },
+        "paymentTermsDays": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -35876,6 +37907,22 @@
         }
       }
     },
+    "v1ListAuditLogsResponse": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AuditLog"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListCandidatesResponse": {
       "type": "object",
       "properties": {
@@ -35971,6 +38018,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1CatalogItem"
+          }
+        }
+      }
+    },
+    "v1ListClaimPayAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClaimPayAccount"
           }
         }
       }
@@ -36160,6 +38219,22 @@
         }
       }
     },
+    "v1ListDocumentsResponse": {
+      "type": "object",
+      "properties": {
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FinanceDocument"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListEmployeeDocumentsResponse": {
       "type": "object",
       "properties": {
@@ -36299,6 +38374,18 @@
         }
       }
     },
+    "v1ListFixedAssetsResponse": {
+      "type": "object",
+      "properties": {
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FixedAsset"
+          }
+        }
+      }
+    },
     "v1ListFormSubmissionsResponse": {
       "type": "object",
       "properties": {
@@ -36407,6 +38494,22 @@
             "type": "object",
             "$ref": "#/definitions/v1Interview"
           }
+        }
+      }
+    },
+    "v1ListInvoiceFollowupsResponse": {
+      "type": "object",
+      "properties": {
+        "followups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1InvoiceFollowup"
+          }
+        },
+        "whatsappEnabled": {
+          "type": "boolean",
+          "description": "False until WA_GATEWAY_URL and WA_GATEWAY_TOKEN are set."
         }
       }
     },
@@ -36550,6 +38653,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1LostReason"
+          }
+        }
+      }
+    },
+    "v1ListMatchCandidatesResponse": {
+      "type": "object",
+      "properties": {
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1MatchCandidate"
           }
         }
       }
@@ -36862,6 +38977,30 @@
         }
       }
     },
+    "v1ListReconAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ReconAccount"
+          }
+        }
+      }
+    },
+    "v1ListRecurringJournalsResponse": {
+      "type": "object",
+      "properties": {
+        "journals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1RecurringJournal"
+          }
+        }
+      }
+    },
     "v1ListReplyTemplatesResponse": {
       "type": "object",
       "properties": {
@@ -37007,6 +39146,22 @@
         }
       }
     },
+    "v1ListStatementLinesResponse": {
+      "type": "object",
+      "properties": {
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1StatementLine"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListSubsidiaryPartiesResponse": {
       "type": "object",
       "properties": {
@@ -37075,6 +39230,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1UserWithClients"
+          }
+        }
+      }
+    },
+    "v1ListVendorsResponse": {
+      "type": "object",
+      "properties": {
+        "vendors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Vendor"
           }
         }
       }
@@ -37648,6 +39815,34 @@
       "properties": {
         "kind": {
           "$ref": "#/definitions/MarkSetupRequestKind"
+        }
+      }
+    },
+    "v1MatchCandidate": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "JOURNAL or INVOICE."
+        },
+        "ref": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "score": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "reason": {
+          "type": "string"
         }
       }
     },
@@ -42217,6 +44412,45 @@
         }
       }
     },
+    "v1ReconAccount": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "codeDisplay": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "isCreditCard": {
+          "type": "boolean"
+        },
+        "bookBalance": {
+          "type": "string"
+        },
+        "unmatched": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "suggested": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "matched": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "ignored": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1RecruitmentDashboard": {
       "type": "object",
       "properties": {
@@ -42516,6 +44750,76 @@
         },
         "until": {
           "type": "string"
+        }
+      }
+    },
+    "v1RecurringJournal": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "frequency": {
+          "type": "string",
+          "description": "MONTHLY, QUARTERLY or YEARLY."
+        },
+        "nextRun": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1JournalLineInput"
+          }
+        },
+        "total": {
+          "type": "string"
+        },
+        "lastEntryId": {
+          "type": "string"
+        },
+        "lastError": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RecurringJournalInput": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "frequency": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1JournalLineInput"
+          }
         }
       }
     },
@@ -43396,6 +45700,19 @@
           "format": "int32"
         },
         "issues": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1RunSchedulesResponse": {
+      "type": "object",
+      "properties": {
+        "posted": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "failed": {
           "type": "integer",
           "format": "int32"
         }
@@ -44993,6 +47310,68 @@
         }
       }
     },
+    "v1StatementLine": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "lineDate": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "senderName": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "description": "Positive is money in, negative is money out or a card charge."
+        },
+        "status": {
+          "type": "string",
+          "description": "UNMATCHED, SUGGESTED, MATCHED or IGNORED."
+        },
+        "suggestedKind": {
+          "type": "string",
+          "description": "JOURNAL or INVOICE."
+        },
+        "suggestedRef": {
+          "type": "string"
+        },
+        "suggestedLabel": {
+          "type": "string"
+        },
+        "suggestedScore": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "suggestedReason": {
+          "type": "string"
+        },
+        "matchedEntryId": {
+          "type": "string"
+        },
+        "matchedEntryNo": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "verifiedBy": {
+          "type": "string",
+          "description": "Empty for a row the system matched by itself."
+        },
+        "verifiedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
     "v1StuckCandidate": {
       "type": "object",
       "properties": {
@@ -46024,6 +48403,97 @@
         }
       }
     },
+    "v1Vendor": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "picName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "npwp": {
+          "type": "string"
+        },
+        "bankName": {
+          "type": "string"
+        },
+        "bankAccountNo": {
+          "type": "string"
+        },
+        "bankAccountName": {
+          "type": "string"
+        },
+        "paymentTermsDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1VendorInput": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Empty creates a vendor."
+        },
+        "name": {
+          "type": "string"
+        },
+        "picName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "npwp": {
+          "type": "string"
+        },
+        "bankName": {
+          "type": "string"
+        },
+        "bankAccountNo": {
+          "type": "string"
+        },
+        "bankAccountName": {
+          "type": "string"
+        },
+        "paymentTermsDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      }
+    },
     "v1VerifyResult": {
       "type": "object",
       "properties": {
@@ -46629,6 +49099,9 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "isCreditCard": {
+          "type": "boolean"
         }
       }
     },
@@ -46660,6 +49133,9 @@
           "type": "string"
         },
         "isActive": {
+          "type": "boolean"
+        },
+        "isCreditCard": {
           "type": "boolean"
         }
       }
@@ -47472,6 +49948,23 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "bankName": {
+          "type": "string",
+          "description": "Billing master data."
+        },
+        "bankAccountNo": {
+          "type": "string"
+        },
+        "bankAccountName": {
+          "type": "string"
+        },
+        "billingEmail": {
+          "type": "string"
+        },
+        "paymentTermsDays": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -47516,6 +50009,23 @@
         },
         "custom": {
           "type": "object"
+        },
+        "bankName": {
+          "type": "string",
+          "description": "Billing master data."
+        },
+        "bankAccountNo": {
+          "type": "string"
+        },
+        "bankAccountName": {
+          "type": "string"
+        },
+        "billingEmail": {
+          "type": "string"
+        },
+        "paymentTermsDays": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -47779,6 +50289,19 @@
         "createdAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "note": {
+          "type": "string"
+        },
+        "fakturPajakName": {
+          "type": "string",
+          "description": "Empty until finance attaches the tax invoice."
+        },
+        "quoteNumber": {
+          "type": "string"
+        },
+        "termLabel": {
+          "type": "string"
         }
       }
     },

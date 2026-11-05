@@ -198,6 +198,7 @@ message Account {
   bool is_active = 16;
   google.protobuf.Timestamp created_at = 17;
   google.protobuf.Timestamp updated_at = 18;
+  bool is_credit_card = 19;
 }
 
 message AccountInput {
@@ -210,6 +211,7 @@ message AccountInput {
   string cash_flow_category = 7;
   string description = 8;
   bool is_active = 9;
+  bool is_credit_card = 10;
 }
 
 message UpdateAccountRequest {
@@ -1132,6 +1134,22 @@ service ReportService {
   rpc GetIncomeStatement(PeriodRequest) returns (IncomeStatement) {
     option (google.api.http) = {get: "/v1/finance/reports/income-statement"};
   }
+  rpc GetBudgetVsActual(PeriodRequest) returns (BudgetVsActual) {
+    option (google.api.http) = {get: "/v1/finance/reports/budget-vs-actual"};
+  }
+  rpc GetBudgetYear(BudgetYearRequest) returns (BudgetYear) {
+    option (google.api.http) = {get: "/v1/finance/budgets/{year}"};
+  }
+  // finance.write. Replaces the given account-months; zero removes the row.
+  rpc SaveBudgetYear(SaveBudgetYearRequest) returns (BudgetYear) {
+    option (google.api.http) = {put: "/v1/finance/budgets/{year}" body: "*"};
+  }
+  rpc GetEquityChanges(PeriodRequest) returns (EquityChanges) {
+    option (google.api.http) = {get: "/v1/finance/reports/equity-changes"};
+  }
+  rpc GetClientEconomics(PeriodRequest) returns (ClientEconomicsReport) {
+    option (google.api.http) = {get: "/v1/finance/reports/client-economics"};
+  }
   rpc GetCashFlow(PeriodRequest) returns (CashFlow) {
     option (google.api.http) = {get: "/v1/finance/reports/cash-flow"};
   }
@@ -1283,6 +1301,8 @@ message SubsidiaryLedgerRequest {
   string party_name = 2;
   string date_from = 3;
   string date_to = 4;
+  // Limits the ledger to invoices booked on one account; party_name may then be empty.
+  string account_id = 5;
 }
 
 message SubsidiaryLine {
@@ -1647,6 +1667,10 @@ service ReimbursementService {
   rpc GetMonthlySummary(MonthlySummaryRequest) returns (MonthlySummary) {
     option (google.api.http) = {get: "/v1/finance/reimbursements:summary"};
   }
+  // Accounts a claimant may ask to be paid from (self.service).
+  rpc ListClaimPayAccounts(google.protobuf.Empty) returns (ListClaimPayAccountsResponse) {
+    option (google.api.http) = {get: "/v1/finance/reimbursements/pay-accounts"};
+  }
   rpc ListPolicies(google.protobuf.Empty) returns (ListPoliciesResponse) {
     option (google.api.http) = {get: "/v1/finance/reimbursement-policies"};
   }
@@ -1728,6 +1752,17 @@ message Claim {
   // What the caller may do now.
   bool can_edit = 26;
   bool can_approve = 27;
+  string preferred_cash_account_id = 28;
+  string preferred_cash_account_name = 29;
+  // Receipts that also appear on other claims. A warning for approvers.
+  repeated ClaimDuplicate duplicates = 30;
+}
+message ClaimDuplicate {
+  string receipt_id = 1;
+  string claim_no = 2;
+  string filename = 3;
+  // Byte-identical; otherwise the image looks the same.
+  bool exact = 4;
 }
 
 message ClaimInput {
@@ -1737,6 +1772,8 @@ message ClaimInput {
   string description = 4;
   string client_id = 5;
   string project = 6;
+  // The account the claimant asks finance to pay from.
+  string preferred_cash_account_id = 7;
 }
 
 message UpdateClaimRequest {
@@ -1890,6 +1927,112 @@ message ReceiptFile {
 // AnalysisService: ratios from the ledger and the AI CFO memo
 // ─────────────────────────────────────────────────────────────
 
+// Bank and credit card reconciliation.
+service BankReconService {
+  rpc ListReconAccounts(google.protobuf.Empty) returns (ListReconAccountsResponse) {
+    option (google.api.http) = {get: "/v1/finance/recon/accounts"};
+  }
+  rpc ListStatementLines(ListStatementLinesRequest) returns (ListStatementLinesResponse) {
+    option (google.api.http) = {get: "/v1/finance/recon/lines"};
+  }
+  // Internal: multipart upload through the gateway. finance.write.
+  rpc ImportStatement(ImportStatementRequest) returns (ImportStatementResponse);
+  rpc RematchStatements(RematchRequest) returns (ImportStatementResponse) {
+    option (google.api.http) = {post: "/v1/finance/recon/accounts/{account_id}:rematch" body: "*"};
+  }
+  rpc ListMatchCandidates(IdRequest) returns (ListMatchCandidatesResponse) {
+    option (google.api.http) = {get: "/v1/finance/recon/lines/{id}/candidates"};
+  }
+  // finance.write for a journal; finance.approve for an invoice, which records a payment.
+  rpc MatchStatementLine(MatchStatementLineRequest) returns (StatementLine) {
+    option (google.api.http) = {post: "/v1/finance/recon/lines/{id}:match" body: "*"};
+  }
+  // Posts a new journal for the row (bank fee, card charge).
+  rpc RecordStatementLine(RecordStatementLineRequest) returns (StatementLine) {
+    option (google.api.http) = {post: "/v1/finance/recon/lines/{id}:record" body: "*"};
+  }
+  rpc IgnoreStatementLine(IgnoreStatementLineRequest) returns (StatementLine) {
+    option (google.api.http) = {post: "/v1/finance/recon/lines/{id}:ignore" body: "*"};
+  }
+  rpc ReopenStatementLine(IdRequest) returns (StatementLine) {
+    option (google.api.http) = {post: "/v1/finance/recon/lines/{id}:reopen" body: "*"};
+  }
+}
+
+// Recurring journals and fixed asset depreciation.
+service ScheduleService {
+  rpc ListRecurringJournals(google.protobuf.Empty) returns (ListRecurringJournalsResponse) {
+    option (google.api.http) = {get: "/v1/finance/recurring-journals"};
+  }
+  rpc CreateRecurringJournal(RecurringJournalInput) returns (RecurringJournal) {
+    option (google.api.http) = {post: "/v1/finance/recurring-journals" body: "*"};
+  }
+  rpc SetRecurringJournalActive(SetActiveRequest) returns (RecurringJournal) {
+    option (google.api.http) = {post: "/v1/finance/recurring-journals/{id}:active" body: "*"};
+  }
+  rpc DeleteRecurringJournal(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/recurring-journals/{id}"};
+  }
+  rpc ListFixedAssets(google.protobuf.Empty) returns (ListFixedAssetsResponse) {
+    option (google.api.http) = {get: "/v1/finance/fixed-assets"};
+  }
+  rpc CreateFixedAsset(FixedAssetInput) returns (FixedAsset) {
+    option (google.api.http) = {post: "/v1/finance/fixed-assets" body: "*"};
+  }
+  rpc SetFixedAssetActive(SetActiveRequest) returns (FixedAsset) {
+    option (google.api.http) = {post: "/v1/finance/fixed-assets/{id}:active" body: "*"};
+  }
+  rpc DeleteFixedAsset(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/fixed-assets/{id}"};
+  }
+  // Posts everything due now; the daily tick does the same.
+  rpc RunSchedules(google.protobuf.Empty) returns (RunSchedulesResponse) {
+    option (google.api.http) = {post: "/v1/finance/schedules:run" body: "*"};
+  }
+}
+
+// Vendors, purchase requests, purchase orders and letterhead documents.
+service DocumentService {
+  rpc ListVendors(ListVendorsRequest) returns (ListVendorsResponse) {
+    option (google.api.http) = {get: "/v1/finance/vendors"};
+  }
+  rpc SaveVendor(VendorInput) returns (Vendor) {
+    option (google.api.http) = {post: "/v1/finance/vendors" body: "*"};
+  }
+  rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse) {
+    option (google.api.http) = {get: "/v1/finance/documents"};
+  }
+  rpc GetDocument(IdRequest) returns (FinanceDocument) {
+    option (google.api.http) = {get: "/v1/finance/documents/{id}"};
+  }
+  rpc CreateDocument(DocumentInput) returns (FinanceDocument) {
+    option (google.api.http) = {post: "/v1/finance/documents" body: "*"};
+  }
+  // Draft only.
+  rpc UpdateDocument(DocumentInput) returns (FinanceDocument) {
+    option (google.api.http) = {patch: "/v1/finance/documents/{id}" body: "*"};
+  }
+  // Draft only. A converted source becomes convertible again.
+  rpc DeleteDocument(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/documents/{id}"};
+  }
+  // submit, send, accept, decline, reopen: finance.write.
+  // approve, reject: finance.approve, and only Admin may decide their own.
+  rpc ActOnDocument(ActOnDocumentRequest) returns (FinanceDocument) {
+    option (google.api.http) = {post: "/v1/finance/documents/{id}:act" body: "*"};
+  }
+  // Approved PR to PO, accepted quotation to invoice. The new document is a draft.
+  rpc ConvertDocument(ConvertDocumentRequest) returns (FinanceDocument) {
+    option (google.api.http) = {post: "/v1/finance/documents/{id}:convert" body: "*"};
+  }
+  // Approved PO or draft invoice to a draft payable or receivable, once.
+  rpc IssueDocument(IssueDocumentRequest) returns (FinanceDocument) {
+    option (google.api.http) = {post: "/v1/finance/documents/{id}:issue" body: "*"};
+  }
+  // Internal: PDF bytes for the gateway.
+  rpc RenderDocumentPdf(IdRequest) returns (DocumentPdf);
+}
+
 service AnalysisService {
   rpc GetFinancialAnalysis(FinancialAnalysisRequest) returns (FinancialAnalysis) {
     option (google.api.http) = {get: "/v1/finance/analysis"};
@@ -2012,4 +2155,379 @@ message RatioTrendSeries {
 message RatioTrend {
   repeated string months = 1;
   repeated RatioTrendSeries series = 2;
+}
+
+message ClaimPayAccount {
+  string id = 1;
+  string name = 2;
+}
+message ListClaimPayAccountsResponse {
+  repeated ClaimPayAccount accounts = 1;
+}
+
+message ReconAccount {
+  string id = 1;
+  string code = 2;
+  string code_display = 3;
+  string name = 4;
+  bool is_credit_card = 5;
+  string book_balance = 6;
+  int32 unmatched = 7;
+  int32 suggested = 8;
+  int32 matched = 9;
+  int32 ignored = 10;
+}
+message ListReconAccountsResponse {
+  repeated ReconAccount accounts = 1;
+}
+message StatementLine {
+  string id = 1;
+  string account_id = 2;
+  string line_date = 3;
+  string description = 4;
+  string sender_name = 5;
+  // Positive is money in, negative is money out or a card charge.
+  string amount = 6;
+  // UNMATCHED, SUGGESTED, MATCHED or IGNORED.
+  string status = 7;
+  // JOURNAL or INVOICE.
+  string suggested_kind = 8;
+  string suggested_ref = 9;
+  string suggested_label = 10;
+  int32 suggested_score = 11;
+  string suggested_reason = 12;
+  string matched_entry_id = 13;
+  string matched_entry_no = 14;
+  string note = 15;
+  // Empty for a row the system matched by itself.
+  string verified_by = 16;
+  optional google.protobuf.Timestamp verified_at = 17;
+}
+message ListStatementLinesRequest {
+  string account_id = 1;
+  string status = 2;
+  string date_from = 3;
+  string date_to = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+message ListStatementLinesResponse {
+  repeated StatementLine lines = 1;
+  int32 total = 2;
+}
+message ImportStatementRequest {
+  string account_id = 1;
+  string filename = 2;
+  bytes data = 3;
+}
+message ImportStatementResponse {
+  int32 inserted = 1;
+  int32 skipped = 2;
+  int32 matched = 3;
+  int32 suggested = 4;
+  int32 unmatched = 5;
+}
+message RematchRequest {
+  string account_id = 1;
+}
+message MatchCandidate {
+  // JOURNAL or INVOICE.
+  string kind = 1;
+  string ref = 2;
+  string label = 3;
+  string date = 4;
+  string amount = 5;
+  int32 score = 6;
+  string reason = 7;
+}
+message ListMatchCandidatesResponse {
+  repeated MatchCandidate candidates = 1;
+}
+message MatchStatementLineRequest {
+  string id = 1;
+  string kind = 2;
+  string ref = 3;
+}
+message RecordStatementLineRequest {
+  string id = 1;
+  string counter_account_id = 2;
+  string description = 3;
+}
+message IgnoreStatementLineRequest {
+  string id = 1;
+  string note = 2;
+}
+
+message SetActiveRequest {
+  string id = 1;
+  bool active = 2;
+}
+message RecurringJournal {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // MONTHLY, QUARTERLY or YEARLY.
+  string frequency = 4;
+  string next_run = 5;
+  string end_date = 6;
+  bool is_active = 7;
+  repeated JournalLineInput lines = 8;
+  string total = 9;
+  string last_entry_id = 10;
+  string last_error = 11;
+}
+message RecurringJournalInput {
+  string name = 1;
+  string description = 2;
+  string frequency = 3;
+  string start_date = 4;
+  string end_date = 5;
+  repeated JournalLineInput lines = 6;
+}
+message ListRecurringJournalsResponse {
+  repeated RecurringJournal journals = 1;
+}
+message FixedAsset {
+  string id = 1;
+  string name = 2;
+  string acquired_on = 3;
+  string cost = 4;
+  string salvage = 5;
+  int32 life_months = 6;
+  string monthly_amount = 7;
+  int32 depreciated_months = 8;
+  string accumulated = 9;
+  string book_value = 10;
+  string expense_account_id = 11;
+  string expense_account_name = 12;
+  string accum_account_id = 13;
+  string accum_account_name = 14;
+  bool is_active = 15;
+  string last_entry_id = 16;
+  string last_error = 17;
+}
+message FixedAssetInput {
+  string name = 1;
+  string acquired_on = 2;
+  string cost = 3;
+  string salvage = 4;
+  int32 life_months = 5;
+  string expense_account_id = 6;
+  string accum_account_id = 7;
+}
+message ListFixedAssetsResponse {
+  repeated FixedAsset assets = 1;
+}
+message RunSchedulesResponse {
+  int32 posted = 1;
+  int32 failed = 2;
+}
+
+message BudgetRow {
+  string account_id = 1;
+  string code_display = 2;
+  string name = 3;
+  string type_code = 4;
+  string budget = 5;
+  string actual = 6;
+  // Positive is favorable: more revenue or less cost than planned.
+  string variance = 7;
+}
+message BudgetVsActual {
+  string date_from = 1;
+  string date_to = 2;
+  repeated BudgetRow rows = 3;
+  string total_budget_revenue = 4;
+  string total_actual_revenue = 5;
+  string total_budget_cost = 6;
+  string total_actual_cost = 7;
+}
+message BudgetYearRequest {
+  int32 year = 1;
+}
+message BudgetEntry {
+  // YYYY-MM.
+  string month = 1;
+  string account_id = 2;
+  string amount = 3;
+}
+message BudgetYear {
+  int32 year = 1;
+  repeated BudgetEntry entries = 2;
+}
+message SaveBudgetYearRequest {
+  int32 year = 1;
+  repeated BudgetEntry entries = 2;
+}
+message EquityRow {
+  string code_display = 1;
+  string name = 2;
+  string opening = 3;
+  string movement = 4;
+  string closing = 5;
+  // Earnings of the fiscal year, which live on no equity account until closed.
+  bool is_earnings = 6;
+}
+message EquityChanges {
+  string date_from = 1;
+  string date_to = 2;
+  repeated EquityRow rows = 3;
+  string total_opening = 4;
+  string total_movement = 5;
+  string total_closing = 6;
+}
+message ClientEconomicsRow {
+  string party = 1;
+  int32 invoice_count = 2;
+  string invoiced = 3;
+  string collected = 4;
+  string outstanding = 5;
+  double avg_days_to_pay = 6;
+  bool has_payments = 7;
+}
+message ClientEconomicsReport {
+  string date_from = 1;
+  string date_to = 2;
+  repeated ClientEconomicsRow clients = 3;
+  string total_invoiced = 4;
+  string total_collected = 5;
+  string average_per_client = 6;
+  // Percentages of the invoiced total.
+  double collection_rate = 7;
+  double top_client_share = 8;
+  double top_three_share = 9;
+  double avg_days_to_pay = 10;
+  bool has_payments = 11;
+}
+
+message Vendor {
+  string id = 1;
+  string name = 2;
+  string pic_name = 3;
+  string phone = 4;
+  string email = 5;
+  string address = 6;
+  string npwp = 7;
+  string bank_name = 8;
+  string bank_account_no = 9;
+  string bank_account_name = 10;
+  int32 payment_terms_days = 11;
+  string notes = 12;
+  bool is_active = 13;
+}
+message VendorInput {
+  // Empty creates a vendor.
+  string id = 1;
+  string name = 2;
+  string pic_name = 3;
+  string phone = 4;
+  string email = 5;
+  string address = 6;
+  string npwp = 7;
+  string bank_name = 8;
+  string bank_account_no = 9;
+  string bank_account_name = 10;
+  int32 payment_terms_days = 11;
+  string notes = 12;
+  bool is_active = 13;
+}
+message ListVendorsRequest {
+  string q = 1;
+  bool active_only = 2;
+}
+message ListVendorsResponse {
+  repeated Vendor vendors = 1;
+}
+message DocumentItem {
+  string description = 1;
+  string unit = 2;
+  string qty = 3;
+  string unit_price = 4;
+  string line_total = 5;
+}
+message FinanceDocument {
+  string id = 1;
+  // PR, PO, QUOTATION or INVOICE.
+  string kind = 2;
+  // B2B or SUPPLIER.
+  string side = 3;
+  string number = 4;
+  string status = 5;
+  string vendor_id = 6;
+  string party_name = 7;
+  string pic_name = 8;
+  string phone = 9;
+  string email = 10;
+  string address = 11;
+  string title = 12;
+  string issue_date = 13;
+  string due_date = 14;
+  string external_number = 15;
+  string notes = 16;
+  repeated DocumentItem items = 17;
+  string discount_percent = 18;
+  string ppn_percent = 19;
+  string subtotal = 20;
+  string discount_amount = 21;
+  string tax_amount = 22;
+  string total_amount = 23;
+  string account_id = 24;
+  string source_id = 25;
+  string ledger_invoice_id = 26;
+  string reject_reason = 27;
+  string created_by = 28;
+  string decided_by = 29;
+}
+message DocumentInput {
+  // Empty on create.
+  string id = 1;
+  string kind = 2;
+  string side = 3;
+  string vendor_id = 4;
+  string party_name = 5;
+  string pic_name = 6;
+  string phone = 7;
+  string email = 8;
+  string address = 9;
+  string title = 10;
+  string issue_date = 11;
+  string due_date = 12;
+  string external_number = 13;
+  string notes = 14;
+  repeated DocumentItem items = 15;
+  string discount_percent = 16;
+  string ppn_percent = 17;
+  string account_id = 18;
+}
+message ListDocumentsRequest {
+  string kind = 1;
+  string status = 2;
+  string q = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+message ListDocumentsResponse {
+  repeated FinanceDocument documents = 1;
+  int32 total = 2;
+}
+message ActOnDocumentRequest {
+  string id = 1;
+  string action = 2;
+  string reason = 3;
+}
+message ConvertDocumentRequest {
+  string id = 1;
+  // Required when a purchase request becomes a purchase order.
+  string vendor_id = 2;
+}
+message IssueDocumentRequest {
+  string id = 1;
+  // Expense account for a PO or supplier invoice, revenue account for a client invoice.
+  string account_id = 2;
+  string due_date = 3;
+}
+message DocumentPdf {
+  string file_name = 1;
+  string content_type = 2;
+  bytes data = 3;
 }

@@ -9,24 +9,29 @@ import (
 )
 
 type SalesAccount struct {
-	ID          string
-	Name        string
-	AccountType string
-	Industry    *string
-	Address     *string
-	City        *string
-	Phone       *string
-	Email       *string
-	Website     *string
-	Npwp        *string
-	Notes       *string
-	OwnerUserID *string
-	Custom      []byte
-	CreatedBy   *string
-	UpdatedBy   *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
+	ID               string
+	Name             string
+	AccountType      string
+	Industry         *string
+	Address          *string
+	City             *string
+	Phone            *string
+	Email            *string
+	Website          *string
+	Npwp             *string
+	Notes            *string
+	OwnerUserID      *string
+	Custom           []byte
+	CreatedBy        *string
+	UpdatedBy        *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        *time.Time
+	BankName         *string
+	BankAccountNo    *string
+	BankAccountName  *string
+	BillingEmail     *string
+	PaymentTermsDays *int32
 }
 
 type SalesActivity struct {
@@ -311,24 +316,42 @@ type SalesFormSubmission struct {
 }
 
 type SalesInvoice struct {
-	ID            string
-	DealID        string
-	QuotationID   *string
-	TermID        *string
-	InvoiceNumber string
-	Label         string
-	Amount        string
-	DueDate       *time.Time
-	Status        string
-	SentAt        *time.Time
-	IssuedBy      *string
-	CancelledAt   *time.Time
-	CancelledBy   *string
-	CancelReason  *string
-	CreatedBy     *string
-	UpdatedBy     *string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID              string
+	DealID          string
+	QuotationID     *string
+	TermID          *string
+	InvoiceNumber   string
+	Label           string
+	Amount          string
+	DueDate         *time.Time
+	Status          string
+	SentAt          *time.Time
+	IssuedBy        *string
+	CancelledAt     *time.Time
+	CancelledBy     *string
+	CancelReason    *string
+	CreatedBy       *string
+	UpdatedBy       *string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	Note            *string
+	FakturPajakKey  *string
+	FakturPajakName *string
+}
+
+type SalesInvoiceFollowup struct {
+	ID         string
+	InvoiceID  string
+	Stage      int32
+	Phone      string
+	Message    string
+	Status     string
+	LastError  string
+	ApprovedBy *string
+	ApprovedAt *time.Time
+	SentAt     *time.Time
+	MessageID  *string
+	CreatedAt  time.Time
 }
 
 type SalesLead struct {

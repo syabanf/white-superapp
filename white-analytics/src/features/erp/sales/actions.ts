@@ -27,6 +27,7 @@ import type {
   GenerateQuotationDraftResponse,
   ImportLeadsResponse,
   Invoice,
+  InvoiceFollowup,
   Lead,
   LeadForm,
   ListTargetsResponse,
@@ -50,7 +51,10 @@ async function send<T>(path: string, method: string, body?: unknown): Promise<Ac
   const res = await runGateway(() =>
     gatewayFetch<T>(`${S}${path}`, { method, body: body === undefined ? undefined : JSON.stringify(body) }),
   );
-  if (res.ok) revalidatePath("/erp/sales", "layout");
+  if (res.ok) {
+    revalidatePath("/erp/sales", "layout");
+    revalidatePath("/erp/finance/invoices", "layout");
+  }
   return res;
 }
 
@@ -123,6 +127,11 @@ const accountSchema = z.object({
   npwp: opt,
   notes: opt,
   ownerUserId: opt,
+  bankName: opt,
+  bankAccountNo: opt,
+  bankAccountName: opt,
+  billingEmail: z.union([z.email("Email tidak valid"), z.literal("")]).default(""),
+  paymentTermsDays: z.coerce.number().int().min(0, "Minimal 0 hari").max(365, "Maksimal 365 hari").default(0),
 });
 export type AccountValues = z.input<typeof accountSchema>;
 
@@ -327,6 +336,24 @@ export async function issueInvoiceAction(id: string) {
 
 export async function cancelInvoiceAction(id: string, reason: string) {
   return send<Invoice>(`/invoices/${id}:cancel`, "POST", { reason });
+}
+
+export type InvoiceRevision = { label: string; amount: string; dueDate: string; note: string };
+
+export async function updateInvoiceAction(id: string, input: InvoiceRevision) {
+  return send<Invoice>(`/invoices/${id}`, "PATCH", input);
+}
+
+export async function approveFollowupAction(id: string, phone: string, message: string) {
+  return send<InvoiceFollowup>(`/invoice-followups/${id}:approve`, "POST", { phone, message });
+}
+
+export async function skipFollowupAction(id: string) {
+  return send<InvoiceFollowup>(`/invoice-followups/${id}:skip`, "POST", {});
+}
+
+export async function deleteFakturPajakAction(id: string) {
+  return send<Invoice>(`/invoices/${id}/faktur-pajak`, "DELETE");
 }
 
 const paymentSchema = z.object({

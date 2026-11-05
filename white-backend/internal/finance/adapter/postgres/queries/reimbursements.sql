@@ -19,8 +19,8 @@ ON CONFLICT (category) DO UPDATE
 -- name: InsertClaim :exec
 INSERT INTO finance.reimbursement_claims (
   id, claim_no, employee_id, employee_user_id, employee_name, department_name, manager_employee_id, manager_user_id,
-  category, transaction_date, amount, description, client_id, project, status, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, sqlc.narg(by), sqlc.narg(by));
+  category, transaction_date, amount, description, client_id, project, status, preferred_cash_account_id, preferred_cash_account_name, created_by, updated_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, sqlc.narg(by), sqlc.narg(by));
 
 -- name: UpdateClaim :exec
 UPDATE finance.reimbursement_claims
@@ -29,7 +29,7 @@ UPDATE finance.reimbursement_claims
        status = $12, over_limit = $13, limit_note = $14, submitted_at = $15,
        manager_approved_at = $16, manager_approved_by = $17, finance_approved_at = $18, finance_approved_by = $19,
        rejected_at = $20, rejected_by = $21, rejected_stage = $22, reject_reason = $23, cancelled_at = $24,
-       paid_at = $25, paid_by = $26, payment_batch_id = $27, updated_by = sqlc.narg(by), updated_at = now()
+       paid_at = $25, paid_by = $26, payment_batch_id = $27, preferred_cash_account_id = $28, preferred_cash_account_name = $29, updated_by = sqlc.narg(by), updated_at = now()
  WHERE id = $1;
 
 -- name: GetClaim :one
@@ -67,8 +67,8 @@ SELECT * FROM finance.reimbursement_receipts WHERE claim_id = ANY(sqlc.arg(claim
 SELECT * FROM finance.reimbursement_events WHERE claim_id = $1 ORDER BY created_at, id;
 
 -- name: InsertReceipt :exec
-INSERT INTO finance.reimbursement_receipts (id, claim_id, storage_key, filename, content_type, size_bytes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7);
+INSERT INTO finance.reimbursement_receipts (id, claim_id, storage_key, filename, content_type, size_bytes, created_by, content_hash, image_hash)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
 
 -- name: DeleteReceipt :exec
 DELETE FROM finance.reimbursement_receipts WHERE id = $1;

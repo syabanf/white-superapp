@@ -2,6 +2,16 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  FinanceDocument,
+  Vendor,
+  BudgetEntry,
+  BudgetVsActual,
+  ClientEconomicsReport,
+  EquityChanges,
+  FixedAsset,
+  ReconAccount,
+  RecurringJournal,
+  StatementLine,
   Account,
   AccountType,
   Aging,
@@ -175,8 +185,24 @@ export async function listSubsidiaryParties(kind: LedgerKind) {
   return r.parties;
 }
 
-export function getSubsidiaryLedger(kind: LedgerKind, partyName: string, dateFrom?: string, dateTo?: string) {
-  return gatewayFetch<SubsidiaryLedger>(`${F}/reports/subsidiary-ledger${qs({ kind, partyName, dateFrom, dateTo })}`);
+export function getSubsidiaryLedger(kind: LedgerKind, partyName: string | undefined, accountId: string | undefined, dateFrom?: string, dateTo?: string) {
+  return gatewayFetch<SubsidiaryLedger>(`${F}/reports/subsidiary-ledger${qs({ kind, partyName, accountId, dateFrom, dateTo })}`);
+}
+
+export async function listReconAccounts() {
+  return (await gatewayFetch<{ accounts: ReconAccount[] }>(`${F}/recon/accounts`)).accounts;
+}
+
+export function listStatementLines(q: Q) {
+  return gatewayFetch<{ lines: StatementLine[]; total: number }>(`${F}/recon/lines${qs(q)}`);
+}
+
+export async function listRecurringJournals() {
+  return (await gatewayFetch<{ journals: RecurringJournal[] }>(`${F}/recurring-journals`)).journals;
+}
+
+export async function listFixedAssets() {
+  return (await gatewayFetch<{ assets: FixedAsset[] }>(`${F}/fixed-assets`)).assets;
 }
 
 // ── Reimbursements ───────────────────────────────────────────
@@ -220,4 +246,32 @@ export function getFinancialAnalysis(from?: string, to?: string, compareMode?: s
 export async function listFinancialInsights(limit = 20) {
   const r = await gatewayFetch<{ insights: FinancialInsight[] }>(`${F}/analysis/insights${qs({ limit })}`);
   return r.insights;
+}
+
+export function getBudgetVsActual(dateFrom?: string, dateTo?: string) {
+  return gatewayFetch<BudgetVsActual>(`${F}/reports/budget-vs-actual${qs({ dateFrom, dateTo })}`);
+}
+
+export function getEquityChanges(dateFrom?: string, dateTo?: string) {
+  return gatewayFetch<EquityChanges>(`${F}/reports/equity-changes${qs({ dateFrom, dateTo })}`);
+}
+
+export function getClientEconomics(dateFrom?: string, dateTo?: string) {
+  return gatewayFetch<ClientEconomicsReport>(`${F}/reports/client-economics${qs({ dateFrom, dateTo })}`);
+}
+
+export async function getBudgetYear(year: number) {
+  return (await gatewayFetch<{ entries: BudgetEntry[] }>(`${F}/budgets/${year}`)).entries ?? [];
+}
+
+export async function listVendors(q: Q = {}) {
+  return (await gatewayFetch<{ vendors: Vendor[] }>(`${F}/vendors${qs(q)}`)).vendors ?? [];
+}
+
+export function listDocuments(q: Q) {
+  return gatewayFetch<{ documents: FinanceDocument[]; total: number }>(`${F}/documents${qs(q)}`);
+}
+
+export function getDocument(id: string) {
+  return gatewayFetch<FinanceDocument>(`${F}/documents/${id}`);
 }

@@ -520,6 +520,13 @@ message VerifySharePinResponse {
 // WorkspaceService: setup flags (ADMIN)
 // ─────────────────────────────────────────────────────────────
 
+// Change log recorded at the gateway. Admin only.
+service AuditService {
+  rpc ListAuditLogs(ListAuditLogsRequest) returns (ListAuditLogsResponse) {
+    option (google.api.http) = {get: "/v1/audit-logs"};
+  }
+}
+
 service WorkspaceService {
   rpc GetSetupState(google.protobuf.Empty) returns (SetupState) {
     option (google.api.http) = {get: "/v1/workspace/setup"};
@@ -544,4 +551,31 @@ message MarkSetupRequest {
     COMPLETED = 1;
     SKIPPED = 2;
   }
+}
+
+message AuditLog {
+  string id = 1;
+  google.protobuf.Timestamp at = 2;
+  string user_id = 3;
+  string user_name = 4;
+  string role = 5;
+  string method = 6;
+  string path = 7;
+  int32 status = 8;
+  string ip = 9;
+  string user_agent = 10;
+}
+message ListAuditLogsRequest {
+  // Matches the path or the user's name.
+  string q = 1;
+  bool failed_only = 2;
+  // YYYY-MM-DD, WIB, inclusive.
+  string date_from = 3;
+  string date_to = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+message ListAuditLogsResponse {
+  repeated AuditLog logs = 1;
+  int32 total = 2;
 }

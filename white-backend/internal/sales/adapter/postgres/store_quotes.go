@@ -326,9 +326,9 @@ func (s *Store) CancelPendingApprovals(ctx context.Context, subjectID string, at
 
 func invoiceRow(r sqlc.GetInvoiceRow) domain.Invoice {
 	i := r.SalesInvoice
-	return domain.Invoice{ID: i.ID, DealID: i.DealID, QuotationID: i.QuotationID, TermID: i.TermID, InvoiceNumber: i.InvoiceNumber, Label: i.Label, Amount: domain.MustMoney(i.Amount), DueDate: i.DueDate, Status: i.Status, SentAt: i.SentAt, IssuedBy: i.IssuedBy, CancelledAt: i.CancelledAt, CancelledBy: i.CancelledBy, CancelReason: i.CancelReason,
+	return domain.Invoice{ID: i.ID, DealID: i.DealID, QuotationID: i.QuotationID, TermID: i.TermID, InvoiceNumber: i.InvoiceNumber, Label: i.Label, Amount: domain.MustMoney(i.Amount), DueDate: i.DueDate, Status: i.Status, SentAt: i.SentAt, IssuedBy: i.IssuedBy, CancelledAt: i.CancelledAt, CancelledBy: i.CancelledBy, CancelReason: i.CancelReason, Note: i.Note, FakturPajakKey: i.FakturPajakKey, FakturPajakName: i.FakturPajakName,
 		Audit:     domain.Audit{CreatedBy: i.CreatedBy, UpdatedBy: i.UpdatedBy, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt},
-		DealTitle: r.DealTitle, ClientName: r.ClientName, PaidTotal: domain.MustMoney(r.PaidTotal)}
+		DealTitle: r.DealTitle, ClientName: r.ClientName, QuoteNumber: r.QuoteNumber, TermLabel: r.TermLabel, PaidTotal: domain.MustMoney(r.PaidTotal)}
 }
 
 func (s *Store) GetInvoice(ctx context.Context, id string) (*domain.Invoice, error) {
@@ -337,12 +337,41 @@ func (s *Store) GetInvoice(ctx context.Context, id string) (*domain.Invoice, err
 }
 
 func (s *Store) ListInvoices(ctx context.Context, f domain.InvoiceFilter) ([]domain.Invoice, error) {
-	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Deal: nz(f.DealID), Status: nz(f.Status), FromAt: f.From, ToAt: f.To, Lim: limitOr(f.Limit, 200)})
+	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Deal: nz(f.DealID), Status: nz(f.Status), Search: nz(f.Search), FromAt: f.From, ToAt: f.To, Lim: limitOr(f.Limit, 200)})
 	return many(rows, err, func(r sqlc.ListInvoicesRow) domain.Invoice { return invoiceRow(sqlc.GetInvoiceRow(r)) })
 }
 
 func (s *Store) SaveInvoice(ctx context.Context, i *domain.Invoice) error {
-	return wrap(s.q.UpsertInvoice(ctx, sqlc.UpsertInvoiceParams{ID: i.ID, DealID: i.DealID, QuotationID: i.QuotationID, TermID: i.TermID, InvoiceNumber: i.InvoiceNumber, Label: i.Label, Amount: i.Amount.String(), DueDate: i.DueDate, Status: i.Status, SentAt: i.SentAt, IssuedBy: i.IssuedBy, CancelledAt: i.CancelledAt, CancelledBy: i.CancelledBy, CancelReason: i.CancelReason, CreatedBy: i.CreatedBy, UpdatedBy: i.UpdatedBy, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}))
+	return wrap(s.q.UpsertInvoice(ctx, sqlc.UpsertInvoiceParams{ID: i.ID, DealID: i.DealID, QuotationID: i.QuotationID, TermID: i.TermID, InvoiceNumber: i.InvoiceNumber, Label: i.Label, Amount: i.Amount.String(), DueDate: i.DueDate, Status: i.Status, SentAt: i.SentAt, IssuedBy: i.IssuedBy, CancelledAt: i.CancelledAt, CancelledBy: i.CancelledBy, CancelReason: i.CancelReason, CreatedBy: i.CreatedBy, UpdatedBy: i.UpdatedBy, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, Note: i.Note, FakturPajakKey: i.FakturPajakKey, FakturPajakName: i.FakturPajakName}))
+}
+
+func toFollowup(r sqlc.SalesInvoiceFollowup) domain.InvoiceFollowup {
+	return domain.InvoiceFollowup{ID: r.ID, InvoiceID: r.InvoiceID, Stage: int(r.Stage), Phone: r.Phone, Message: r.Message, Status: r.Status, LastError: r.LastError,
+		ApprovedBy: r.ApprovedBy, ApprovedAt: r.ApprovedAt, SentAt: r.SentAt, MessageID: r.MessageID, CreatedAt: r.CreatedAt}
+}
+
+func (s *Store) InsertFollowup(ctx context.Context, f domain.InvoiceFollowup) (bool, error) {
+	n, err := s.q.InsertFollowup(ctx, sqlc.InsertFollowupParams{ID: f.ID, InvoiceID: f.InvoiceID, Stage: int32(f.Stage), Phone: f.Phone, Message: f.Message})
+	return n > 0, wrap(err)
+}
+
+func (s *Store) ListFollowups(ctx context.Context, status string, limit int) ([]domain.InvoiceFollowup, error) {
+	rows, err := s.q.ListFollowups(ctx, sqlc.ListFollowupsParams{Status: nz(status), Lim: limitOr(limit, 200)})
+	return many(rows, err, func(r sqlc.ListFollowupsRow) domain.InvoiceFollowup {
+		f := toFollowup(r.SalesInvoiceFollowup)
+		f.InvoiceNumber, f.DealID, f.ClientName = r.InvoiceNumber, r.DealID, r.ClientName
+		return f
+	})
+}
+
+func (s *Store) GetFollowup(ctx context.Context, id string) (*domain.InvoiceFollowup, error) {
+	r, err := s.q.GetFollowup(ctx, id)
+	return one(r, err, toFollowup)
+}
+
+func (s *Store) UpdateFollowup(ctx context.Context, f domain.InvoiceFollowup) error {
+	return wrap(s.q.UpdateFollowup(ctx, sqlc.UpdateFollowupParams{ID: f.ID, Phone: f.Phone, Message: f.Message, Status: f.Status, LastError: f.LastError,
+		ApprovedBy: f.ApprovedBy, ApprovedAt: f.ApprovedAt, SentAt: f.SentAt, MessageID: f.MessageID}))
 }
 
 func toPayment(r sqlc.SalesPayment) domain.Payment {
