@@ -179,31 +179,6 @@ func (s *seeder) retros(ctx context.Context) error {
 
 // recentRecaps writes this month's monthly recaps.
 func (s *seeder) recentRecaps(ctx context.Context) error {
-	ctx = admin(ctx)
-	rc := s.w.Services.Recaps
-	// This month's recaps once: regenerating them refiles AI suggestions.
-	cur := s.kpiPeriods()[len(s.kpiPeriods())-1]
-	monthly := func(scope, subject string) error {
-		var exists bool
-		if err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM performance.monthly_recaps WHERE scope = $1 AND subject_id = $2
-			AND period_year = $3 AND period_month = $4)`, scope, subject, cur.Year, cur.Month).Scan(&exists); err != nil || exists {
-			return err
-		}
-		_, _, err := rc.RegenerateMonthly(ctx, scope, subject, cur)
-		return err
-	}
-	for _, d := range s.depts {
-		if len(s.members(d.ID)) == 0 {
-			continue
-		}
-		if err := monthly(domain.ScopeDepartment, d.ID); err != nil {
-			return err
-		}
-	}
-	for _, e := range s.staff {
-		if err := monthly(domain.ScopeEmployee, e.ID); err != nil {
-			return err
-		}
-	}
-	return nil
+	periods := s.kpiPeriods()
+	return s.monthlyRecapsOnce(ctx, periods[len(periods)-1])
 }

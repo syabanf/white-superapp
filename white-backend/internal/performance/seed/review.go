@@ -137,20 +137,35 @@ func (s *seeder) improvements(ctx context.Context) error {
 // recaps generates last month's recaps per department and employee (with
 // AI suggestions stored as suggested improvements).
 func (s *seeder) recaps(ctx context.Context) error {
-	ctx = admin(ctx)
 	prev := s.kpiPeriods()
-	p := prev[len(prev)-2]
+	return s.monthlyRecapsOnce(ctx, prev[len(prev)-2])
+}
+
+// monthlyRecapsOnce skips recaps that exist: regenerating one reads data the
+// rest of the seed has changed since, so it can propose more suggestions and
+// refile them as new items.
+func (s *seeder) monthlyRecapsOnce(ctx context.Context, p domain.Period) error {
+	ctx = admin(ctx)
 	rc := s.w.Services.Recaps
+	monthly := func(scope, subject string) error {
+		var exists bool
+		if err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM performance.monthly_recaps WHERE scope = $1 AND subject_id = $2
+			AND period_year = $3 AND period_month = $4)`, scope, subject, p.Year, p.Month).Scan(&exists); err != nil || exists {
+			return err
+		}
+		_, _, err := rc.RegenerateMonthly(ctx, scope, subject, p)
+		return err
+	}
 	for _, d := range s.depts {
 		if len(s.members(d.ID)) == 0 {
 			continue
 		}
-		if _, _, err := rc.RegenerateMonthly(ctx, domain.ScopeDepartment, d.ID, p); err != nil {
+		if err := monthly(domain.ScopeDepartment, d.ID); err != nil {
 			return err
 		}
 	}
 	for _, e := range s.staff {
-		if _, _, err := rc.RegenerateMonthly(ctx, domain.ScopeEmployee, e.ID, p); err != nil {
+		if err := monthly(domain.ScopeEmployee, e.ID); err != nil {
 			return err
 		}
 	}
