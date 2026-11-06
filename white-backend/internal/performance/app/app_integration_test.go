@@ -129,6 +129,7 @@ type fixture struct {
 	recaps   *app.Recaps
 	imp      *app.Improvements
 	auto     *app.Automations
+	okr      *app.OKR
 }
 
 // referenceData re-applies 00002 after the truncate.
@@ -162,6 +163,7 @@ func setup(t *testing.T) *fixture {
 	f.logbook = app.NewLogbook(deps, f.imp)
 	f.recaps = app.NewRecaps(deps, f.imp)
 	f.auto = app.NewAutomations(deps, f.kpi, f.tasks, f.recaps)
+	f.okr = app.NewOKR(deps)
 	return f
 }
 

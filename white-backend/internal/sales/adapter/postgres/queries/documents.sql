@@ -23,6 +23,7 @@ SELECT * FROM sales.contracts WHERE sign_token = $1;
 SELECT * FROM sales.contracts
 WHERE (sqlc.narg('deal')::text IS NULL OR deal_id = sqlc.narg('deal'))
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status'))
+  AND (sqlc.narg('client')::text IS NULL OR EXISTS (SELECT 1 FROM sales.onboardings o WHERE o.deal_id = contracts.deal_id AND o.marketing_client_id = sqlc.narg('client')))
 ORDER BY created_at DESC LIMIT sqlc.arg('lim');
 
 -- name: UpsertContract :exec

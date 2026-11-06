@@ -368,7 +368,7 @@ func (c *Contracts) RenderPDF(ctx context.Context, id, token string) (string, []
 	if err != nil {
 		return "", nil, err
 	}
-	data, err := c.Renderer.ContractPDF(*ct)
+	data, err := c.Renderer.ContractPDF(c.company(ctx), *ct)
 	if err != nil {
 		return "", nil, err
 	}

@@ -157,6 +157,20 @@ type FinanceChargeType struct {
 	UpdatedBy         *string
 }
 
+type FinanceCompanyProfile struct {
+	ID              bool
+	LegalName       string
+	Address         string
+	Email           string
+	Phone           string
+	Npwp            string
+	BankName        string
+	BankAccountNo   string
+	BankAccountName string
+	UpdatedBy       *string
+	UpdatedAt       time.Time
+}
+
 type FinanceControlSetting struct {
 	ID               bool
 	SeparateApprover bool
@@ -523,6 +537,7 @@ type FinanceProjectCostAllocation struct {
 	Notes     string
 	CreatedBy *string
 	CreatedAt time.Time
+	Source    string
 }
 
 type FinanceProjectTag struct {

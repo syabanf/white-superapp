@@ -15432,6 +15432,798 @@ func (x *ReceiveWhatsAppResponse) GetSkipped() int32 {
 	return 0
 }
 
+type PortalRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Slug          string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	UnlockToken   string                 `protobuf:"bytes,2,opt,name=unlock_token,json=unlockToken,proto3" json:"unlock_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortalRequest) Reset() {
+	*x = PortalRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[189]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortalRequest) ProtoMessage() {}
+
+func (x *PortalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[189]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortalRequest.ProtoReflect.Descriptor instead.
+func (*PortalRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{189}
+}
+
+func (x *PortalRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *PortalRequest) GetUnlockToken() string {
+	if x != nil {
+		return x.UnlockToken
+	}
+	return ""
+}
+
+type PortalInvoiceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Slug          string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	UnlockToken   string                 `protobuf:"bytes,2,opt,name=unlock_token,json=unlockToken,proto3" json:"unlock_token,omitempty"`
+	InvoiceId     string                 `protobuf:"bytes,3,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortalInvoiceRequest) Reset() {
+	*x = PortalInvoiceRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[190]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortalInvoiceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortalInvoiceRequest) ProtoMessage() {}
+
+func (x *PortalInvoiceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[190]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortalInvoiceRequest.ProtoReflect.Descriptor instead.
+func (*PortalInvoiceRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{190}
+}
+
+func (x *PortalInvoiceRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *PortalInvoiceRequest) GetUnlockToken() string {
+	if x != nil {
+		return x.UnlockToken
+	}
+	return ""
+}
+
+func (x *PortalInvoiceRequest) GetInvoiceId() string {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return ""
+}
+
+type PortalContract struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ContractNumber string                 `protobuf:"bytes,2,opt,name=contract_number,json=contractNumber,proto3" json:"contract_number,omitempty"`
+	Title          string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// sent | signed | active | ended
+	Status    string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	StartDate string                 `protobuf:"bytes,5,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate   string                 `protobuf:"bytes,6,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	SignedAt  *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=signed_at,json=signedAt,proto3" json:"signed_at,omitempty"`
+	// Opens /kontrak/{sign_token} to read or sign.
+	SignToken     string `protobuf:"bytes,8,opt,name=sign_token,json=signToken,proto3" json:"sign_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortalContract) Reset() {
+	*x = PortalContract{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[191]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortalContract) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortalContract) ProtoMessage() {}
+
+func (x *PortalContract) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[191]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortalContract.ProtoReflect.Descriptor instead.
+func (*PortalContract) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{191}
+}
+
+func (x *PortalContract) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PortalContract) GetContractNumber() string {
+	if x != nil {
+		return x.ContractNumber
+	}
+	return ""
+}
+
+func (x *PortalContract) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PortalContract) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *PortalContract) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *PortalContract) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+func (x *PortalContract) GetSignedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.SignedAt
+	}
+	return nil
+}
+
+func (x *PortalContract) GetSignToken() string {
+	if x != nil {
+		return x.SignToken
+	}
+	return ""
+}
+
+type Portal struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	ClientId   string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	ClientName string                 `protobuf:"bytes,2,opt,name=client_name,json=clientName,proto3" json:"client_name,omitempty"`
+	// Issued invoices, newest first.
+	Invoices  []*Invoice        `protobuf:"bytes,3,rep,name=invoices,proto3" json:"invoices,omitempty"`
+	Contracts []*PortalContract `protobuf:"bytes,4,rep,name=contracts,proto3" json:"contracts,omitempty"`
+	Proofs    []*PaymentProof   `protobuf:"bytes,5,rep,name=proofs,proto3" json:"proofs,omitempty"`
+	// Where to transfer.
+	BankLine      string `protobuf:"bytes,6,opt,name=bank_line,json=bankLine,proto3" json:"bank_line,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Portal) Reset() {
+	*x = Portal{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[192]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Portal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Portal) ProtoMessage() {}
+
+func (x *Portal) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[192]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Portal.ProtoReflect.Descriptor instead.
+func (*Portal) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{192}
+}
+
+func (x *Portal) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *Portal) GetClientName() string {
+	if x != nil {
+		return x.ClientName
+	}
+	return ""
+}
+
+func (x *Portal) GetInvoices() []*Invoice {
+	if x != nil {
+		return x.Invoices
+	}
+	return nil
+}
+
+func (x *Portal) GetContracts() []*PortalContract {
+	if x != nil {
+		return x.Contracts
+	}
+	return nil
+}
+
+func (x *Portal) GetProofs() []*PaymentProof {
+	if x != nil {
+		return x.Proofs
+	}
+	return nil
+}
+
+func (x *Portal) GetBankLine() string {
+	if x != nil {
+		return x.BankLine
+	}
+	return ""
+}
+
+type SubmitPaymentProofRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Slug        string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	UnlockToken string                 `protobuf:"bytes,2,opt,name=unlock_token,json=unlockToken,proto3" json:"unlock_token,omitempty"`
+	InvoiceId   string                 `protobuf:"bytes,3,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	Amount      string                 `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	// YYYY-MM-DD
+	PaidOn        string `protobuf:"bytes,5,opt,name=paid_on,json=paidOn,proto3" json:"paid_on,omitempty"`
+	PayerName     string `protobuf:"bytes,6,opt,name=payer_name,json=payerName,proto3" json:"payer_name,omitempty"`
+	Note          string `protobuf:"bytes,7,opt,name=note,proto3" json:"note,omitempty"`
+	FileName      string `protobuf:"bytes,8,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	Data          []byte `protobuf:"bytes,9,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitPaymentProofRequest) Reset() {
+	*x = SubmitPaymentProofRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[193]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitPaymentProofRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitPaymentProofRequest) ProtoMessage() {}
+
+func (x *SubmitPaymentProofRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[193]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitPaymentProofRequest.ProtoReflect.Descriptor instead.
+func (*SubmitPaymentProofRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{193}
+}
+
+func (x *SubmitPaymentProofRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetUnlockToken() string {
+	if x != nil {
+		return x.UnlockToken
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetInvoiceId() string {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetPaidOn() string {
+	if x != nil {
+		return x.PaidOn
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetPayerName() string {
+	if x != nil {
+		return x.PayerName
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *SubmitPaymentProofRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type PaymentProof struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InvoiceId     string                 `protobuf:"bytes,2,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	InvoiceNumber string                 `protobuf:"bytes,3,opt,name=invoice_number,json=invoiceNumber,proto3" json:"invoice_number,omitempty"`
+	DealId        string                 `protobuf:"bytes,4,opt,name=deal_id,json=dealId,proto3" json:"deal_id,omitempty"`
+	ClientName    string                 `protobuf:"bytes,5,opt,name=client_name,json=clientName,proto3" json:"client_name,omitempty"`
+	Amount        string                 `protobuf:"bytes,6,opt,name=amount,proto3" json:"amount,omitempty"`
+	PaidOn        string                 `protobuf:"bytes,7,opt,name=paid_on,json=paidOn,proto3" json:"paid_on,omitempty"`
+	PayerName     string                 `protobuf:"bytes,8,opt,name=payer_name,json=payerName,proto3" json:"payer_name,omitempty"`
+	Note          string                 `protobuf:"bytes,9,opt,name=note,proto3" json:"note,omitempty"`
+	FileName      string                 `protobuf:"bytes,10,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	// PENDING | APPROVED | REJECTED
+	Status        string                 `protobuf:"bytes,11,opt,name=status,proto3" json:"status,omitempty"`
+	RejectReason  string                 `protobuf:"bytes,12,opt,name=reject_reason,json=rejectReason,proto3" json:"reject_reason,omitempty"`
+	PaymentId     string                 `protobuf:"bytes,13,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
+	DecidedAt     *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=decided_at,json=decidedAt,proto3" json:"decided_at,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PaymentProof) Reset() {
+	*x = PaymentProof{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[194]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentProof) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentProof) ProtoMessage() {}
+
+func (x *PaymentProof) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[194]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentProof.ProtoReflect.Descriptor instead.
+func (*PaymentProof) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{194}
+}
+
+func (x *PaymentProof) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetInvoiceId() string {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetInvoiceNumber() string {
+	if x != nil {
+		return x.InvoiceNumber
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetDealId() string {
+	if x != nil {
+		return x.DealId
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetClientName() string {
+	if x != nil {
+		return x.ClientName
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetPaidOn() string {
+	if x != nil {
+		return x.PaidOn
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetPayerName() string {
+	if x != nil {
+		return x.PayerName
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetRejectReason() string {
+	if x != nil {
+		return x.RejectReason
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
+	}
+	return ""
+}
+
+func (x *PaymentProof) GetDecidedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DecidedAt
+	}
+	return nil
+}
+
+func (x *PaymentProof) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type ListPaymentProofsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Empty lists every status.
+	Status        string `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPaymentProofsRequest) Reset() {
+	*x = ListPaymentProofsRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[195]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPaymentProofsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPaymentProofsRequest) ProtoMessage() {}
+
+func (x *ListPaymentProofsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[195]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPaymentProofsRequest.ProtoReflect.Descriptor instead.
+func (*ListPaymentProofsRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{195}
+}
+
+func (x *ListPaymentProofsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type ListPaymentProofsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proofs        []*PaymentProof        `protobuf:"bytes,1,rep,name=proofs,proto3" json:"proofs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPaymentProofsResponse) Reset() {
+	*x = ListPaymentProofsResponse{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[196]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPaymentProofsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPaymentProofsResponse) ProtoMessage() {}
+
+func (x *ListPaymentProofsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[196]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPaymentProofsResponse.ProtoReflect.Descriptor instead.
+func (*ListPaymentProofsResponse) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{196}
+}
+
+func (x *ListPaymentProofsResponse) GetProofs() []*PaymentProof {
+	if x != nil {
+		return x.Proofs
+	}
+	return nil
+}
+
+type ApprovePaymentProofRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Empty keeps what the client entered; set them to match the bank statement.
+	Amount          string `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	PaidOn          string `protobuf:"bytes,3,opt,name=paid_on,json=paidOn,proto3" json:"paid_on,omitempty"`
+	BankFee         string `protobuf:"bytes,4,opt,name=bank_fee,json=bankFee,proto3" json:"bank_fee,omitempty"`
+	Withheld        string `protobuf:"bytes,5,opt,name=withheld,proto3" json:"withheld,omitempty"`
+	WithheldTaxCode string `protobuf:"bytes,6,opt,name=withheld_tax_code,json=withheldTaxCode,proto3" json:"withheld_tax_code,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ApprovePaymentProofRequest) Reset() {
+	*x = ApprovePaymentProofRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[197]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApprovePaymentProofRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApprovePaymentProofRequest) ProtoMessage() {}
+
+func (x *ApprovePaymentProofRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[197]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApprovePaymentProofRequest.ProtoReflect.Descriptor instead.
+func (*ApprovePaymentProofRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{197}
+}
+
+func (x *ApprovePaymentProofRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ApprovePaymentProofRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *ApprovePaymentProofRequest) GetPaidOn() string {
+	if x != nil {
+		return x.PaidOn
+	}
+	return ""
+}
+
+func (x *ApprovePaymentProofRequest) GetBankFee() string {
+	if x != nil {
+		return x.BankFee
+	}
+	return ""
+}
+
+func (x *ApprovePaymentProofRequest) GetWithheld() string {
+	if x != nil {
+		return x.Withheld
+	}
+	return ""
+}
+
+func (x *ApprovePaymentProofRequest) GetWithheldTaxCode() string {
+	if x != nil {
+		return x.WithheldTaxCode
+	}
+	return ""
+}
+
+type RejectPaymentProofRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RejectPaymentProofRequest) Reset() {
+	*x = RejectPaymentProofRequest{}
+	mi := &file_white_sales_v1_sales_proto_msgTypes[198]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectPaymentProofRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectPaymentProofRequest) ProtoMessage() {}
+
+func (x *RejectPaymentProofRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_sales_v1_sales_proto_msgTypes[198]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectPaymentProofRequest.ProtoReflect.Descriptor instead.
+func (*RejectPaymentProofRequest) Descriptor() ([]byte, []int) {
+	return file_white_sales_v1_sales_proto_rawDescGZIP(), []int{198}
+}
+
+func (x *RejectPaymentProofRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RejectPaymentProofRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
 var File_white_sales_v1_sales_proto protoreflect.FileDescriptor
 
 const file_white_sales_v1_sales_proto_rawDesc = "" +
@@ -16914,7 +17706,83 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x17ReceiveWhatsAppResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x16\n" +
 	"\x06stored\x18\x02 \x01(\x05R\x06stored\x12\x18\n" +
-	"\askipped\x18\x03 \x01(\x05R\askipped2\x80\x10\n" +
+	"\askipped\x18\x03 \x01(\x05R\askipped\"F\n" +
+	"\rPortalRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12!\n" +
+	"\funlock_token\x18\x02 \x01(\tR\vunlockToken\"l\n" +
+	"\x14PortalInvoiceRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12!\n" +
+	"\funlock_token\x18\x02 \x01(\tR\vunlockToken\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x03 \x01(\tR\tinvoiceId\"\x89\x02\n" +
+	"\x0ePortalContract\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
+	"\x0fcontract_number\x18\x02 \x01(\tR\x0econtractNumber\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\x05 \x01(\tR\tstartDate\x12\x19\n" +
+	"\bend_date\x18\x06 \x01(\tR\aendDate\x127\n" +
+	"\tsigned_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\bsignedAt\x12\x1d\n" +
+	"\n" +
+	"sign_token\x18\b \x01(\tR\tsignToken\"\x8c\x02\n" +
+	"\x06Portal\x12\x1b\n" +
+	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x1f\n" +
+	"\vclient_name\x18\x02 \x01(\tR\n" +
+	"clientName\x123\n" +
+	"\binvoices\x18\x03 \x03(\v2\x17.white.sales.v1.InvoiceR\binvoices\x12<\n" +
+	"\tcontracts\x18\x04 \x03(\v2\x1e.white.sales.v1.PortalContractR\tcontracts\x124\n" +
+	"\x06proofs\x18\x05 \x03(\v2\x1c.white.sales.v1.PaymentProofR\x06proofs\x12\x1b\n" +
+	"\tbank_line\x18\x06 \x01(\tR\bbankLine\"\x86\x02\n" +
+	"\x19SubmitPaymentProofRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12!\n" +
+	"\funlock_token\x18\x02 \x01(\tR\vunlockToken\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x03 \x01(\tR\tinvoiceId\x12\x16\n" +
+	"\x06amount\x18\x04 \x01(\tR\x06amount\x12\x17\n" +
+	"\apaid_on\x18\x05 \x01(\tR\x06paidOn\x12\x1d\n" +
+	"\n" +
+	"payer_name\x18\x06 \x01(\tR\tpayerName\x12\x12\n" +
+	"\x04note\x18\a \x01(\tR\x04note\x12\x1b\n" +
+	"\tfile_name\x18\b \x01(\tR\bfileName\x12\x12\n" +
+	"\x04data\x18\t \x01(\fR\x04data\"\xf1\x03\n" +
+	"\fPaymentProof\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x02 \x01(\tR\tinvoiceId\x12%\n" +
+	"\x0einvoice_number\x18\x03 \x01(\tR\rinvoiceNumber\x12\x17\n" +
+	"\adeal_id\x18\x04 \x01(\tR\x06dealId\x12\x1f\n" +
+	"\vclient_name\x18\x05 \x01(\tR\n" +
+	"clientName\x12\x16\n" +
+	"\x06amount\x18\x06 \x01(\tR\x06amount\x12\x17\n" +
+	"\apaid_on\x18\a \x01(\tR\x06paidOn\x12\x1d\n" +
+	"\n" +
+	"payer_name\x18\b \x01(\tR\tpayerName\x12\x12\n" +
+	"\x04note\x18\t \x01(\tR\x04note\x12\x1b\n" +
+	"\tfile_name\x18\n" +
+	" \x01(\tR\bfileName\x12\x16\n" +
+	"\x06status\x18\v \x01(\tR\x06status\x12#\n" +
+	"\rreject_reason\x18\f \x01(\tR\frejectReason\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\r \x01(\tR\tpaymentId\x129\n" +
+	"\n" +
+	"decided_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tdecidedAt\x129\n" +
+	"\n" +
+	"created_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"2\n" +
+	"\x18ListPaymentProofsRequest\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\"Q\n" +
+	"\x19ListPaymentProofsResponse\x124\n" +
+	"\x06proofs\x18\x01 \x03(\v2\x1c.white.sales.v1.PaymentProofR\x06proofs\"\xc0\x01\n" +
+	"\x1aApprovePaymentProofRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\tR\x06amount\x12\x17\n" +
+	"\apaid_on\x18\x03 \x01(\tR\x06paidOn\x12\x19\n" +
+	"\bbank_fee\x18\x04 \x01(\tR\abankFee\x12\x1a\n" +
+	"\bwithheld\x18\x05 \x01(\tR\bwithheld\x12*\n" +
+	"\x11withheld_tax_code\x18\x06 \x01(\tR\x0fwithheldTaxCode\"C\n" +
+	"\x19RejectPaymentProofRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason2\x80\x10\n" +
 	"\vLeadService\x12i\n" +
 	"\tListLeads\x12 .white.sales.v1.ListLeadsRequest\x1a!.white.sales.v1.ListLeadsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/sales/leads\x12^\n" +
 	"\aGetLead\x12\x19.white.sales.v1.IdRequest\x1a\x1a.white.sales.v1.LeadDetail\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/v1/sales/leads/{id}\x12Y\n" +
@@ -17074,7 +17942,15 @@ const file_white_sales_v1_sales_proto_rawDesc = "" +
 	"\x0fStartPublicChat\x12&.white.sales.v1.StartPublicChatRequest\x1a\x1a.white.sales.v1.PublicChat\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/public/sales/chat\x12\x86\x01\n" +
 	"\x0eSendPublicChat\x12%.white.sales.v1.SendPublicChatRequest\x1a\x1a.white.sales.v1.PublicChat\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/v1/public/sales/chat/{token}/messages\x12\x83\x01\n" +
 	"\x0ePollPublicChat\x12%.white.sales.v1.PollPublicChatRequest\x1a\x1a.white.sales.v1.PublicChat\".\x82\xd3\xe4\x93\x02(\x12&/v1/public/sales/chat/{token}/messages\x12\x8a\x01\n" +
-	"\x0fReceiveWhatsApp\x12&.white.sales.v1.ReceiveWhatsAppRequest\x1a'.white.sales.v1.ReceiveWhatsAppResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/v1/public/sales/wa/inboundBOZMgithub.com/syabanf/white-superapp/white-backend/gen/go/white/sales/v1;salesv1b\x06proto3"
+	"\x0fReceiveWhatsApp\x12&.white.sales.v1.ReceiveWhatsAppRequest\x1a'.white.sales.v1.ReceiveWhatsAppResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/v1/public/sales/wa/inbound2\xfb\x06\n" +
+	"\rPortalService\x12r\n" +
+	"\tGetPortal\x12\x1d.white.sales.v1.PortalRequest\x1a\x16.white.sales.v1.Portal\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/public/sales/portal/{slug}:view\x12\xa5\x01\n" +
+	"\x12SubmitPaymentProof\x12).white.sales.v1.SubmitPaymentProofRequest\x1a\x1c.white.sales.v1.PaymentProof\"F\x82\xd3\xe4\x93\x02@:\x01*\";/v1/public/sales/portal/{slug}/invoices/{invoice_id}/proofs\x12T\n" +
+	"\x16RenderPortalInvoicePdf\x12$.white.sales.v1.PortalInvoiceRequest\x1a\x14.white.sales.v1.File\x12\x8a\x01\n" +
+	"\x11ListPaymentProofs\x12(.white.sales.v1.ListPaymentProofsRequest\x1a).white.sales.v1.ListPaymentProofsResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/sales/payment-proofs\x12\x91\x01\n" +
+	"\x13ApprovePaymentProof\x12*.white.sales.v1.ApprovePaymentProofRequest\x1a\x1c.white.sales.v1.PaymentProof\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/v1/sales/payment-proofs/{id}:approve\x12\x8e\x01\n" +
+	"\x12RejectPaymentProof\x12).white.sales.v1.RejectPaymentProofRequest\x1a\x1c.white.sales.v1.PaymentProof\"/\x82\xd3\xe4\x93\x02):\x01*\"$/v1/sales/payment-proofs/{id}:reject\x12F\n" +
+	"\x13GetPaymentProofFile\x12\x19.white.sales.v1.IdRequest\x1a\x14.white.sales.v1.FileBOZMgithub.com/syabanf/white-superapp/white-backend/gen/go/white/sales/v1;salesv1b\x06proto3"
 
 var (
 	file_white_sales_v1_sales_proto_rawDescOnce sync.Once
@@ -17088,7 +17964,7 @@ func file_white_sales_v1_sales_proto_rawDescGZIP() []byte {
 	return file_white_sales_v1_sales_proto_rawDescData
 }
 
-var file_white_sales_v1_sales_proto_msgTypes = make([]protoimpl.MessageInfo, 194)
+var file_white_sales_v1_sales_proto_msgTypes = make([]protoimpl.MessageInfo, 204)
 var file_white_sales_v1_sales_proto_goTypes = []any{
 	(*File)(nil),                            // 0: white.sales.v1.File
 	(*IdRequest)(nil),                       // 1: white.sales.v1.IdRequest
@@ -17279,24 +18155,34 @@ var file_white_sales_v1_sales_proto_goTypes = []any{
 	(*WhatsAppInbound)(nil),                 // 186: white.sales.v1.WhatsAppInbound
 	(*ReceiveWhatsAppRequest)(nil),          // 187: white.sales.v1.ReceiveWhatsAppRequest
 	(*ReceiveWhatsAppResponse)(nil),         // 188: white.sales.v1.ReceiveWhatsAppResponse
-	nil,                                     // 189: white.sales.v1.FunnelReport.ServiceLineWinsEntry
-	nil,                                     // 190: white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
-	nil,                                     // 191: white.sales.v1.Onboarding.BriefEntry
-	nil,                                     // 192: white.sales.v1.PublicOnboarding.BriefEntry
-	nil,                                     // 193: white.sales.v1.SubmitPublicBriefRequest.BriefEntry
-	(*structpb.Struct)(nil),                 // 194: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),           // 195: google.protobuf.Timestamp
-	(*structpb.Value)(nil),                  // 196: google.protobuf.Value
-	(*structpb.ListValue)(nil),              // 197: google.protobuf.ListValue
-	(*emptypb.Empty)(nil),                   // 198: google.protobuf.Empty
+	(*PortalRequest)(nil),                   // 189: white.sales.v1.PortalRequest
+	(*PortalInvoiceRequest)(nil),            // 190: white.sales.v1.PortalInvoiceRequest
+	(*PortalContract)(nil),                  // 191: white.sales.v1.PortalContract
+	(*Portal)(nil),                          // 192: white.sales.v1.Portal
+	(*SubmitPaymentProofRequest)(nil),       // 193: white.sales.v1.SubmitPaymentProofRequest
+	(*PaymentProof)(nil),                    // 194: white.sales.v1.PaymentProof
+	(*ListPaymentProofsRequest)(nil),        // 195: white.sales.v1.ListPaymentProofsRequest
+	(*ListPaymentProofsResponse)(nil),       // 196: white.sales.v1.ListPaymentProofsResponse
+	(*ApprovePaymentProofRequest)(nil),      // 197: white.sales.v1.ApprovePaymentProofRequest
+	(*RejectPaymentProofRequest)(nil),       // 198: white.sales.v1.RejectPaymentProofRequest
+	nil,                                     // 199: white.sales.v1.FunnelReport.ServiceLineWinsEntry
+	nil,                                     // 200: white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
+	nil,                                     // 201: white.sales.v1.Onboarding.BriefEntry
+	nil,                                     // 202: white.sales.v1.PublicOnboarding.BriefEntry
+	nil,                                     // 203: white.sales.v1.SubmitPublicBriefRequest.BriefEntry
+	(*structpb.Struct)(nil),                 // 204: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),           // 205: google.protobuf.Timestamp
+	(*structpb.Value)(nil),                  // 206: google.protobuf.Value
+	(*structpb.ListValue)(nil),              // 207: google.protobuf.ListValue
+	(*emptypb.Empty)(nil),                   // 208: google.protobuf.Empty
 }
 var file_white_sales_v1_sales_proto_depIdxs = []int32{
-	194, // 0: white.sales.v1.Lead.custom:type_name -> google.protobuf.Struct
+	204, // 0: white.sales.v1.Lead.custom:type_name -> google.protobuf.Struct
 	3,   // 1: white.sales.v1.Lead.score_breakdown:type_name -> white.sales.v1.ScoreItem
 	2,   // 2: white.sales.v1.Lead.attribution:type_name -> white.sales.v1.Attribution
-	195, // 3: white.sales.v1.Lead.created_at:type_name -> google.protobuf.Timestamp
-	195, // 4: white.sales.v1.Lead.updated_at:type_name -> google.protobuf.Timestamp
-	194, // 5: white.sales.v1.LeadInput.custom:type_name -> google.protobuf.Struct
+	205, // 3: white.sales.v1.Lead.created_at:type_name -> google.protobuf.Timestamp
+	205, // 4: white.sales.v1.Lead.updated_at:type_name -> google.protobuf.Timestamp
+	204, // 5: white.sales.v1.LeadInput.custom:type_name -> google.protobuf.Struct
 	2,   // 6: white.sales.v1.LeadInput.attribution:type_name -> white.sales.v1.Attribution
 	4,   // 7: white.sales.v1.ListLeadsResponse.leads:type_name -> white.sales.v1.Lead
 	4,   // 8: white.sales.v1.LeadDetail.lead:type_name -> white.sales.v1.Lead
@@ -17305,32 +18191,32 @@ var file_white_sales_v1_sales_proto_depIdxs = []int32{
 	169, // 11: white.sales.v1.LeadDetail.conversations:type_name -> white.sales.v1.Conversation
 	10,  // 12: white.sales.v1.ImportLeadsResponse.errors:type_name -> white.sales.v1.ImportRowError
 	12,  // 13: white.sales.v1.ListOwnersResponse.owners:type_name -> white.sales.v1.Owner
-	194, // 14: white.sales.v1.Account.custom:type_name -> google.protobuf.Struct
-	195, // 15: white.sales.v1.Account.created_at:type_name -> google.protobuf.Timestamp
-	195, // 16: white.sales.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
-	194, // 17: white.sales.v1.AccountInput.custom:type_name -> google.protobuf.Struct
+	204, // 14: white.sales.v1.Account.custom:type_name -> google.protobuf.Struct
+	205, // 15: white.sales.v1.Account.created_at:type_name -> google.protobuf.Timestamp
+	205, // 16: white.sales.v1.Account.updated_at:type_name -> google.protobuf.Timestamp
+	204, // 17: white.sales.v1.AccountInput.custom:type_name -> google.protobuf.Struct
 	14,  // 18: white.sales.v1.ListAccountsResponse.accounts:type_name -> white.sales.v1.Account
 	14,  // 19: white.sales.v1.AccountDetail.account:type_name -> white.sales.v1.Account
 	19,  // 20: white.sales.v1.AccountDetail.contacts:type_name -> white.sales.v1.Contact
 	31,  // 21: white.sales.v1.AccountDetail.deals:type_name -> white.sales.v1.Deal
-	194, // 22: white.sales.v1.Contact.custom:type_name -> google.protobuf.Struct
-	195, // 23: white.sales.v1.Contact.created_at:type_name -> google.protobuf.Timestamp
-	194, // 24: white.sales.v1.ContactInput.custom:type_name -> google.protobuf.Struct
+	204, // 22: white.sales.v1.Contact.custom:type_name -> google.protobuf.Struct
+	205, // 23: white.sales.v1.Contact.created_at:type_name -> google.protobuf.Timestamp
+	204, // 24: white.sales.v1.ContactInput.custom:type_name -> google.protobuf.Struct
 	19,  // 25: white.sales.v1.ListContactsResponse.contacts:type_name -> white.sales.v1.Contact
 	23,  // 26: white.sales.v1.ListCustomFieldsResponse.fields:type_name -> white.sales.v1.CustomField
 	26,  // 27: white.sales.v1.Pipeline.stages:type_name -> white.sales.v1.Stage
 	27,  // 28: white.sales.v1.ListPipelinesResponse.pipelines:type_name -> white.sales.v1.Pipeline
 	29,  // 29: white.sales.v1.ListLostReasonsResponse.reasons:type_name -> white.sales.v1.LostReason
-	195, // 30: white.sales.v1.Deal.entered_stage_at:type_name -> google.protobuf.Timestamp
-	195, // 31: white.sales.v1.Deal.closed_at:type_name -> google.protobuf.Timestamp
-	194, // 32: white.sales.v1.Deal.custom:type_name -> google.protobuf.Struct
-	195, // 33: white.sales.v1.Deal.created_at:type_name -> google.protobuf.Timestamp
-	195, // 34: white.sales.v1.Deal.updated_at:type_name -> google.protobuf.Timestamp
-	194, // 35: white.sales.v1.DealInput.custom:type_name -> google.protobuf.Struct
+	205, // 30: white.sales.v1.Deal.entered_stage_at:type_name -> google.protobuf.Timestamp
+	205, // 31: white.sales.v1.Deal.closed_at:type_name -> google.protobuf.Timestamp
+	204, // 32: white.sales.v1.Deal.custom:type_name -> google.protobuf.Struct
+	205, // 33: white.sales.v1.Deal.created_at:type_name -> google.protobuf.Timestamp
+	205, // 34: white.sales.v1.Deal.updated_at:type_name -> google.protobuf.Timestamp
+	204, // 35: white.sales.v1.DealInput.custom:type_name -> google.protobuf.Struct
 	31,  // 36: white.sales.v1.ListDealsResponse.deals:type_name -> white.sales.v1.Deal
 	36,  // 37: white.sales.v1.SetDealMembersRequest.members:type_name -> white.sales.v1.DealMember
 	36,  // 38: white.sales.v1.SetDealMembersResponse.members:type_name -> white.sales.v1.DealMember
-	195, // 39: white.sales.v1.StageHistoryEntry.entered_at:type_name -> google.protobuf.Timestamp
+	205, // 39: white.sales.v1.StageHistoryEntry.entered_at:type_name -> google.protobuf.Timestamp
 	31,  // 40: white.sales.v1.DealDetail.deal:type_name -> white.sales.v1.Deal
 	36,  // 41: white.sales.v1.DealDetail.members:type_name -> white.sales.v1.DealMember
 	39,  // 42: white.sales.v1.DealDetail.stage_history:type_name -> white.sales.v1.StageHistoryEntry
@@ -17340,13 +18226,13 @@ var file_white_sales_v1_sales_proto_depIdxs = []int32{
 	40,  // 46: white.sales.v1.DealDetail.term_progress:type_name -> white.sales.v1.TermProgress
 	135, // 47: white.sales.v1.DealDetail.contracts:type_name -> white.sales.v1.Contract
 	155, // 48: white.sales.v1.DealDetail.onboarding:type_name -> white.sales.v1.Onboarding
-	195, // 49: white.sales.v1.Activity.due_at:type_name -> google.protobuf.Timestamp
-	195, // 50: white.sales.v1.Activity.done_at:type_name -> google.protobuf.Timestamp
-	195, // 51: white.sales.v1.Activity.reminder_at:type_name -> google.protobuf.Timestamp
+	205, // 49: white.sales.v1.Activity.due_at:type_name -> google.protobuf.Timestamp
+	205, // 50: white.sales.v1.Activity.done_at:type_name -> google.protobuf.Timestamp
+	205, // 51: white.sales.v1.Activity.reminder_at:type_name -> google.protobuf.Timestamp
 	42,  // 52: white.sales.v1.Activity.recurrence:type_name -> white.sales.v1.Recurrence
-	195, // 53: white.sales.v1.Activity.created_at:type_name -> google.protobuf.Timestamp
-	195, // 54: white.sales.v1.ActivityInput.due_at:type_name -> google.protobuf.Timestamp
-	195, // 55: white.sales.v1.ActivityInput.reminder_at:type_name -> google.protobuf.Timestamp
+	205, // 53: white.sales.v1.Activity.created_at:type_name -> google.protobuf.Timestamp
+	205, // 54: white.sales.v1.ActivityInput.due_at:type_name -> google.protobuf.Timestamp
+	205, // 55: white.sales.v1.ActivityInput.reminder_at:type_name -> google.protobuf.Timestamp
 	42,  // 56: white.sales.v1.ActivityInput.recurrence:type_name -> white.sales.v1.Recurrence
 	43,  // 57: white.sales.v1.ListActivitiesResponse.activities:type_name -> white.sales.v1.Activity
 	47,  // 58: white.sales.v1.CatalogItem.tiers:type_name -> white.sales.v1.CatalogTier
@@ -17354,26 +18240,26 @@ var file_white_sales_v1_sales_proto_depIdxs = []int32{
 	51,  // 60: white.sales.v1.RetainerDiscounts.rules:type_name -> white.sales.v1.RetainerDiscount
 	53,  // 61: white.sales.v1.Quotation.items:type_name -> white.sales.v1.QuotationItem
 	54,  // 62: white.sales.v1.Quotation.terms:type_name -> white.sales.v1.QuotationTerm
-	195, // 63: white.sales.v1.Quotation.sent_at:type_name -> google.protobuf.Timestamp
-	195, // 64: white.sales.v1.Quotation.created_at:type_name -> google.protobuf.Timestamp
-	195, // 65: white.sales.v1.Quotation.updated_at:type_name -> google.protobuf.Timestamp
+	205, // 63: white.sales.v1.Quotation.sent_at:type_name -> google.protobuf.Timestamp
+	205, // 64: white.sales.v1.Quotation.created_at:type_name -> google.protobuf.Timestamp
+	205, // 65: white.sales.v1.Quotation.updated_at:type_name -> google.protobuf.Timestamp
 	56,  // 66: white.sales.v1.QuotationInput.items:type_name -> white.sales.v1.QuotationItemInput
 	57,  // 67: white.sales.v1.QuotationInput.terms:type_name -> white.sales.v1.QuotationTermInput
 	55,  // 68: white.sales.v1.ListQuotationsResponse.quotations:type_name -> white.sales.v1.Quotation
 	55,  // 69: white.sales.v1.GenerateQuotationDraftResponse.quotation:type_name -> white.sales.v1.Quotation
 	64,  // 70: white.sales.v1.ListApprovalRulesResponse.rules:type_name -> white.sales.v1.ApprovalRule
-	195, // 71: white.sales.v1.ApprovalStep.decided_at:type_name -> google.protobuf.Timestamp
-	195, // 72: white.sales.v1.ApprovalRequest.created_at:type_name -> google.protobuf.Timestamp
-	195, // 73: white.sales.v1.ApprovalRequest.resolved_at:type_name -> google.protobuf.Timestamp
+	205, // 71: white.sales.v1.ApprovalStep.decided_at:type_name -> google.protobuf.Timestamp
+	205, // 72: white.sales.v1.ApprovalRequest.created_at:type_name -> google.protobuf.Timestamp
+	205, // 73: white.sales.v1.ApprovalRequest.resolved_at:type_name -> google.protobuf.Timestamp
 	66,  // 74: white.sales.v1.ApprovalRequest.steps:type_name -> white.sales.v1.ApprovalStep
 	67,  // 75: white.sales.v1.ListApprovalsResponse.requests:type_name -> white.sales.v1.ApprovalRequest
-	195, // 76: white.sales.v1.Invoice.sent_at:type_name -> google.protobuf.Timestamp
-	195, // 77: white.sales.v1.Invoice.created_at:type_name -> google.protobuf.Timestamp
+	205, // 76: white.sales.v1.Invoice.sent_at:type_name -> google.protobuf.Timestamp
+	205, // 77: white.sales.v1.Invoice.created_at:type_name -> google.protobuf.Timestamp
 	72,  // 78: white.sales.v1.ListInvoicesResponse.invoices:type_name -> white.sales.v1.Invoice
-	195, // 79: white.sales.v1.InvoiceFollowup.sent_at:type_name -> google.protobuf.Timestamp
-	195, // 80: white.sales.v1.InvoiceFollowup.created_at:type_name -> google.protobuf.Timestamp
+	205, // 79: white.sales.v1.InvoiceFollowup.sent_at:type_name -> google.protobuf.Timestamp
+	205, // 80: white.sales.v1.InvoiceFollowup.created_at:type_name -> google.protobuf.Timestamp
 	77,  // 81: white.sales.v1.ListInvoiceFollowupsResponse.followups:type_name -> white.sales.v1.InvoiceFollowup
-	195, // 82: white.sales.v1.Payment.created_at:type_name -> google.protobuf.Timestamp
+	205, // 82: white.sales.v1.Payment.created_at:type_name -> google.protobuf.Timestamp
 	83,  // 83: white.sales.v1.ListPaymentsResponse.payments:type_name -> white.sales.v1.Payment
 	87,  // 84: white.sales.v1.ListTargetsResponse.targets:type_name -> white.sales.v1.SalesTarget
 	87,  // 85: white.sales.v1.SaveTargetsRequest.targets:type_name -> white.sales.v1.SalesTarget
@@ -17382,7 +18268,7 @@ var file_white_sales_v1_sales_proto_depIdxs = []int32{
 	95,  // 88: white.sales.v1.FunnelReport.stages:type_name -> white.sales.v1.FunnelStage
 	96,  // 89: white.sales.v1.FunnelReport.sources:type_name -> white.sales.v1.FunnelSource
 	97,  // 90: white.sales.v1.FunnelReport.lost_reasons:type_name -> white.sales.v1.FunnelReason
-	189, // 91: white.sales.v1.FunnelReport.service_line_wins:type_name -> white.sales.v1.FunnelReport.ServiceLineWinsEntry
+	199, // 91: white.sales.v1.FunnelReport.service_line_wins:type_name -> white.sales.v1.FunnelReport.ServiceLineWinsEntry
 	100, // 92: white.sales.v1.DashboardSummary.period:type_name -> white.sales.v1.DashboardPeriod
 	101, // 93: white.sales.v1.DashboardSummary.kpis:type_name -> white.sales.v1.DashboardKpi
 	102, // 94: white.sales.v1.DashboardSummary.trend:type_name -> white.sales.v1.DashboardSeries
@@ -17420,361 +18306,382 @@ var file_white_sales_v1_sales_proto_depIdxs = []int32{
 	103, // 126: white.sales.v1.DashboardBilling.aging:type_name -> white.sales.v1.DashboardSlice
 	111, // 127: white.sales.v1.DashboardBilling.overdue:type_name -> white.sales.v1.DashboardInvoice
 	112, // 128: white.sales.v1.DashboardBilling.terms:type_name -> white.sales.v1.DashboardTerm
-	196, // 129: white.sales.v1.WorkflowCondition.value:type_name -> google.protobuf.Value
-	196, // 130: white.sales.v1.WorkflowAction.value:type_name -> google.protobuf.Value
-	194, // 131: white.sales.v1.WorkflowRule.trigger_config:type_name -> google.protobuf.Struct
+	206, // 129: white.sales.v1.WorkflowCondition.value:type_name -> google.protobuf.Value
+	206, // 130: white.sales.v1.WorkflowAction.value:type_name -> google.protobuf.Value
+	204, // 131: white.sales.v1.WorkflowRule.trigger_config:type_name -> google.protobuf.Struct
 	114, // 132: white.sales.v1.WorkflowRule.conditions:type_name -> white.sales.v1.WorkflowCondition
 	115, // 133: white.sales.v1.WorkflowRule.actions:type_name -> white.sales.v1.WorkflowAction
-	195, // 134: white.sales.v1.WorkflowRule.last_run_at:type_name -> google.protobuf.Timestamp
+	205, // 134: white.sales.v1.WorkflowRule.last_run_at:type_name -> google.protobuf.Timestamp
 	116, // 135: white.sales.v1.ListWorkflowRulesResponse.rules:type_name -> white.sales.v1.WorkflowRule
-	197, // 136: white.sales.v1.WorkflowRun.actions_result:type_name -> google.protobuf.ListValue
-	195, // 137: white.sales.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
+	207, // 136: white.sales.v1.WorkflowRun.actions_result:type_name -> google.protobuf.ListValue
+	205, // 137: white.sales.v1.WorkflowRun.created_at:type_name -> google.protobuf.Timestamp
 	118, // 138: white.sales.v1.ListWorkflowRunsResponse.runs:type_name -> white.sales.v1.WorkflowRun
-	196, // 139: white.sales.v1.ScoringRule.value:type_name -> google.protobuf.Value
+	206, // 139: white.sales.v1.ScoringRule.value:type_name -> google.protobuf.Value
 	120, // 140: white.sales.v1.ListScoringRulesResponse.rules:type_name -> white.sales.v1.ScoringRule
 	123, // 141: white.sales.v1.LeadForm.fields:type_name -> white.sales.v1.FormField
 	124, // 142: white.sales.v1.ListFormsResponse.forms:type_name -> white.sales.v1.LeadForm
-	194, // 143: white.sales.v1.FormSubmission.payload:type_name -> google.protobuf.Struct
-	195, // 144: white.sales.v1.FormSubmission.created_at:type_name -> google.protobuf.Timestamp
+	204, // 143: white.sales.v1.FormSubmission.payload:type_name -> google.protobuf.Struct
+	205, // 144: white.sales.v1.FormSubmission.created_at:type_name -> google.protobuf.Timestamp
 	126, // 145: white.sales.v1.ListFormSubmissionsResponse.submissions:type_name -> white.sales.v1.FormSubmission
 	123, // 146: white.sales.v1.PublicForm.fields:type_name -> white.sales.v1.FormField
-	194, // 147: white.sales.v1.SubmitPublicFormRequest.payload:type_name -> google.protobuf.Struct
+	204, // 147: white.sales.v1.SubmitPublicFormRequest.payload:type_name -> google.protobuf.Struct
 	131, // 148: white.sales.v1.SubmitPublicFormResponse.errors:type_name -> white.sales.v1.SubmitPublicFormFieldError
 	133, // 149: white.sales.v1.ListContractTemplatesResponse.templates:type_name -> white.sales.v1.ContractTemplate
-	190, // 150: white.sales.v1.ListContractTemplatesResponse.placeholders:type_name -> white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
-	195, // 151: white.sales.v1.Contract.sent_at:type_name -> google.protobuf.Timestamp
-	195, // 152: white.sales.v1.Contract.signed_at:type_name -> google.protobuf.Timestamp
-	195, // 153: white.sales.v1.Contract.activated_at:type_name -> google.protobuf.Timestamp
-	195, // 154: white.sales.v1.Contract.ended_at:type_name -> google.protobuf.Timestamp
-	195, // 155: white.sales.v1.Contract.cancelled_at:type_name -> google.protobuf.Timestamp
-	195, // 156: white.sales.v1.Contract.created_at:type_name -> google.protobuf.Timestamp
+	200, // 150: white.sales.v1.ListContractTemplatesResponse.placeholders:type_name -> white.sales.v1.ListContractTemplatesResponse.PlaceholdersEntry
+	205, // 151: white.sales.v1.Contract.sent_at:type_name -> google.protobuf.Timestamp
+	205, // 152: white.sales.v1.Contract.signed_at:type_name -> google.protobuf.Timestamp
+	205, // 153: white.sales.v1.Contract.activated_at:type_name -> google.protobuf.Timestamp
+	205, // 154: white.sales.v1.Contract.ended_at:type_name -> google.protobuf.Timestamp
+	205, // 155: white.sales.v1.Contract.cancelled_at:type_name -> google.protobuf.Timestamp
+	205, // 156: white.sales.v1.Contract.created_at:type_name -> google.protobuf.Timestamp
 	135, // 157: white.sales.v1.ListContractsResponse.contracts:type_name -> white.sales.v1.Contract
-	195, // 158: white.sales.v1.PublicContract.signed_at:type_name -> google.protobuf.Timestamp
+	205, // 158: white.sales.v1.PublicContract.signed_at:type_name -> google.protobuf.Timestamp
 	145, // 159: white.sales.v1.PitchDeck.options:type_name -> white.sales.v1.DeckOptions
 	146, // 160: white.sales.v1.PitchDeck.slides:type_name -> white.sales.v1.Slide
-	195, // 161: white.sales.v1.PitchDeck.created_at:type_name -> google.protobuf.Timestamp
+	205, // 161: white.sales.v1.PitchDeck.created_at:type_name -> google.protobuf.Timestamp
 	147, // 162: white.sales.v1.ListPitchDecksResponse.decks:type_name -> white.sales.v1.PitchDeck
 	145, // 163: white.sales.v1.GeneratePitchDeckRequest.options:type_name -> white.sales.v1.DeckOptions
 	151, // 164: white.sales.v1.ListCaseStudiesResponse.case_studies:type_name -> white.sales.v1.CaseStudy
-	195, // 165: white.sales.v1.OnboardingItem.done_at:type_name -> google.protobuf.Timestamp
-	195, // 166: white.sales.v1.OnboardingAsset.created_at:type_name -> google.protobuf.Timestamp
-	191, // 167: white.sales.v1.Onboarding.brief:type_name -> white.sales.v1.Onboarding.BriefEntry
-	195, // 168: white.sales.v1.Onboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
+	205, // 165: white.sales.v1.OnboardingItem.done_at:type_name -> google.protobuf.Timestamp
+	205, // 166: white.sales.v1.OnboardingAsset.created_at:type_name -> google.protobuf.Timestamp
+	201, // 167: white.sales.v1.Onboarding.brief:type_name -> white.sales.v1.Onboarding.BriefEntry
+	205, // 168: white.sales.v1.Onboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
 	153, // 169: white.sales.v1.Onboarding.items:type_name -> white.sales.v1.OnboardingItem
 	154, // 170: white.sales.v1.Onboarding.assets:type_name -> white.sales.v1.OnboardingAsset
-	195, // 171: white.sales.v1.Onboarding.created_at:type_name -> google.protobuf.Timestamp
-	195, // 172: white.sales.v1.Onboarding.completed_at:type_name -> google.protobuf.Timestamp
+	205, // 171: white.sales.v1.Onboarding.created_at:type_name -> google.protobuf.Timestamp
+	205, // 172: white.sales.v1.Onboarding.completed_at:type_name -> google.protobuf.Timestamp
 	155, // 173: white.sales.v1.ListOnboardingsResponse.onboardings:type_name -> white.sales.v1.Onboarding
 	161, // 174: white.sales.v1.OnboardingTemplate.items:type_name -> white.sales.v1.OnboardingTemplateItem
 	162, // 175: white.sales.v1.ListOnboardingTemplatesResponse.templates:type_name -> white.sales.v1.OnboardingTemplate
 	123, // 176: white.sales.v1.PublicOnboarding.brief_fields:type_name -> white.sales.v1.FormField
-	192, // 177: white.sales.v1.PublicOnboarding.brief:type_name -> white.sales.v1.PublicOnboarding.BriefEntry
-	195, // 178: white.sales.v1.PublicOnboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
+	202, // 177: white.sales.v1.PublicOnboarding.brief:type_name -> white.sales.v1.PublicOnboarding.BriefEntry
+	205, // 178: white.sales.v1.PublicOnboarding.brief_submitted_at:type_name -> google.protobuf.Timestamp
 	154, // 179: white.sales.v1.PublicOnboarding.assets:type_name -> white.sales.v1.OnboardingAsset
 	165, // 180: white.sales.v1.PublicOnboarding.steps:type_name -> white.sales.v1.PublicOnboardingStep
-	193, // 181: white.sales.v1.SubmitPublicBriefRequest.brief:type_name -> white.sales.v1.SubmitPublicBriefRequest.BriefEntry
-	195, // 182: white.sales.v1.Conversation.handoff_at:type_name -> google.protobuf.Timestamp
-	195, // 183: white.sales.v1.Conversation.last_message_at:type_name -> google.protobuf.Timestamp
-	195, // 184: white.sales.v1.Conversation.awaiting_since:type_name -> google.protobuf.Timestamp
-	195, // 185: white.sales.v1.Conversation.resolved_at:type_name -> google.protobuf.Timestamp
-	195, // 186: white.sales.v1.Conversation.created_at:type_name -> google.protobuf.Timestamp
-	195, // 187: white.sales.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	195, // 188: white.sales.v1.ConversationNote.created_at:type_name -> google.protobuf.Timestamp
-	195, // 189: white.sales.v1.ConversationInsight.analyzed_at:type_name -> google.protobuf.Timestamp
+	203, // 181: white.sales.v1.SubmitPublicBriefRequest.brief:type_name -> white.sales.v1.SubmitPublicBriefRequest.BriefEntry
+	205, // 182: white.sales.v1.Conversation.handoff_at:type_name -> google.protobuf.Timestamp
+	205, // 183: white.sales.v1.Conversation.last_message_at:type_name -> google.protobuf.Timestamp
+	205, // 184: white.sales.v1.Conversation.awaiting_since:type_name -> google.protobuf.Timestamp
+	205, // 185: white.sales.v1.Conversation.resolved_at:type_name -> google.protobuf.Timestamp
+	205, // 186: white.sales.v1.Conversation.created_at:type_name -> google.protobuf.Timestamp
+	205, // 187: white.sales.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	205, // 188: white.sales.v1.ConversationNote.created_at:type_name -> google.protobuf.Timestamp
+	205, // 189: white.sales.v1.ConversationInsight.analyzed_at:type_name -> google.protobuf.Timestamp
 	169, // 190: white.sales.v1.ConversationDetail.conversation:type_name -> white.sales.v1.Conversation
 	170, // 191: white.sales.v1.ConversationDetail.messages:type_name -> white.sales.v1.ChatMessage
 	171, // 192: white.sales.v1.ConversationDetail.notes:type_name -> white.sales.v1.ConversationNote
 	172, // 193: white.sales.v1.ConversationDetail.insight:type_name -> white.sales.v1.ConversationInsight
 	169, // 194: white.sales.v1.ListConversationsResponse.conversations:type_name -> white.sales.v1.Conversation
 	179, // 195: white.sales.v1.ListReplyTemplatesResponse.templates:type_name -> white.sales.v1.ReplyTemplate
-	195, // 196: white.sales.v1.ChatbotSettings.updated_at:type_name -> google.protobuf.Timestamp
+	205, // 196: white.sales.v1.ChatbotSettings.updated_at:type_name -> google.protobuf.Timestamp
 	2,   // 197: white.sales.v1.StartPublicChatRequest.attribution:type_name -> white.sales.v1.Attribution
 	170, // 198: white.sales.v1.PublicChat.messages:type_name -> white.sales.v1.ChatMessage
-	195, // 199: white.sales.v1.PollPublicChatRequest.after:type_name -> google.protobuf.Timestamp
+	205, // 199: white.sales.v1.PollPublicChatRequest.after:type_name -> google.protobuf.Timestamp
 	186, // 200: white.sales.v1.ReceiveWhatsAppRequest.messages:type_name -> white.sales.v1.WhatsAppInbound
-	6,   // 201: white.sales.v1.LeadService.ListLeads:input_type -> white.sales.v1.ListLeadsRequest
-	1,   // 202: white.sales.v1.LeadService.GetLead:input_type -> white.sales.v1.IdRequest
-	5,   // 203: white.sales.v1.LeadService.CreateLead:input_type -> white.sales.v1.LeadInput
-	5,   // 204: white.sales.v1.LeadService.UpdateLead:input_type -> white.sales.v1.LeadInput
-	1,   // 205: white.sales.v1.LeadService.DeleteLead:input_type -> white.sales.v1.IdRequest
-	9,   // 206: white.sales.v1.LeadService.ImportLeads:input_type -> white.sales.v1.ImportLeadsRequest
-	198, // 207: white.sales.v1.LeadService.ListOwners:input_type -> google.protobuf.Empty
-	16,  // 208: white.sales.v1.LeadService.ListAccounts:input_type -> white.sales.v1.ListAccountsRequest
-	1,   // 209: white.sales.v1.LeadService.GetAccount:input_type -> white.sales.v1.IdRequest
-	15,  // 210: white.sales.v1.LeadService.CreateAccount:input_type -> white.sales.v1.AccountInput
-	15,  // 211: white.sales.v1.LeadService.UpdateAccount:input_type -> white.sales.v1.AccountInput
-	1,   // 212: white.sales.v1.LeadService.DeleteAccount:input_type -> white.sales.v1.IdRequest
-	21,  // 213: white.sales.v1.LeadService.ListContacts:input_type -> white.sales.v1.ListContactsRequest
-	20,  // 214: white.sales.v1.LeadService.CreateContact:input_type -> white.sales.v1.ContactInput
-	20,  // 215: white.sales.v1.LeadService.UpdateContact:input_type -> white.sales.v1.ContactInput
-	1,   // 216: white.sales.v1.LeadService.DeleteContact:input_type -> white.sales.v1.IdRequest
-	24,  // 217: white.sales.v1.LeadService.ListCustomFields:input_type -> white.sales.v1.ListCustomFieldsRequest
-	23,  // 218: white.sales.v1.LeadService.SaveCustomField:input_type -> white.sales.v1.CustomField
-	1,   // 219: white.sales.v1.LeadService.DeleteCustomField:input_type -> white.sales.v1.IdRequest
-	198, // 220: white.sales.v1.PipelineService.ListPipelines:input_type -> google.protobuf.Empty
-	27,  // 221: white.sales.v1.PipelineService.SavePipeline:input_type -> white.sales.v1.Pipeline
-	26,  // 222: white.sales.v1.PipelineService.SaveStage:input_type -> white.sales.v1.Stage
-	198, // 223: white.sales.v1.PipelineService.ListLostReasons:input_type -> google.protobuf.Empty
-	33,  // 224: white.sales.v1.PipelineService.ListDeals:input_type -> white.sales.v1.ListDealsRequest
-	1,   // 225: white.sales.v1.PipelineService.GetDeal:input_type -> white.sales.v1.IdRequest
-	32,  // 226: white.sales.v1.PipelineService.CreateDeal:input_type -> white.sales.v1.DealInput
-	32,  // 227: white.sales.v1.PipelineService.UpdateDeal:input_type -> white.sales.v1.DealInput
-	1,   // 228: white.sales.v1.PipelineService.DeleteDeal:input_type -> white.sales.v1.IdRequest
-	35,  // 229: white.sales.v1.PipelineService.MoveDealStage:input_type -> white.sales.v1.MoveDealStageRequest
-	37,  // 230: white.sales.v1.PipelineService.SetDealMembers:input_type -> white.sales.v1.SetDealMembersRequest
-	45,  // 231: white.sales.v1.PipelineService.ListActivities:input_type -> white.sales.v1.ListActivitiesRequest
-	44,  // 232: white.sales.v1.PipelineService.CreateActivity:input_type -> white.sales.v1.ActivityInput
-	44,  // 233: white.sales.v1.PipelineService.UpdateActivity:input_type -> white.sales.v1.ActivityInput
-	1,   // 234: white.sales.v1.PipelineService.DeleteActivity:input_type -> white.sales.v1.IdRequest
-	49,  // 235: white.sales.v1.QuotationService.ListCatalog:input_type -> white.sales.v1.ListCatalogRequest
-	48,  // 236: white.sales.v1.QuotationService.SaveCatalogItem:input_type -> white.sales.v1.CatalogItem
-	198, // 237: white.sales.v1.QuotationService.ListRetainerDiscounts:input_type -> google.protobuf.Empty
-	52,  // 238: white.sales.v1.QuotationService.SaveRetainerDiscounts:input_type -> white.sales.v1.RetainerDiscounts
-	59,  // 239: white.sales.v1.QuotationService.ListQuotations:input_type -> white.sales.v1.ListQuotationsRequest
-	1,   // 240: white.sales.v1.QuotationService.GetQuotation:input_type -> white.sales.v1.IdRequest
-	58,  // 241: white.sales.v1.QuotationService.CreateQuotation:input_type -> white.sales.v1.QuotationInput
-	58,  // 242: white.sales.v1.QuotationService.UpdateQuotation:input_type -> white.sales.v1.QuotationInput
-	61,  // 243: white.sales.v1.QuotationService.SetQuotationStatus:input_type -> white.sales.v1.SetQuotationStatusRequest
-	1,   // 244: white.sales.v1.QuotationService.ReviseQuotation:input_type -> white.sales.v1.IdRequest
-	1,   // 245: white.sales.v1.QuotationService.DeleteQuotation:input_type -> white.sales.v1.IdRequest
-	62,  // 246: white.sales.v1.QuotationService.GenerateQuotationDraft:input_type -> white.sales.v1.GenerateQuotationDraftRequest
-	1,   // 247: white.sales.v1.QuotationService.RenderQuotationPdf:input_type -> white.sales.v1.IdRequest
-	198, // 248: white.sales.v1.QuotationService.ListApprovalRules:input_type -> google.protobuf.Empty
-	64,  // 249: white.sales.v1.QuotationService.SaveApprovalRule:input_type -> white.sales.v1.ApprovalRule
-	1,   // 250: white.sales.v1.QuotationService.DeleteApprovalRule:input_type -> white.sales.v1.IdRequest
-	68,  // 251: white.sales.v1.QuotationService.ListApprovals:input_type -> white.sales.v1.ListApprovalsRequest
-	70,  // 252: white.sales.v1.QuotationService.DecideApproval:input_type -> white.sales.v1.DecideApprovalRequest
-	73,  // 253: white.sales.v1.BillingService.ListInvoices:input_type -> white.sales.v1.ListInvoicesRequest
-	1,   // 254: white.sales.v1.BillingService.GetInvoice:input_type -> white.sales.v1.IdRequest
-	75,  // 255: white.sales.v1.BillingService.SubmitInvoice:input_type -> white.sales.v1.SubmitInvoiceRequest
-	1,   // 256: white.sales.v1.BillingService.SubmitInvoicesFromTerms:input_type -> white.sales.v1.IdRequest
-	1,   // 257: white.sales.v1.BillingService.IssueInvoice:input_type -> white.sales.v1.IdRequest
-	76,  // 258: white.sales.v1.BillingService.CancelInvoice:input_type -> white.sales.v1.CancelInvoiceRequest
-	81,  // 259: white.sales.v1.BillingService.UpdateInvoice:input_type -> white.sales.v1.UpdateInvoiceRequest
-	1,   // 260: white.sales.v1.BillingService.RenderInvoicePdf:input_type -> white.sales.v1.IdRequest
-	82,  // 261: white.sales.v1.BillingService.UploadInvoiceFakturPajak:input_type -> white.sales.v1.UploadInvoiceFakturPajakRequest
-	1,   // 262: white.sales.v1.BillingService.GetInvoiceFakturPajak:input_type -> white.sales.v1.IdRequest
-	1,   // 263: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:input_type -> white.sales.v1.IdRequest
-	78,  // 264: white.sales.v1.BillingService.ListInvoiceFollowups:input_type -> white.sales.v1.ListInvoiceFollowupsRequest
-	80,  // 265: white.sales.v1.BillingService.ApproveInvoiceFollowup:input_type -> white.sales.v1.ApproveInvoiceFollowupRequest
-	1,   // 266: white.sales.v1.BillingService.SkipInvoiceFollowup:input_type -> white.sales.v1.IdRequest
-	84,  // 267: white.sales.v1.BillingService.ListPayments:input_type -> white.sales.v1.ListPaymentsRequest
-	86,  // 268: white.sales.v1.BillingService.RecordPayment:input_type -> white.sales.v1.RecordPaymentRequest
-	1,   // 269: white.sales.v1.BillingService.DeletePayment:input_type -> white.sales.v1.IdRequest
-	88,  // 270: white.sales.v1.InsightService.ListTargets:input_type -> white.sales.v1.ListTargetsRequest
-	90,  // 271: white.sales.v1.InsightService.SaveTargets:input_type -> white.sales.v1.SaveTargetsRequest
-	91,  // 272: white.sales.v1.InsightService.GetForecast:input_type -> white.sales.v1.GetForecastRequest
-	94,  // 273: white.sales.v1.InsightService.GetFunnelReport:input_type -> white.sales.v1.GetFunnelReportRequest
-	99,  // 274: white.sales.v1.InsightService.GetDashboardSummary:input_type -> white.sales.v1.DashboardRequest
-	99,  // 275: white.sales.v1.InsightService.GetDashboardPipeline:input_type -> white.sales.v1.DashboardRequest
-	99,  // 276: white.sales.v1.InsightService.GetDashboardSales:input_type -> white.sales.v1.DashboardRequest
-	99,  // 277: white.sales.v1.InsightService.GetDashboardTeam:input_type -> white.sales.v1.DashboardRequest
-	99,  // 278: white.sales.v1.InsightService.GetDashboardLeads:input_type -> white.sales.v1.DashboardRequest
-	99,  // 279: white.sales.v1.InsightService.GetDashboardBilling:input_type -> white.sales.v1.DashboardRequest
-	198, // 280: white.sales.v1.AutomationService.ListWorkflowRules:input_type -> google.protobuf.Empty
-	116, // 281: white.sales.v1.AutomationService.SaveWorkflowRule:input_type -> white.sales.v1.WorkflowRule
-	1,   // 282: white.sales.v1.AutomationService.DeleteWorkflowRule:input_type -> white.sales.v1.IdRequest
-	1,   // 283: white.sales.v1.AutomationService.ListWorkflowRuns:input_type -> white.sales.v1.IdRequest
-	198, // 284: white.sales.v1.AutomationService.ListScoringRules:input_type -> google.protobuf.Empty
-	120, // 285: white.sales.v1.AutomationService.SaveScoringRule:input_type -> white.sales.v1.ScoringRule
-	1,   // 286: white.sales.v1.AutomationService.DeleteScoringRule:input_type -> white.sales.v1.IdRequest
-	198, // 287: white.sales.v1.AutomationService.RecalculateScores:input_type -> google.protobuf.Empty
-	198, // 288: white.sales.v1.FormService.ListForms:input_type -> google.protobuf.Empty
-	124, // 289: white.sales.v1.FormService.SaveForm:input_type -> white.sales.v1.LeadForm
-	1,   // 290: white.sales.v1.FormService.DeleteForm:input_type -> white.sales.v1.IdRequest
-	1,   // 291: white.sales.v1.FormService.ListFormSubmissions:input_type -> white.sales.v1.IdRequest
-	128, // 292: white.sales.v1.FormService.GetPublicForm:input_type -> white.sales.v1.PublicFormRequest
-	130, // 293: white.sales.v1.FormService.SubmitPublicForm:input_type -> white.sales.v1.SubmitPublicFormRequest
-	198, // 294: white.sales.v1.ContractService.ListContractTemplates:input_type -> google.protobuf.Empty
-	133, // 295: white.sales.v1.ContractService.SaveContractTemplate:input_type -> white.sales.v1.ContractTemplate
-	1,   // 296: white.sales.v1.ContractService.DeleteContractTemplate:input_type -> white.sales.v1.IdRequest
-	136, // 297: white.sales.v1.ContractService.ListContracts:input_type -> white.sales.v1.ListContractsRequest
-	1,   // 298: white.sales.v1.ContractService.GetContract:input_type -> white.sales.v1.IdRequest
-	138, // 299: white.sales.v1.ContractService.GenerateContract:input_type -> white.sales.v1.GenerateContractRequest
-	139, // 300: white.sales.v1.ContractService.UpdateContract:input_type -> white.sales.v1.UpdateContractRequest
-	1,   // 301: white.sales.v1.ContractService.SendContract:input_type -> white.sales.v1.IdRequest
-	140, // 302: white.sales.v1.ContractService.SetContractStatus:input_type -> white.sales.v1.SetContractStatusRequest
-	141, // 303: white.sales.v1.ContractService.RenderContractPdf:input_type -> white.sales.v1.RenderContractPdfRequest
-	142, // 304: white.sales.v1.ContractService.GetPublicContract:input_type -> white.sales.v1.PublicContractRequest
-	144, // 305: white.sales.v1.ContractService.SignPublicContract:input_type -> white.sales.v1.SignPublicContractRequest
-	148, // 306: white.sales.v1.PitchDeckService.ListPitchDecks:input_type -> white.sales.v1.ListPitchDecksRequest
-	1,   // 307: white.sales.v1.PitchDeckService.GetPitchDeck:input_type -> white.sales.v1.IdRequest
-	150, // 308: white.sales.v1.PitchDeckService.GeneratePitchDeck:input_type -> white.sales.v1.GeneratePitchDeckRequest
-	1,   // 309: white.sales.v1.PitchDeckService.GetPitchDeckFile:input_type -> white.sales.v1.IdRequest
-	1,   // 310: white.sales.v1.PitchDeckService.DeletePitchDeck:input_type -> white.sales.v1.IdRequest
-	198, // 311: white.sales.v1.PitchDeckService.ListCaseStudies:input_type -> google.protobuf.Empty
-	151, // 312: white.sales.v1.PitchDeckService.SaveCaseStudy:input_type -> white.sales.v1.CaseStudy
-	1,   // 313: white.sales.v1.PitchDeckService.DeleteCaseStudy:input_type -> white.sales.v1.IdRequest
-	156, // 314: white.sales.v1.OnboardingService.ListOnboardings:input_type -> white.sales.v1.ListOnboardingsRequest
-	1,   // 315: white.sales.v1.OnboardingService.GetOnboarding:input_type -> white.sales.v1.IdRequest
-	158, // 316: white.sales.v1.OnboardingService.StartOnboarding:input_type -> white.sales.v1.StartOnboardingRequest
-	159, // 317: white.sales.v1.OnboardingService.UpdateOnboardingItem:input_type -> white.sales.v1.UpdateOnboardingItemRequest
-	160, // 318: white.sales.v1.OnboardingService.CreateMarketingClient:input_type -> white.sales.v1.CreateMarketingClientRequest
-	198, // 319: white.sales.v1.OnboardingService.ListOnboardingTemplates:input_type -> google.protobuf.Empty
-	162, // 320: white.sales.v1.OnboardingService.SaveOnboardingTemplate:input_type -> white.sales.v1.OnboardingTemplate
-	1,   // 321: white.sales.v1.OnboardingService.GetOnboardingAsset:input_type -> white.sales.v1.IdRequest
-	164, // 322: white.sales.v1.OnboardingService.GetPublicOnboarding:input_type -> white.sales.v1.PublicOnboardingRequest
-	167, // 323: white.sales.v1.OnboardingService.SubmitPublicBrief:input_type -> white.sales.v1.SubmitPublicBriefRequest
-	168, // 324: white.sales.v1.OnboardingService.UploadPublicAsset:input_type -> white.sales.v1.UploadPublicAssetRequest
-	174, // 325: white.sales.v1.ChatService.ListConversations:input_type -> white.sales.v1.ListConversationsRequest
-	1,   // 326: white.sales.v1.ChatService.GetConversation:input_type -> white.sales.v1.IdRequest
-	176, // 327: white.sales.v1.ChatService.ReplyConversation:input_type -> white.sales.v1.ReplyConversationRequest
-	177, // 328: white.sales.v1.ChatService.ConversationAction:input_type -> white.sales.v1.ConversationActionRequest
-	178, // 329: white.sales.v1.ChatService.AddConversationNote:input_type -> white.sales.v1.AddConversationNoteRequest
-	1,   // 330: white.sales.v1.ChatService.AnalyzeConversation:input_type -> white.sales.v1.IdRequest
-	198, // 331: white.sales.v1.ChatService.ListReplyTemplates:input_type -> google.protobuf.Empty
-	179, // 332: white.sales.v1.ChatService.SaveReplyTemplate:input_type -> white.sales.v1.ReplyTemplate
-	1,   // 333: white.sales.v1.ChatService.DeleteReplyTemplate:input_type -> white.sales.v1.IdRequest
-	198, // 334: white.sales.v1.ChatService.GetChatbotSettings:input_type -> google.protobuf.Empty
-	181, // 335: white.sales.v1.ChatService.SaveChatbotSettings:input_type -> white.sales.v1.ChatbotSettings
-	182, // 336: white.sales.v1.ChatService.StartPublicChat:input_type -> white.sales.v1.StartPublicChatRequest
-	184, // 337: white.sales.v1.ChatService.SendPublicChat:input_type -> white.sales.v1.SendPublicChatRequest
-	185, // 338: white.sales.v1.ChatService.PollPublicChat:input_type -> white.sales.v1.PollPublicChatRequest
-	187, // 339: white.sales.v1.ChatService.ReceiveWhatsApp:input_type -> white.sales.v1.ReceiveWhatsAppRequest
-	7,   // 340: white.sales.v1.LeadService.ListLeads:output_type -> white.sales.v1.ListLeadsResponse
-	8,   // 341: white.sales.v1.LeadService.GetLead:output_type -> white.sales.v1.LeadDetail
-	4,   // 342: white.sales.v1.LeadService.CreateLead:output_type -> white.sales.v1.Lead
-	4,   // 343: white.sales.v1.LeadService.UpdateLead:output_type -> white.sales.v1.Lead
-	198, // 344: white.sales.v1.LeadService.DeleteLead:output_type -> google.protobuf.Empty
-	11,  // 345: white.sales.v1.LeadService.ImportLeads:output_type -> white.sales.v1.ImportLeadsResponse
-	13,  // 346: white.sales.v1.LeadService.ListOwners:output_type -> white.sales.v1.ListOwnersResponse
-	17,  // 347: white.sales.v1.LeadService.ListAccounts:output_type -> white.sales.v1.ListAccountsResponse
-	18,  // 348: white.sales.v1.LeadService.GetAccount:output_type -> white.sales.v1.AccountDetail
-	14,  // 349: white.sales.v1.LeadService.CreateAccount:output_type -> white.sales.v1.Account
-	14,  // 350: white.sales.v1.LeadService.UpdateAccount:output_type -> white.sales.v1.Account
-	198, // 351: white.sales.v1.LeadService.DeleteAccount:output_type -> google.protobuf.Empty
-	22,  // 352: white.sales.v1.LeadService.ListContacts:output_type -> white.sales.v1.ListContactsResponse
-	19,  // 353: white.sales.v1.LeadService.CreateContact:output_type -> white.sales.v1.Contact
-	19,  // 354: white.sales.v1.LeadService.UpdateContact:output_type -> white.sales.v1.Contact
-	198, // 355: white.sales.v1.LeadService.DeleteContact:output_type -> google.protobuf.Empty
-	25,  // 356: white.sales.v1.LeadService.ListCustomFields:output_type -> white.sales.v1.ListCustomFieldsResponse
-	23,  // 357: white.sales.v1.LeadService.SaveCustomField:output_type -> white.sales.v1.CustomField
-	198, // 358: white.sales.v1.LeadService.DeleteCustomField:output_type -> google.protobuf.Empty
-	28,  // 359: white.sales.v1.PipelineService.ListPipelines:output_type -> white.sales.v1.ListPipelinesResponse
-	27,  // 360: white.sales.v1.PipelineService.SavePipeline:output_type -> white.sales.v1.Pipeline
-	26,  // 361: white.sales.v1.PipelineService.SaveStage:output_type -> white.sales.v1.Stage
-	30,  // 362: white.sales.v1.PipelineService.ListLostReasons:output_type -> white.sales.v1.ListLostReasonsResponse
-	34,  // 363: white.sales.v1.PipelineService.ListDeals:output_type -> white.sales.v1.ListDealsResponse
-	41,  // 364: white.sales.v1.PipelineService.GetDeal:output_type -> white.sales.v1.DealDetail
-	31,  // 365: white.sales.v1.PipelineService.CreateDeal:output_type -> white.sales.v1.Deal
-	31,  // 366: white.sales.v1.PipelineService.UpdateDeal:output_type -> white.sales.v1.Deal
-	198, // 367: white.sales.v1.PipelineService.DeleteDeal:output_type -> google.protobuf.Empty
-	31,  // 368: white.sales.v1.PipelineService.MoveDealStage:output_type -> white.sales.v1.Deal
-	38,  // 369: white.sales.v1.PipelineService.SetDealMembers:output_type -> white.sales.v1.SetDealMembersResponse
-	46,  // 370: white.sales.v1.PipelineService.ListActivities:output_type -> white.sales.v1.ListActivitiesResponse
-	43,  // 371: white.sales.v1.PipelineService.CreateActivity:output_type -> white.sales.v1.Activity
-	43,  // 372: white.sales.v1.PipelineService.UpdateActivity:output_type -> white.sales.v1.Activity
-	198, // 373: white.sales.v1.PipelineService.DeleteActivity:output_type -> google.protobuf.Empty
-	50,  // 374: white.sales.v1.QuotationService.ListCatalog:output_type -> white.sales.v1.ListCatalogResponse
-	48,  // 375: white.sales.v1.QuotationService.SaveCatalogItem:output_type -> white.sales.v1.CatalogItem
-	52,  // 376: white.sales.v1.QuotationService.ListRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
-	52,  // 377: white.sales.v1.QuotationService.SaveRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
-	60,  // 378: white.sales.v1.QuotationService.ListQuotations:output_type -> white.sales.v1.ListQuotationsResponse
-	55,  // 379: white.sales.v1.QuotationService.GetQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 380: white.sales.v1.QuotationService.CreateQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 381: white.sales.v1.QuotationService.UpdateQuotation:output_type -> white.sales.v1.Quotation
-	55,  // 382: white.sales.v1.QuotationService.SetQuotationStatus:output_type -> white.sales.v1.Quotation
-	55,  // 383: white.sales.v1.QuotationService.ReviseQuotation:output_type -> white.sales.v1.Quotation
-	198, // 384: white.sales.v1.QuotationService.DeleteQuotation:output_type -> google.protobuf.Empty
-	63,  // 385: white.sales.v1.QuotationService.GenerateQuotationDraft:output_type -> white.sales.v1.GenerateQuotationDraftResponse
-	0,   // 386: white.sales.v1.QuotationService.RenderQuotationPdf:output_type -> white.sales.v1.File
-	65,  // 387: white.sales.v1.QuotationService.ListApprovalRules:output_type -> white.sales.v1.ListApprovalRulesResponse
-	64,  // 388: white.sales.v1.QuotationService.SaveApprovalRule:output_type -> white.sales.v1.ApprovalRule
-	198, // 389: white.sales.v1.QuotationService.DeleteApprovalRule:output_type -> google.protobuf.Empty
-	69,  // 390: white.sales.v1.QuotationService.ListApprovals:output_type -> white.sales.v1.ListApprovalsResponse
-	71,  // 391: white.sales.v1.QuotationService.DecideApproval:output_type -> white.sales.v1.DecideApprovalResponse
-	74,  // 392: white.sales.v1.BillingService.ListInvoices:output_type -> white.sales.v1.ListInvoicesResponse
-	72,  // 393: white.sales.v1.BillingService.GetInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 394: white.sales.v1.BillingService.SubmitInvoice:output_type -> white.sales.v1.Invoice
-	74,  // 395: white.sales.v1.BillingService.SubmitInvoicesFromTerms:output_type -> white.sales.v1.ListInvoicesResponse
-	72,  // 396: white.sales.v1.BillingService.IssueInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 397: white.sales.v1.BillingService.CancelInvoice:output_type -> white.sales.v1.Invoice
-	72,  // 398: white.sales.v1.BillingService.UpdateInvoice:output_type -> white.sales.v1.Invoice
-	0,   // 399: white.sales.v1.BillingService.RenderInvoicePdf:output_type -> white.sales.v1.File
-	72,  // 400: white.sales.v1.BillingService.UploadInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
-	0,   // 401: white.sales.v1.BillingService.GetInvoiceFakturPajak:output_type -> white.sales.v1.File
-	72,  // 402: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
-	79,  // 403: white.sales.v1.BillingService.ListInvoiceFollowups:output_type -> white.sales.v1.ListInvoiceFollowupsResponse
-	77,  // 404: white.sales.v1.BillingService.ApproveInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
-	77,  // 405: white.sales.v1.BillingService.SkipInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
-	85,  // 406: white.sales.v1.BillingService.ListPayments:output_type -> white.sales.v1.ListPaymentsResponse
-	83,  // 407: white.sales.v1.BillingService.RecordPayment:output_type -> white.sales.v1.Payment
-	198, // 408: white.sales.v1.BillingService.DeletePayment:output_type -> google.protobuf.Empty
-	89,  // 409: white.sales.v1.InsightService.ListTargets:output_type -> white.sales.v1.ListTargetsResponse
-	89,  // 410: white.sales.v1.InsightService.SaveTargets:output_type -> white.sales.v1.ListTargetsResponse
-	93,  // 411: white.sales.v1.InsightService.GetForecast:output_type -> white.sales.v1.Forecast
-	98,  // 412: white.sales.v1.InsightService.GetFunnelReport:output_type -> white.sales.v1.FunnelReport
-	104, // 413: white.sales.v1.InsightService.GetDashboardSummary:output_type -> white.sales.v1.DashboardSummary
-	106, // 414: white.sales.v1.InsightService.GetDashboardPipeline:output_type -> white.sales.v1.DashboardPipeline
-	107, // 415: white.sales.v1.InsightService.GetDashboardSales:output_type -> white.sales.v1.DashboardSales
-	109, // 416: white.sales.v1.InsightService.GetDashboardTeam:output_type -> white.sales.v1.DashboardTeam
-	110, // 417: white.sales.v1.InsightService.GetDashboardLeads:output_type -> white.sales.v1.DashboardLeads
-	113, // 418: white.sales.v1.InsightService.GetDashboardBilling:output_type -> white.sales.v1.DashboardBilling
-	117, // 419: white.sales.v1.AutomationService.ListWorkflowRules:output_type -> white.sales.v1.ListWorkflowRulesResponse
-	116, // 420: white.sales.v1.AutomationService.SaveWorkflowRule:output_type -> white.sales.v1.WorkflowRule
-	198, // 421: white.sales.v1.AutomationService.DeleteWorkflowRule:output_type -> google.protobuf.Empty
-	119, // 422: white.sales.v1.AutomationService.ListWorkflowRuns:output_type -> white.sales.v1.ListWorkflowRunsResponse
-	121, // 423: white.sales.v1.AutomationService.ListScoringRules:output_type -> white.sales.v1.ListScoringRulesResponse
-	120, // 424: white.sales.v1.AutomationService.SaveScoringRule:output_type -> white.sales.v1.ScoringRule
-	198, // 425: white.sales.v1.AutomationService.DeleteScoringRule:output_type -> google.protobuf.Empty
-	122, // 426: white.sales.v1.AutomationService.RecalculateScores:output_type -> white.sales.v1.RecalculateScoresResponse
-	125, // 427: white.sales.v1.FormService.ListForms:output_type -> white.sales.v1.ListFormsResponse
-	124, // 428: white.sales.v1.FormService.SaveForm:output_type -> white.sales.v1.LeadForm
-	198, // 429: white.sales.v1.FormService.DeleteForm:output_type -> google.protobuf.Empty
-	127, // 430: white.sales.v1.FormService.ListFormSubmissions:output_type -> white.sales.v1.ListFormSubmissionsResponse
-	129, // 431: white.sales.v1.FormService.GetPublicForm:output_type -> white.sales.v1.PublicForm
-	132, // 432: white.sales.v1.FormService.SubmitPublicForm:output_type -> white.sales.v1.SubmitPublicFormResponse
-	134, // 433: white.sales.v1.ContractService.ListContractTemplates:output_type -> white.sales.v1.ListContractTemplatesResponse
-	133, // 434: white.sales.v1.ContractService.SaveContractTemplate:output_type -> white.sales.v1.ContractTemplate
-	198, // 435: white.sales.v1.ContractService.DeleteContractTemplate:output_type -> google.protobuf.Empty
-	137, // 436: white.sales.v1.ContractService.ListContracts:output_type -> white.sales.v1.ListContractsResponse
-	135, // 437: white.sales.v1.ContractService.GetContract:output_type -> white.sales.v1.Contract
-	135, // 438: white.sales.v1.ContractService.GenerateContract:output_type -> white.sales.v1.Contract
-	135, // 439: white.sales.v1.ContractService.UpdateContract:output_type -> white.sales.v1.Contract
-	135, // 440: white.sales.v1.ContractService.SendContract:output_type -> white.sales.v1.Contract
-	135, // 441: white.sales.v1.ContractService.SetContractStatus:output_type -> white.sales.v1.Contract
-	0,   // 442: white.sales.v1.ContractService.RenderContractPdf:output_type -> white.sales.v1.File
-	143, // 443: white.sales.v1.ContractService.GetPublicContract:output_type -> white.sales.v1.PublicContract
-	143, // 444: white.sales.v1.ContractService.SignPublicContract:output_type -> white.sales.v1.PublicContract
-	149, // 445: white.sales.v1.PitchDeckService.ListPitchDecks:output_type -> white.sales.v1.ListPitchDecksResponse
-	147, // 446: white.sales.v1.PitchDeckService.GetPitchDeck:output_type -> white.sales.v1.PitchDeck
-	147, // 447: white.sales.v1.PitchDeckService.GeneratePitchDeck:output_type -> white.sales.v1.PitchDeck
-	0,   // 448: white.sales.v1.PitchDeckService.GetPitchDeckFile:output_type -> white.sales.v1.File
-	198, // 449: white.sales.v1.PitchDeckService.DeletePitchDeck:output_type -> google.protobuf.Empty
-	152, // 450: white.sales.v1.PitchDeckService.ListCaseStudies:output_type -> white.sales.v1.ListCaseStudiesResponse
-	151, // 451: white.sales.v1.PitchDeckService.SaveCaseStudy:output_type -> white.sales.v1.CaseStudy
-	198, // 452: white.sales.v1.PitchDeckService.DeleteCaseStudy:output_type -> google.protobuf.Empty
-	157, // 453: white.sales.v1.OnboardingService.ListOnboardings:output_type -> white.sales.v1.ListOnboardingsResponse
-	155, // 454: white.sales.v1.OnboardingService.GetOnboarding:output_type -> white.sales.v1.Onboarding
-	155, // 455: white.sales.v1.OnboardingService.StartOnboarding:output_type -> white.sales.v1.Onboarding
-	155, // 456: white.sales.v1.OnboardingService.UpdateOnboardingItem:output_type -> white.sales.v1.Onboarding
-	155, // 457: white.sales.v1.OnboardingService.CreateMarketingClient:output_type -> white.sales.v1.Onboarding
-	163, // 458: white.sales.v1.OnboardingService.ListOnboardingTemplates:output_type -> white.sales.v1.ListOnboardingTemplatesResponse
-	162, // 459: white.sales.v1.OnboardingService.SaveOnboardingTemplate:output_type -> white.sales.v1.OnboardingTemplate
-	0,   // 460: white.sales.v1.OnboardingService.GetOnboardingAsset:output_type -> white.sales.v1.File
-	166, // 461: white.sales.v1.OnboardingService.GetPublicOnboarding:output_type -> white.sales.v1.PublicOnboarding
-	166, // 462: white.sales.v1.OnboardingService.SubmitPublicBrief:output_type -> white.sales.v1.PublicOnboarding
-	166, // 463: white.sales.v1.OnboardingService.UploadPublicAsset:output_type -> white.sales.v1.PublicOnboarding
-	175, // 464: white.sales.v1.ChatService.ListConversations:output_type -> white.sales.v1.ListConversationsResponse
-	173, // 465: white.sales.v1.ChatService.GetConversation:output_type -> white.sales.v1.ConversationDetail
-	173, // 466: white.sales.v1.ChatService.ReplyConversation:output_type -> white.sales.v1.ConversationDetail
-	169, // 467: white.sales.v1.ChatService.ConversationAction:output_type -> white.sales.v1.Conversation
-	171, // 468: white.sales.v1.ChatService.AddConversationNote:output_type -> white.sales.v1.ConversationNote
-	172, // 469: white.sales.v1.ChatService.AnalyzeConversation:output_type -> white.sales.v1.ConversationInsight
-	180, // 470: white.sales.v1.ChatService.ListReplyTemplates:output_type -> white.sales.v1.ListReplyTemplatesResponse
-	179, // 471: white.sales.v1.ChatService.SaveReplyTemplate:output_type -> white.sales.v1.ReplyTemplate
-	198, // 472: white.sales.v1.ChatService.DeleteReplyTemplate:output_type -> google.protobuf.Empty
-	181, // 473: white.sales.v1.ChatService.GetChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
-	181, // 474: white.sales.v1.ChatService.SaveChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
-	183, // 475: white.sales.v1.ChatService.StartPublicChat:output_type -> white.sales.v1.PublicChat
-	183, // 476: white.sales.v1.ChatService.SendPublicChat:output_type -> white.sales.v1.PublicChat
-	183, // 477: white.sales.v1.ChatService.PollPublicChat:output_type -> white.sales.v1.PublicChat
-	188, // 478: white.sales.v1.ChatService.ReceiveWhatsApp:output_type -> white.sales.v1.ReceiveWhatsAppResponse
-	340, // [340:479] is the sub-list for method output_type
-	201, // [201:340] is the sub-list for method input_type
-	201, // [201:201] is the sub-list for extension type_name
-	201, // [201:201] is the sub-list for extension extendee
-	0,   // [0:201] is the sub-list for field type_name
+	205, // 201: white.sales.v1.PortalContract.signed_at:type_name -> google.protobuf.Timestamp
+	72,  // 202: white.sales.v1.Portal.invoices:type_name -> white.sales.v1.Invoice
+	191, // 203: white.sales.v1.Portal.contracts:type_name -> white.sales.v1.PortalContract
+	194, // 204: white.sales.v1.Portal.proofs:type_name -> white.sales.v1.PaymentProof
+	205, // 205: white.sales.v1.PaymentProof.decided_at:type_name -> google.protobuf.Timestamp
+	205, // 206: white.sales.v1.PaymentProof.created_at:type_name -> google.protobuf.Timestamp
+	194, // 207: white.sales.v1.ListPaymentProofsResponse.proofs:type_name -> white.sales.v1.PaymentProof
+	6,   // 208: white.sales.v1.LeadService.ListLeads:input_type -> white.sales.v1.ListLeadsRequest
+	1,   // 209: white.sales.v1.LeadService.GetLead:input_type -> white.sales.v1.IdRequest
+	5,   // 210: white.sales.v1.LeadService.CreateLead:input_type -> white.sales.v1.LeadInput
+	5,   // 211: white.sales.v1.LeadService.UpdateLead:input_type -> white.sales.v1.LeadInput
+	1,   // 212: white.sales.v1.LeadService.DeleteLead:input_type -> white.sales.v1.IdRequest
+	9,   // 213: white.sales.v1.LeadService.ImportLeads:input_type -> white.sales.v1.ImportLeadsRequest
+	208, // 214: white.sales.v1.LeadService.ListOwners:input_type -> google.protobuf.Empty
+	16,  // 215: white.sales.v1.LeadService.ListAccounts:input_type -> white.sales.v1.ListAccountsRequest
+	1,   // 216: white.sales.v1.LeadService.GetAccount:input_type -> white.sales.v1.IdRequest
+	15,  // 217: white.sales.v1.LeadService.CreateAccount:input_type -> white.sales.v1.AccountInput
+	15,  // 218: white.sales.v1.LeadService.UpdateAccount:input_type -> white.sales.v1.AccountInput
+	1,   // 219: white.sales.v1.LeadService.DeleteAccount:input_type -> white.sales.v1.IdRequest
+	21,  // 220: white.sales.v1.LeadService.ListContacts:input_type -> white.sales.v1.ListContactsRequest
+	20,  // 221: white.sales.v1.LeadService.CreateContact:input_type -> white.sales.v1.ContactInput
+	20,  // 222: white.sales.v1.LeadService.UpdateContact:input_type -> white.sales.v1.ContactInput
+	1,   // 223: white.sales.v1.LeadService.DeleteContact:input_type -> white.sales.v1.IdRequest
+	24,  // 224: white.sales.v1.LeadService.ListCustomFields:input_type -> white.sales.v1.ListCustomFieldsRequest
+	23,  // 225: white.sales.v1.LeadService.SaveCustomField:input_type -> white.sales.v1.CustomField
+	1,   // 226: white.sales.v1.LeadService.DeleteCustomField:input_type -> white.sales.v1.IdRequest
+	208, // 227: white.sales.v1.PipelineService.ListPipelines:input_type -> google.protobuf.Empty
+	27,  // 228: white.sales.v1.PipelineService.SavePipeline:input_type -> white.sales.v1.Pipeline
+	26,  // 229: white.sales.v1.PipelineService.SaveStage:input_type -> white.sales.v1.Stage
+	208, // 230: white.sales.v1.PipelineService.ListLostReasons:input_type -> google.protobuf.Empty
+	33,  // 231: white.sales.v1.PipelineService.ListDeals:input_type -> white.sales.v1.ListDealsRequest
+	1,   // 232: white.sales.v1.PipelineService.GetDeal:input_type -> white.sales.v1.IdRequest
+	32,  // 233: white.sales.v1.PipelineService.CreateDeal:input_type -> white.sales.v1.DealInput
+	32,  // 234: white.sales.v1.PipelineService.UpdateDeal:input_type -> white.sales.v1.DealInput
+	1,   // 235: white.sales.v1.PipelineService.DeleteDeal:input_type -> white.sales.v1.IdRequest
+	35,  // 236: white.sales.v1.PipelineService.MoveDealStage:input_type -> white.sales.v1.MoveDealStageRequest
+	37,  // 237: white.sales.v1.PipelineService.SetDealMembers:input_type -> white.sales.v1.SetDealMembersRequest
+	45,  // 238: white.sales.v1.PipelineService.ListActivities:input_type -> white.sales.v1.ListActivitiesRequest
+	44,  // 239: white.sales.v1.PipelineService.CreateActivity:input_type -> white.sales.v1.ActivityInput
+	44,  // 240: white.sales.v1.PipelineService.UpdateActivity:input_type -> white.sales.v1.ActivityInput
+	1,   // 241: white.sales.v1.PipelineService.DeleteActivity:input_type -> white.sales.v1.IdRequest
+	49,  // 242: white.sales.v1.QuotationService.ListCatalog:input_type -> white.sales.v1.ListCatalogRequest
+	48,  // 243: white.sales.v1.QuotationService.SaveCatalogItem:input_type -> white.sales.v1.CatalogItem
+	208, // 244: white.sales.v1.QuotationService.ListRetainerDiscounts:input_type -> google.protobuf.Empty
+	52,  // 245: white.sales.v1.QuotationService.SaveRetainerDiscounts:input_type -> white.sales.v1.RetainerDiscounts
+	59,  // 246: white.sales.v1.QuotationService.ListQuotations:input_type -> white.sales.v1.ListQuotationsRequest
+	1,   // 247: white.sales.v1.QuotationService.GetQuotation:input_type -> white.sales.v1.IdRequest
+	58,  // 248: white.sales.v1.QuotationService.CreateQuotation:input_type -> white.sales.v1.QuotationInput
+	58,  // 249: white.sales.v1.QuotationService.UpdateQuotation:input_type -> white.sales.v1.QuotationInput
+	61,  // 250: white.sales.v1.QuotationService.SetQuotationStatus:input_type -> white.sales.v1.SetQuotationStatusRequest
+	1,   // 251: white.sales.v1.QuotationService.ReviseQuotation:input_type -> white.sales.v1.IdRequest
+	1,   // 252: white.sales.v1.QuotationService.DeleteQuotation:input_type -> white.sales.v1.IdRequest
+	62,  // 253: white.sales.v1.QuotationService.GenerateQuotationDraft:input_type -> white.sales.v1.GenerateQuotationDraftRequest
+	1,   // 254: white.sales.v1.QuotationService.RenderQuotationPdf:input_type -> white.sales.v1.IdRequest
+	208, // 255: white.sales.v1.QuotationService.ListApprovalRules:input_type -> google.protobuf.Empty
+	64,  // 256: white.sales.v1.QuotationService.SaveApprovalRule:input_type -> white.sales.v1.ApprovalRule
+	1,   // 257: white.sales.v1.QuotationService.DeleteApprovalRule:input_type -> white.sales.v1.IdRequest
+	68,  // 258: white.sales.v1.QuotationService.ListApprovals:input_type -> white.sales.v1.ListApprovalsRequest
+	70,  // 259: white.sales.v1.QuotationService.DecideApproval:input_type -> white.sales.v1.DecideApprovalRequest
+	73,  // 260: white.sales.v1.BillingService.ListInvoices:input_type -> white.sales.v1.ListInvoicesRequest
+	1,   // 261: white.sales.v1.BillingService.GetInvoice:input_type -> white.sales.v1.IdRequest
+	75,  // 262: white.sales.v1.BillingService.SubmitInvoice:input_type -> white.sales.v1.SubmitInvoiceRequest
+	1,   // 263: white.sales.v1.BillingService.SubmitInvoicesFromTerms:input_type -> white.sales.v1.IdRequest
+	1,   // 264: white.sales.v1.BillingService.IssueInvoice:input_type -> white.sales.v1.IdRequest
+	76,  // 265: white.sales.v1.BillingService.CancelInvoice:input_type -> white.sales.v1.CancelInvoiceRequest
+	81,  // 266: white.sales.v1.BillingService.UpdateInvoice:input_type -> white.sales.v1.UpdateInvoiceRequest
+	1,   // 267: white.sales.v1.BillingService.RenderInvoicePdf:input_type -> white.sales.v1.IdRequest
+	82,  // 268: white.sales.v1.BillingService.UploadInvoiceFakturPajak:input_type -> white.sales.v1.UploadInvoiceFakturPajakRequest
+	1,   // 269: white.sales.v1.BillingService.GetInvoiceFakturPajak:input_type -> white.sales.v1.IdRequest
+	1,   // 270: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:input_type -> white.sales.v1.IdRequest
+	78,  // 271: white.sales.v1.BillingService.ListInvoiceFollowups:input_type -> white.sales.v1.ListInvoiceFollowupsRequest
+	80,  // 272: white.sales.v1.BillingService.ApproveInvoiceFollowup:input_type -> white.sales.v1.ApproveInvoiceFollowupRequest
+	1,   // 273: white.sales.v1.BillingService.SkipInvoiceFollowup:input_type -> white.sales.v1.IdRequest
+	84,  // 274: white.sales.v1.BillingService.ListPayments:input_type -> white.sales.v1.ListPaymentsRequest
+	86,  // 275: white.sales.v1.BillingService.RecordPayment:input_type -> white.sales.v1.RecordPaymentRequest
+	1,   // 276: white.sales.v1.BillingService.DeletePayment:input_type -> white.sales.v1.IdRequest
+	88,  // 277: white.sales.v1.InsightService.ListTargets:input_type -> white.sales.v1.ListTargetsRequest
+	90,  // 278: white.sales.v1.InsightService.SaveTargets:input_type -> white.sales.v1.SaveTargetsRequest
+	91,  // 279: white.sales.v1.InsightService.GetForecast:input_type -> white.sales.v1.GetForecastRequest
+	94,  // 280: white.sales.v1.InsightService.GetFunnelReport:input_type -> white.sales.v1.GetFunnelReportRequest
+	99,  // 281: white.sales.v1.InsightService.GetDashboardSummary:input_type -> white.sales.v1.DashboardRequest
+	99,  // 282: white.sales.v1.InsightService.GetDashboardPipeline:input_type -> white.sales.v1.DashboardRequest
+	99,  // 283: white.sales.v1.InsightService.GetDashboardSales:input_type -> white.sales.v1.DashboardRequest
+	99,  // 284: white.sales.v1.InsightService.GetDashboardTeam:input_type -> white.sales.v1.DashboardRequest
+	99,  // 285: white.sales.v1.InsightService.GetDashboardLeads:input_type -> white.sales.v1.DashboardRequest
+	99,  // 286: white.sales.v1.InsightService.GetDashboardBilling:input_type -> white.sales.v1.DashboardRequest
+	208, // 287: white.sales.v1.AutomationService.ListWorkflowRules:input_type -> google.protobuf.Empty
+	116, // 288: white.sales.v1.AutomationService.SaveWorkflowRule:input_type -> white.sales.v1.WorkflowRule
+	1,   // 289: white.sales.v1.AutomationService.DeleteWorkflowRule:input_type -> white.sales.v1.IdRequest
+	1,   // 290: white.sales.v1.AutomationService.ListWorkflowRuns:input_type -> white.sales.v1.IdRequest
+	208, // 291: white.sales.v1.AutomationService.ListScoringRules:input_type -> google.protobuf.Empty
+	120, // 292: white.sales.v1.AutomationService.SaveScoringRule:input_type -> white.sales.v1.ScoringRule
+	1,   // 293: white.sales.v1.AutomationService.DeleteScoringRule:input_type -> white.sales.v1.IdRequest
+	208, // 294: white.sales.v1.AutomationService.RecalculateScores:input_type -> google.protobuf.Empty
+	208, // 295: white.sales.v1.FormService.ListForms:input_type -> google.protobuf.Empty
+	124, // 296: white.sales.v1.FormService.SaveForm:input_type -> white.sales.v1.LeadForm
+	1,   // 297: white.sales.v1.FormService.DeleteForm:input_type -> white.sales.v1.IdRequest
+	1,   // 298: white.sales.v1.FormService.ListFormSubmissions:input_type -> white.sales.v1.IdRequest
+	128, // 299: white.sales.v1.FormService.GetPublicForm:input_type -> white.sales.v1.PublicFormRequest
+	130, // 300: white.sales.v1.FormService.SubmitPublicForm:input_type -> white.sales.v1.SubmitPublicFormRequest
+	208, // 301: white.sales.v1.ContractService.ListContractTemplates:input_type -> google.protobuf.Empty
+	133, // 302: white.sales.v1.ContractService.SaveContractTemplate:input_type -> white.sales.v1.ContractTemplate
+	1,   // 303: white.sales.v1.ContractService.DeleteContractTemplate:input_type -> white.sales.v1.IdRequest
+	136, // 304: white.sales.v1.ContractService.ListContracts:input_type -> white.sales.v1.ListContractsRequest
+	1,   // 305: white.sales.v1.ContractService.GetContract:input_type -> white.sales.v1.IdRequest
+	138, // 306: white.sales.v1.ContractService.GenerateContract:input_type -> white.sales.v1.GenerateContractRequest
+	139, // 307: white.sales.v1.ContractService.UpdateContract:input_type -> white.sales.v1.UpdateContractRequest
+	1,   // 308: white.sales.v1.ContractService.SendContract:input_type -> white.sales.v1.IdRequest
+	140, // 309: white.sales.v1.ContractService.SetContractStatus:input_type -> white.sales.v1.SetContractStatusRequest
+	141, // 310: white.sales.v1.ContractService.RenderContractPdf:input_type -> white.sales.v1.RenderContractPdfRequest
+	142, // 311: white.sales.v1.ContractService.GetPublicContract:input_type -> white.sales.v1.PublicContractRequest
+	144, // 312: white.sales.v1.ContractService.SignPublicContract:input_type -> white.sales.v1.SignPublicContractRequest
+	148, // 313: white.sales.v1.PitchDeckService.ListPitchDecks:input_type -> white.sales.v1.ListPitchDecksRequest
+	1,   // 314: white.sales.v1.PitchDeckService.GetPitchDeck:input_type -> white.sales.v1.IdRequest
+	150, // 315: white.sales.v1.PitchDeckService.GeneratePitchDeck:input_type -> white.sales.v1.GeneratePitchDeckRequest
+	1,   // 316: white.sales.v1.PitchDeckService.GetPitchDeckFile:input_type -> white.sales.v1.IdRequest
+	1,   // 317: white.sales.v1.PitchDeckService.DeletePitchDeck:input_type -> white.sales.v1.IdRequest
+	208, // 318: white.sales.v1.PitchDeckService.ListCaseStudies:input_type -> google.protobuf.Empty
+	151, // 319: white.sales.v1.PitchDeckService.SaveCaseStudy:input_type -> white.sales.v1.CaseStudy
+	1,   // 320: white.sales.v1.PitchDeckService.DeleteCaseStudy:input_type -> white.sales.v1.IdRequest
+	156, // 321: white.sales.v1.OnboardingService.ListOnboardings:input_type -> white.sales.v1.ListOnboardingsRequest
+	1,   // 322: white.sales.v1.OnboardingService.GetOnboarding:input_type -> white.sales.v1.IdRequest
+	158, // 323: white.sales.v1.OnboardingService.StartOnboarding:input_type -> white.sales.v1.StartOnboardingRequest
+	159, // 324: white.sales.v1.OnboardingService.UpdateOnboardingItem:input_type -> white.sales.v1.UpdateOnboardingItemRequest
+	160, // 325: white.sales.v1.OnboardingService.CreateMarketingClient:input_type -> white.sales.v1.CreateMarketingClientRequest
+	208, // 326: white.sales.v1.OnboardingService.ListOnboardingTemplates:input_type -> google.protobuf.Empty
+	162, // 327: white.sales.v1.OnboardingService.SaveOnboardingTemplate:input_type -> white.sales.v1.OnboardingTemplate
+	1,   // 328: white.sales.v1.OnboardingService.GetOnboardingAsset:input_type -> white.sales.v1.IdRequest
+	164, // 329: white.sales.v1.OnboardingService.GetPublicOnboarding:input_type -> white.sales.v1.PublicOnboardingRequest
+	167, // 330: white.sales.v1.OnboardingService.SubmitPublicBrief:input_type -> white.sales.v1.SubmitPublicBriefRequest
+	168, // 331: white.sales.v1.OnboardingService.UploadPublicAsset:input_type -> white.sales.v1.UploadPublicAssetRequest
+	174, // 332: white.sales.v1.ChatService.ListConversations:input_type -> white.sales.v1.ListConversationsRequest
+	1,   // 333: white.sales.v1.ChatService.GetConversation:input_type -> white.sales.v1.IdRequest
+	176, // 334: white.sales.v1.ChatService.ReplyConversation:input_type -> white.sales.v1.ReplyConversationRequest
+	177, // 335: white.sales.v1.ChatService.ConversationAction:input_type -> white.sales.v1.ConversationActionRequest
+	178, // 336: white.sales.v1.ChatService.AddConversationNote:input_type -> white.sales.v1.AddConversationNoteRequest
+	1,   // 337: white.sales.v1.ChatService.AnalyzeConversation:input_type -> white.sales.v1.IdRequest
+	208, // 338: white.sales.v1.ChatService.ListReplyTemplates:input_type -> google.protobuf.Empty
+	179, // 339: white.sales.v1.ChatService.SaveReplyTemplate:input_type -> white.sales.v1.ReplyTemplate
+	1,   // 340: white.sales.v1.ChatService.DeleteReplyTemplate:input_type -> white.sales.v1.IdRequest
+	208, // 341: white.sales.v1.ChatService.GetChatbotSettings:input_type -> google.protobuf.Empty
+	181, // 342: white.sales.v1.ChatService.SaveChatbotSettings:input_type -> white.sales.v1.ChatbotSettings
+	182, // 343: white.sales.v1.ChatService.StartPublicChat:input_type -> white.sales.v1.StartPublicChatRequest
+	184, // 344: white.sales.v1.ChatService.SendPublicChat:input_type -> white.sales.v1.SendPublicChatRequest
+	185, // 345: white.sales.v1.ChatService.PollPublicChat:input_type -> white.sales.v1.PollPublicChatRequest
+	187, // 346: white.sales.v1.ChatService.ReceiveWhatsApp:input_type -> white.sales.v1.ReceiveWhatsAppRequest
+	189, // 347: white.sales.v1.PortalService.GetPortal:input_type -> white.sales.v1.PortalRequest
+	193, // 348: white.sales.v1.PortalService.SubmitPaymentProof:input_type -> white.sales.v1.SubmitPaymentProofRequest
+	190, // 349: white.sales.v1.PortalService.RenderPortalInvoicePdf:input_type -> white.sales.v1.PortalInvoiceRequest
+	195, // 350: white.sales.v1.PortalService.ListPaymentProofs:input_type -> white.sales.v1.ListPaymentProofsRequest
+	197, // 351: white.sales.v1.PortalService.ApprovePaymentProof:input_type -> white.sales.v1.ApprovePaymentProofRequest
+	198, // 352: white.sales.v1.PortalService.RejectPaymentProof:input_type -> white.sales.v1.RejectPaymentProofRequest
+	1,   // 353: white.sales.v1.PortalService.GetPaymentProofFile:input_type -> white.sales.v1.IdRequest
+	7,   // 354: white.sales.v1.LeadService.ListLeads:output_type -> white.sales.v1.ListLeadsResponse
+	8,   // 355: white.sales.v1.LeadService.GetLead:output_type -> white.sales.v1.LeadDetail
+	4,   // 356: white.sales.v1.LeadService.CreateLead:output_type -> white.sales.v1.Lead
+	4,   // 357: white.sales.v1.LeadService.UpdateLead:output_type -> white.sales.v1.Lead
+	208, // 358: white.sales.v1.LeadService.DeleteLead:output_type -> google.protobuf.Empty
+	11,  // 359: white.sales.v1.LeadService.ImportLeads:output_type -> white.sales.v1.ImportLeadsResponse
+	13,  // 360: white.sales.v1.LeadService.ListOwners:output_type -> white.sales.v1.ListOwnersResponse
+	17,  // 361: white.sales.v1.LeadService.ListAccounts:output_type -> white.sales.v1.ListAccountsResponse
+	18,  // 362: white.sales.v1.LeadService.GetAccount:output_type -> white.sales.v1.AccountDetail
+	14,  // 363: white.sales.v1.LeadService.CreateAccount:output_type -> white.sales.v1.Account
+	14,  // 364: white.sales.v1.LeadService.UpdateAccount:output_type -> white.sales.v1.Account
+	208, // 365: white.sales.v1.LeadService.DeleteAccount:output_type -> google.protobuf.Empty
+	22,  // 366: white.sales.v1.LeadService.ListContacts:output_type -> white.sales.v1.ListContactsResponse
+	19,  // 367: white.sales.v1.LeadService.CreateContact:output_type -> white.sales.v1.Contact
+	19,  // 368: white.sales.v1.LeadService.UpdateContact:output_type -> white.sales.v1.Contact
+	208, // 369: white.sales.v1.LeadService.DeleteContact:output_type -> google.protobuf.Empty
+	25,  // 370: white.sales.v1.LeadService.ListCustomFields:output_type -> white.sales.v1.ListCustomFieldsResponse
+	23,  // 371: white.sales.v1.LeadService.SaveCustomField:output_type -> white.sales.v1.CustomField
+	208, // 372: white.sales.v1.LeadService.DeleteCustomField:output_type -> google.protobuf.Empty
+	28,  // 373: white.sales.v1.PipelineService.ListPipelines:output_type -> white.sales.v1.ListPipelinesResponse
+	27,  // 374: white.sales.v1.PipelineService.SavePipeline:output_type -> white.sales.v1.Pipeline
+	26,  // 375: white.sales.v1.PipelineService.SaveStage:output_type -> white.sales.v1.Stage
+	30,  // 376: white.sales.v1.PipelineService.ListLostReasons:output_type -> white.sales.v1.ListLostReasonsResponse
+	34,  // 377: white.sales.v1.PipelineService.ListDeals:output_type -> white.sales.v1.ListDealsResponse
+	41,  // 378: white.sales.v1.PipelineService.GetDeal:output_type -> white.sales.v1.DealDetail
+	31,  // 379: white.sales.v1.PipelineService.CreateDeal:output_type -> white.sales.v1.Deal
+	31,  // 380: white.sales.v1.PipelineService.UpdateDeal:output_type -> white.sales.v1.Deal
+	208, // 381: white.sales.v1.PipelineService.DeleteDeal:output_type -> google.protobuf.Empty
+	31,  // 382: white.sales.v1.PipelineService.MoveDealStage:output_type -> white.sales.v1.Deal
+	38,  // 383: white.sales.v1.PipelineService.SetDealMembers:output_type -> white.sales.v1.SetDealMembersResponse
+	46,  // 384: white.sales.v1.PipelineService.ListActivities:output_type -> white.sales.v1.ListActivitiesResponse
+	43,  // 385: white.sales.v1.PipelineService.CreateActivity:output_type -> white.sales.v1.Activity
+	43,  // 386: white.sales.v1.PipelineService.UpdateActivity:output_type -> white.sales.v1.Activity
+	208, // 387: white.sales.v1.PipelineService.DeleteActivity:output_type -> google.protobuf.Empty
+	50,  // 388: white.sales.v1.QuotationService.ListCatalog:output_type -> white.sales.v1.ListCatalogResponse
+	48,  // 389: white.sales.v1.QuotationService.SaveCatalogItem:output_type -> white.sales.v1.CatalogItem
+	52,  // 390: white.sales.v1.QuotationService.ListRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
+	52,  // 391: white.sales.v1.QuotationService.SaveRetainerDiscounts:output_type -> white.sales.v1.RetainerDiscounts
+	60,  // 392: white.sales.v1.QuotationService.ListQuotations:output_type -> white.sales.v1.ListQuotationsResponse
+	55,  // 393: white.sales.v1.QuotationService.GetQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 394: white.sales.v1.QuotationService.CreateQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 395: white.sales.v1.QuotationService.UpdateQuotation:output_type -> white.sales.v1.Quotation
+	55,  // 396: white.sales.v1.QuotationService.SetQuotationStatus:output_type -> white.sales.v1.Quotation
+	55,  // 397: white.sales.v1.QuotationService.ReviseQuotation:output_type -> white.sales.v1.Quotation
+	208, // 398: white.sales.v1.QuotationService.DeleteQuotation:output_type -> google.protobuf.Empty
+	63,  // 399: white.sales.v1.QuotationService.GenerateQuotationDraft:output_type -> white.sales.v1.GenerateQuotationDraftResponse
+	0,   // 400: white.sales.v1.QuotationService.RenderQuotationPdf:output_type -> white.sales.v1.File
+	65,  // 401: white.sales.v1.QuotationService.ListApprovalRules:output_type -> white.sales.v1.ListApprovalRulesResponse
+	64,  // 402: white.sales.v1.QuotationService.SaveApprovalRule:output_type -> white.sales.v1.ApprovalRule
+	208, // 403: white.sales.v1.QuotationService.DeleteApprovalRule:output_type -> google.protobuf.Empty
+	69,  // 404: white.sales.v1.QuotationService.ListApprovals:output_type -> white.sales.v1.ListApprovalsResponse
+	71,  // 405: white.sales.v1.QuotationService.DecideApproval:output_type -> white.sales.v1.DecideApprovalResponse
+	74,  // 406: white.sales.v1.BillingService.ListInvoices:output_type -> white.sales.v1.ListInvoicesResponse
+	72,  // 407: white.sales.v1.BillingService.GetInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 408: white.sales.v1.BillingService.SubmitInvoice:output_type -> white.sales.v1.Invoice
+	74,  // 409: white.sales.v1.BillingService.SubmitInvoicesFromTerms:output_type -> white.sales.v1.ListInvoicesResponse
+	72,  // 410: white.sales.v1.BillingService.IssueInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 411: white.sales.v1.BillingService.CancelInvoice:output_type -> white.sales.v1.Invoice
+	72,  // 412: white.sales.v1.BillingService.UpdateInvoice:output_type -> white.sales.v1.Invoice
+	0,   // 413: white.sales.v1.BillingService.RenderInvoicePdf:output_type -> white.sales.v1.File
+	72,  // 414: white.sales.v1.BillingService.UploadInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
+	0,   // 415: white.sales.v1.BillingService.GetInvoiceFakturPajak:output_type -> white.sales.v1.File
+	72,  // 416: white.sales.v1.BillingService.DeleteInvoiceFakturPajak:output_type -> white.sales.v1.Invoice
+	79,  // 417: white.sales.v1.BillingService.ListInvoiceFollowups:output_type -> white.sales.v1.ListInvoiceFollowupsResponse
+	77,  // 418: white.sales.v1.BillingService.ApproveInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
+	77,  // 419: white.sales.v1.BillingService.SkipInvoiceFollowup:output_type -> white.sales.v1.InvoiceFollowup
+	85,  // 420: white.sales.v1.BillingService.ListPayments:output_type -> white.sales.v1.ListPaymentsResponse
+	83,  // 421: white.sales.v1.BillingService.RecordPayment:output_type -> white.sales.v1.Payment
+	208, // 422: white.sales.v1.BillingService.DeletePayment:output_type -> google.protobuf.Empty
+	89,  // 423: white.sales.v1.InsightService.ListTargets:output_type -> white.sales.v1.ListTargetsResponse
+	89,  // 424: white.sales.v1.InsightService.SaveTargets:output_type -> white.sales.v1.ListTargetsResponse
+	93,  // 425: white.sales.v1.InsightService.GetForecast:output_type -> white.sales.v1.Forecast
+	98,  // 426: white.sales.v1.InsightService.GetFunnelReport:output_type -> white.sales.v1.FunnelReport
+	104, // 427: white.sales.v1.InsightService.GetDashboardSummary:output_type -> white.sales.v1.DashboardSummary
+	106, // 428: white.sales.v1.InsightService.GetDashboardPipeline:output_type -> white.sales.v1.DashboardPipeline
+	107, // 429: white.sales.v1.InsightService.GetDashboardSales:output_type -> white.sales.v1.DashboardSales
+	109, // 430: white.sales.v1.InsightService.GetDashboardTeam:output_type -> white.sales.v1.DashboardTeam
+	110, // 431: white.sales.v1.InsightService.GetDashboardLeads:output_type -> white.sales.v1.DashboardLeads
+	113, // 432: white.sales.v1.InsightService.GetDashboardBilling:output_type -> white.sales.v1.DashboardBilling
+	117, // 433: white.sales.v1.AutomationService.ListWorkflowRules:output_type -> white.sales.v1.ListWorkflowRulesResponse
+	116, // 434: white.sales.v1.AutomationService.SaveWorkflowRule:output_type -> white.sales.v1.WorkflowRule
+	208, // 435: white.sales.v1.AutomationService.DeleteWorkflowRule:output_type -> google.protobuf.Empty
+	119, // 436: white.sales.v1.AutomationService.ListWorkflowRuns:output_type -> white.sales.v1.ListWorkflowRunsResponse
+	121, // 437: white.sales.v1.AutomationService.ListScoringRules:output_type -> white.sales.v1.ListScoringRulesResponse
+	120, // 438: white.sales.v1.AutomationService.SaveScoringRule:output_type -> white.sales.v1.ScoringRule
+	208, // 439: white.sales.v1.AutomationService.DeleteScoringRule:output_type -> google.protobuf.Empty
+	122, // 440: white.sales.v1.AutomationService.RecalculateScores:output_type -> white.sales.v1.RecalculateScoresResponse
+	125, // 441: white.sales.v1.FormService.ListForms:output_type -> white.sales.v1.ListFormsResponse
+	124, // 442: white.sales.v1.FormService.SaveForm:output_type -> white.sales.v1.LeadForm
+	208, // 443: white.sales.v1.FormService.DeleteForm:output_type -> google.protobuf.Empty
+	127, // 444: white.sales.v1.FormService.ListFormSubmissions:output_type -> white.sales.v1.ListFormSubmissionsResponse
+	129, // 445: white.sales.v1.FormService.GetPublicForm:output_type -> white.sales.v1.PublicForm
+	132, // 446: white.sales.v1.FormService.SubmitPublicForm:output_type -> white.sales.v1.SubmitPublicFormResponse
+	134, // 447: white.sales.v1.ContractService.ListContractTemplates:output_type -> white.sales.v1.ListContractTemplatesResponse
+	133, // 448: white.sales.v1.ContractService.SaveContractTemplate:output_type -> white.sales.v1.ContractTemplate
+	208, // 449: white.sales.v1.ContractService.DeleteContractTemplate:output_type -> google.protobuf.Empty
+	137, // 450: white.sales.v1.ContractService.ListContracts:output_type -> white.sales.v1.ListContractsResponse
+	135, // 451: white.sales.v1.ContractService.GetContract:output_type -> white.sales.v1.Contract
+	135, // 452: white.sales.v1.ContractService.GenerateContract:output_type -> white.sales.v1.Contract
+	135, // 453: white.sales.v1.ContractService.UpdateContract:output_type -> white.sales.v1.Contract
+	135, // 454: white.sales.v1.ContractService.SendContract:output_type -> white.sales.v1.Contract
+	135, // 455: white.sales.v1.ContractService.SetContractStatus:output_type -> white.sales.v1.Contract
+	0,   // 456: white.sales.v1.ContractService.RenderContractPdf:output_type -> white.sales.v1.File
+	143, // 457: white.sales.v1.ContractService.GetPublicContract:output_type -> white.sales.v1.PublicContract
+	143, // 458: white.sales.v1.ContractService.SignPublicContract:output_type -> white.sales.v1.PublicContract
+	149, // 459: white.sales.v1.PitchDeckService.ListPitchDecks:output_type -> white.sales.v1.ListPitchDecksResponse
+	147, // 460: white.sales.v1.PitchDeckService.GetPitchDeck:output_type -> white.sales.v1.PitchDeck
+	147, // 461: white.sales.v1.PitchDeckService.GeneratePitchDeck:output_type -> white.sales.v1.PitchDeck
+	0,   // 462: white.sales.v1.PitchDeckService.GetPitchDeckFile:output_type -> white.sales.v1.File
+	208, // 463: white.sales.v1.PitchDeckService.DeletePitchDeck:output_type -> google.protobuf.Empty
+	152, // 464: white.sales.v1.PitchDeckService.ListCaseStudies:output_type -> white.sales.v1.ListCaseStudiesResponse
+	151, // 465: white.sales.v1.PitchDeckService.SaveCaseStudy:output_type -> white.sales.v1.CaseStudy
+	208, // 466: white.sales.v1.PitchDeckService.DeleteCaseStudy:output_type -> google.protobuf.Empty
+	157, // 467: white.sales.v1.OnboardingService.ListOnboardings:output_type -> white.sales.v1.ListOnboardingsResponse
+	155, // 468: white.sales.v1.OnboardingService.GetOnboarding:output_type -> white.sales.v1.Onboarding
+	155, // 469: white.sales.v1.OnboardingService.StartOnboarding:output_type -> white.sales.v1.Onboarding
+	155, // 470: white.sales.v1.OnboardingService.UpdateOnboardingItem:output_type -> white.sales.v1.Onboarding
+	155, // 471: white.sales.v1.OnboardingService.CreateMarketingClient:output_type -> white.sales.v1.Onboarding
+	163, // 472: white.sales.v1.OnboardingService.ListOnboardingTemplates:output_type -> white.sales.v1.ListOnboardingTemplatesResponse
+	162, // 473: white.sales.v1.OnboardingService.SaveOnboardingTemplate:output_type -> white.sales.v1.OnboardingTemplate
+	0,   // 474: white.sales.v1.OnboardingService.GetOnboardingAsset:output_type -> white.sales.v1.File
+	166, // 475: white.sales.v1.OnboardingService.GetPublicOnboarding:output_type -> white.sales.v1.PublicOnboarding
+	166, // 476: white.sales.v1.OnboardingService.SubmitPublicBrief:output_type -> white.sales.v1.PublicOnboarding
+	166, // 477: white.sales.v1.OnboardingService.UploadPublicAsset:output_type -> white.sales.v1.PublicOnboarding
+	175, // 478: white.sales.v1.ChatService.ListConversations:output_type -> white.sales.v1.ListConversationsResponse
+	173, // 479: white.sales.v1.ChatService.GetConversation:output_type -> white.sales.v1.ConversationDetail
+	173, // 480: white.sales.v1.ChatService.ReplyConversation:output_type -> white.sales.v1.ConversationDetail
+	169, // 481: white.sales.v1.ChatService.ConversationAction:output_type -> white.sales.v1.Conversation
+	171, // 482: white.sales.v1.ChatService.AddConversationNote:output_type -> white.sales.v1.ConversationNote
+	172, // 483: white.sales.v1.ChatService.AnalyzeConversation:output_type -> white.sales.v1.ConversationInsight
+	180, // 484: white.sales.v1.ChatService.ListReplyTemplates:output_type -> white.sales.v1.ListReplyTemplatesResponse
+	179, // 485: white.sales.v1.ChatService.SaveReplyTemplate:output_type -> white.sales.v1.ReplyTemplate
+	208, // 486: white.sales.v1.ChatService.DeleteReplyTemplate:output_type -> google.protobuf.Empty
+	181, // 487: white.sales.v1.ChatService.GetChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
+	181, // 488: white.sales.v1.ChatService.SaveChatbotSettings:output_type -> white.sales.v1.ChatbotSettings
+	183, // 489: white.sales.v1.ChatService.StartPublicChat:output_type -> white.sales.v1.PublicChat
+	183, // 490: white.sales.v1.ChatService.SendPublicChat:output_type -> white.sales.v1.PublicChat
+	183, // 491: white.sales.v1.ChatService.PollPublicChat:output_type -> white.sales.v1.PublicChat
+	188, // 492: white.sales.v1.ChatService.ReceiveWhatsApp:output_type -> white.sales.v1.ReceiveWhatsAppResponse
+	192, // 493: white.sales.v1.PortalService.GetPortal:output_type -> white.sales.v1.Portal
+	194, // 494: white.sales.v1.PortalService.SubmitPaymentProof:output_type -> white.sales.v1.PaymentProof
+	0,   // 495: white.sales.v1.PortalService.RenderPortalInvoicePdf:output_type -> white.sales.v1.File
+	196, // 496: white.sales.v1.PortalService.ListPaymentProofs:output_type -> white.sales.v1.ListPaymentProofsResponse
+	194, // 497: white.sales.v1.PortalService.ApprovePaymentProof:output_type -> white.sales.v1.PaymentProof
+	194, // 498: white.sales.v1.PortalService.RejectPaymentProof:output_type -> white.sales.v1.PaymentProof
+	0,   // 499: white.sales.v1.PortalService.GetPaymentProofFile:output_type -> white.sales.v1.File
+	354, // [354:500] is the sub-list for method output_type
+	208, // [208:354] is the sub-list for method input_type
+	208, // [208:208] is the sub-list for extension type_name
+	208, // [208:208] is the sub-list for extension extendee
+	0,   // [0:208] is the sub-list for field type_name
 }
 
 func init() { file_white_sales_v1_sales_proto_init() }
@@ -17791,9 +18698,9 @@ func file_white_sales_v1_sales_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_sales_v1_sales_proto_rawDesc), len(file_white_sales_v1_sales_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   194,
+			NumMessages:   204,
 			NumExtensions: 0,
-			NumServices:   11,
+			NumServices:   12,
 		},
 		GoTypes:           file_white_sales_v1_sales_proto_goTypes,
 		DependencyIndexes: file_white_sales_v1_sales_proto_depIdxs,

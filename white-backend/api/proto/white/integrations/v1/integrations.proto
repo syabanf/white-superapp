@@ -169,6 +169,8 @@ enum IntegrationKey {
   DATAFORSEO = 3;
   APIFY = 4;
   OPENROUTER = 5;
+  // Email. public_id is the From address, e.g. "Mixist <billing@mixist.id>".
+  RESEND = 6;
 }
 
 message IntegrationStatus {

@@ -126,6 +126,15 @@ func (q *Queries) DeleteRecurringInvoice(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteTimesheetAllocations = `-- name: DeleteTimesheetAllocations :exec
+DELETE FROM finance.project_cost_allocations WHERE month = $1 AND source = 'TIMESHEET'
+`
+
+func (q *Queries) DeleteTimesheetAllocations(ctx context.Context, month string) error {
+	_, err := q.db.Exec(ctx, deleteTimesheetAllocations, month)
+	return err
+}
+
 const disposeFixedAsset = `-- name: DisposeFixedAsset :exec
 UPDATE finance.fixed_assets SET disposed_on = $2, disposal_proceeds = $3, disposal_entry_id = $4, is_active = false, updated_by = $5, updated_at = now() WHERE id = $1
 `
@@ -222,6 +231,37 @@ func (q *Queries) EnsureDealTag(ctx context.Context, arg EnsureDealTagParams) (s
 	var id string
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getCompanyProfile = `-- name: GetCompanyProfile :one
+SELECT legal_name, address, email, phone, npwp, bank_name, bank_account_no, bank_account_name FROM finance.company_profile
+`
+
+type GetCompanyProfileRow struct {
+	LegalName       string
+	Address         string
+	Email           string
+	Phone           string
+	Npwp            string
+	BankName        string
+	BankAccountNo   string
+	BankAccountName string
+}
+
+func (q *Queries) GetCompanyProfile(ctx context.Context) (GetCompanyProfileRow, error) {
+	row := q.db.QueryRow(ctx, getCompanyProfile)
+	var i GetCompanyProfileRow
+	err := row.Scan(
+		&i.LegalName,
+		&i.Address,
+		&i.Email,
+		&i.Phone,
+		&i.Npwp,
+		&i.BankName,
+		&i.BankAccountNo,
+		&i.BankAccountName,
+	)
+	return i, err
 }
 
 const getProjectTag = `-- name: GetProjectTag :one
@@ -531,8 +571,8 @@ func (q *Queries) InsertPaymentAdjustment(ctx context.Context, arg InsertPayment
 }
 
 const insertProjectAllocation = `-- name: InsertProjectAllocation :exec
-INSERT INTO finance.project_cost_allocations (id, tag_id, month, kind, amount, notes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO finance.project_cost_allocations (id, tag_id, month, kind, amount, notes, created_by, source)
+VALUES ($1, $2, $3, $4, $5, $6, $8, $7)
 `
 
 type InsertProjectAllocationParams struct {
@@ -542,6 +582,7 @@ type InsertProjectAllocationParams struct {
 	Kind   string
 	Amount domain.Money
 	Notes  string
+	Source string
 	By     *string
 }
 
@@ -553,6 +594,7 @@ func (q *Queries) InsertProjectAllocation(ctx context.Context, arg InsertProject
 		arg.Kind,
 		arg.Amount,
 		arg.Notes,
+		arg.Source,
 		arg.By,
 	)
 	return err
@@ -979,7 +1021,7 @@ func (q *Queries) ListGoodsReceipts(ctx context.Context, arg ListGoodsReceiptsPa
 }
 
 const listProjectAllocations = `-- name: ListProjectAllocations :many
-SELECT c.id, c.tag_id, t.name AS tag_name, t.client_name, c.month, c.kind, c.amount, c.notes, c.created_by
+SELECT c.id, c.tag_id, t.name AS tag_name, t.client_name, c.month, c.kind, c.amount, c.notes, c.created_by, c.source
   FROM finance.project_cost_allocations c
   JOIN finance.project_tags t ON t.id = c.tag_id
  WHERE c.month >= $1::text AND c.month <= $2::text
@@ -1001,6 +1043,7 @@ type ListProjectAllocationsRow struct {
 	Amount     domain.Money
 	Notes      string
 	CreatedBy  *string
+	Source     string
 }
 
 func (q *Queries) ListProjectAllocations(ctx context.Context, arg ListProjectAllocationsParams) ([]ListProjectAllocationsRow, error) {
@@ -1022,6 +1065,7 @@ func (q *Queries) ListProjectAllocations(ctx context.Context, arg ListProjectAll
 			&i.Amount,
 			&i.Notes,
 			&i.CreatedBy,
+			&i.Source,
 		); err != nil {
 			return nil, err
 		}
@@ -1638,6 +1682,41 @@ func (q *Queries) UpdateRecurringInvoiceRun(ctx context.Context, arg UpdateRecur
 		arg.IsActive,
 		arg.LastError,
 		arg.LastInvoiceID,
+	)
+	return err
+}
+
+const upsertCompanyProfile = `-- name: UpsertCompanyProfile :exec
+INSERT INTO finance.company_profile (id, legal_name, address, email, phone, npwp, bank_name, bank_account_no, bank_account_name, updated_by)
+VALUES (true, $1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT (id) DO UPDATE SET legal_name = EXCLUDED.legal_name, address = EXCLUDED.address, email = EXCLUDED.email, phone = EXCLUDED.phone,
+    npwp = EXCLUDED.npwp, bank_name = EXCLUDED.bank_name, bank_account_no = EXCLUDED.bank_account_no,
+    bank_account_name = EXCLUDED.bank_account_name, updated_by = EXCLUDED.updated_by, updated_at = now()
+`
+
+type UpsertCompanyProfileParams struct {
+	LegalName       string
+	Address         string
+	Email           string
+	Phone           string
+	Npwp            string
+	BankName        string
+	BankAccountNo   string
+	BankAccountName string
+	By              *string
+}
+
+func (q *Queries) UpsertCompanyProfile(ctx context.Context, arg UpsertCompanyProfileParams) error {
+	_, err := q.db.Exec(ctx, upsertCompanyProfile,
+		arg.LegalName,
+		arg.Address,
+		arg.Email,
+		arg.Phone,
+		arg.Npwp,
+		arg.BankName,
+		arg.BankAccountNo,
+		arg.BankAccountName,
+		arg.By,
 	)
 	return err
 }

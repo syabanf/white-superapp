@@ -263,6 +263,18 @@ type PerformanceImprovement struct {
 	DeletedAt       *time.Time
 }
 
+type PerformanceKeyResult struct {
+	ID           string
+	ObjectiveID  string
+	Title        string
+	Metric       string
+	StartValue   float64
+	TargetValue  float64
+	CurrentValue float64
+	Unit         string
+	SortOrder    int32
+}
+
 type PerformanceKpiDepartmentIndicator struct {
 	DepartmentID string
 	IndicatorID  string
@@ -405,6 +417,31 @@ type PerformanceMonthlyRecap struct {
 	GeneratedAt     time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+}
+
+type PerformanceObjective struct {
+	ID           string
+	Period       string
+	Level        string
+	DepartmentID *string
+	EmployeeID   *string
+	ParentID     *string
+	Title        string
+	Description  string
+	Status       string
+	CreatedBy    *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+type PerformanceOkrCheckin struct {
+	ID          string
+	KeyResultID string
+	Value       float64
+	Confidence  int32
+	Note        string
+	CreatedBy   *string
+	CreatedAt   time.Time
 }
 
 type PerformancePerformanceCategory struct {

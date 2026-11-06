@@ -64,6 +64,7 @@ func Services(d app.Deps) grpcapi.Services {
 		Assets:     app.NewAssets(d),
 		Reports:    app.NewReports(d),
 		Dashboard:  app.NewDashboard(d),
+		Portal:     app.NewPortal(d),
 	}
 }
 
@@ -119,6 +120,7 @@ func Wire(d pkgapp.Deps) (*Wiring, error) {
 		Publishing: clients.NewPublishing(publishingConn),
 		AI:         ai.NewSource(w.integrations.Credentials, ai.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
 		Renderer:   pdf.Renderer{},
+		Share:      w.Identity,
 		Clock:      clk,
 		Logger:     d.Logger,
 	}

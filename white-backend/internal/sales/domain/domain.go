@@ -360,11 +360,33 @@ type Invoice struct {
 }
 
 type InvoiceFilter struct {
-	DealID   string
-	Status   string
-	From, To *time.Time // issue time (sent, else created), [From, To)
-	Search   string
-	Limit    int
+	DealID string
+	Status string
+	// MarketingClientID keeps invoices of deals onboarded as that client.
+	MarketingClientID string
+	From, To          *time.Time // issue time (sent, else created), [From, To)
+	Search            string
+	Limit             int
+}
+
+// PaymentProof is a transfer receipt a client uploaded from the share portal.
+type PaymentProof struct {
+	ID, InvoiceID, PayerName, Note, FileKey, FileName string
+	Amount                                            Money
+	PaidOn                                            time.Time
+	Status                                            string // PENDING | APPROVED | REJECTED
+	RejectReason                                      string
+	PaymentID, DecidedBy                              *string
+	DecidedAt                                         *time.Time
+	CreatedAt                                         time.Time
+	// Joined.
+	InvoiceNumber, DealID, ClientName string
+}
+
+type PaymentProofFilter struct {
+	Status     string
+	InvoiceIDs []string
+	Limit      int
 }
 
 type Payment struct {
@@ -512,7 +534,9 @@ type Contract struct {
 type ContractFilter struct {
 	DealID string
 	Status string
-	Limit  int
+	// MarketingClientID keeps contracts of deals onboarded as that client.
+	MarketingClientID string
+	Limit             int
 }
 
 type PitchDeck struct {
@@ -738,6 +762,11 @@ type Store interface {
 
 	GetInvoice(ctx context.Context, id string) (*Invoice, error)
 	ListInvoices(ctx context.Context, f InvoiceFilter) ([]Invoice, error)
+	InsertPaymentProof(ctx context.Context, p PaymentProof) error
+	GetPaymentProof(ctx context.Context, id string) (*PaymentProof, error)
+	ListPaymentProofs(ctx context.Context, f PaymentProofFilter) ([]PaymentProof, error)
+	// DecidePaymentProof reports false when the proof was no longer pending.
+	DecidePaymentProof(ctx context.Context, p PaymentProof) (bool, error)
 	SaveInvoice(ctx context.Context, i *Invoice) error
 	// InsertFollowup reports false when that stage was queued before.
 	InsertFollowup(ctx context.Context, f InvoiceFollowup) (bool, error)

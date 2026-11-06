@@ -28,6 +28,7 @@ type Identity struct {
 	users         identityv1.UserServiceClient
 	access        identityv1.AccessServiceClient
 	clients       identityv1.ClientServiceClient
+	share         identityv1.ShareServiceClient
 	serviceToken  string
 }
 
@@ -37,6 +38,7 @@ func NewIdentity(conn grpc.ClientConnInterface, serviceToken string) *Identity {
 		users:         identityv1.NewUserServiceClient(conn),
 		access:        identityv1.NewAccessServiceClient(conn),
 		clients:       identityv1.NewClientServiceClient(conn),
+		share:         identityv1.NewShareServiceClient(conn),
 		serviceToken:  serviceToken,
 	}
 }
@@ -71,7 +73,26 @@ func (c *Identity) ListUsers(ctx context.Context) ([]app.User, error) {
 // Approvers lists active users holding sales.approve (or sales.*) plus
 // admins, through identity's internal AccessService.
 func (c *Identity) Approvers(ctx context.Context) ([]app.User, error) {
-	res, err := c.access.ListPermissionHolders(ctx, &identityv1.ListPermissionHoldersRequest{Permission: authn.PermSalesApprove})
+	return c.Holders(ctx, authn.PermSalesApprove)
+}
+
+// UnlockedClient implements app.ShareGate. Only an enabled page with a PIN
+// the visitor entered qualifies.
+func (c *Identity) UnlockedClient(ctx context.Context, slug, unlockToken string) (*app.ShareClient, error) {
+	res, err := c.share.GetShareContext(ctx, &identityv1.GetShareContextRequest{Slug: slug, UnlockToken: unlockToken})
+	if err != nil {
+		return nil, grpcx.FromStatus(err)
+	}
+	cl := res.GetClient()
+	if res.GetStatus() != identityv1.ShareContext_OK || cl == nil || !cl.GetSharePinSet() {
+		return nil, nil
+	}
+	return &app.ShareClient{ID: cl.GetId(), Name: cl.GetName()}, nil
+}
+
+// Holders lists active users holding a permission plus admins.
+func (c *Identity) Holders(ctx context.Context, permission string) ([]app.User, error) {
+	res, err := c.access.ListPermissionHolders(ctx, &identityv1.ListPermissionHoldersRequest{Permission: permission})
 	if err != nil {
 		return nil, grpcx.FromStatus(err)
 	}
@@ -189,4 +210,45 @@ func (c *Taxes) DefaultSaleVAT(ctx context.Context) (*app.TaxInfo, error) {
 		}
 	}
 	return nil, nil
+}
+
+// Company reads Finance's company profile for letterheads and the portal,
+// cached for a minute. When Finance cannot answer it serves the last good
+// profile, or the deployed defaults.
+type Company struct {
+	client   financev1.CompanyServiceClient
+	fallback app.Company
+	clk      clock.Clock
+	log      func(msg string, args ...any)
+
+	mu        sync.Mutex
+	cached    *app.Company
+	fetchedAt time.Time
+}
+
+func NewCompany(conn grpc.ClientConnInterface, fallback app.Company, clk clock.Clock, log func(msg string, args ...any)) *Company {
+	return &Company{client: financev1.NewCompanyServiceClient(conn), fallback: fallback, clk: clk, log: log}
+}
+
+const companyTTL = 60 * time.Second
+
+func (c *Company) Company(ctx context.Context) app.Company {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.cached != nil && c.clk.Now().Sub(c.fetchedAt) < companyTTL {
+		return *c.cached
+	}
+	res, err := c.client.GetCompanyProfile(ctx, &emptypb.Empty{})
+	if err != nil {
+		if c.log != nil {
+			c.log("company profile unavailable", "err", err)
+		}
+		if c.cached != nil {
+			return *c.cached
+		}
+		return c.fallback
+	}
+	co := app.Company{LegalName: res.LegalName, Address: res.Address, Email: res.Email, Phone: res.Phone, NPWP: res.Npwp, BankLine: res.BankLine}
+	c.cached, c.fetchedAt = &co, c.clk.Now()
+	return co
 }

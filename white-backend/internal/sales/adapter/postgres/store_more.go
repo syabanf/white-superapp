@@ -263,7 +263,7 @@ func (s *Store) GetContractByToken(ctx context.Context, token string) (*domain.C
 }
 
 func (s *Store) ListContracts(ctx context.Context, f domain.ContractFilter) ([]domain.Contract, error) {
-	rows, err := s.q.ListContracts(ctx, sqlc.ListContractsParams{Deal: nz(f.DealID), Status: nz(f.Status), Lim: limitOr(f.Limit, 200)})
+	rows, err := s.q.ListContracts(ctx, sqlc.ListContractsParams{Deal: nz(f.DealID), Status: nz(f.Status), Client: nz(f.MarketingClientID), Lim: limitOr(f.Limit, 200)})
 	return many(rows, err, toContract)
 }
 

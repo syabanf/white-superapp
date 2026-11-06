@@ -7084,6 +7084,7 @@ const (
 	PeriodEndService_ListProjectAllocations_FullMethodName  = "/white.finance.v1.PeriodEndService/ListProjectAllocations"
 	PeriodEndService_CreateProjectAllocation_FullMethodName = "/white.finance.v1.PeriodEndService/CreateProjectAllocation"
 	PeriodEndService_DeleteProjectAllocation_FullMethodName = "/white.finance.v1.PeriodEndService/DeleteProjectAllocation"
+	PeriodEndService_AllocateFromTimesheet_FullMethodName   = "/white.finance.v1.PeriodEndService/AllocateFromTimesheet"
 	PeriodEndService_GetControlSettings_FullMethodName      = "/white.finance.v1.PeriodEndService/GetControlSettings"
 	PeriodEndService_SetControlSettings_FullMethodName      = "/white.finance.v1.PeriodEndService/SetControlSettings"
 )
@@ -7117,6 +7118,9 @@ type PeriodEndServiceClient interface {
 	ListProjectAllocations(ctx context.Context, in *ProjectProfitRequest, opts ...grpc.CallOption) (*ListProjectAllocationsResponse, error)
 	CreateProjectAllocation(ctx context.Context, in *ProjectAllocation, opts ...grpc.CallOption) (*ListProjectAllocationsResponse, error)
 	DeleteProjectAllocation(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Replaces the month's timesheet allocations with the payroll cost HR
+	// spread over projects by approved hours. Manual allocations stay.
+	AllocateFromTimesheet(ctx context.Context, in *AllocateFromTimesheetRequest, opts ...grpc.CallOption) (*AllocateFromTimesheetResponse, error)
 	GetControlSettings(ctx context.Context, in *ControlSettingsRequest, opts ...grpc.CallOption) (*ControlSettings, error)
 	SetControlSettings(ctx context.Context, in *ControlSettings, opts ...grpc.CallOption) (*ControlSettings, error)
 }
@@ -7349,6 +7353,16 @@ func (c *periodEndServiceClient) DeleteProjectAllocation(ctx context.Context, in
 	return out, nil
 }
 
+func (c *periodEndServiceClient) AllocateFromTimesheet(ctx context.Context, in *AllocateFromTimesheetRequest, opts ...grpc.CallOption) (*AllocateFromTimesheetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AllocateFromTimesheetResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_AllocateFromTimesheet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *periodEndServiceClient) GetControlSettings(ctx context.Context, in *ControlSettingsRequest, opts ...grpc.CallOption) (*ControlSettings, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ControlSettings)
@@ -7398,6 +7412,9 @@ type PeriodEndServiceServer interface {
 	ListProjectAllocations(context.Context, *ProjectProfitRequest) (*ListProjectAllocationsResponse, error)
 	CreateProjectAllocation(context.Context, *ProjectAllocation) (*ListProjectAllocationsResponse, error)
 	DeleteProjectAllocation(context.Context, *IdRequest) (*emptypb.Empty, error)
+	// Replaces the month's timesheet allocations with the payroll cost HR
+	// spread over projects by approved hours. Manual allocations stay.
+	AllocateFromTimesheet(context.Context, *AllocateFromTimesheetRequest) (*AllocateFromTimesheetResponse, error)
 	GetControlSettings(context.Context, *ControlSettingsRequest) (*ControlSettings, error)
 	SetControlSettings(context.Context, *ControlSettings) (*ControlSettings, error)
 	mustEmbedUnimplementedPeriodEndServiceServer()
@@ -7475,6 +7492,9 @@ func (UnimplementedPeriodEndServiceServer) CreateProjectAllocation(context.Conte
 }
 func (UnimplementedPeriodEndServiceServer) DeleteProjectAllocation(context.Context, *IdRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteProjectAllocation not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) AllocateFromTimesheet(context.Context, *AllocateFromTimesheetRequest) (*AllocateFromTimesheetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AllocateFromTimesheet not implemented")
 }
 func (UnimplementedPeriodEndServiceServer) GetControlSettings(context.Context, *ControlSettingsRequest) (*ControlSettings, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetControlSettings not implemented")
@@ -7899,6 +7919,24 @@ func _PeriodEndService_DeleteProjectAllocation_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PeriodEndService_AllocateFromTimesheet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AllocateFromTimesheetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).AllocateFromTimesheet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_AllocateFromTimesheet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).AllocateFromTimesheet(ctx, req.(*AllocateFromTimesheetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PeriodEndService_GetControlSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ControlSettingsRequest)
 	if err := dec(in); err != nil {
@@ -8029,6 +8067,10 @@ var PeriodEndService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProjectAllocation",
 			Handler:    _PeriodEndService_DeleteProjectAllocation_Handler,
+		},
+		{
+			MethodName: "AllocateFromTimesheet",
+			Handler:    _PeriodEndService_AllocateFromTimesheet_Handler,
 		},
 		{
 			MethodName: "GetControlSettings",
@@ -8551,6 +8593,150 @@ var AnalysisService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRatioTrend",
 			Handler:    _AnalysisService_GetRatioTrend_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/finance/v1/finance.proto",
+}
+
+const (
+	CompanyService_GetCompanyProfile_FullMethodName  = "/white.finance.v1.CompanyService/GetCompanyProfile"
+	CompanyService_SaveCompanyProfile_FullMethodName = "/white.finance.v1.CompanyService/SaveCompanyProfile"
+)
+
+// CompanyServiceClient is the client API for CompanyService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type CompanyServiceClient interface {
+	// Any signed-in user, and other services (Sales prints it on invoices).
+	GetCompanyProfile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CompanyProfile, error)
+	// finance.approve.
+	SaveCompanyProfile(ctx context.Context, in *CompanyProfile, opts ...grpc.CallOption) (*CompanyProfile, error)
+}
+
+type companyServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCompanyServiceClient(cc grpc.ClientConnInterface) CompanyServiceClient {
+	return &companyServiceClient{cc}
+}
+
+func (c *companyServiceClient) GetCompanyProfile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CompanyProfile, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompanyProfile)
+	err := c.cc.Invoke(ctx, CompanyService_GetCompanyProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *companyServiceClient) SaveCompanyProfile(ctx context.Context, in *CompanyProfile, opts ...grpc.CallOption) (*CompanyProfile, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompanyProfile)
+	err := c.cc.Invoke(ctx, CompanyService_SaveCompanyProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CompanyServiceServer is the server API for CompanyService service.
+// All implementations must embed UnimplementedCompanyServiceServer
+// for forward compatibility.
+type CompanyServiceServer interface {
+	// Any signed-in user, and other services (Sales prints it on invoices).
+	GetCompanyProfile(context.Context, *emptypb.Empty) (*CompanyProfile, error)
+	// finance.approve.
+	SaveCompanyProfile(context.Context, *CompanyProfile) (*CompanyProfile, error)
+	mustEmbedUnimplementedCompanyServiceServer()
+}
+
+// UnimplementedCompanyServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedCompanyServiceServer struct{}
+
+func (UnimplementedCompanyServiceServer) GetCompanyProfile(context.Context, *emptypb.Empty) (*CompanyProfile, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCompanyProfile not implemented")
+}
+func (UnimplementedCompanyServiceServer) SaveCompanyProfile(context.Context, *CompanyProfile) (*CompanyProfile, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveCompanyProfile not implemented")
+}
+func (UnimplementedCompanyServiceServer) mustEmbedUnimplementedCompanyServiceServer() {}
+func (UnimplementedCompanyServiceServer) testEmbeddedByValue()                        {}
+
+// UnsafeCompanyServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CompanyServiceServer will
+// result in compilation errors.
+type UnsafeCompanyServiceServer interface {
+	mustEmbedUnimplementedCompanyServiceServer()
+}
+
+func RegisterCompanyServiceServer(s grpc.ServiceRegistrar, srv CompanyServiceServer) {
+	// If the following call panics, it indicates UnimplementedCompanyServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&CompanyService_ServiceDesc, srv)
+}
+
+func _CompanyService_GetCompanyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CompanyServiceServer).GetCompanyProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CompanyService_GetCompanyProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CompanyServiceServer).GetCompanyProfile(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CompanyService_SaveCompanyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompanyProfile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CompanyServiceServer).SaveCompanyProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CompanyService_SaveCompanyProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CompanyServiceServer).SaveCompanyProfile(ctx, req.(*CompanyProfile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CompanyService_ServiceDesc is the grpc.ServiceDesc for CompanyService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CompanyService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.finance.v1.CompanyService",
+	HandlerType: (*CompanyServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetCompanyProfile",
+			Handler:    _CompanyService_GetCompanyProfile_Handler,
+		},
+		{
+			MethodName: "SaveCompanyProfile",
+			Handler:    _CompanyService_SaveCompanyProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

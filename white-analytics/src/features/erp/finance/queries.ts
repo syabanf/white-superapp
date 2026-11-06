@@ -2,6 +2,7 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  PaymentProof,
   PoMatch,
   ProjectAllocation,
   SalesReversal,
@@ -355,6 +356,11 @@ export function listAuditTrail(q: Q) {
 
 export async function listSalesReversals() {
   return (await gatewayFetch<{ reversals?: SalesReversal[] }>(`${F}/sales-reversals`)).reversals ?? [];
+}
+
+export async function listPaymentProofs(status: string) {
+  const q = status ? `?status=${encodeURIComponent(status)}` : "";
+  return (await gatewayFetch<{ proofs?: PaymentProof[] }>(`/v1/sales/payment-proofs${q}`)).proofs ?? [];
 }
 
 export async function listPoMatches() {

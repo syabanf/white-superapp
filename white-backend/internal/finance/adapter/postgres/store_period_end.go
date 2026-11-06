@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	pg "github.com/syabanf/white-superapp/white-backend/pkg/postgres"
 	"time"
 
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/adapter/postgres/sqlc"
@@ -168,12 +169,16 @@ func (s *Store) POInvoices(ctx context.Context, documentID string) ([]domain.POI
 func (s *Store) ListProjectAllocations(ctx context.Context, fromMonth, toMonth string) ([]domain.ProjectAllocation, error) {
 	rows, err := s.q.ListProjectAllocations(ctx, sqlc.ListProjectAllocationsParams{MonthFrom: fromMonth, MonthTo: toMonth})
 	return mapAll(rows, func(r sqlc.ListProjectAllocationsRow) domain.ProjectAllocation {
-		return domain.ProjectAllocation{ID: r.ID, TagID: r.TagID, TagName: r.TagName, ClientName: r.ClientName, Month: r.Month, Kind: r.Kind, Amount: r.Amount, Notes: r.Notes, CreatedBy: str(r.CreatedBy)}
+		return domain.ProjectAllocation{ID: r.ID, TagID: r.TagID, TagName: r.TagName, ClientName: r.ClientName, Month: r.Month, Kind: r.Kind, Amount: r.Amount, Notes: r.Notes, CreatedBy: str(r.CreatedBy), Source: r.Source}
 	}), err
 }
 
 func (s *Store) InsertProjectAllocation(ctx context.Context, a domain.ProjectAllocation) error {
-	return wrap(s.q.InsertProjectAllocation(ctx, sqlc.InsertProjectAllocationParams{ID: a.ID, TagID: a.TagID, Month: a.Month, Kind: a.Kind, Amount: a.Amount, Notes: a.Notes, By: sp(a.CreatedBy)}))
+	return wrap(s.q.InsertProjectAllocation(ctx, sqlc.InsertProjectAllocationParams{ID: a.ID, TagID: a.TagID, Month: a.Month, Kind: a.Kind, Amount: a.Amount, Notes: a.Notes, By: sp(a.CreatedBy), Source: a.Source}))
+}
+
+func (s *Store) DeleteTimesheetAllocations(ctx context.Context, month string) error {
+	return s.q.DeleteTimesheetAllocations(ctx, month)
 }
 
 func (s *Store) DeleteProjectAllocation(ctx context.Context, id string) error {
@@ -183,4 +188,21 @@ func (s *Store) DeleteProjectAllocation(ctx context.Context, id string) error {
 func (s *Store) InsertInvoiceReminder(ctx context.Context, invoiceID string, stage int) (bool, error) {
 	n, err := s.q.InsertInvoiceReminder(ctx, sqlc.InsertInvoiceReminderParams{InvoiceID: invoiceID, Stage: int32(stage)})
 	return n > 0, err
+}
+
+func (s *Store) CompanyProfile(ctx context.Context) (*domain.Company, error) {
+	r, err := s.q.GetCompanyProfile(ctx)
+	if pg.IsNoRows(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &domain.Company{LegalName: r.LegalName, Address: r.Address, Email: r.Email, Phone: r.Phone, NPWP: r.Npwp,
+		BankName: r.BankName, BankAccountNo: r.BankAccountNo, BankAccountName: r.BankAccountName}, nil
+}
+
+func (s *Store) SaveCompanyProfile(ctx context.Context, c domain.Company, by string) error {
+	return s.q.UpsertCompanyProfile(ctx, sqlc.UpsertCompanyProfileParams{LegalName: c.LegalName, Address: c.Address, Email: c.Email, Phone: c.Phone,
+		Npwp: c.NPWP, BankName: c.BankName, BankAccountNo: c.BankAccountNo, BankAccountName: c.BankAccountName, By: sp(by)})
 }

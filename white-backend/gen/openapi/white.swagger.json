@@ -40,6 +40,9 @@
       "name": "ReportService"
     },
     {
+      "name": "PortalService"
+    },
+    {
       "name": "AccountService"
     },
     {
@@ -92,6 +95,9 @@
       "name": "AnalysisService"
     },
     {
+      "name": "CompanyService"
+    },
+    {
       "name": "EmployeeService"
     },
     {
@@ -123,6 +129,12 @@
     },
     {
       "name": "HrReportService"
+    },
+    {
+      "name": "TrainingService"
+    },
+    {
+      "name": "TimesheetService"
     },
     {
       "name": "AuthService"
@@ -175,6 +187,9 @@
     },
     {
       "name": "ImprovementService"
+    },
+    {
+      "name": "OkrService"
     },
     {
       "name": "MediaService"
@@ -3694,7 +3709,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1AssetDetail"
+              "$ref": "#/definitions/whiteContentV1AssetDetail"
             }
           }
         },
@@ -3726,7 +3741,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1AssetDetail"
+              "$ref": "#/definitions/whiteContentV1AssetDetail"
             }
           }
         },
@@ -3783,7 +3798,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1AssetDetail"
+              "$ref": "#/definitions/whiteContentV1AssetDetail"
             }
           }
         },
@@ -3860,7 +3875,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1AssetDetail"
+              "$ref": "#/definitions/whiteContentV1AssetDetail"
             }
           }
         },
@@ -6839,6 +6854,48 @@
         ]
       }
     },
+    "/v1/finance/company-profile": {
+      "get": {
+        "summary": "Any signed-in user, and other services (Sales prints it on invoices).",
+        "operationId": "CompanyService_GetCompanyProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CompanyProfile"
+            }
+          }
+        },
+        "tags": [
+          "CompanyService"
+        ]
+      },
+      "put": {
+        "summary": "finance.approve.",
+        "operationId": "CompanyService_SaveCompanyProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CompanyProfile"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CompanyProfile"
+            }
+          }
+        ],
+        "tags": [
+          "CompanyService"
+        ]
+      }
+    },
     "/v1/finance/control-settings": {
       "get": {
         "operationId": "PeriodEndService_GetControlSettings",
@@ -8941,6 +8998,33 @@
         ]
       }
     },
+    "/v1/finance/project-allocations:from-timesheet": {
+      "post": {
+        "summary": "Replaces the month's timesheet allocations with the payroll cost HR\nspread over projects by approved hours. Manual allocations stay.",
+        "operationId": "PeriodEndService_AllocateFromTimesheet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AllocateFromTimesheetResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AllocateFromTimesheetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
     "/v1/finance/project-tags": {
       "get": {
         "operationId": "ProjectTagService_ListProjectTags",
@@ -11027,6 +11111,156 @@
         ],
         "tags": [
           "AnnouncementService"
+        ]
+      }
+    },
+    "/v1/hr/assets": {
+      "get": {
+        "summary": "hr.read sees every asset; others see what they hold.",
+        "operationId": "AssetService_ListAssets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListAssetsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AssetService"
+        ]
+      },
+      "post": {
+        "summary": "hr.write. Empty id creates.",
+        "operationId": "AssetService_SaveAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteHrV1Asset"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SaveAssetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AssetService"
+        ]
+      }
+    },
+    "/v1/hr/assets/{id}": {
+      "get": {
+        "operationId": "AssetService_GetAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteHrV1AssetDetail"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AssetService"
+        ]
+      }
+    },
+    "/v1/hr/assets/{id}:assign": {
+      "post": {
+        "operationId": "AssetService_AssignAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteHrV1Asset"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AssetServiceAssignAssetBody"
+            }
+          }
+        ],
+        "tags": [
+          "AssetService"
+        ]
+      }
+    },
+    "/v1/hr/assets/{id}:return": {
+      "post": {
+        "operationId": "AssetService_ReturnAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whiteHrV1Asset"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AssetServiceReturnAssetBody"
+            }
+          }
+        ],
+        "tags": [
+          "AssetService"
         ]
       }
     },
@@ -14730,6 +14964,328 @@
         ]
       }
     },
+    "/v1/hr/timesheet": {
+      "get": {
+        "summary": "hr.read sees everyone (empty employee_id); others see their own.",
+        "operationId": "TimesheetService_ListTimesheet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTimesheetResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TimesheetService"
+        ]
+      },
+      "post": {
+        "summary": "self.service, own entries only. Empty id creates; an edit returns it to draft.",
+        "operationId": "TimesheetService_SaveTimesheetEntry",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TimesheetEntry"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SaveTimesheetEntryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TimesheetService"
+        ]
+      }
+    },
+    "/v1/hr/timesheet/{id}": {
+      "delete": {
+        "operationId": "TimesheetService_DeleteTimesheetEntry",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TimesheetService"
+        ]
+      }
+    },
+    "/v1/hr/timesheet:decide": {
+      "post": {
+        "summary": "hr.approve; never one's own entries.",
+        "operationId": "TimesheetService_DecideTimesheet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TimesheetCount"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1DecideTimesheetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TimesheetService"
+        ]
+      }
+    },
+    "/v1/hr/timesheet:submit": {
+      "post": {
+        "summary": "Sends the caller's draft and rejected entries in the range for approval.",
+        "operationId": "TimesheetService_SubmitTimesheet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TimesheetCount"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SubmitTimesheetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TimesheetService"
+        ]
+      }
+    },
+    "/v1/hr/trainings": {
+      "get": {
+        "summary": "hr.read sees every training; others see the ones they joined.",
+        "operationId": "TrainingService_ListTrainings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTrainingsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "TrainingService"
+        ]
+      },
+      "post": {
+        "summary": "hr.write. Empty id creates.",
+        "operationId": "TrainingService_SaveTraining",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Training"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Training"
+            }
+          }
+        ],
+        "tags": [
+          "TrainingService"
+        ]
+      }
+    },
+    "/v1/hr/trainings/{id}": {
+      "get": {
+        "operationId": "TrainingService_GetTraining",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TrainingDetail"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TrainingService"
+        ]
+      },
+      "delete": {
+        "operationId": "TrainingService_DeleteTraining",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TrainingService"
+        ]
+      }
+    },
+    "/v1/hr/trainings/{id}/participants": {
+      "put": {
+        "summary": "Replaces the participant list; recorded results of people who stay are kept.",
+        "operationId": "TrainingService_SetTrainingParticipants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TrainingDetail"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TrainingServiceSetTrainingParticipantsBody"
+            }
+          }
+        ],
+        "tags": [
+          "TrainingService"
+        ]
+      }
+    },
+    "/v1/hr/trainings/{id}/participants/{employeeId}:result": {
+      "post": {
+        "operationId": "TrainingService_RecordTrainingResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TrainingDetail"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "employeeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TrainingServiceRecordTrainingResultBody"
+            }
+          }
+        ],
+        "tags": [
+          "TrainingService"
+        ]
+      }
+    },
     "/v1/integrations": {
       "get": {
         "operationId": "SettingsService_ListIntegrationStatuses",
@@ -14796,7 +15352,8 @@
               "GOOGLE",
               "DATAFORSEO",
               "APIFY",
-              "OPENROUTER"
+              "OPENROUTER",
+              "RESEND"
             ]
           }
         ],
@@ -14826,7 +15383,8 @@
               "GOOGLE",
               "DATAFORSEO",
               "APIFY",
-              "OPENROUTER"
+              "OPENROUTER",
+              "RESEND"
             ]
           },
           {
@@ -16859,6 +17417,188 @@
         ]
       }
     },
+    "/v1/performance/okr": {
+      "get": {
+        "summary": "Everyone signed in sees the whole board for a period (YYYY-Qn).",
+        "operationId": "OkrService_GetOkrBoard",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1OkrBoard"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OkrService"
+        ]
+      }
+    },
+    "/v1/performance/okr/key-results": {
+      "post": {
+        "operationId": "OkrService_SaveKeyResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1KeyResult"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SaveKeyResultRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OkrService"
+        ]
+      }
+    },
+    "/v1/performance/okr/key-results/{id}": {
+      "delete": {
+        "operationId": "OkrService_DeleteKeyResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whitePerformanceV1MessageResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OkrService"
+        ]
+      }
+    },
+    "/v1/performance/okr/key-results/{id}/check-ins": {
+      "get": {
+        "operationId": "OkrService_ListCheckins",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListCheckinsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OkrService"
+        ]
+      }
+    },
+    "/v1/performance/okr/key-results/{id}:check-in": {
+      "post": {
+        "operationId": "OkrService_CheckInKeyResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1KeyResult"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OkrServiceCheckInKeyResultBody"
+            }
+          }
+        ],
+        "tags": [
+          "OkrService"
+        ]
+      }
+    },
+    "/v1/performance/okr/objectives": {
+      "post": {
+        "summary": "Company: hr.write. Department: hr.write or its head. Employee: the\nemployee, their leads or hr.write. Empty id creates.",
+        "operationId": "OkrService_SaveObjective",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Objective"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SaveObjectiveRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OkrService"
+        ]
+      }
+    },
+    "/v1/performance/okr/objectives/{id}": {
+      "delete": {
+        "operationId": "OkrService_DeleteObjective",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/whitePerformanceV1MessageResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OkrService"
+        ]
+      }
+    },
     "/v1/performance/recaps/daily/history": {
       "get": {
         "operationId": "RecapService_ListDailyRecapHistory",
@@ -17835,6 +18575,79 @@
         ]
       }
     },
+    "/v1/public/content/portal/{slug}/items/{itemId}:decide": {
+      "post": {
+        "summary": "Public. Approve, or send back to revision with a note.",
+        "operationId": "PortalService_DecideContent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PortalServiceDecideContentBody"
+            }
+          }
+        ],
+        "tags": [
+          "PortalService"
+        ]
+      }
+    },
+    "/v1/public/content/portal/{slug}:review": {
+      "post": {
+        "summary": "Public. Items waiting for review; the share page must be enabled,\nprotected by a PIN and unlocked (`unlock_token` is the share cookie).",
+        "operationId": "PortalService_GetContentReview",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ContentReview"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PortalServiceGetContentReviewBody"
+            }
+          }
+        ],
+        "tags": [
+          "PortalService"
+        ]
+      }
+    },
     "/v1/public/sales/chat": {
       "post": {
         "summary": "Public website chat widget (no auth, rate limited per IP).",
@@ -18125,6 +18938,78 @@
         ],
         "tags": [
           "OnboardingService"
+        ]
+      }
+    },
+    "/v1/public/sales/portal/{slug}/invoices/{invoiceId}/proofs": {
+      "post": {
+        "summary": "Public. PDF, PNG, JPG or WEBP up to 15 MB; Finance approves it before\nanything posts.",
+        "operationId": "PortalService_SubmitPaymentProof",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PaymentProof"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PortalServiceSubmitPaymentProofBody"
+            }
+          }
+        ],
+        "tags": [
+          "PortalService"
+        ]
+      }
+    },
+    "/v1/public/sales/portal/{slug}:view": {
+      "post": {
+        "summary": "Public. `unlock_token` is the share cookie; the page must be enabled and\nprotected by a PIN. POST keeps the token out of URLs and logs.",
+        "operationId": "PortalService_GetPortal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Portal"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PortalServiceGetPortalBody"
+            }
+          }
+        ],
+        "tags": [
+          "PortalService"
         ]
       }
     },
@@ -23051,6 +23936,97 @@
         ]
       }
     },
+    "/v1/sales/payment-proofs": {
+      "get": {
+        "summary": "Sales or finance writers.",
+        "operationId": "PortalService_ListPaymentProofs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPaymentProofsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "status",
+            "description": "Empty lists every status.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PortalService"
+        ]
+      }
+    },
+    "/v1/sales/payment-proofs/{id}:approve": {
+      "post": {
+        "summary": "Records the payment (published to Finance) and links it to the proof.",
+        "operationId": "PortalService_ApprovePaymentProof",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PaymentProof"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PortalServiceApprovePaymentProofBody"
+            }
+          }
+        ],
+        "tags": [
+          "PortalService"
+        ]
+      }
+    },
+    "/v1/sales/payment-proofs/{id}:reject": {
+      "post": {
+        "operationId": "PortalService_RejectPaymentProof",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PaymentProof"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PortalServiceRejectPaymentProofBody"
+            }
+          }
+        ],
+        "tags": [
+          "PortalService"
+        ]
+      }
+    },
     "/v1/sales/payments/{id}": {
       "delete": {
         "operationId": "BillingService_DeletePayment",
@@ -24210,6 +25186,20 @@
         }
       }
     },
+    "AssetServiceAssignAssetBody": {
+      "type": "object",
+      "properties": {
+        "employeeId": {
+          "type": "string"
+        },
+        "assignedOn": {
+          "type": "string"
+        },
+        "condition": {
+          "type": "string"
+        }
+      }
+    },
     "AssetServiceCreateAssetBody": {
       "type": "object",
       "properties": {
@@ -24251,6 +25241,17 @@
       "type": "object",
       "properties": {
         "name": {
+          "type": "string"
+        }
+      }
+    },
+    "AssetServiceReturnAssetBody": {
+      "type": "object",
+      "properties": {
+        "returnedOn": {
+          "type": "string"
+        },
+        "condition": {
           "type": "string"
         }
       }
@@ -25667,6 +26668,22 @@
         }
       }
     },
+    "OkrServiceCheckInKeyResultBody": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "format": "double"
+        },
+        "confidence": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
     "OnboardingServiceCreateMarketingClientBody": {
       "type": "object",
       "properties": {
@@ -26088,6 +27105,97 @@
         "brief": {
           "$ref": "#/definitions/v1PlanBrief",
           "description": "Present: replace the whole brief."
+        }
+      }
+    },
+    "PortalServiceApprovePaymentProofBody": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string",
+          "description": "Empty keeps what the client entered; set them to match the bank statement."
+        },
+        "paidOn": {
+          "type": "string"
+        },
+        "bankFee": {
+          "type": "string"
+        },
+        "withheld": {
+          "type": "string"
+        },
+        "withheldTaxCode": {
+          "type": "string"
+        }
+      }
+    },
+    "PortalServiceDecideContentBody": {
+      "type": "object",
+      "properties": {
+        "unlockToken": {
+          "type": "string"
+        },
+        "approve": {
+          "type": "boolean"
+        },
+        "signerName": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string",
+          "description": "Required when sending back."
+        }
+      }
+    },
+    "PortalServiceGetContentReviewBody": {
+      "type": "object",
+      "properties": {
+        "unlockToken": {
+          "type": "string"
+        }
+      }
+    },
+    "PortalServiceGetPortalBody": {
+      "type": "object",
+      "properties": {
+        "unlockToken": {
+          "type": "string"
+        }
+      }
+    },
+    "PortalServiceRejectPaymentProofBody": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "PortalServiceSubmitPaymentProofBody": {
+      "type": "object",
+      "properties": {
+        "unlockToken": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "paidOn": {
+          "type": "string",
+          "title": "YYYY-MM-DD"
+        },
+        "payerName": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string",
+          "format": "byte"
         }
       }
     },
@@ -27025,6 +28133,31 @@
         "advanceAccountId": {
           "type": "string",
           "description": "Holds the share of the note above the outstanding amount."
+        }
+      }
+    },
+    "TrainingServiceRecordTrainingResultBody": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "score": {
+          "type": "string"
+        },
+        "certificate": {
+          "type": "string"
+        }
+      }
+    },
+    "TrainingServiceSetTrainingParticipantsBody": {
+      "type": "object",
+      "properties": {
+        "employeeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -28327,6 +29460,34 @@
         }
       }
     },
+    "v1AllocateFromTimesheetRequest": {
+      "type": "object",
+      "properties": {
+        "month": {
+          "type": "string",
+          "title": "YYYY-MM"
+        }
+      }
+    },
+    "v1AllocateFromTimesheetResponse": {
+      "type": "object",
+      "properties": {
+        "allocations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProjectAllocation"
+          }
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "HR projects without a Finance tag."
+        }
+      }
+    },
     "v1Allocation": {
       "type": "object",
       "properties": {
@@ -28725,68 +29886,26 @@
         }
       }
     },
-    "v1Asset": {
+    "v1AssetAssignment": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string"
         },
-        "clientId": {
+        "employee": {
+          "$ref": "#/definitions/v1EmployeeRef"
+        },
+        "assignedOn": {
           "type": "string"
         },
-        "folderId": {
+        "returnedOn": {
           "type": "string"
         },
-        "kind": {
-          "$ref": "#/definitions/v1AssetKind"
-        },
-        "name": {
+        "conditionOut": {
           "type": "string"
         },
-        "description": {
+        "conditionIn": {
           "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "currentVersion": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "current": {
-          "$ref": "#/definitions/v1AssetVersion"
-        },
-        "createdBy": {
-          "type": "string"
-        },
-        "updatedBy": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "v1AssetDetail": {
-      "type": "object",
-      "properties": {
-        "asset": {
-          "$ref": "#/definitions/v1Asset"
-        },
-        "versions": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1AssetVersion"
-          }
         }
       }
     },
@@ -31128,6 +32247,39 @@
         }
       }
     },
+    "v1CompanyProfile": {
+      "type": "object",
+      "properties": {
+        "legalName": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "npwp": {
+          "type": "string"
+        },
+        "bankName": {
+          "type": "string"
+        },
+        "bankAccountNo": {
+          "type": "string"
+        },
+        "bankAccountName": {
+          "type": "string"
+        },
+        "bankLine": {
+          "type": "string",
+          "description": "Read only: the transfer instruction built from the bank fields."
+        }
+      }
+    },
     "v1CompetitorChartPoint": {
       "type": "object",
       "properties": {
@@ -31649,6 +32801,18 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "v1ContentReview": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PortalItem"
+          }
         }
       }
     },
@@ -33949,6 +35113,23 @@
           "$ref": "#/definitions/v1Assignment"
         },
         "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1DecideTimesheetRequest": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "approve": {
+          "type": "boolean"
+        },
+        "reason": {
           "type": "string"
         }
       }
@@ -38422,9 +39603,11 @@
         "GOOGLE",
         "DATAFORSEO",
         "APIFY",
-        "OPENROUTER"
+        "OPENROUTER",
+        "RESEND"
       ],
-      "default": "INTEGRATION_KEY_UNSPECIFIED"
+      "default": "INTEGRATION_KEY_UNSPECIFIED",
+      "description": " - RESEND: Email. public_id is the From address, e.g. \"Mixist <billing@mixist.id>\"."
     },
     "v1IntegrationStatus": {
       "type": "object",
@@ -39489,6 +40672,53 @@
         }
       }
     },
+    "v1KeyResult": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "objectiveId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "metric": {
+          "type": "string",
+          "title": "number | percent | currency"
+        },
+        "startValue": {
+          "type": "number",
+          "format": "double"
+        },
+        "targetValue": {
+          "type": "number",
+          "format": "double"
+        },
+        "currentValue": {
+          "type": "number",
+          "format": "double"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "sortOrder": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "progress": {
+          "type": "number",
+          "format": "double",
+          "description": "0 to 1."
+        },
+        "confidence": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Last check-in, 1 to 10; 0 before any."
+        }
+      }
+    },
     "v1KeywordGap": {
       "type": "object",
       "properties": {
@@ -40251,6 +41481,18 @@
         }
       }
     },
+    "v1ListAssetsResponse": {
+      "type": "object",
+      "properties": {
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/whiteHrV1Asset"
+          }
+        }
+      }
+    },
     "v1ListAssignmentsResponse": {
       "type": "object",
       "properties": {
@@ -40418,6 +41660,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1ChargeType"
+          }
+        }
+      }
+    },
+    "v1ListCheckinsResponse": {
+      "type": "object",
+      "properties": {
+        "checkins": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1OkrCheckin"
           }
         }
       }
@@ -41213,6 +42467,18 @@
         }
       }
     },
+    "v1ListPaymentProofsResponse": {
+      "type": "object",
+      "properties": {
+        "proofs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PaymentProof"
+          }
+        }
+      }
+    },
     "v1ListPayrollAdditionsResponse": {
       "type": "object",
       "properties": {
@@ -41738,6 +43004,30 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1LogbookTemplate"
+          }
+        }
+      }
+    },
+    "v1ListTimesheetResponse": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TimesheetEntry"
+          }
+        }
+      }
+    },
+    "v1ListTrainingsResponse": {
+      "type": "object",
+      "properties": {
+        "trainings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Training"
           }
         }
       }
@@ -43340,6 +44630,59 @@
         }
       }
     },
+    "v1Objective": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "title": "company | department | employee"
+        },
+        "departmentId": {
+          "type": "string"
+        },
+        "employeeId": {
+          "type": "string"
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Department or employee name."
+        },
+        "parentId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "title": "active | done | cancelled"
+        },
+        "keyResults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1KeyResult"
+          }
+        },
+        "progress": {
+          "type": "number",
+          "format": "double",
+          "description": "Average of the key results, 0 to 1."
+        },
+        "canEdit": {
+          "type": "boolean"
+        }
+      }
+    },
     "v1OccurrenceActionResponse": {
       "type": "object",
       "properties": {
@@ -43537,6 +44880,70 @@
         "expiresAt": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "v1OkrBoard": {
+      "type": "object",
+      "properties": {
+        "objectives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Objective"
+          }
+        },
+        "canCompany": {
+          "type": "boolean",
+          "description": "Where the caller may add objectives."
+        },
+        "departments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1OkrOwner"
+          }
+        },
+        "employees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1OkrOwner"
+          }
+        }
+      }
+    },
+    "v1OkrCheckin": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number",
+          "format": "double"
+        },
+        "confidence": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "note": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "v1OkrOwner": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
@@ -44489,6 +45896,59 @@
         }
       }
     },
+    "v1PaymentProof": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
+        "invoiceNumber": {
+          "type": "string"
+        },
+        "dealId": {
+          "type": "string"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "paidOn": {
+          "type": "string"
+        },
+        "payerName": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "title": "PENDING | APPROVED | REJECTED"
+        },
+        "rejectReason": {
+          "type": "string"
+        },
+        "paymentId": {
+          "type": "string"
+        },
+        "decidedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
     "v1PaymentResult": {
       "type": "object",
       "properties": {
@@ -45254,6 +46714,43 @@
         }
       }
     },
+    "v1Portal": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "invoices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/whiteSalesV1Invoice"
+          },
+          "description": "Issued invoices, newest first."
+        },
+        "contracts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PortalContract"
+          }
+        },
+        "proofs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PaymentProof"
+          }
+        },
+        "bankLine": {
+          "type": "string",
+          "description": "Where to transfer."
+        }
+      }
+    },
     "v1PortalActionResponse": {
       "type": "object",
       "properties": {
@@ -45261,6 +46758,52 @@
           "type": "string"
         },
         "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PortalContract": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "contractNumber": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "title": "sent | signed | active | ended"
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "signedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "signToken": {
+          "type": "string",
+          "description": "Opens /kontrak/{sign_token} to read or sign."
+        }
+      }
+    },
+    "v1PortalFile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "mimeType": {
           "type": "string"
         }
       }
@@ -45283,6 +46826,50 @@
         },
         "instructions": {
           "type": "string"
+        }
+      }
+    },
+    "v1PortalItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "plannedDate": {
+          "type": "string",
+          "title": "YYYY-MM-DD"
+        },
+        "platform": {
+          "$ref": "#/definitions/v1SocialPlatform"
+        },
+        "format": {
+          "$ref": "#/definitions/v1ContentFormat"
+        },
+        "hook": {
+          "type": "string"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "hashtags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "revisionRound": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PortalFile"
+          }
         }
       }
     },
@@ -45898,6 +47485,10 @@
         },
         "notes": {
           "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "title": "MANUAL | TIMESHEET"
         }
       }
     },
@@ -48820,6 +50411,39 @@
         }
       }
     },
+    "v1SaveAssetRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "assetCode": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "serialNo": {
+          "type": "string"
+        },
+        "purchaseDate": {
+          "type": "string"
+        },
+        "purchaseValue": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "description": "available | repair | retired; empty keeps the state."
+        }
+      }
+    },
     "v1SaveBeginningBalanceResponse": {
       "type": "object",
       "properties": {
@@ -48851,6 +50475,38 @@
         "weight": {
           "type": "number",
           "format": "double"
+        }
+      }
+    },
+    "v1SaveKeyResultRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "objectiveId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "metric": {
+          "type": "string"
+        },
+        "startValue": {
+          "type": "number",
+          "format": "double"
+        },
+        "targetValue": {
+          "type": "number",
+          "format": "double"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "sortOrder": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -48914,6 +50570,38 @@
         }
       }
     },
+    "v1SaveObjectiveRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        },
+        "departmentId": {
+          "type": "string"
+        },
+        "employeeId": {
+          "type": "string"
+        },
+        "parentId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "v1SavePostResponse": {
       "type": "object",
       "properties": {
@@ -48972,6 +50660,29 @@
             "type": "object",
             "$ref": "#/definitions/v1SalesTarget"
           }
+        }
+      }
+    },
+    "v1SaveTimesheetEntryRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "workDate": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "projectName": {
+          "type": "string"
+        },
+        "hours": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
         }
       }
     },
@@ -49275,7 +50986,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v1Asset"
+            "$ref": "#/definitions/whiteContentV1Asset"
           }
         }
       }
@@ -50435,6 +52146,17 @@
         }
       }
     },
+    "v1SubmitTimesheetRequest": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        }
+      }
+    },
     "v1SubsidiaryLedger": {
       "type": "object",
       "properties": {
@@ -51391,6 +53113,49 @@
         }
       }
     },
+    "v1TimesheetCount": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1TimesheetEntry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "employee": {
+          "$ref": "#/definitions/v1EmployeeRef"
+        },
+        "workDate": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Finance project tag; empty is internal work."
+        },
+        "projectName": {
+          "type": "string"
+        },
+        "hours": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "title": "draft | submitted | approved | rejected"
+        },
+        "rejectReason": {
+          "type": "string"
+        }
+      }
+    },
     "v1TodayShift": {
       "type": "object",
       "properties": {
@@ -51466,6 +53231,77 @@
           "description": "d0 (own domain), d1..d3 (top competitors by latest organic traffic)."
         },
         "label": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Training": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "title": "planned | done | cancelled"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "participantCount": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1TrainingDetail": {
+      "type": "object",
+      "properties": {
+        "training": {
+          "$ref": "#/definitions/v1Training"
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TrainingParticipant"
+          }
+        }
+      }
+    },
+    "v1TrainingParticipant": {
+      "type": "object",
+      "properties": {
+        "employee": {
+          "$ref": "#/definitions/v1EmployeeRef"
+        },
+        "status": {
+          "type": "string",
+          "title": "registered | attended | absent"
+        },
+        "score": {
+          "type": "string",
+          "description": "Empty until scored."
+        },
+        "certificate": {
           "type": "string"
         }
       }
@@ -52030,6 +53866,71 @@
         },
         "error": {
           "type": "string"
+        }
+      }
+    },
+    "whiteContentV1Asset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "folderId": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/definitions/v1AssetKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "currentVersion": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "current": {
+          "$ref": "#/definitions/v1AssetVersion"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "updatedBy": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "whiteContentV1AssetDetail": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "$ref": "#/definitions/whiteContentV1Asset"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AssetVersion"
+          }
         }
       }
     },
@@ -52661,6 +54562,58 @@
         },
         "cashAmount": {
           "type": "string"
+        }
+      }
+    },
+    "whiteHrV1Asset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "assetCode": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "title": "laptop | phone | vehicle | furniture | other"
+        },
+        "serialNo": {
+          "type": "string"
+        },
+        "purchaseDate": {
+          "type": "string"
+        },
+        "purchaseValue": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "title": "available | assigned | repair | retired"
+        },
+        "holder": {
+          "$ref": "#/definitions/v1EmployeeRef"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "whiteHrV1AssetDetail": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "$ref": "#/definitions/whiteHrV1Asset"
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AssetAssignment"
+          }
         }
       }
     },

@@ -21,6 +21,7 @@ const (
 	msgMetaAppID      = "App ID"
 	msgGoogleClientID = "Client ID"
 	msgDfsLogin       = "Login (email akun)"
+	msgMailFrom       = "Alamat pengirim"
 )
 
 // ProviderVerifier runs the one-call credential checks (adapter/providers/verify).
@@ -30,6 +31,8 @@ type ProviderVerifier interface {
 	DataForSeo(ctx context.Context, login, password string) domain.VerifyResult
 	OpenRouter(ctx context.Context, apiKey string) domain.VerifyResult
 	Apify(ctx context.Context, token string) domain.VerifyResult
+	// Resend checks the key and that the From address's domain is verified.
+	Resend(ctx context.Context, apiKey, from string) domain.VerifyResult
 }
 
 type Settings struct {
@@ -193,6 +196,8 @@ func (s *Settings) runVerify(ctx context.Context, key domain.IntegrationKey, c d
 		return needPublic(msgDfsLogin, func() domain.VerifyResult { return s.verifier.DataForSeo(ctx, c.PublicID, c.Secret) })
 	case domain.KeyApify:
 		return s.verifier.Apify(ctx, c.Secret)
+	case domain.KeyResend:
+		return needPublic(msgMailFrom, func() domain.VerifyResult { return s.verifier.Resend(ctx, c.Secret, c.PublicID) })
 	default:
 		return s.verifier.OpenRouter(ctx, c.Secret)
 	}

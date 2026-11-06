@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/syabanf/white-superapp/white-backend/internal/sales/app"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/domain"
 )
 
@@ -33,8 +34,9 @@ func invoice() domain.Invoice {
 
 func TestQuotationAndInvoicePDF(t *testing.T) {
 	deal := domain.Deal{Title: "SEO PT Maju", PicName: "Andi", PicPhone: "0812 3456 7890", PicEmail: "andi@majujaya.co.id"}
-	cases := map[string]Company{
+	cases := map[string]app.Company{
 		"defaults": CompanyFromEnv(),
+		"bank":     {LegalName: legalName, BankLine: "Transfer ke BCA 123 a.n. PT Mixist."},
 		"npwp":     {LegalName: legalName, Address: brandAddress, Email: brandEmail, Phone: brandPhone, NPWP: "01.234.567.8-901.000"},
 		"no npwp, long address": {LegalName: legalName, Email: brandEmail,
 			Address: "Gedung Mixist Tower Lantai 12, Jl. Jenderal Sudirman Kav. 52-53, Senayan, Kebayoran Baru, Jakarta Selatan, DKI Jakarta 12190"},
@@ -42,22 +44,21 @@ func TestQuotationAndInvoicePDF(t *testing.T) {
 	}
 	for name, co := range cases {
 		t.Run(name, func(t *testing.T) {
-			r := Renderer{Company: co}
-			pdf, err := r.QuotationPDF(quote(), deal, "Sari Sales")
+			pdf, err := New().QuotationPDF(co, quote(), deal, "Sari Sales")
 			if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF-")) {
 				t.Fatalf("quotation pdf: %v", err)
 			}
-			pdf, err = r.InvoicePDF(invoice(), deal, "QT-2610-0001")
+			pdf, err = New().InvoicePDF(co, invoice(), deal, "QT-2610-0001")
 			if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF-")) {
 				t.Fatalf("invoice pdf: %v", err)
 			}
 		})
 	}
 	// Unknown owner and no source quotation leave their rows out.
-	if _, err := New().QuotationPDF(quote(), domain.Deal{}, ""); err != nil {
+	if _, err := New().QuotationPDF(app.Company{}, quote(), domain.Deal{}, ""); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := New().InvoicePDF(domain.Invoice{InvoiceNumber: "INV-2610-0002", Status: "diajukan"}, domain.Deal{}, ""); err != nil {
+	if _, err := New().InvoicePDF(app.Company{}, domain.Invoice{InvoiceNumber: "INV-2610-0002", Status: "diajukan"}, domain.Deal{}, ""); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -89,12 +90,12 @@ func TestContractPDF(t *testing.T) {
 	signed := time.Now()
 	name, ip := "Andi Wijaya", "203.0.113.5"
 	c := domain.Contract{ID: "c1", ContractNumber: "KTR-2610-0001", Title: "Perjanjian Retainer", ClientName: "PT Maju", Body: body, SignedAt: &signed, SignerName: &name, SignerIP: &ip, SignaturePNG: signature(t)}
-	pdf, err := New().ContractPDF(c)
+	pdf, err := New().ContractPDF(CompanyFromEnv(), c)
 	if err != nil || !bytes.HasPrefix(pdf, []byte("%PDF-")) {
 		t.Fatalf("contract pdf: %v", err)
 	}
 	c.SignaturePNG, c.SignedAt = nil, nil
-	if _, err := New().ContractPDF(c); err != nil {
+	if _, err := New().ContractPDF(CompanyFromEnv(), c); err != nil {
 		t.Fatal(err)
 	}
 }

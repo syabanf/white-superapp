@@ -2,6 +2,8 @@ package grpcapi
 
 import (
 	"context"
+	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
+	"github.com/syabanf/white-superapp/white-backend/pkg/authn"
 
 	financev1 "github.com/syabanf/white-superapp/white-backend/gen/go/white/finance/v1"
 	"github.com/syabanf/white-superapp/white-backend/internal/finance/app"
@@ -18,17 +20,28 @@ func projectTagPB(t *domain.ProjectTag) *financev1.ProjectTag {
 	return &financev1.ProjectTag{Id: t.ID, Name: t.Name, ClientName: t.ClientName, DealId: t.DealID, IsActive: t.IsActive, Notes: t.Notes}
 }
 
+// ListProjectTags is finance.read. Employees filling a timesheet
+// (self.service) see the active projects' names and clients only.
 func (s *projectTagServer) ListProjectTags(ctx context.Context, r *financev1.ListProjectTagsRequest) (*financev1.ListProjectTagsResponse, error) {
-	if _, err := read(ctx); err != nil {
+	p, err := authn.Require(ctx)
+	if err != nil {
 		return nil, err
 	}
-	rows, err := s.svc.ProjectTags.List(ctx, r.ActiveOnly)
+	full := p.Can(authn.PermFinanceRead)
+	if !full && !p.Can(authn.PermSelfService) {
+		return nil, apperr.New(apperr.Unauthorized, "")
+	}
+	rows, err := s.svc.ProjectTags.List(ctx, r.ActiveOnly || !full)
 	if err != nil {
 		return nil, err
 	}
 	out := &financev1.ListProjectTagsResponse{}
 	for i := range rows {
-		out.Tags = append(out.Tags, projectTagPB(&rows[i]))
+		t := projectTagPB(&rows[i])
+		if !full {
+			t = &financev1.ProjectTag{Id: t.Id, Name: t.Name, ClientName: t.ClientName, IsActive: t.IsActive}
+		}
+		out.Tags = append(out.Tags, t)
 	}
 	return out, nil
 }

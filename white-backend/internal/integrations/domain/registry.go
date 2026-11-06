@@ -14,10 +14,12 @@ const (
 	KeyDataForSeo IntegrationKey = "DATAFORSEO"
 	KeyApify      IntegrationKey = "APIFY"
 	KeyOpenRouter IntegrationKey = "OPENROUTER"
+	// KeyResend sends email; the public half is the From address.
+	KeyResend IntegrationKey = "RESEND"
 )
 
 // IntegrationKeys is the wizard order.
-var IntegrationKeys = []IntegrationKey{KeyMeta, KeyGoogle, KeyDataForSeo, KeyApify, KeyOpenRouter}
+var IntegrationKeys = []IntegrationKey{KeyMeta, KeyGoogle, KeyDataForSeo, KeyApify, KeyOpenRouter, KeyResend}
 
 type IntegrationDef struct {
 	Key IntegrationKey
@@ -36,6 +38,7 @@ var Integrations = map[IntegrationKey]IntegrationDef{
 	KeyDataForSeo: {Key: KeyDataForSeo, PublicEnv: "DATAFORSEO_LOGIN", SecretEnv: "DATAFORSEO_PASSWORD", PublicRequired: true},
 	KeyApify:      {Key: KeyApify, PublicEnv: "APIFY_ACTORS", SecretEnv: "APIFY_TOKEN", PublicRequired: false},
 	KeyOpenRouter: {Key: KeyOpenRouter, PublicEnv: "OPENROUTER_MODEL", SecretEnv: "OPENROUTER_API_KEY", PublicRequired: false},
+	KeyResend:     {Key: KeyResend, PublicEnv: "MAIL_FROM", SecretEnv: "RESEND_API_KEY", PublicRequired: true},
 }
 
 func (k IntegrationKey) Valid() bool {

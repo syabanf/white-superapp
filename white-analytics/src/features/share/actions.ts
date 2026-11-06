@@ -7,6 +7,7 @@ import { z } from "zod";
 import { fail, type ActionResult } from "@/lib/action-result";
 import { db } from "@/lib/db";
 import { shareCookieName, shareCookieValue } from "@/features/share/access";
+import { issuePortalToken } from "@/features/share/portal";
 import { t } from "@/i18n/id";
 
 /** In-memory rate limit: 5 attempts / 10 minutes per slug+IP (per server instance). */
@@ -61,6 +62,7 @@ export async function verifySharePin(slug: string, pin: string): Promise<ActionR
     maxAge: COOKIE_MAX_AGE,
     path: "/",
   });
+  await issuePortalToken(slug, parsed.data, client.id);
   redirect(`/share/${slug}`);
 }
 

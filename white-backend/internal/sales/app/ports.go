@@ -12,6 +12,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/events"
+	"github.com/syabanf/white-superapp/white-backend/pkg/mail"
 )
 
 // Notification types sent through identity.
@@ -124,13 +125,27 @@ type Files interface {
 	Delete(ctx context.Context, key string) error
 }
 
-// Renderer turns documents into bytes.
+// Company is the letterhead and payment instruction Finance keeps as
+// master data. NPWP is left off the letterhead when empty.
+type Company struct {
+	LegalName, Address, Email, Phone, NPWP string
+	// BankLine tells clients where to transfer.
+	BankLine string
+}
+
+// CompanyProfile reads the company master data; it never fails, falling
+// back to the deployed defaults.
+type CompanyProfile interface {
+	Company(ctx context.Context) Company
+}
+
+// Renderer turns documents into bytes on the given letterhead.
 type Renderer interface {
 	// ownerName is the deal owner's display name ("" when unknown).
-	QuotationPDF(q domain.Quotation, d domain.Deal, ownerName string) ([]byte, error)
+	QuotationPDF(co Company, q domain.Quotation, d domain.Deal, ownerName string) ([]byte, error)
 	// quoteNumber is the source quotation's number ("" when none).
-	InvoicePDF(i domain.Invoice, d domain.Deal, quoteNumber string) ([]byte, error)
-	ContractPDF(c domain.Contract) ([]byte, error)
+	InvoicePDF(co Company, i domain.Invoice, d domain.Deal, quoteNumber string) ([]byte, error)
+	ContractPDF(co Company, c domain.Contract) ([]byte, error)
 	PitchDeck(title string, slides []domain.Slide) ([]byte, error)
 }
 
@@ -148,9 +163,23 @@ type Deps struct {
 	Taxes     TaxCodes
 	Renderer  Renderer
 	Logger    *slog.Logger
+	// Mail sends client email; AppURL builds the links inside it.
+	Mail   mail.Sender
+	AppURL string
+	// Share unlocks the client portal; Holders finds who checks proofs.
+	Share   ShareGate
+	Holders PermissionHolders
+	Profile CompanyProfile
 }
 
 func (d *Deps) now() time.Time { return d.Clock.Now() }
+
+func (d *Deps) company(ctx context.Context) Company {
+	if d.Profile == nil {
+		return Company{}
+	}
+	return d.Profile.Company(ctx)
+}
 
 // notify is best effort: a failed notification never fails the action.
 func (d *Deps) notify(ctx context.Context, n Notification) {

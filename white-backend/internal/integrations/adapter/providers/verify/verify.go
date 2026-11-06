@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/syabanf/white-superapp/white-backend/internal/integrations/domain"
@@ -27,6 +28,7 @@ type Client struct {
 	DataForSeoBase string
 	OpenRouterBase string
 	ApifyBase      string
+	ResendBase     string
 }
 
 func New() *Client {
@@ -37,6 +39,7 @@ func New() *Client {
 		DataForSeoBase: "https://api.dataforseo.com/v3",
 		OpenRouterBase: "https://openrouter.ai/api/v1",
 		ApifyBase:      "https://api.apify.com/v2",
+		ResendBase:     "https://api.resend.com",
 	}
 }
 
@@ -249,4 +252,41 @@ func mapApifyStatus(res *httpx.Response) *apperr.Error {
 		return apperr.FromProvider("apify", apperr.RateLimit, "Terlalu banyak permintaan ke Apify (429).", nil)
 	}
 	return apperr.FromProvider("apify", apperr.Unknown, fmt.Sprintf("Apify menjawab %d: %s", res.Status, res.Snippet(200)), nil)
+}
+
+// Resend lists the account's domains and requires the From address's
+// domain among the verified ones, since Resend refuses mail from others.
+func (c *Client) Resend(ctx context.Context, apiKey, from string) domain.VerifyResult {
+	at := strings.LastIndex(from, "@")
+	if at < 0 {
+		return fail("Alamat pengirim tidak valid. Contoh: Mixist <billing@mixist.id>")
+	}
+	fromDomain := strings.ToLower(strings.Trim(from[at+1:], "> "))
+	res, err := c.HTTP.Get(ctx, c.ResendBase+"/domains", map[string]string{"Authorization": "Bearer " + apiKey})
+	if err != nil {
+		return fail("Tidak bisa menghubungi Resend: " + err.Error())
+	}
+	switch res.Status {
+	case 200:
+	case 401, 403:
+		return fail("Kunci Resend ditolak.")
+	default:
+		return fail(fmt.Sprintf("Resend menjawab status %d.", res.Status))
+	}
+	var body struct {
+		Data []struct {
+			Name   string `json:"name"`
+			Status string `json:"status"`
+		} `json:"data"`
+	}
+	_ = json.Unmarshal(res.Body, &body)
+	for _, d := range body.Data {
+		if strings.EqualFold(d.Name, fromDomain) {
+			if d.Status == "verified" {
+				return ok("Kunci Resend valid dan domain " + fromDomain + " sudah terverifikasi.")
+			}
+			return fail("Domain " + fromDomain + " belum terverifikasi di Resend (status " + d.Status + ").")
+		}
+	}
+	return fail("Domain " + fromDomain + " belum ditambahkan di Resend.")
 }

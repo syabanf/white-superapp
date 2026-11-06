@@ -31,6 +31,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
 	"github.com/syabanf/white-superapp/white-backend/pkg/events"
 	"github.com/syabanf/white-superapp/white-backend/pkg/grpcx"
+	"github.com/syabanf/white-superapp/white-backend/pkg/mail"
 	"google.golang.org/grpc"
 )
 
@@ -61,11 +62,13 @@ func Spec() pkgapp.Spec {
 func Services(d *app.Deps) grpcapi.Services {
 	auto := app.NewAutomation(d)
 	onboarding := app.NewOnboarding(d)
+	billing := app.NewBilling(d, onboarding)
 	return grpcapi.Services{
 		Leads:      app.NewLeads(d, auto),
 		Pipeline:   app.NewPipeline(d, auto, onboarding),
 		Quotes:     app.NewQuotes(d, auto),
-		Billing:    app.NewBilling(d, onboarding),
+		Billing:    billing,
+		Portal:     app.NewPortal(d, billing),
 		Insights:   app.NewInsights(d),
 		Dashboard:  app.NewDashboard(d),
 		Automation: auto,
@@ -128,6 +131,11 @@ func wire(pool *pgxpool.Pool, d pkgapp.Deps) (*wiring, error) {
 		Files:     storage.NewLocal(config.Env("SALES_UPLOAD_DIR", "")),
 		Renderer:  render.New(),
 		Logger:    d.Logger,
+		Mail:      mail.New(mail.FromIntegrations(integrationsConn), d.Logger),
+		AppURL:    config.Env("APP_BASE_URL", "http://localhost:3100"),
+		Share:     identity,
+		Holders:   identity,
+		Profile:   clients.NewCompany(financeConn, render.CompanyFromEnv(), clk, d.Logger.Warn),
 	}
 	return w, nil
 }

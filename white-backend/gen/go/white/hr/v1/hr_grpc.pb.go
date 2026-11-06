@@ -25,6 +25,7 @@ const (
 	EmployeeService_ListDepartments_FullMethodName      = "/white.hr.v1.EmployeeService/ListDepartments"
 	EmployeeService_GetEmployeeByUser_FullMethodName    = "/white.hr.v1.EmployeeService/GetEmployeeByUser"
 	EmployeeService_GetAttendanceSummary_FullMethodName = "/white.hr.v1.EmployeeService/GetAttendanceSummary"
+	EmployeeService_GetProjectCosts_FullMethodName      = "/white.hr.v1.EmployeeService/GetProjectCosts"
 )
 
 // EmployeeServiceClient is the client API for EmployeeService service.
@@ -38,6 +39,9 @@ type EmployeeServiceClient interface {
 	GetEmployeeByUser(ctx context.Context, in *GetEmployeeByUserRequest, opts ...grpc.CallOption) (*Employee, error)
 	// Internal. Attendance totals per employee for a month (KPI auto-collect).
 	GetAttendanceSummary(ctx context.Context, in *GetAttendanceSummaryRequest, opts ...grpc.CallOption) (*GetAttendanceSummaryResponse, error)
+	// Internal. Approved payroll cost per Finance project for a month, spread
+	// by approved timesheet hours. FAILED_PRECONDITION until payroll is approved.
+	GetProjectCosts(ctx context.Context, in *GetProjectCostsRequest, opts ...grpc.CallOption) (*GetProjectCostsResponse, error)
 }
 
 type employeeServiceClient struct {
@@ -98,6 +102,16 @@ func (c *employeeServiceClient) GetAttendanceSummary(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *employeeServiceClient) GetProjectCosts(ctx context.Context, in *GetProjectCostsRequest, opts ...grpc.CallOption) (*GetProjectCostsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProjectCostsResponse)
+	err := c.cc.Invoke(ctx, EmployeeService_GetProjectCosts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EmployeeServiceServer is the server API for EmployeeService service.
 // All implementations must embed UnimplementedEmployeeServiceServer
 // for forward compatibility.
@@ -109,6 +123,9 @@ type EmployeeServiceServer interface {
 	GetEmployeeByUser(context.Context, *GetEmployeeByUserRequest) (*Employee, error)
 	// Internal. Attendance totals per employee for a month (KPI auto-collect).
 	GetAttendanceSummary(context.Context, *GetAttendanceSummaryRequest) (*GetAttendanceSummaryResponse, error)
+	// Internal. Approved payroll cost per Finance project for a month, spread
+	// by approved timesheet hours. FAILED_PRECONDITION until payroll is approved.
+	GetProjectCosts(context.Context, *GetProjectCostsRequest) (*GetProjectCostsResponse, error)
 	mustEmbedUnimplementedEmployeeServiceServer()
 }
 
@@ -133,6 +150,9 @@ func (UnimplementedEmployeeServiceServer) GetEmployeeByUser(context.Context, *Ge
 }
 func (UnimplementedEmployeeServiceServer) GetAttendanceSummary(context.Context, *GetAttendanceSummaryRequest) (*GetAttendanceSummaryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAttendanceSummary not implemented")
+}
+func (UnimplementedEmployeeServiceServer) GetProjectCosts(context.Context, *GetProjectCostsRequest) (*GetProjectCostsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProjectCosts not implemented")
 }
 func (UnimplementedEmployeeServiceServer) mustEmbedUnimplementedEmployeeServiceServer() {}
 func (UnimplementedEmployeeServiceServer) testEmbeddedByValue()                         {}
@@ -245,6 +265,24 @@ func _EmployeeService_GetAttendanceSummary_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EmployeeService_GetProjectCosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProjectCostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EmployeeServiceServer).GetProjectCosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EmployeeService_GetProjectCosts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EmployeeServiceServer).GetProjectCosts(ctx, req.(*GetProjectCostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EmployeeService_ServiceDesc is the grpc.ServiceDesc for EmployeeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -271,6 +309,10 @@ var EmployeeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAttendanceSummary",
 			Handler:    _EmployeeService_GetAttendanceSummary_Handler,
+		},
+		{
+			MethodName: "GetProjectCosts",
+			Handler:    _EmployeeService_GetProjectCosts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -5839,6 +5881,824 @@ var HrReportService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetHrDashboard",
 			Handler:    _HrReportService_GetHrDashboard_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/hr/v1/hr.proto",
+}
+
+const (
+	AssetService_ListAssets_FullMethodName  = "/white.hr.v1.AssetService/ListAssets"
+	AssetService_GetAsset_FullMethodName    = "/white.hr.v1.AssetService/GetAsset"
+	AssetService_SaveAsset_FullMethodName   = "/white.hr.v1.AssetService/SaveAsset"
+	AssetService_AssignAsset_FullMethodName = "/white.hr.v1.AssetService/AssignAsset"
+	AssetService_ReturnAsset_FullMethodName = "/white.hr.v1.AssetService/ReturnAsset"
+)
+
+// AssetServiceClient is the client API for AssetService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AssetServiceClient interface {
+	// hr.read sees every asset; others see what they hold.
+	ListAssets(ctx context.Context, in *ListAssetsRequest, opts ...grpc.CallOption) (*ListAssetsResponse, error)
+	GetAsset(ctx context.Context, in *AssetRequest, opts ...grpc.CallOption) (*AssetDetail, error)
+	// hr.write. Empty id creates.
+	SaveAsset(ctx context.Context, in *SaveAssetRequest, opts ...grpc.CallOption) (*Asset, error)
+	AssignAsset(ctx context.Context, in *AssignAssetRequest, opts ...grpc.CallOption) (*Asset, error)
+	ReturnAsset(ctx context.Context, in *ReturnAssetRequest, opts ...grpc.CallOption) (*Asset, error)
+}
+
+type assetServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAssetServiceClient(cc grpc.ClientConnInterface) AssetServiceClient {
+	return &assetServiceClient{cc}
+}
+
+func (c *assetServiceClient) ListAssets(ctx context.Context, in *ListAssetsRequest, opts ...grpc.CallOption) (*ListAssetsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAssetsResponse)
+	err := c.cc.Invoke(ctx, AssetService_ListAssets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assetServiceClient) GetAsset(ctx context.Context, in *AssetRequest, opts ...grpc.CallOption) (*AssetDetail, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssetDetail)
+	err := c.cc.Invoke(ctx, AssetService_GetAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assetServiceClient) SaveAsset(ctx context.Context, in *SaveAssetRequest, opts ...grpc.CallOption) (*Asset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Asset)
+	err := c.cc.Invoke(ctx, AssetService_SaveAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assetServiceClient) AssignAsset(ctx context.Context, in *AssignAssetRequest, opts ...grpc.CallOption) (*Asset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Asset)
+	err := c.cc.Invoke(ctx, AssetService_AssignAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assetServiceClient) ReturnAsset(ctx context.Context, in *ReturnAssetRequest, opts ...grpc.CallOption) (*Asset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Asset)
+	err := c.cc.Invoke(ctx, AssetService_ReturnAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AssetServiceServer is the server API for AssetService service.
+// All implementations must embed UnimplementedAssetServiceServer
+// for forward compatibility.
+type AssetServiceServer interface {
+	// hr.read sees every asset; others see what they hold.
+	ListAssets(context.Context, *ListAssetsRequest) (*ListAssetsResponse, error)
+	GetAsset(context.Context, *AssetRequest) (*AssetDetail, error)
+	// hr.write. Empty id creates.
+	SaveAsset(context.Context, *SaveAssetRequest) (*Asset, error)
+	AssignAsset(context.Context, *AssignAssetRequest) (*Asset, error)
+	ReturnAsset(context.Context, *ReturnAssetRequest) (*Asset, error)
+	mustEmbedUnimplementedAssetServiceServer()
+}
+
+// UnimplementedAssetServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAssetServiceServer struct{}
+
+func (UnimplementedAssetServiceServer) ListAssets(context.Context, *ListAssetsRequest) (*ListAssetsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAssets not implemented")
+}
+func (UnimplementedAssetServiceServer) GetAsset(context.Context, *AssetRequest) (*AssetDetail, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAsset not implemented")
+}
+func (UnimplementedAssetServiceServer) SaveAsset(context.Context, *SaveAssetRequest) (*Asset, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveAsset not implemented")
+}
+func (UnimplementedAssetServiceServer) AssignAsset(context.Context, *AssignAssetRequest) (*Asset, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssignAsset not implemented")
+}
+func (UnimplementedAssetServiceServer) ReturnAsset(context.Context, *ReturnAssetRequest) (*Asset, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReturnAsset not implemented")
+}
+func (UnimplementedAssetServiceServer) mustEmbedUnimplementedAssetServiceServer() {}
+func (UnimplementedAssetServiceServer) testEmbeddedByValue()                      {}
+
+// UnsafeAssetServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AssetServiceServer will
+// result in compilation errors.
+type UnsafeAssetServiceServer interface {
+	mustEmbedUnimplementedAssetServiceServer()
+}
+
+func RegisterAssetServiceServer(s grpc.ServiceRegistrar, srv AssetServiceServer) {
+	// If the following call panics, it indicates UnimplementedAssetServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AssetService_ServiceDesc, srv)
+}
+
+func _AssetService_ListAssets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAssetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssetServiceServer).ListAssets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssetService_ListAssets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssetServiceServer).ListAssets(ctx, req.(*ListAssetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssetService_GetAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssetServiceServer).GetAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssetService_GetAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssetServiceServer).GetAsset(ctx, req.(*AssetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssetService_SaveAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveAssetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssetServiceServer).SaveAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssetService_SaveAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssetServiceServer).SaveAsset(ctx, req.(*SaveAssetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssetService_AssignAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignAssetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssetServiceServer).AssignAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssetService_AssignAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssetServiceServer).AssignAsset(ctx, req.(*AssignAssetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssetService_ReturnAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReturnAssetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssetServiceServer).ReturnAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssetService_ReturnAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssetServiceServer).ReturnAsset(ctx, req.(*ReturnAssetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AssetService_ServiceDesc is the grpc.ServiceDesc for AssetService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AssetService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.hr.v1.AssetService",
+	HandlerType: (*AssetServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListAssets",
+			Handler:    _AssetService_ListAssets_Handler,
+		},
+		{
+			MethodName: "GetAsset",
+			Handler:    _AssetService_GetAsset_Handler,
+		},
+		{
+			MethodName: "SaveAsset",
+			Handler:    _AssetService_SaveAsset_Handler,
+		},
+		{
+			MethodName: "AssignAsset",
+			Handler:    _AssetService_AssignAsset_Handler,
+		},
+		{
+			MethodName: "ReturnAsset",
+			Handler:    _AssetService_ReturnAsset_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/hr/v1/hr.proto",
+}
+
+const (
+	TrainingService_ListTrainings_FullMethodName           = "/white.hr.v1.TrainingService/ListTrainings"
+	TrainingService_GetTraining_FullMethodName             = "/white.hr.v1.TrainingService/GetTraining"
+	TrainingService_SaveTraining_FullMethodName            = "/white.hr.v1.TrainingService/SaveTraining"
+	TrainingService_DeleteTraining_FullMethodName          = "/white.hr.v1.TrainingService/DeleteTraining"
+	TrainingService_SetTrainingParticipants_FullMethodName = "/white.hr.v1.TrainingService/SetTrainingParticipants"
+	TrainingService_RecordTrainingResult_FullMethodName    = "/white.hr.v1.TrainingService/RecordTrainingResult"
+)
+
+// TrainingServiceClient is the client API for TrainingService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TrainingServiceClient interface {
+	// hr.read sees every training; others see the ones they joined.
+	ListTrainings(ctx context.Context, in *ListTrainingsRequest, opts ...grpc.CallOption) (*ListTrainingsResponse, error)
+	GetTraining(ctx context.Context, in *TrainingRequest, opts ...grpc.CallOption) (*TrainingDetail, error)
+	// hr.write. Empty id creates.
+	SaveTraining(ctx context.Context, in *Training, opts ...grpc.CallOption) (*Training, error)
+	DeleteTraining(ctx context.Context, in *TrainingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Replaces the participant list; recorded results of people who stay are kept.
+	SetTrainingParticipants(ctx context.Context, in *SetTrainingParticipantsRequest, opts ...grpc.CallOption) (*TrainingDetail, error)
+	RecordTrainingResult(ctx context.Context, in *RecordTrainingResultRequest, opts ...grpc.CallOption) (*TrainingDetail, error)
+}
+
+type trainingServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTrainingServiceClient(cc grpc.ClientConnInterface) TrainingServiceClient {
+	return &trainingServiceClient{cc}
+}
+
+func (c *trainingServiceClient) ListTrainings(ctx context.Context, in *ListTrainingsRequest, opts ...grpc.CallOption) (*ListTrainingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTrainingsResponse)
+	err := c.cc.Invoke(ctx, TrainingService_ListTrainings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trainingServiceClient) GetTraining(ctx context.Context, in *TrainingRequest, opts ...grpc.CallOption) (*TrainingDetail, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TrainingDetail)
+	err := c.cc.Invoke(ctx, TrainingService_GetTraining_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trainingServiceClient) SaveTraining(ctx context.Context, in *Training, opts ...grpc.CallOption) (*Training, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Training)
+	err := c.cc.Invoke(ctx, TrainingService_SaveTraining_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trainingServiceClient) DeleteTraining(ctx context.Context, in *TrainingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TrainingService_DeleteTraining_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trainingServiceClient) SetTrainingParticipants(ctx context.Context, in *SetTrainingParticipantsRequest, opts ...grpc.CallOption) (*TrainingDetail, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TrainingDetail)
+	err := c.cc.Invoke(ctx, TrainingService_SetTrainingParticipants_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trainingServiceClient) RecordTrainingResult(ctx context.Context, in *RecordTrainingResultRequest, opts ...grpc.CallOption) (*TrainingDetail, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TrainingDetail)
+	err := c.cc.Invoke(ctx, TrainingService_RecordTrainingResult_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TrainingServiceServer is the server API for TrainingService service.
+// All implementations must embed UnimplementedTrainingServiceServer
+// for forward compatibility.
+type TrainingServiceServer interface {
+	// hr.read sees every training; others see the ones they joined.
+	ListTrainings(context.Context, *ListTrainingsRequest) (*ListTrainingsResponse, error)
+	GetTraining(context.Context, *TrainingRequest) (*TrainingDetail, error)
+	// hr.write. Empty id creates.
+	SaveTraining(context.Context, *Training) (*Training, error)
+	DeleteTraining(context.Context, *TrainingRequest) (*emptypb.Empty, error)
+	// Replaces the participant list; recorded results of people who stay are kept.
+	SetTrainingParticipants(context.Context, *SetTrainingParticipantsRequest) (*TrainingDetail, error)
+	RecordTrainingResult(context.Context, *RecordTrainingResultRequest) (*TrainingDetail, error)
+	mustEmbedUnimplementedTrainingServiceServer()
+}
+
+// UnimplementedTrainingServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedTrainingServiceServer struct{}
+
+func (UnimplementedTrainingServiceServer) ListTrainings(context.Context, *ListTrainingsRequest) (*ListTrainingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTrainings not implemented")
+}
+func (UnimplementedTrainingServiceServer) GetTraining(context.Context, *TrainingRequest) (*TrainingDetail, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTraining not implemented")
+}
+func (UnimplementedTrainingServiceServer) SaveTraining(context.Context, *Training) (*Training, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveTraining not implemented")
+}
+func (UnimplementedTrainingServiceServer) DeleteTraining(context.Context, *TrainingRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteTraining not implemented")
+}
+func (UnimplementedTrainingServiceServer) SetTrainingParticipants(context.Context, *SetTrainingParticipantsRequest) (*TrainingDetail, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetTrainingParticipants not implemented")
+}
+func (UnimplementedTrainingServiceServer) RecordTrainingResult(context.Context, *RecordTrainingResultRequest) (*TrainingDetail, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecordTrainingResult not implemented")
+}
+func (UnimplementedTrainingServiceServer) mustEmbedUnimplementedTrainingServiceServer() {}
+func (UnimplementedTrainingServiceServer) testEmbeddedByValue()                         {}
+
+// UnsafeTrainingServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TrainingServiceServer will
+// result in compilation errors.
+type UnsafeTrainingServiceServer interface {
+	mustEmbedUnimplementedTrainingServiceServer()
+}
+
+func RegisterTrainingServiceServer(s grpc.ServiceRegistrar, srv TrainingServiceServer) {
+	// If the following call panics, it indicates UnimplementedTrainingServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&TrainingService_ServiceDesc, srv)
+}
+
+func _TrainingService_ListTrainings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTrainingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrainingServiceServer).ListTrainings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrainingService_ListTrainings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrainingServiceServer).ListTrainings(ctx, req.(*ListTrainingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrainingService_GetTraining_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TrainingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrainingServiceServer).GetTraining(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrainingService_GetTraining_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrainingServiceServer).GetTraining(ctx, req.(*TrainingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrainingService_SaveTraining_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Training)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrainingServiceServer).SaveTraining(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrainingService_SaveTraining_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrainingServiceServer).SaveTraining(ctx, req.(*Training))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrainingService_DeleteTraining_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TrainingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrainingServiceServer).DeleteTraining(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrainingService_DeleteTraining_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrainingServiceServer).DeleteTraining(ctx, req.(*TrainingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrainingService_SetTrainingParticipants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetTrainingParticipantsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrainingServiceServer).SetTrainingParticipants(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrainingService_SetTrainingParticipants_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrainingServiceServer).SetTrainingParticipants(ctx, req.(*SetTrainingParticipantsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrainingService_RecordTrainingResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordTrainingResultRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrainingServiceServer).RecordTrainingResult(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrainingService_RecordTrainingResult_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrainingServiceServer).RecordTrainingResult(ctx, req.(*RecordTrainingResultRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// TrainingService_ServiceDesc is the grpc.ServiceDesc for TrainingService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TrainingService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.hr.v1.TrainingService",
+	HandlerType: (*TrainingServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListTrainings",
+			Handler:    _TrainingService_ListTrainings_Handler,
+		},
+		{
+			MethodName: "GetTraining",
+			Handler:    _TrainingService_GetTraining_Handler,
+		},
+		{
+			MethodName: "SaveTraining",
+			Handler:    _TrainingService_SaveTraining_Handler,
+		},
+		{
+			MethodName: "DeleteTraining",
+			Handler:    _TrainingService_DeleteTraining_Handler,
+		},
+		{
+			MethodName: "SetTrainingParticipants",
+			Handler:    _TrainingService_SetTrainingParticipants_Handler,
+		},
+		{
+			MethodName: "RecordTrainingResult",
+			Handler:    _TrainingService_RecordTrainingResult_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/hr/v1/hr.proto",
+}
+
+const (
+	TimesheetService_ListTimesheet_FullMethodName        = "/white.hr.v1.TimesheetService/ListTimesheet"
+	TimesheetService_SaveTimesheetEntry_FullMethodName   = "/white.hr.v1.TimesheetService/SaveTimesheetEntry"
+	TimesheetService_DeleteTimesheetEntry_FullMethodName = "/white.hr.v1.TimesheetService/DeleteTimesheetEntry"
+	TimesheetService_SubmitTimesheet_FullMethodName      = "/white.hr.v1.TimesheetService/SubmitTimesheet"
+	TimesheetService_DecideTimesheet_FullMethodName      = "/white.hr.v1.TimesheetService/DecideTimesheet"
+)
+
+// TimesheetServiceClient is the client API for TimesheetService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type TimesheetServiceClient interface {
+	// hr.read sees everyone (empty employee_id); others see their own.
+	ListTimesheet(ctx context.Context, in *ListTimesheetRequest, opts ...grpc.CallOption) (*ListTimesheetResponse, error)
+	// self.service, own entries only. Empty id creates; an edit returns it to draft.
+	SaveTimesheetEntry(ctx context.Context, in *SaveTimesheetEntryRequest, opts ...grpc.CallOption) (*TimesheetEntry, error)
+	DeleteTimesheetEntry(ctx context.Context, in *TimesheetEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Sends the caller's draft and rejected entries in the range for approval.
+	SubmitTimesheet(ctx context.Context, in *SubmitTimesheetRequest, opts ...grpc.CallOption) (*TimesheetCount, error)
+	// hr.approve; never one's own entries.
+	DecideTimesheet(ctx context.Context, in *DecideTimesheetRequest, opts ...grpc.CallOption) (*TimesheetCount, error)
+}
+
+type timesheetServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewTimesheetServiceClient(cc grpc.ClientConnInterface) TimesheetServiceClient {
+	return &timesheetServiceClient{cc}
+}
+
+func (c *timesheetServiceClient) ListTimesheet(ctx context.Context, in *ListTimesheetRequest, opts ...grpc.CallOption) (*ListTimesheetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTimesheetResponse)
+	err := c.cc.Invoke(ctx, TimesheetService_ListTimesheet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *timesheetServiceClient) SaveTimesheetEntry(ctx context.Context, in *SaveTimesheetEntryRequest, opts ...grpc.CallOption) (*TimesheetEntry, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TimesheetEntry)
+	err := c.cc.Invoke(ctx, TimesheetService_SaveTimesheetEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *timesheetServiceClient) DeleteTimesheetEntry(ctx context.Context, in *TimesheetEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TimesheetService_DeleteTimesheetEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *timesheetServiceClient) SubmitTimesheet(ctx context.Context, in *SubmitTimesheetRequest, opts ...grpc.CallOption) (*TimesheetCount, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TimesheetCount)
+	err := c.cc.Invoke(ctx, TimesheetService_SubmitTimesheet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *timesheetServiceClient) DecideTimesheet(ctx context.Context, in *DecideTimesheetRequest, opts ...grpc.CallOption) (*TimesheetCount, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TimesheetCount)
+	err := c.cc.Invoke(ctx, TimesheetService_DecideTimesheet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TimesheetServiceServer is the server API for TimesheetService service.
+// All implementations must embed UnimplementedTimesheetServiceServer
+// for forward compatibility.
+type TimesheetServiceServer interface {
+	// hr.read sees everyone (empty employee_id); others see their own.
+	ListTimesheet(context.Context, *ListTimesheetRequest) (*ListTimesheetResponse, error)
+	// self.service, own entries only. Empty id creates; an edit returns it to draft.
+	SaveTimesheetEntry(context.Context, *SaveTimesheetEntryRequest) (*TimesheetEntry, error)
+	DeleteTimesheetEntry(context.Context, *TimesheetEntryRequest) (*emptypb.Empty, error)
+	// Sends the caller's draft and rejected entries in the range for approval.
+	SubmitTimesheet(context.Context, *SubmitTimesheetRequest) (*TimesheetCount, error)
+	// hr.approve; never one's own entries.
+	DecideTimesheet(context.Context, *DecideTimesheetRequest) (*TimesheetCount, error)
+	mustEmbedUnimplementedTimesheetServiceServer()
+}
+
+// UnimplementedTimesheetServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedTimesheetServiceServer struct{}
+
+func (UnimplementedTimesheetServiceServer) ListTimesheet(context.Context, *ListTimesheetRequest) (*ListTimesheetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTimesheet not implemented")
+}
+func (UnimplementedTimesheetServiceServer) SaveTimesheetEntry(context.Context, *SaveTimesheetEntryRequest) (*TimesheetEntry, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveTimesheetEntry not implemented")
+}
+func (UnimplementedTimesheetServiceServer) DeleteTimesheetEntry(context.Context, *TimesheetEntryRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteTimesheetEntry not implemented")
+}
+func (UnimplementedTimesheetServiceServer) SubmitTimesheet(context.Context, *SubmitTimesheetRequest) (*TimesheetCount, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitTimesheet not implemented")
+}
+func (UnimplementedTimesheetServiceServer) DecideTimesheet(context.Context, *DecideTimesheetRequest) (*TimesheetCount, error) {
+	return nil, status.Error(codes.Unimplemented, "method DecideTimesheet not implemented")
+}
+func (UnimplementedTimesheetServiceServer) mustEmbedUnimplementedTimesheetServiceServer() {}
+func (UnimplementedTimesheetServiceServer) testEmbeddedByValue()                          {}
+
+// UnsafeTimesheetServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TimesheetServiceServer will
+// result in compilation errors.
+type UnsafeTimesheetServiceServer interface {
+	mustEmbedUnimplementedTimesheetServiceServer()
+}
+
+func RegisterTimesheetServiceServer(s grpc.ServiceRegistrar, srv TimesheetServiceServer) {
+	// If the following call panics, it indicates UnimplementedTimesheetServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&TimesheetService_ServiceDesc, srv)
+}
+
+func _TimesheetService_ListTimesheet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTimesheetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TimesheetServiceServer).ListTimesheet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TimesheetService_ListTimesheet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TimesheetServiceServer).ListTimesheet(ctx, req.(*ListTimesheetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TimesheetService_SaveTimesheetEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveTimesheetEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TimesheetServiceServer).SaveTimesheetEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TimesheetService_SaveTimesheetEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TimesheetServiceServer).SaveTimesheetEntry(ctx, req.(*SaveTimesheetEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TimesheetService_DeleteTimesheetEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TimesheetEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TimesheetServiceServer).DeleteTimesheetEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TimesheetService_DeleteTimesheetEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TimesheetServiceServer).DeleteTimesheetEntry(ctx, req.(*TimesheetEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TimesheetService_SubmitTimesheet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitTimesheetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TimesheetServiceServer).SubmitTimesheet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TimesheetService_SubmitTimesheet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TimesheetServiceServer).SubmitTimesheet(ctx, req.(*SubmitTimesheetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TimesheetService_DecideTimesheet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DecideTimesheetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TimesheetServiceServer).DecideTimesheet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TimesheetService_DecideTimesheet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TimesheetServiceServer).DecideTimesheet(ctx, req.(*DecideTimesheetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// TimesheetService_ServiceDesc is the grpc.ServiceDesc for TimesheetService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TimesheetService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.hr.v1.TimesheetService",
+	HandlerType: (*TimesheetServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListTimesheet",
+			Handler:    _TimesheetService_ListTimesheet_Handler,
+		},
+		{
+			MethodName: "SaveTimesheetEntry",
+			Handler:    _TimesheetService_SaveTimesheetEntry_Handler,
+		},
+		{
+			MethodName: "DeleteTimesheetEntry",
+			Handler:    _TimesheetService_DeleteTimesheetEntry_Handler,
+		},
+		{
+			MethodName: "SubmitTimesheet",
+			Handler:    _TimesheetService_SubmitTimesheet_Handler,
+		},
+		{
+			MethodName: "DecideTimesheet",
+			Handler:    _TimesheetService_DecideTimesheet_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -943,8 +943,30 @@ export async function createProjectAllocationAction(input: { tagId: string; mont
   return res;
 }
 
+export async function allocateFromTimesheetAction(month: string) {
+  const res = await runGateway(() =>
+    gatewayFetch<{ allocations?: unknown[]; skipped?: string[] }>(`${F}/project-allocations:from-timesheet`, json("POST", { month })),
+  );
+  revalidatePath(projectsPath);
+  return res;
+}
+
 export async function deleteProjectAllocationAction(allocationId: string) {
   const res = await runGateway(() => gatewayFetch(`${F}/project-allocations/${id(allocationId)}`, json("DELETE")));
   revalidatePath(projectsPath);
+  return res;
+}
+
+const proofsPath = "/erp/finance/payment-proofs";
+
+export async function approvePaymentProofAction(proofId: string, input: { amount: string; paidOn: string; bankFee: string; withheld: string }) {
+  const res = await runGateway(() => gatewayFetch(`/v1/sales/payment-proofs/${id(proofId)}:approve`, json("POST", input)));
+  revalidatePath(proofsPath);
+  return res;
+}
+
+export async function rejectPaymentProofAction(proofId: string, reason: string) {
+  const res = await runGateway(() => gatewayFetch(`/v1/sales/payment-proofs/${id(proofId)}:reject`, json("POST", { reason })));
+  revalidatePath(proofsPath);
   return res;
 }

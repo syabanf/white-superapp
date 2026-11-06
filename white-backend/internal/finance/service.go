@@ -96,10 +96,12 @@ func wire(d pkgapp.Deps) (*wiring, error) {
 		return nil, err
 	}
 	w.integrations = clients.NewIntegrations(integrationsConn)
+	hr := clients.NewHR(hrConn)
 	w.deps = app.Deps{
 		Store:          postgres.NewStore(d.Pool),
 		Identity:       clients.NewIdentity(identityConn),
-		HR:             clients.NewHR(hrConn),
+		HR:             hr,
+		Timesheet:      hr,
 		Storage:        storage.NewLocal(config.Env("FINANCE_UPLOAD_DIR", "")),
 		Insights:       openrouter.NewSource(w.integrations.Credentials, openrouter.Options{Endpoint: aichat.Endpoint(), Referer: config.Env("APP_BASE_URL", "")}),
 		Events:         d.Events,
@@ -135,6 +137,7 @@ func register(ctx context.Context, d pkgapp.Deps, s *grpc.Server) error {
 		Documents:      app.NewDocuments(w.deps),
 		TaxSetup:       app.NewTaxSetup(w.deps),
 		ProjectTags:    app.NewProjectTags(w.deps),
+		Company:        app.NewCompanyProfile(w.deps),
 	})
 	return nil
 }

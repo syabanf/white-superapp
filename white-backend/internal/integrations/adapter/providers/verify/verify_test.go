@@ -16,7 +16,7 @@ func fake(t *testing.T, h http.HandlerFunc) *Client {
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
 	return &Client{HTTP: httpx.New(2 * time.Second), MetaGraphBase: srv.URL + "/meta", GoogleTokenURL: srv.URL + "/google/token",
-		DataForSeoBase: srv.URL + "/dfs", OpenRouterBase: srv.URL + "/or", ApifyBase: srv.URL + "/apify"}
+		DataForSeoBase: srv.URL + "/dfs", OpenRouterBase: srv.URL + "/or", ApifyBase: srv.URL + "/apify", ResendBase: srv.URL + "/resend"}
 }
 
 func reply(w http.ResponseWriter, status int, body string) {
@@ -177,6 +177,31 @@ func TestApify(t *testing.T) {
 	meStatus = 500
 	if r := c.Apify(ctx, "tok"); r.OK || r.Message != `Apify menjawab 500: {"data":{"username":"white","plan":{"id":"FREE"}}}` {
 		t.Fatalf("%+v", r)
+	}
+}
+
+func TestResend(t *testing.T) {
+	c := fake(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/resend/domains" || r.Header.Get("Authorization") != "Bearer re_good" {
+			reply(w, 401, `{}`)
+			return
+		}
+		reply(w, 200, `{"data":[{"name":"mixist.id","status":"verified"},{"name":"baru.id","status":"pending"}]}`)
+	})
+	ctx := context.Background()
+	for from, wantOK := range map[string]bool{
+		"Mixist <billing@mixist.id>": true,
+		"billing@MIXIST.id":          true,
+		"tim@baru.id":                false,
+		"tim@lain.id":                false,
+		"bukan-email":                false,
+	} {
+		if got := c.Resend(ctx, "re_good", from); got.OK != wantOK {
+			t.Errorf("%s: %+v", from, got)
+		}
+	}
+	if got := c.Resend(ctx, "re_bad", "billing@mixist.id"); got.OK || got.Message != "Kunci Resend ditolak." {
+		t.Fatalf("%+v", got)
 	}
 }
 

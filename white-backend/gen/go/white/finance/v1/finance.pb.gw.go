@@ -6446,6 +6446,33 @@ func local_request_PeriodEndService_DeleteProjectAllocation_0(ctx context.Contex
 	return msg, metadata, err
 }
 
+func request_PeriodEndService_AllocateFromTimesheet_0(ctx context.Context, marshaler runtime.Marshaler, client PeriodEndServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AllocateFromTimesheetRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.AllocateFromTimesheet(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_PeriodEndService_AllocateFromTimesheet_0(ctx context.Context, marshaler runtime.Marshaler, server PeriodEndServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq AllocateFromTimesheetRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.AllocateFromTimesheet(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 func request_PeriodEndService_GetControlSettings_0(ctx context.Context, marshaler runtime.Marshaler, client PeriodEndServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ControlSettingsRequest
@@ -6865,6 +6892,54 @@ func local_request_AnalysisService_GetRatioTrend_0(ctx context.Context, marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.GetRatioTrend(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_CompanyService_GetCompanyProfile_0(ctx context.Context, marshaler runtime.Marshaler, client CompanyServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.GetCompanyProfile(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_CompanyService_GetCompanyProfile_0(ctx context.Context, marshaler runtime.Marshaler, server CompanyServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq emptypb.Empty
+		metadata runtime.ServerMetadata
+	)
+	msg, err := server.GetCompanyProfile(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_CompanyService_SaveCompanyProfile_0(ctx context.Context, marshaler runtime.Marshaler, client CompanyServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CompanyProfile
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.SaveCompanyProfile(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_CompanyService_SaveCompanyProfile_0(ctx context.Context, marshaler runtime.Marshaler, server CompanyServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq CompanyProfile
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.SaveCompanyProfile(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -10604,6 +10679,26 @@ func RegisterPeriodEndServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 		}
 		forward_PeriodEndService_DeleteProjectAllocation_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_PeriodEndService_AllocateFromTimesheet_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.finance.v1.PeriodEndService/AllocateFromTimesheet", runtime.WithHTTPPathPattern("/v1/finance/project-allocations:from-timesheet"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PeriodEndService_AllocateFromTimesheet_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PeriodEndService_AllocateFromTimesheet_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_PeriodEndService_GetControlSettings_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -10863,6 +10958,56 @@ func RegisterAnalysisServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 		forward_AnalysisService_GetRatioTrend_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+
+	return nil
+}
+
+// RegisterCompanyServiceHandlerServer registers the http handlers for service CompanyService to "mux".
+// UnaryRPC     :call CompanyServiceServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterCompanyServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
+func RegisterCompanyServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server CompanyServiceServer) error {
+	mux.Handle(http.MethodGet, pattern_CompanyService_GetCompanyProfile_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.finance.v1.CompanyService/GetCompanyProfile", runtime.WithHTTPPathPattern("/v1/finance/company-profile"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_CompanyService_GetCompanyProfile_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_CompanyService_GetCompanyProfile_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_CompanyService_SaveCompanyProfile_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/white.finance.v1.CompanyService/SaveCompanyProfile", runtime.WithHTTPPathPattern("/v1/finance/company-profile"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_CompanyService_SaveCompanyProfile_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_CompanyService_SaveCompanyProfile_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -14865,6 +15010,23 @@ func RegisterPeriodEndServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 		}
 		forward_PeriodEndService_DeleteProjectAllocation_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_PeriodEndService_AllocateFromTimesheet_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.finance.v1.PeriodEndService/AllocateFromTimesheet", runtime.WithHTTPPathPattern("/v1/finance/project-allocations:from-timesheet"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PeriodEndService_AllocateFromTimesheet_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_PeriodEndService_AllocateFromTimesheet_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_PeriodEndService_GetControlSettings_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -14925,6 +15087,7 @@ var (
 	pattern_PeriodEndService_ListProjectAllocations_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "finance", "project-allocations"}, ""))
 	pattern_PeriodEndService_CreateProjectAllocation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "finance", "project-allocations"}, ""))
 	pattern_PeriodEndService_DeleteProjectAllocation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "finance", "project-allocations", "id"}, ""))
+	pattern_PeriodEndService_AllocateFromTimesheet_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "finance", "project-allocations"}, "from-timesheet"))
 	pattern_PeriodEndService_GetControlSettings_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "finance", "control-settings"}, ""))
 	pattern_PeriodEndService_SetControlSettings_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "finance", "control-settings"}, ""))
 )
@@ -14952,6 +15115,7 @@ var (
 	forward_PeriodEndService_ListProjectAllocations_0  = runtime.ForwardResponseMessage
 	forward_PeriodEndService_CreateProjectAllocation_0 = runtime.ForwardResponseMessage
 	forward_PeriodEndService_DeleteProjectAllocation_0 = runtime.ForwardResponseMessage
+	forward_PeriodEndService_AllocateFromTimesheet_0   = runtime.ForwardResponseMessage
 	forward_PeriodEndService_GetControlSettings_0      = runtime.ForwardResponseMessage
 	forward_PeriodEndService_SetControlSettings_0      = runtime.ForwardResponseMessage
 )
@@ -15234,4 +15398,87 @@ var (
 	forward_AnalysisService_GenerateFinancialInsight_0 = runtime.ForwardResponseMessage
 	forward_AnalysisService_ListFinancialInsights_0    = runtime.ForwardResponseMessage
 	forward_AnalysisService_GetRatioTrend_0            = runtime.ForwardResponseMessage
+)
+
+// RegisterCompanyServiceHandlerFromEndpoint is same as RegisterCompanyServiceHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterCompanyServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.NewClient(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+	return RegisterCompanyServiceHandler(ctx, mux, conn)
+}
+
+// RegisterCompanyServiceHandler registers the http handlers for service CompanyService to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterCompanyServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterCompanyServiceHandlerClient(ctx, mux, NewCompanyServiceClient(conn))
+}
+
+// RegisterCompanyServiceHandlerClient registers the http handlers for service CompanyService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "CompanyServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "CompanyServiceClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "CompanyServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
+func RegisterCompanyServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client CompanyServiceClient) error {
+	mux.Handle(http.MethodGet, pattern_CompanyService_GetCompanyProfile_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.finance.v1.CompanyService/GetCompanyProfile", runtime.WithHTTPPathPattern("/v1/finance/company-profile"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_CompanyService_GetCompanyProfile_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_CompanyService_GetCompanyProfile_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_CompanyService_SaveCompanyProfile_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/white.finance.v1.CompanyService/SaveCompanyProfile", runtime.WithHTTPPathPattern("/v1/finance/company-profile"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_CompanyService_SaveCompanyProfile_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_CompanyService_SaveCompanyProfile_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	return nil
+}
+
+var (
+	pattern_CompanyService_GetCompanyProfile_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "finance", "company-profile"}, ""))
+	pattern_CompanyService_SaveCompanyProfile_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "finance", "company-profile"}, ""))
+)
+
+var (
+	forward_CompanyService_GetCompanyProfile_0  = runtime.ForwardResponseMessage
+	forward_CompanyService_SaveCompanyProfile_0 = runtime.ForwardResponseMessage
 )

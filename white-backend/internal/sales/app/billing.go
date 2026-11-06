@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/events"
 	"github.com/syabanf/white-superapp/white-backend/pkg/ids"
+	"github.com/syabanf/white-superapp/white-backend/pkg/mail"
 )
 
 // Billing is EPIC-025 "Opsi B" of salesfunnel billing.go: sales submits an
@@ -218,7 +220,67 @@ func (b *Billing) IssueInvoice(ctx context.Context, actor Actor, id string) (*do
 	if deal, err := b.Store.GetDeal(ctx, inv.DealID); err == nil && deal != nil && deal.OwnerUserID != nil {
 		b.notify(ctx, Notification{UserIDs: []string{*deal.OwnerUserID}, Type: NotifInvoice, Title: "Invoice " + inv.InvoiceNumber + " diterbitkan", Body: inv.Label + " · " + inv.Amount.Rupiah(), Href: "/erp/sales/pipeline/" + inv.DealID})
 	}
+	b.emailInvoice(ctx, *inv, payload.ClientID)
 	return b.Store.GetInvoice(ctx, id)
+}
+
+// emailInvoice sends the PDF to the client's billing address with a link to
+// the share portal when the deal was onboarded as a marketing client.
+// Best effort: a missing address or render failure only logs.
+func (b *Billing) emailInvoice(ctx context.Context, inv domain.Invoice, marketingClientID string) {
+	if b.Mail == nil {
+		return
+	}
+	to, err := b.billingEmail(ctx, inv.DealID)
+	if err != nil || to == "" {
+		if err != nil {
+			b.warn("invoice email lookup failed", "invoice", inv.InvoiceNumber, "err", err)
+		}
+		return
+	}
+	name, pdf, err := b.RenderInvoicePDF(ctx, inv.ID)
+	if err != nil {
+		b.warn("invoice email render failed", "invoice", inv.InvoiceNumber, "err", err)
+		return
+	}
+	text := "Yth. " + inv.ClientName + ",\n\nTerlampir invoice " + inv.InvoiceNumber + " (" + inv.Label + ") sebesar " + inv.Amount.Rupiah()
+	if inv.DueDate != nil {
+		text += ", jatuh tempo " + domain.FormatDateID(*inv.DueDate)
+	}
+	text += "."
+	if marketingClientID != "" && b.AppURL != "" {
+		text += "\n\nAnda bisa melihat status tagihan dan mengunggah bukti transfer di portal klien dengan PIN yang kami berikan: " + strings.TrimRight(b.AppURL, "/") + "/share/c/" + marketingClientID
+	}
+	text += "\n\nTerima kasih."
+	mail.SendLater(b.Mail, b.Logger, mail.Message{To: []string{to}, Subject: "Invoice " + inv.InvoiceNumber, Text: text, Attachments: []mail.Attachment{{Filename: name, Content: pdf}}})
+}
+
+// billingEmail prefers the account's billing address, then its email, then
+// the lead PIC's email.
+func (b *Billing) billingEmail(ctx context.Context, dealID string) (string, error) {
+	deal, err := b.Store.GetDeal(ctx, dealID)
+	if err != nil || deal == nil {
+		return "", err
+	}
+	if deal.AccountID != nil {
+		acc, err := b.Store.GetAccount(ctx, *deal.AccountID)
+		if err != nil {
+			return "", err
+		}
+		if acc != nil {
+			if v := firstNonEmpty(deref(acc.BillingEmail), deref(acc.Email)); v != "" {
+				return v, nil
+			}
+		}
+	}
+	if deal.LeadID != nil {
+		lead, err := b.Store.GetLead(ctx, *deal.LeadID)
+		if err != nil || lead == nil {
+			return "", err
+		}
+		return deref(lead.PicEmail), nil
+	}
+	return "", nil
 }
 
 // issuedPayload is the finance contract (finance/domain.SalesInvoiceIssued).
@@ -428,7 +490,7 @@ func (b *Billing) RenderInvoicePDF(ctx context.Context, id string) (string, []by
 			quoteNumber = qt.QuoteNumber
 		}
 	}
-	data, err := b.Renderer.InvoicePDF(*inv, *deal, quoteNumber)
+	data, err := b.Renderer.InvoicePDF(b.company(ctx), *inv, *deal, quoteNumber)
 	if err != nil {
 		return "", nil, err
 	}

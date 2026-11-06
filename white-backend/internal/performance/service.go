@@ -109,7 +109,7 @@ func Wire(d pkgapp.Deps) (*Wiring, error) {
 	recaps := app.NewRecaps(deps, imp)
 	return &Wiring{
 		Services: grpcapi.Services{KPI: kpi, Reviews: app.NewReviews(deps, imp), Feedback: app.NewFeedback(deps, imp), Tasks: tasks,
-			Logbook: app.NewLogbook(deps, imp), Recaps: recaps, Improvements: imp, Dashboard: app.NewDashboard(deps)},
+			Logbook: app.NewLogbook(deps, imp), Recaps: recaps, Improvements: imp, Dashboard: app.NewDashboard(deps), OKR: app.NewOKR(deps)},
 		Automations:  app.NewAutomations(deps, kpi, tasks, recaps),
 		HR:           hr,
 		Integrations: integ,

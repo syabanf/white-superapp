@@ -8,6 +8,7 @@ import (
 // Store is every hr repository port; adapter/postgres implements it.
 type Store interface {
 	DashboardRepo
+	ExtrasRepo
 	WithTx(ctx context.Context, fn func(tx Store) error) error
 	ListDepartments(ctx context.Context, includeInactive bool) ([]Department, error)
 	GetDepartment(ctx context.Context, id string) (*Department, error)

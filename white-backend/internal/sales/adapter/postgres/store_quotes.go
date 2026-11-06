@@ -337,7 +337,7 @@ func (s *Store) GetInvoice(ctx context.Context, id string) (*domain.Invoice, err
 }
 
 func (s *Store) ListInvoices(ctx context.Context, f domain.InvoiceFilter) ([]domain.Invoice, error) {
-	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Deal: nz(f.DealID), Status: nz(f.Status), Search: nz(f.Search), FromAt: f.From, ToAt: f.To, Lim: limitOr(f.Limit, 200)})
+	rows, err := s.q.ListInvoices(ctx, sqlc.ListInvoicesParams{Deal: nz(f.DealID), Status: nz(f.Status), Search: nz(f.Search), FromAt: f.From, ToAt: f.To, Client: nz(f.MarketingClientID), Lim: limitOr(f.Limit, 200)})
 	return many(rows, err, func(r sqlc.ListInvoicesRow) domain.Invoice { return invoiceRow(sqlc.GetInvoiceRow(r)) })
 }
 
@@ -425,4 +425,38 @@ func (s *Store) ReplaceTargets(ctx context.Context, month string, targets []doma
 		}
 	}
 	return nil
+}
+
+func proofRow(pp sqlc.SalesPaymentProof, invoiceNumber, dealID, clientName string) domain.PaymentProof {
+	return domain.PaymentProof{ID: pp.ID, InvoiceID: pp.InvoiceID, Amount: domain.MustMoney(pp.Amount), PaidOn: pp.PaidOn, PayerName: pp.PayerName, Note: pp.Note,
+		FileKey: pp.FileKey, FileName: pp.FileName, Status: pp.Status, RejectReason: pp.RejectReason, PaymentID: pp.PaymentID,
+		DecidedBy: pp.DecidedBy, DecidedAt: pp.DecidedAt, CreatedAt: pp.CreatedAt, InvoiceNumber: invoiceNumber, DealID: dealID, ClientName: clientName}
+}
+
+func (s *Store) InsertPaymentProof(ctx context.Context, p domain.PaymentProof) error {
+	return wrap(s.q.InsertPaymentProof(ctx, sqlc.InsertPaymentProofParams{ID: p.ID, InvoiceID: p.InvoiceID, Amount: p.Amount.String(), PaidOn: p.PaidOn,
+		PayerName: p.PayerName, Note: p.Note, FileKey: p.FileKey, FileName: p.FileName}))
+}
+
+func (s *Store) GetPaymentProof(ctx context.Context, id string) (*domain.PaymentProof, error) {
+	r, err := s.q.GetPaymentProof(ctx, id)
+	return one(r, err, func(r sqlc.GetPaymentProofRow) domain.PaymentProof {
+		return proofRow(r.SalesPaymentProof, r.InvoiceNumber, r.DealID, r.ClientName)
+	})
+}
+
+func (s *Store) ListPaymentProofs(ctx context.Context, f domain.PaymentProofFilter) ([]domain.PaymentProof, error) {
+	var invoiceIDs []string
+	if f.InvoiceIDs != nil {
+		invoiceIDs = f.InvoiceIDs
+	}
+	rows, err := s.q.ListPaymentProofs(ctx, sqlc.ListPaymentProofsParams{Status: nz(f.Status), InvoiceIds: invoiceIDs, Lim: limitOr(f.Limit, 200)})
+	return many(rows, err, func(r sqlc.ListPaymentProofsRow) domain.PaymentProof {
+		return proofRow(r.SalesPaymentProof, r.InvoiceNumber, r.DealID, r.ClientName)
+	})
+}
+
+func (s *Store) DecidePaymentProof(ctx context.Context, p domain.PaymentProof) (bool, error) {
+	n, err := s.q.DecidePaymentProof(ctx, sqlc.DecidePaymentProofParams{ID: p.ID, Status: p.Status, RejectReason: p.RejectReason, PaymentID: p.PaymentID, DecidedBy: p.DecidedBy, DecidedAt: p.DecidedAt})
+	return n > 0, wrap(err)
 }

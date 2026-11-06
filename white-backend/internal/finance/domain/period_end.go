@@ -71,6 +71,10 @@ type PeriodEndRepo interface {
 
 	SeparateApprover(ctx context.Context) (bool, error)
 	SetSeparateApprover(ctx context.Context, on bool, by string) error
+
+	// CompanyProfile is nil until someone saves it.
+	CompanyProfile(ctx context.Context) (*Company, error)
+	SaveCompanyProfile(ctx context.Context, c Company, by string) error
 }
 
 // Results of an audited action.
@@ -139,7 +143,14 @@ const (
 type ProjectAllocation struct {
 	ID, TagID, TagName, ClientName, Month, Kind, Notes, CreatedBy string
 	Amount                                                        Money
+	// Source is MANUAL or TIMESHEET (replaced on each recalculation).
+	Source string
 }
+
+const (
+	AllocManual    = "MANUAL"
+	AllocTimesheet = "TIMESHEET"
+)
 
 // ControlRepo stores the links and records of the remaining ERP controls.
 type ControlRepo interface {
@@ -157,5 +168,6 @@ type ControlRepo interface {
 	ListProjectAllocations(ctx context.Context, fromMonth, toMonth string) ([]ProjectAllocation, error)
 	InsertProjectAllocation(ctx context.Context, a ProjectAllocation) error
 	DeleteProjectAllocation(ctx context.Context, id string) error
+	DeleteTimesheetAllocations(ctx context.Context, month string) error
 	InsertInvoiceReminder(ctx context.Context, invoiceID string, stage int) (bool, error)
 }

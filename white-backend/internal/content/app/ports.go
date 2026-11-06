@@ -179,8 +179,10 @@ type Deps struct {
 	Publishing PublishingClient
 	AI         AI
 	Renderer   ReportRenderer
-	Clock      clock.Clock
-	Logger     *slog.Logger
+	// Share unlocks the client portal; nil hides it.
+	Share  ShareGate
+	Clock  clock.Clock
+	Logger *slog.Logger
 }
 
 func (d Deps) now() time.Time {

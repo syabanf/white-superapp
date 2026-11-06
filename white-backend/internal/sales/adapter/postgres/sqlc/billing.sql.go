@@ -10,6 +10,36 @@ import (
 	"time"
 )
 
+const decidePaymentProof = `-- name: DecidePaymentProof :execrows
+UPDATE sales.payment_proofs
+SET status = $2, reject_reason = $3, payment_id = $4, decided_by = $5, decided_at = $6
+WHERE id = $1 AND status = 'PENDING'
+`
+
+type DecidePaymentProofParams struct {
+	ID           string
+	Status       string
+	RejectReason string
+	PaymentID    *string
+	DecidedBy    *string
+	DecidedAt    *time.Time
+}
+
+func (q *Queries) DecidePaymentProof(ctx context.Context, arg DecidePaymentProofParams) (int64, error) {
+	result, err := q.db.Exec(ctx, decidePaymentProof,
+		arg.ID,
+		arg.Status,
+		arg.RejectReason,
+		arg.PaymentID,
+		arg.DecidedBy,
+		arg.DecidedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deletePayment = `-- name: DeletePayment :exec
 UPDATE sales.payments SET deleted_at = $2 WHERE id = $1 AND deleted_at IS NULL
 `
@@ -135,6 +165,48 @@ func (q *Queries) GetPayment(ctx context.Context, id string) (SalesPayment, erro
 	return i, err
 }
 
+const getPaymentProof = `-- name: GetPaymentProof :one
+SELECT pp.id, pp.invoice_id, pp.amount, pp.paid_on, pp.payer_name, pp.note, pp.file_key, pp.file_name, pp.status, pp.reject_reason, pp.payment_id, pp.decided_by, pp.decided_at, pp.created_at, i.invoice_number, i.deal_id, coalesce(a.name, l.org_name, d.title)::text AS client_name
+FROM sales.payment_proofs pp
+JOIN sales.invoices i ON i.id = pp.invoice_id
+JOIN sales.deals d ON d.id = i.deal_id
+LEFT JOIN sales.leads l ON l.id = d.lead_id
+LEFT JOIN sales.accounts a ON a.id = d.account_id
+WHERE pp.id = $1
+`
+
+type GetPaymentProofRow struct {
+	SalesPaymentProof SalesPaymentProof
+	InvoiceNumber     string
+	DealID            string
+	ClientName        string
+}
+
+func (q *Queries) GetPaymentProof(ctx context.Context, id string) (GetPaymentProofRow, error) {
+	row := q.db.QueryRow(ctx, getPaymentProof, id)
+	var i GetPaymentProofRow
+	err := row.Scan(
+		&i.SalesPaymentProof.ID,
+		&i.SalesPaymentProof.InvoiceID,
+		&i.SalesPaymentProof.Amount,
+		&i.SalesPaymentProof.PaidOn,
+		&i.SalesPaymentProof.PayerName,
+		&i.SalesPaymentProof.Note,
+		&i.SalesPaymentProof.FileKey,
+		&i.SalesPaymentProof.FileName,
+		&i.SalesPaymentProof.Status,
+		&i.SalesPaymentProof.RejectReason,
+		&i.SalesPaymentProof.PaymentID,
+		&i.SalesPaymentProof.DecidedBy,
+		&i.SalesPaymentProof.DecidedAt,
+		&i.SalesPaymentProof.CreatedAt,
+		&i.InvoiceNumber,
+		&i.DealID,
+		&i.ClientName,
+	)
+	return i, err
+}
+
 const insertFollowup = `-- name: InsertFollowup :execrows
 INSERT INTO sales.invoice_followups (id, invoice_id, stage, phone, message)
 VALUES ($1, $2, $3, $4, $5)
@@ -191,6 +263,36 @@ func (q *Queries) InsertPayment(ctx context.Context, arg InsertPaymentParams) er
 		arg.Note,
 		arg.CreatedBy,
 		arg.CreatedAt,
+	)
+	return err
+}
+
+const insertPaymentProof = `-- name: InsertPaymentProof :exec
+INSERT INTO sales.payment_proofs (id, invoice_id, amount, paid_on, payer_name, note, file_key, file_name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+`
+
+type InsertPaymentProofParams struct {
+	ID        string
+	InvoiceID string
+	Amount    string
+	PaidOn    time.Time
+	PayerName string
+	Note      string
+	FileKey   string
+	FileName  string
+}
+
+func (q *Queries) InsertPaymentProof(ctx context.Context, arg InsertPaymentProofParams) error {
+	_, err := q.db.Exec(ctx, insertPaymentProof,
+		arg.ID,
+		arg.InvoiceID,
+		arg.Amount,
+		arg.PaidOn,
+		arg.PayerName,
+		arg.Note,
+		arg.FileKey,
+		arg.FileName,
 	)
 	return err
 }
@@ -308,8 +410,9 @@ WHERE d.deleted_at IS NULL
        OR d.title ILIKE '%' || $3 || '%' OR coalesce(a.name, l.org_name, '') ILIKE '%' || $3 || '%')
   AND ($4::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) >= $4)
   AND ($5::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) < $5)
+  AND ($6::text IS NULL OR EXISTS (SELECT 1 FROM sales.onboardings o WHERE o.deal_id = i.deal_id AND o.marketing_client_id = $6))
 ORDER BY i.created_at DESC, i.id
-LIMIT $6
+LIMIT $7
 `
 
 type ListInvoicesParams struct {
@@ -318,6 +421,7 @@ type ListInvoicesParams struct {
 	Search *string
 	FromAt *time.Time
 	ToAt   *time.Time
+	Client *string
 	Lim    int32
 }
 
@@ -337,6 +441,7 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 		arg.Search,
 		arg.FromAt,
 		arg.ToAt,
+		arg.Client,
 		arg.Lim,
 	)
 	if err != nil {
@@ -373,6 +478,70 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 			&i.QuoteNumber,
 			&i.TermLabel,
 			&i.PaidTotal,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPaymentProofs = `-- name: ListPaymentProofs :many
+SELECT pp.id, pp.invoice_id, pp.amount, pp.paid_on, pp.payer_name, pp.note, pp.file_key, pp.file_name, pp.status, pp.reject_reason, pp.payment_id, pp.decided_by, pp.decided_at, pp.created_at, i.invoice_number, i.deal_id, coalesce(a.name, l.org_name, d.title)::text AS client_name
+FROM sales.payment_proofs pp
+JOIN sales.invoices i ON i.id = pp.invoice_id
+JOIN sales.deals d ON d.id = i.deal_id
+LEFT JOIN sales.leads l ON l.id = d.lead_id
+LEFT JOIN sales.accounts a ON a.id = d.account_id
+WHERE ($1::text IS NULL OR pp.status = $1)
+  AND ($2::text[] IS NULL OR pp.invoice_id = ANY($2::text[]))
+ORDER BY pp.created_at DESC
+LIMIT $3
+`
+
+type ListPaymentProofsParams struct {
+	Status     *string
+	InvoiceIds []string
+	Lim        int32
+}
+
+type ListPaymentProofsRow struct {
+	SalesPaymentProof SalesPaymentProof
+	InvoiceNumber     string
+	DealID            string
+	ClientName        string
+}
+
+func (q *Queries) ListPaymentProofs(ctx context.Context, arg ListPaymentProofsParams) ([]ListPaymentProofsRow, error) {
+	rows, err := q.db.Query(ctx, listPaymentProofs, arg.Status, arg.InvoiceIds, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPaymentProofsRow{}
+	for rows.Next() {
+		var i ListPaymentProofsRow
+		if err := rows.Scan(
+			&i.SalesPaymentProof.ID,
+			&i.SalesPaymentProof.InvoiceID,
+			&i.SalesPaymentProof.Amount,
+			&i.SalesPaymentProof.PaidOn,
+			&i.SalesPaymentProof.PayerName,
+			&i.SalesPaymentProof.Note,
+			&i.SalesPaymentProof.FileKey,
+			&i.SalesPaymentProof.FileName,
+			&i.SalesPaymentProof.Status,
+			&i.SalesPaymentProof.RejectReason,
+			&i.SalesPaymentProof.PaymentID,
+			&i.SalesPaymentProof.DecidedBy,
+			&i.SalesPaymentProof.DecidedAt,
+			&i.SalesPaymentProof.CreatedAt,
+			&i.InvoiceNumber,
+			&i.DealID,
+			&i.ClientName,
 		); err != nil {
 			return nil, err
 		}

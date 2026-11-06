@@ -5,6 +5,7 @@ package render
 
 import (
 	"bytes"
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -12,18 +13,13 @@ import (
 	"time"
 
 	"github.com/go-pdf/fpdf"
+	"github.com/syabanf/white-superapp/white-backend/internal/sales/app"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
 )
 
-// Company is the letterhead identity printed on every document.
-type Company struct {
-	LegalName, Address, Email, Phone string
-	// NPWP is the tax id; the line is left out when empty.
-	NPWP string
-}
-
-// Letterhead defaults; CompanyFromEnv overrides all but the brand.
+// Brand defaults; CompanyFromEnv fills the letterhead when Finance has no
+// company profile or cannot be reached.
 const (
 	brandName    = "Mixist"
 	brandTagline = "Digital Marketing Agency"
@@ -31,27 +27,27 @@ const (
 	brandAddress = "Jl. Senopati No. 8, Kebayoran Baru, Jakarta Selatan 12190"
 	brandEmail   = "hello@mixist.id"
 	brandPhone   = "+62 21 5000 8800"
+	// noBankLine is printed until Finance records the receiving account.
+	noBankLine = "Hubungi kami untuk rekening pembayaran. Cantumkan nomor invoice pada berita transfer."
 )
 
 // CompanyFromEnv reads COMPANY_LEGAL_NAME, COMPANY_ADDRESS, COMPANY_EMAIL,
 // COMPANY_PHONE and COMPANY_NPWP over the defaults above.
-func CompanyFromEnv() Company {
-	return Company{
+func CompanyFromEnv() app.Company {
+	return app.Company{
 		LegalName: config.Env("COMPANY_LEGAL_NAME", legalName),
 		Address:   config.Env("COMPANY_ADDRESS", brandAddress),
 		Email:     config.Env("COMPANY_EMAIL", brandEmail),
 		Phone:     config.Env("COMPANY_PHONE", brandPhone),
 		NPWP:      config.Env("COMPANY_NPWP", ""),
+		BankLine:  noBankLine,
 	}
 }
 
 // Renderer implements app.Renderer.
-type Renderer struct {
-	Company Company
-}
+type Renderer struct{}
 
-// New builds a renderer with the company read from the environment.
-func New() Renderer { return Renderer{Company: CompanyFromEnv()} }
+func New() Renderer { return Renderer{} }
 
 type rgb struct{ r, g, b int }
 
@@ -95,10 +91,10 @@ func safe(s string) string {
 type doc struct {
 	f  *fpdf.Fpdf
 	tr func(string) string
-	co Company
+	co app.Company
 }
 
-func newDoc(co Company, footer func(d *doc)) *doc {
+func newDoc(co app.Company, footer func(d *doc)) *doc {
 	f := fpdf.New("P", "pt", "A4", "")
 	f.SetMargins(margin, margin, margin)
 	f.SetAutoPageBreak(true, 64)
@@ -403,8 +399,8 @@ func partyRows(program, client string, deal domain.Deal) [][2]string {
 
 // QuotationPDF is quotationPDF: letterhead, title band, info box, item
 // table, totals, notes with payment terms and the signature block.
-func (r Renderer) QuotationPDF(q domain.Quotation, deal domain.Deal, ownerName string) ([]byte, error) {
-	d := newDoc(r.Company, nil)
+func (r Renderer) QuotationPDF(co app.Company, q domain.Quotation, deal domain.Deal, ownerName string) ([]byte, error) {
+	d := newDoc(co, nil)
 	d.titleBand("QUOTATION", q.QuoteNumber)
 	right := [][2]string{
 		{"Tanggal", issuedID(q.SentAt, q.CreatedAt)},
@@ -482,8 +478,8 @@ func (d *doc) signature(greeting, name string) {
 }
 
 // InvoicePDF renders a submitted or issued invoice.
-func (r Renderer) InvoicePDF(inv domain.Invoice, deal domain.Deal, quoteNumber string) ([]byte, error) {
-	d := newDoc(r.Company, nil)
+func (r Renderer) InvoicePDF(co app.Company, inv domain.Invoice, deal domain.Deal, quoteNumber string) ([]byte, error) {
+	d := newDoc(co, nil)
 	d.titleBand("INVOICE", inv.InvoiceNumber)
 	right := [][2]string{
 		{"Tanggal terbit", issuedID(inv.SentAt, inv.CreatedAt)},
@@ -502,7 +498,7 @@ func (r Renderer) InvoicePDF(inv domain.Invoice, deal domain.Deal, quoteNumber s
 		{"Sisa", (inv.Amount - inv.PaidTotal).Rupiah()},
 	})
 	d.section("Catatan")
-	d.paragraph("Transfer ke rekening "+d.co.LegalName+", Bank BCA 123-456-7890. Cantumkan nomor invoice pada berita transfer.", 8.5)
+	d.paragraph(cmp.Or(d.co.BankLine, noBankLine), 8.5)
 	d.signature("Hormat kami,", d.co.LegalName)
 	return d.bytes()
 }
@@ -525,7 +521,7 @@ func firstNonEmpty(vals ...string) string {
 
 // ContractPDF lays out the markdown-lite body, the signature block (with
 // the client's drawn signature once signed) and an audit footer.
-func (r Renderer) ContractPDF(c domain.Contract) ([]byte, error) {
+func (r Renderer) ContractPDF(co app.Company, c domain.Contract) ([]byte, error) {
 	sum := sha256.Sum256([]byte(c.Body))
 	digest := hex.EncodeToString(sum[:])[:16]
 	footer := func(d *doc) {
@@ -538,7 +534,7 @@ func (r Renderer) ContractPDF(c domain.Contract) ([]byte, error) {
 		}
 		d.f.CellFormat(contentW, 9, d.t(text), "", 0, "L", false, 0, "")
 	}
-	d := newDoc(r.Company, footer)
+	d := newDoc(co, footer)
 	d.font("B", 14)
 	d.color(ink)
 	d.f.MultiCell(contentW, 18, d.t(strings.ToUpper(c.Title)), "", "C", false)

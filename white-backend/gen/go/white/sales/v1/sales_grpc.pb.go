@@ -6146,3 +6146,349 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "white/sales/v1/sales.proto",
 }
+
+const (
+	PortalService_GetPortal_FullMethodName              = "/white.sales.v1.PortalService/GetPortal"
+	PortalService_SubmitPaymentProof_FullMethodName     = "/white.sales.v1.PortalService/SubmitPaymentProof"
+	PortalService_RenderPortalInvoicePdf_FullMethodName = "/white.sales.v1.PortalService/RenderPortalInvoicePdf"
+	PortalService_ListPaymentProofs_FullMethodName      = "/white.sales.v1.PortalService/ListPaymentProofs"
+	PortalService_ApprovePaymentProof_FullMethodName    = "/white.sales.v1.PortalService/ApprovePaymentProof"
+	PortalService_RejectPaymentProof_FullMethodName     = "/white.sales.v1.PortalService/RejectPaymentProof"
+	PortalService_GetPaymentProofFile_FullMethodName    = "/white.sales.v1.PortalService/GetPaymentProofFile"
+)
+
+// PortalServiceClient is the client API for PortalService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PortalServiceClient interface {
+	// Public. `unlock_token` is the share cookie; the page must be enabled and
+	// protected by a PIN. POST keeps the token out of URLs and logs.
+	GetPortal(ctx context.Context, in *PortalRequest, opts ...grpc.CallOption) (*Portal, error)
+	// Public. PDF, PNG, JPG or WEBP up to 15 MB; Finance approves it before
+	// anything posts.
+	SubmitPaymentProof(ctx context.Context, in *SubmitPaymentProofRequest, opts ...grpc.CallOption) (*PaymentProof, error)
+	// Internal: invoice PDF for the gateway's portal route.
+	RenderPortalInvoicePdf(ctx context.Context, in *PortalInvoiceRequest, opts ...grpc.CallOption) (*File, error)
+	// Sales or finance writers.
+	ListPaymentProofs(ctx context.Context, in *ListPaymentProofsRequest, opts ...grpc.CallOption) (*ListPaymentProofsResponse, error)
+	// Records the payment (published to Finance) and links it to the proof.
+	ApprovePaymentProof(ctx context.Context, in *ApprovePaymentProofRequest, opts ...grpc.CallOption) (*PaymentProof, error)
+	RejectPaymentProof(ctx context.Context, in *RejectPaymentProofRequest, opts ...grpc.CallOption) (*PaymentProof, error)
+	// Internal: proof bytes for the gateway.
+	GetPaymentProofFile(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*File, error)
+}
+
+type portalServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPortalServiceClient(cc grpc.ClientConnInterface) PortalServiceClient {
+	return &portalServiceClient{cc}
+}
+
+func (c *portalServiceClient) GetPortal(ctx context.Context, in *PortalRequest, opts ...grpc.CallOption) (*Portal, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Portal)
+	err := c.cc.Invoke(ctx, PortalService_GetPortal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) SubmitPaymentProof(ctx context.Context, in *SubmitPaymentProofRequest, opts ...grpc.CallOption) (*PaymentProof, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PaymentProof)
+	err := c.cc.Invoke(ctx, PortalService_SubmitPaymentProof_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) RenderPortalInvoicePdf(ctx context.Context, in *PortalInvoiceRequest, opts ...grpc.CallOption) (*File, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(File)
+	err := c.cc.Invoke(ctx, PortalService_RenderPortalInvoicePdf_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) ListPaymentProofs(ctx context.Context, in *ListPaymentProofsRequest, opts ...grpc.CallOption) (*ListPaymentProofsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPaymentProofsResponse)
+	err := c.cc.Invoke(ctx, PortalService_ListPaymentProofs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) ApprovePaymentProof(ctx context.Context, in *ApprovePaymentProofRequest, opts ...grpc.CallOption) (*PaymentProof, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PaymentProof)
+	err := c.cc.Invoke(ctx, PortalService_ApprovePaymentProof_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) RejectPaymentProof(ctx context.Context, in *RejectPaymentProofRequest, opts ...grpc.CallOption) (*PaymentProof, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PaymentProof)
+	err := c.cc.Invoke(ctx, PortalService_RejectPaymentProof_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) GetPaymentProofFile(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*File, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(File)
+	err := c.cc.Invoke(ctx, PortalService_GetPaymentProofFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PortalServiceServer is the server API for PortalService service.
+// All implementations must embed UnimplementedPortalServiceServer
+// for forward compatibility.
+type PortalServiceServer interface {
+	// Public. `unlock_token` is the share cookie; the page must be enabled and
+	// protected by a PIN. POST keeps the token out of URLs and logs.
+	GetPortal(context.Context, *PortalRequest) (*Portal, error)
+	// Public. PDF, PNG, JPG or WEBP up to 15 MB; Finance approves it before
+	// anything posts.
+	SubmitPaymentProof(context.Context, *SubmitPaymentProofRequest) (*PaymentProof, error)
+	// Internal: invoice PDF for the gateway's portal route.
+	RenderPortalInvoicePdf(context.Context, *PortalInvoiceRequest) (*File, error)
+	// Sales or finance writers.
+	ListPaymentProofs(context.Context, *ListPaymentProofsRequest) (*ListPaymentProofsResponse, error)
+	// Records the payment (published to Finance) and links it to the proof.
+	ApprovePaymentProof(context.Context, *ApprovePaymentProofRequest) (*PaymentProof, error)
+	RejectPaymentProof(context.Context, *RejectPaymentProofRequest) (*PaymentProof, error)
+	// Internal: proof bytes for the gateway.
+	GetPaymentProofFile(context.Context, *IdRequest) (*File, error)
+	mustEmbedUnimplementedPortalServiceServer()
+}
+
+// UnimplementedPortalServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedPortalServiceServer struct{}
+
+func (UnimplementedPortalServiceServer) GetPortal(context.Context, *PortalRequest) (*Portal, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPortal not implemented")
+}
+func (UnimplementedPortalServiceServer) SubmitPaymentProof(context.Context, *SubmitPaymentProofRequest) (*PaymentProof, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitPaymentProof not implemented")
+}
+func (UnimplementedPortalServiceServer) RenderPortalInvoicePdf(context.Context, *PortalInvoiceRequest) (*File, error) {
+	return nil, status.Error(codes.Unimplemented, "method RenderPortalInvoicePdf not implemented")
+}
+func (UnimplementedPortalServiceServer) ListPaymentProofs(context.Context, *ListPaymentProofsRequest) (*ListPaymentProofsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPaymentProofs not implemented")
+}
+func (UnimplementedPortalServiceServer) ApprovePaymentProof(context.Context, *ApprovePaymentProofRequest) (*PaymentProof, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApprovePaymentProof not implemented")
+}
+func (UnimplementedPortalServiceServer) RejectPaymentProof(context.Context, *RejectPaymentProofRequest) (*PaymentProof, error) {
+	return nil, status.Error(codes.Unimplemented, "method RejectPaymentProof not implemented")
+}
+func (UnimplementedPortalServiceServer) GetPaymentProofFile(context.Context, *IdRequest) (*File, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPaymentProofFile not implemented")
+}
+func (UnimplementedPortalServiceServer) mustEmbedUnimplementedPortalServiceServer() {}
+func (UnimplementedPortalServiceServer) testEmbeddedByValue()                       {}
+
+// UnsafePortalServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PortalServiceServer will
+// result in compilation errors.
+type UnsafePortalServiceServer interface {
+	mustEmbedUnimplementedPortalServiceServer()
+}
+
+func RegisterPortalServiceServer(s grpc.ServiceRegistrar, srv PortalServiceServer) {
+	// If the following call panics, it indicates UnimplementedPortalServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&PortalService_ServiceDesc, srv)
+}
+
+func _PortalService_GetPortal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PortalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).GetPortal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_GetPortal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).GetPortal(ctx, req.(*PortalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_SubmitPaymentProof_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitPaymentProofRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).SubmitPaymentProof(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_SubmitPaymentProof_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).SubmitPaymentProof(ctx, req.(*SubmitPaymentProofRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_RenderPortalInvoicePdf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PortalInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).RenderPortalInvoicePdf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_RenderPortalInvoicePdf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).RenderPortalInvoicePdf(ctx, req.(*PortalInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_ListPaymentProofs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPaymentProofsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).ListPaymentProofs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_ListPaymentProofs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).ListPaymentProofs(ctx, req.(*ListPaymentProofsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_ApprovePaymentProof_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApprovePaymentProofRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).ApprovePaymentProof(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_ApprovePaymentProof_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).ApprovePaymentProof(ctx, req.(*ApprovePaymentProofRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_RejectPaymentProof_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RejectPaymentProofRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).RejectPaymentProof(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_RejectPaymentProof_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).RejectPaymentProof(ctx, req.(*RejectPaymentProofRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_GetPaymentProofFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).GetPaymentProofFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_GetPaymentProofFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).GetPaymentProofFile(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PortalService_ServiceDesc is the grpc.ServiceDesc for PortalService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PortalService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.sales.v1.PortalService",
+	HandlerType: (*PortalServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPortal",
+			Handler:    _PortalService_GetPortal_Handler,
+		},
+		{
+			MethodName: "SubmitPaymentProof",
+			Handler:    _PortalService_SubmitPaymentProof_Handler,
+		},
+		{
+			MethodName: "RenderPortalInvoicePdf",
+			Handler:    _PortalService_RenderPortalInvoicePdf_Handler,
+		},
+		{
+			MethodName: "ListPaymentProofs",
+			Handler:    _PortalService_ListPaymentProofs_Handler,
+		},
+		{
+			MethodName: "ApprovePaymentProof",
+			Handler:    _PortalService_ApprovePaymentProof_Handler,
+		},
+		{
+			MethodName: "RejectPaymentProof",
+			Handler:    _PortalService_RejectPaymentProof_Handler,
+		},
+		{
+			MethodName: "GetPaymentProofFile",
+			Handler:    _PortalService_GetPaymentProofFile_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/sales/v1/sales.proto",
+}

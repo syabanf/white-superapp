@@ -19,6 +19,7 @@ type Services struct {
 	Assets     *app.Assets
 	Reports    *app.Reports
 	Dashboard  *app.Dashboard
+	Portal     *app.Portal
 }
 
 func Register(s *grpc.Server, svc Services) {
@@ -27,6 +28,7 @@ func Register(s *grpc.Server, svc Services) {
 	contentv1.RegisterDesignServiceServer(s, &designServer{svc: svc})
 	contentv1.RegisterAssetServiceServer(s, &assetServer{svc: svc})
 	contentv1.RegisterReportServiceServer(s, &reportServer{svc: svc})
+	contentv1.RegisterPortalServiceServer(s, &portalServer{svc: svc})
 }
 
 // caller is the signed-in user id; every content RPC is client-scoped and

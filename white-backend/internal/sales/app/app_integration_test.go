@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales"
 	grpcapi "github.com/syabanf/white-superapp/white-backend/internal/sales/adapter/grpc"
 	"github.com/syabanf/white-superapp/white-backend/internal/sales/adapter/postgres"
@@ -24,6 +25,7 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/events"
+	"github.com/syabanf/white-superapp/white-backend/pkg/mail"
 	pg "github.com/syabanf/white-superapp/white-backend/pkg/postgres"
 )
 
@@ -74,6 +76,44 @@ func (directory) Approvers(context.Context) ([]app.User, error) {
 	return []app.User{{ID: managerID, Name: "Maya Manajer"}, {ID: adminID, Name: "Admin", Admin: true}}, nil
 }
 
+func (directory) Holders(context.Context, string) ([]app.User, error) {
+	return []app.User{{ID: adminID, Name: "Admin", Admin: true}}, nil
+}
+
+type profile struct{}
+
+func (profile) Company(context.Context) app.Company {
+	return app.Company{LegalName: "PT Mixist", BankLine: "Transfer ke BCA 1"}
+}
+
+// gate unlocks slug "maju" with token "ok" as client-maju.
+type gate struct{}
+
+func (gate) UnlockedClient(_ context.Context, slug, token string) (*app.ShareClient, error) {
+	if slug == "maju" && token == "ok" {
+		return &app.ShareClient{ID: "client-maju", Name: "PT Maju Jaya"}, nil
+	}
+	return nil, nil
+}
+
+type mailbox struct{ sent chan mail.Message }
+
+func (m *mailbox) Send(_ context.Context, msg mail.Message) error {
+	m.sent <- msg
+	return nil
+}
+
+func (m *mailbox) next(t *testing.T) mail.Message {
+	t.Helper()
+	select {
+	case msg := <-m.sent:
+		return msg
+	case <-time.After(5 * time.Second):
+		t.Fatal("no mail sent")
+		return mail.Message{}
+	}
+}
+
 type clients struct{ created []app.ClientInput }
 
 func (c *clients) CreateClient(_ context.Context, in app.ClientInput) (string, error) {
@@ -112,6 +152,8 @@ var (
 )
 
 type env struct {
+	pool  *pgxpool.Pool
+	mail  *mailbox
 	svc   grpcapi.Services
 	deps  *app.Deps
 	rec   *recorder
@@ -132,9 +174,11 @@ func setup(t *testing.T) *env {
 	rec := &recorder{}
 	wa := &whatsapp{}
 	cl := &clients{}
-	deps := &app.Deps{Store: postgres.NewStore(pool), Clock: clock.Real{}, Events: rec, Notifier: rec, Directory: directory{}, Clients: cl, AI: mockAI{}, WhatsApp: wa, Files: storage.NewLocal(t.TempDir()), Renderer: render.New()}
+	box := &mailbox{sent: make(chan mail.Message, 10)}
+	deps := &app.Deps{Store: postgres.NewStore(pool), Clock: clock.Real{}, Events: rec, Notifier: rec, Directory: directory{}, Clients: cl, AI: mockAI{}, WhatsApp: wa, Files: storage.NewLocal(t.TempDir()), Renderer: render.New(),
+		Mail: box, AppURL: "https://app.mixist.id", Share: gate{}, Holders: directory{}, Profile: profile{}}
 	svc := sales.Services(deps)
-	return &env{svc: svc, deps: deps, rec: rec, wa: wa, cl: cl, store: deps.Store, jobs: app.NewJobs(deps, svc.Automation, svc.Pipeline, svc.Chat, svc.Onboarding, svc.Billing)}
+	return &env{pool: pool, mail: box, svc: svc, deps: deps, rec: rec, wa: wa, cl: cl, store: deps.Store, jobs: app.NewJobs(deps, svc.Automation, svc.Pipeline, svc.Chat, svc.Onboarding, svc.Billing)}
 }
 
 // must panics on error; the test fails with the stack trace.
@@ -619,6 +663,73 @@ func TestDecksForecastAndJobs(t *testing.T) {
 }
 
 // ─── helpers ─────────────────────────────────────────────────
+
+func TestClientPortalPaymentProofs(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	_, deal := newDeal(t, e)
+	inv := must(e.svc.Billing.SubmitInvoice(ctx, salesActor, app.InvoiceInput{DealID: deal.ID, Label: "Termin 1", Amount: "5000000", DueDate: "2026-12-01"}))
+	// Before the deal is onboarded as a marketing client the invoice email has no portal link.
+	must(e.svc.Billing.IssueInvoice(ctx, adminActor, inv.ID))
+	msg := e.mail.next(t)
+	if msg.To[0] != "andi@maju.id" || len(msg.Attachments) != 1 || strings.Contains(msg.Text, "/share/c/") {
+		t.Fatalf("invoice mail: %+v", msg.To)
+	}
+	if _, err := e.pool.Exec(ctx, `INSERT INTO sales.onboardings (id, deal_id, client_name, portal_token, marketing_client_id) VALUES ('ob-1', $1, 'PT Maju Jaya', 'tok-1', 'client-maju')`, deal.ID); err != nil {
+		t.Fatal(err)
+	}
+	second := must(e.svc.Billing.SubmitInvoice(ctx, salesActor, app.InvoiceInput{DealID: deal.ID, Label: "Termin 2", Amount: "3000000"}))
+	must(e.svc.Billing.IssueInvoice(ctx, adminActor, second.ID))
+	if msg := e.mail.next(t); !strings.Contains(msg.Text, "https://app.mixist.id/share/c/client-maju") {
+		t.Fatalf("portal link missing: %s", msg.Text)
+	}
+
+	_, err := e.svc.Portal.View(ctx, "maju", "wrong")
+	code(t, err, apperr.NotFound)
+	view := must(e.svc.Portal.View(ctx, "maju", "ok"))
+	if len(view.Invoices) != 2 || view.BankLine == "" {
+		t.Fatalf("view: %d invoices", len(view.Invoices))
+	}
+
+	in := app.ProofInput{Slug: "maju", Token: "ok", InvoiceID: inv.ID, Amount: "5000000", PaidOn: "2026-11-02", PayerName: "Andi", FileName: "bukti.png", Data: pngBytes(t)}
+	_, err = e.svc.Portal.SubmitProof(ctx, app.ProofInput{Slug: "maju", Token: "ok", InvoiceID: inv.ID, Amount: "1", PaidOn: "2026-11-02", PayerName: "Andi", FileName: "x.txt", Data: []byte("hello")})
+	code(t, err, apperr.Validation)
+	proof := must(e.svc.Portal.SubmitProof(ctx, in))
+	if proof.Status != app.ProofPending || len(e.rec.notified(app.NotifProof)) != 1 {
+		t.Fatalf("proof %s, notices %d", proof.Status, len(e.rec.notified(app.NotifProof)))
+	}
+	other := must(e.svc.Portal.SubmitProof(ctx, in))
+
+	_, err = e.svc.Portal.RejectProof(ctx, adminActor, other.ID, " ")
+	code(t, err, apperr.Validation)
+	rejected := must(e.svc.Portal.RejectProof(ctx, adminActor, other.ID, "Nominal tidak masuk ke rekening"))
+	if rejected.Status != app.ProofRejected {
+		t.Fatal(rejected.Status)
+	}
+
+	approved := must(e.svc.Portal.ApproveProof(ctx, adminActor, app.ApproveInput{ID: proof.ID, BankFee: "6500"}))
+	if approved.Status != app.ProofApproved || approved.PaymentID == nil {
+		t.Fatalf("approve: %+v", approved)
+	}
+	paid := must(e.svc.Billing.GetInvoice(ctx, inv.ID))
+	if paid.PaidTotal.String() != "5000000.00" {
+		t.Fatalf("paid %s", paid.PaidTotal)
+	}
+	if got := e.rec.events[events.SalesPaymentRecorded]; len(got) == 0 {
+		t.Fatal("payment not published to finance")
+	}
+	_, err = e.svc.Portal.ApproveProof(ctx, adminActor, app.ApproveInput{ID: proof.ID})
+	code(t, err, apperr.Conflict)
+	_, err = e.svc.Portal.ApproveProof(ctx, adminActor, app.ApproveInput{ID: rejected.ID})
+	code(t, err, apperr.Conflict)
+
+	name, data := must2(e.svc.Portal.InvoicePDF(ctx, "maju", "ok", inv.ID))
+	if !strings.HasSuffix(name, ".pdf") || !bytes.HasPrefix(data, []byte("%PDF")) {
+		t.Fatal(name)
+	}
+	_, _, err = e.svc.Portal.InvoicePDF(ctx, "maju", "ok", "someone-else")
+	code(t, err, apperr.NotFound)
+}
 
 func must2[A, B any](a A, b B, err error) (A, B) {
 	if err != nil {

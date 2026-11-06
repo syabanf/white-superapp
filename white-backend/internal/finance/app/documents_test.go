@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -1516,6 +1517,67 @@ func TestProjectAllocationKeepsTheTotal(t *testing.T) {
 	}
 	if project != rp(300) || total != rp(1_000) {
 		t.Fatalf("project %s total %s %+v", project, total, rows)
+	}
+}
+
+func TestCompanyProfileFallsBackThenStamps(t *testing.T) {
+	h := newHarness(t)
+	p := app.NewCompanyProfile(h.deps)
+	if got := p.Get(h.ctx); got.LegalName != h.deps.Company.LegalName || got.BankAccountNo != "" {
+		t.Fatalf("defaults before any save: %+v", got)
+	}
+	_, err := p.Save(h.ctx, "u1", domain.Company{LegalName: "PT Mixist", BankAccountNo: "12a"})
+	h.wantErr(err, "Nomor rekening hanya berisi angka")
+	saved, err := p.Save(h.ctx, "u1", domain.Company{LegalName: " PT Mixist Digital ", BankName: "BCA", BankAccountNo: "123 456 7890"})
+	h.ok(err)
+	if saved.LegalName != "PT Mixist Digital" || saved.BankLine() != "Transfer ke BCA 123 456 7890 a.n. PT Mixist Digital. Cantumkan nomor invoice pada berita transfer." {
+		t.Fatalf("%+v %q", saved, saved.BankLine())
+	}
+	if got := p.Get(h.ctx); got.BankName != "BCA" {
+		t.Fatalf("saved profile wins: %+v", got)
+	}
+}
+
+type fakeTimesheet struct{ costs []app.ProjectCost }
+
+func (f fakeTimesheet) ProjectCosts(context.Context, string) ([]app.ProjectCost, error) {
+	return f.costs, nil
+}
+
+func TestAllocateFromTimesheetReplacesOnlyItsOwnRows(t *testing.T) {
+	h := newHarness(t)
+	tag, err := app.NewProjectTags(h.deps).Save(h.ctx, "u1", domain.ProjectTag{Name: "Retainer A", ClientName: "PT A", IsActive: true})
+	h.ok(err)
+	h.deps.Timesheet = fakeTimesheet{costs: []app.ProjectCost{
+		{ProjectID: tag.ID, ProjectName: "Retainer A", Hours: 12.5, Cost: "4500000.00"},
+		{ProjectID: "gone", ProjectName: "Proyek lama", Hours: 2, Cost: "100000.00"},
+	}}
+	tags := app.NewProjectTags(h.deps)
+	_, err = tags.CreateAllocation(h.ctx, "u1", domain.ProjectAllocation{TagID: tag.ID, Month: "2026-10", Kind: domain.AllocReimbursement, Amount: rp(50)})
+	h.ok(err)
+	for range 2 { // a rerun replaces, never doubles
+		res, err := tags.AllocateFromTimesheet(h.ctx, "u1", "2026-10")
+		h.ok(err)
+		if len(res.Skipped) != 1 || res.Skipped[0] != "Proyek lama" || len(res.Allocations) != 2 {
+			t.Fatalf("%+v", res)
+		}
+	}
+	rows, err := tags.ListAllocations(h.ctx, "2026-10-01", "2026-10-31")
+	h.ok(err)
+	var fromTimesheet, manual int
+	for _, a := range rows {
+		switch a.Source {
+		case domain.AllocTimesheet:
+			fromTimesheet++
+			if a.Amount != rp(4_500_000) || a.Kind != domain.AllocPayroll || a.Notes != "Dari timesheet: 12.5 jam" {
+				t.Fatalf("%+v", a)
+			}
+		case domain.AllocManual:
+			manual++
+		}
+	}
+	if fromTimesheet != 1 || manual != 1 {
+		t.Fatalf("timesheet %d manual %d", fromTimesheet, manual)
 	}
 }
 

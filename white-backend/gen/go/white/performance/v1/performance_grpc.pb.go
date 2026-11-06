@@ -3984,3 +3984,339 @@ var ImprovementService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "white/performance/v1/performance.proto",
 }
+
+const (
+	OkrService_GetOkrBoard_FullMethodName      = "/white.performance.v1.OkrService/GetOkrBoard"
+	OkrService_SaveObjective_FullMethodName    = "/white.performance.v1.OkrService/SaveObjective"
+	OkrService_DeleteObjective_FullMethodName  = "/white.performance.v1.OkrService/DeleteObjective"
+	OkrService_SaveKeyResult_FullMethodName    = "/white.performance.v1.OkrService/SaveKeyResult"
+	OkrService_DeleteKeyResult_FullMethodName  = "/white.performance.v1.OkrService/DeleteKeyResult"
+	OkrService_CheckInKeyResult_FullMethodName = "/white.performance.v1.OkrService/CheckInKeyResult"
+	OkrService_ListCheckins_FullMethodName     = "/white.performance.v1.OkrService/ListCheckins"
+)
+
+// OkrServiceClient is the client API for OkrService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type OkrServiceClient interface {
+	// Everyone signed in sees the whole board for a period (YYYY-Qn).
+	GetOkrBoard(ctx context.Context, in *GetOkrBoardRequest, opts ...grpc.CallOption) (*OkrBoard, error)
+	// Company: hr.write. Department: hr.write or its head. Employee: the
+	// employee, their leads or hr.write. Empty id creates.
+	SaveObjective(ctx context.Context, in *SaveObjectiveRequest, opts ...grpc.CallOption) (*Objective, error)
+	DeleteObjective(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*MessageResponse, error)
+	SaveKeyResult(ctx context.Context, in *SaveKeyResultRequest, opts ...grpc.CallOption) (*KeyResult, error)
+	DeleteKeyResult(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*MessageResponse, error)
+	CheckInKeyResult(ctx context.Context, in *CheckInKeyResultRequest, opts ...grpc.CallOption) (*KeyResult, error)
+	ListCheckins(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*ListCheckinsResponse, error)
+}
+
+type okrServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewOkrServiceClient(cc grpc.ClientConnInterface) OkrServiceClient {
+	return &okrServiceClient{cc}
+}
+
+func (c *okrServiceClient) GetOkrBoard(ctx context.Context, in *GetOkrBoardRequest, opts ...grpc.CallOption) (*OkrBoard, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OkrBoard)
+	err := c.cc.Invoke(ctx, OkrService_GetOkrBoard_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *okrServiceClient) SaveObjective(ctx context.Context, in *SaveObjectiveRequest, opts ...grpc.CallOption) (*Objective, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Objective)
+	err := c.cc.Invoke(ctx, OkrService_SaveObjective_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *okrServiceClient) DeleteObjective(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*MessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageResponse)
+	err := c.cc.Invoke(ctx, OkrService_DeleteObjective_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *okrServiceClient) SaveKeyResult(ctx context.Context, in *SaveKeyResultRequest, opts ...grpc.CallOption) (*KeyResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KeyResult)
+	err := c.cc.Invoke(ctx, OkrService_SaveKeyResult_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *okrServiceClient) DeleteKeyResult(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*MessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageResponse)
+	err := c.cc.Invoke(ctx, OkrService_DeleteKeyResult_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *okrServiceClient) CheckInKeyResult(ctx context.Context, in *CheckInKeyResultRequest, opts ...grpc.CallOption) (*KeyResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KeyResult)
+	err := c.cc.Invoke(ctx, OkrService_CheckInKeyResult_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *okrServiceClient) ListCheckins(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*ListCheckinsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCheckinsResponse)
+	err := c.cc.Invoke(ctx, OkrService_ListCheckins_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// OkrServiceServer is the server API for OkrService service.
+// All implementations must embed UnimplementedOkrServiceServer
+// for forward compatibility.
+type OkrServiceServer interface {
+	// Everyone signed in sees the whole board for a period (YYYY-Qn).
+	GetOkrBoard(context.Context, *GetOkrBoardRequest) (*OkrBoard, error)
+	// Company: hr.write. Department: hr.write or its head. Employee: the
+	// employee, their leads or hr.write. Empty id creates.
+	SaveObjective(context.Context, *SaveObjectiveRequest) (*Objective, error)
+	DeleteObjective(context.Context, *IdRequest) (*MessageResponse, error)
+	SaveKeyResult(context.Context, *SaveKeyResultRequest) (*KeyResult, error)
+	DeleteKeyResult(context.Context, *IdRequest) (*MessageResponse, error)
+	CheckInKeyResult(context.Context, *CheckInKeyResultRequest) (*KeyResult, error)
+	ListCheckins(context.Context, *IdRequest) (*ListCheckinsResponse, error)
+	mustEmbedUnimplementedOkrServiceServer()
+}
+
+// UnimplementedOkrServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedOkrServiceServer struct{}
+
+func (UnimplementedOkrServiceServer) GetOkrBoard(context.Context, *GetOkrBoardRequest) (*OkrBoard, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetOkrBoard not implemented")
+}
+func (UnimplementedOkrServiceServer) SaveObjective(context.Context, *SaveObjectiveRequest) (*Objective, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveObjective not implemented")
+}
+func (UnimplementedOkrServiceServer) DeleteObjective(context.Context, *IdRequest) (*MessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteObjective not implemented")
+}
+func (UnimplementedOkrServiceServer) SaveKeyResult(context.Context, *SaveKeyResultRequest) (*KeyResult, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveKeyResult not implemented")
+}
+func (UnimplementedOkrServiceServer) DeleteKeyResult(context.Context, *IdRequest) (*MessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteKeyResult not implemented")
+}
+func (UnimplementedOkrServiceServer) CheckInKeyResult(context.Context, *CheckInKeyResultRequest) (*KeyResult, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckInKeyResult not implemented")
+}
+func (UnimplementedOkrServiceServer) ListCheckins(context.Context, *IdRequest) (*ListCheckinsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCheckins not implemented")
+}
+func (UnimplementedOkrServiceServer) mustEmbedUnimplementedOkrServiceServer() {}
+func (UnimplementedOkrServiceServer) testEmbeddedByValue()                    {}
+
+// UnsafeOkrServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to OkrServiceServer will
+// result in compilation errors.
+type UnsafeOkrServiceServer interface {
+	mustEmbedUnimplementedOkrServiceServer()
+}
+
+func RegisterOkrServiceServer(s grpc.ServiceRegistrar, srv OkrServiceServer) {
+	// If the following call panics, it indicates UnimplementedOkrServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&OkrService_ServiceDesc, srv)
+}
+
+func _OkrService_GetOkrBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOkrBoardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OkrServiceServer).GetOkrBoard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OkrService_GetOkrBoard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OkrServiceServer).GetOkrBoard(ctx, req.(*GetOkrBoardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OkrService_SaveObjective_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveObjectiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OkrServiceServer).SaveObjective(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OkrService_SaveObjective_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OkrServiceServer).SaveObjective(ctx, req.(*SaveObjectiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OkrService_DeleteObjective_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OkrServiceServer).DeleteObjective(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OkrService_DeleteObjective_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OkrServiceServer).DeleteObjective(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OkrService_SaveKeyResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveKeyResultRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OkrServiceServer).SaveKeyResult(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OkrService_SaveKeyResult_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OkrServiceServer).SaveKeyResult(ctx, req.(*SaveKeyResultRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OkrService_DeleteKeyResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OkrServiceServer).DeleteKeyResult(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OkrService_DeleteKeyResult_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OkrServiceServer).DeleteKeyResult(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OkrService_CheckInKeyResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckInKeyResultRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OkrServiceServer).CheckInKeyResult(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OkrService_CheckInKeyResult_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OkrServiceServer).CheckInKeyResult(ctx, req.(*CheckInKeyResultRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OkrService_ListCheckins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OkrServiceServer).ListCheckins(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OkrService_ListCheckins_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OkrServiceServer).ListCheckins(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// OkrService_ServiceDesc is the grpc.ServiceDesc for OkrService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var OkrService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.performance.v1.OkrService",
+	HandlerType: (*OkrServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetOkrBoard",
+			Handler:    _OkrService_GetOkrBoard_Handler,
+		},
+		{
+			MethodName: "SaveObjective",
+			Handler:    _OkrService_SaveObjective_Handler,
+		},
+		{
+			MethodName: "DeleteObjective",
+			Handler:    _OkrService_DeleteObjective_Handler,
+		},
+		{
+			MethodName: "SaveKeyResult",
+			Handler:    _OkrService_SaveKeyResult_Handler,
+		},
+		{
+			MethodName: "DeleteKeyResult",
+			Handler:    _OkrService_DeleteKeyResult_Handler,
+		},
+		{
+			MethodName: "CheckInKeyResult",
+			Handler:    _OkrService_CheckInKeyResult_Handler,
+		},
+		{
+			MethodName: "ListCheckins",
+			Handler:    _OkrService_ListCheckins_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/performance/v1/performance.proto",
+}

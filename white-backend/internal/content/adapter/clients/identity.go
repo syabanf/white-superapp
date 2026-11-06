@@ -23,6 +23,7 @@ type Identity struct {
 	notify  identityv1.NotificationServiceClient
 	auth    identityv1.AuthServiceClient
 	users   identityv1.UserServiceClient
+	share   identityv1.ShareServiceClient
 	secret  string
 	acc     *ttlCache[*app.Access]
 	clients *ttlCache[map[string]*app.ClientInfo]
@@ -37,6 +38,7 @@ func NewIdentity(conn *grpc.ClientConn, internalSecret string) *Identity {
 		notify:  identityv1.NewNotificationServiceClient(conn),
 		auth:    identityv1.NewAuthServiceClient(conn),
 		users:   identityv1.NewUserServiceClient(conn),
+		share:   identityv1.NewShareServiceClient(conn),
 		secret:  internalSecret,
 		acc:     newCache[*app.Access](30 * time.Second),
 		clients: newCache[map[string]*app.ClientInfo](60 * time.Second),
@@ -147,4 +149,18 @@ func (c *Identity) AsUser(ctx context.Context, userID string) (context.Context, 
 		c.tokens.put(userID, tok)
 	}
 	return metadata.NewOutgoingContext(ctx, metadata.Pairs(authn.MetadataHeader, "Bearer "+tok)), nil
+}
+
+// UnlockedClient implements app.ShareGate: only an enabled page with a PIN
+// the visitor entered qualifies.
+func (c *Identity) UnlockedClient(ctx context.Context, slug, unlockToken string) (*app.ClientInfo, error) {
+	res, err := c.share.GetShareContext(ctx, &identityv1.GetShareContextRequest{Slug: slug, UnlockToken: unlockToken})
+	if err != nil {
+		return nil, grpcx.FromStatus(err)
+	}
+	cl := res.GetClient()
+	if res.GetStatus() != identityv1.ShareContext_OK || cl == nil || !cl.GetSharePinSet() {
+		return nil, nil
+	}
+	return &app.ClientInfo{ID: cl.GetId(), Slug: cl.GetSlug(), Name: cl.GetName()}, nil
 }

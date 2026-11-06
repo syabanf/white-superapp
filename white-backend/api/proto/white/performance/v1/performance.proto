@@ -1926,3 +1926,130 @@ message CloseRetroResponse {
   int32 improvements_filed = 2;
   string message = 3;
 }
+
+// ─────────────────────────────────────────────────────────────
+// OkrService: quarterly objectives and key results
+// ─────────────────────────────────────────────────────────────
+
+service OkrService {
+  // Everyone signed in sees the whole board for a period (YYYY-Qn).
+  rpc GetOkrBoard(GetOkrBoardRequest) returns (OkrBoard) {
+    option (google.api.http) = {get: "/v1/performance/okr"};
+  }
+  // Company: hr.write. Department: hr.write or its head. Employee: the
+  // employee, their leads or hr.write. Empty id creates.
+  rpc SaveObjective(SaveObjectiveRequest) returns (Objective) {
+    option (google.api.http) = {post: "/v1/performance/okr/objectives" body: "*"};
+  }
+  rpc DeleteObjective(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/okr/objectives/{id}"};
+  }
+  rpc SaveKeyResult(SaveKeyResultRequest) returns (KeyResult) {
+    option (google.api.http) = {post: "/v1/performance/okr/key-results" body: "*"};
+  }
+  rpc DeleteKeyResult(IdRequest) returns (MessageResponse) {
+    option (google.api.http) = {delete: "/v1/performance/okr/key-results/{id}"};
+  }
+  rpc CheckInKeyResult(CheckInKeyResultRequest) returns (KeyResult) {
+    option (google.api.http) = {post: "/v1/performance/okr/key-results/{id}:check-in" body: "*"};
+  }
+  rpc ListCheckins(IdRequest) returns (ListCheckinsResponse) {
+    option (google.api.http) = {get: "/v1/performance/okr/key-results/{id}/check-ins"};
+  }
+}
+
+message GetOkrBoardRequest {
+  string period = 1;
+}
+
+message KeyResult {
+  string id = 1;
+  string objective_id = 2;
+  string title = 3;
+  // number | percent | currency
+  string metric = 4;
+  double start_value = 5;
+  double target_value = 6;
+  double current_value = 7;
+  string unit = 8;
+  int32 sort_order = 9;
+  // 0 to 1.
+  double progress = 10;
+  // Last check-in, 1 to 10; 0 before any.
+  int32 confidence = 11;
+}
+
+message Objective {
+  string id = 1;
+  string period = 2;
+  // company | department | employee
+  string level = 3;
+  string department_id = 4;
+  string employee_id = 5;
+  // Department or employee name.
+  string owner_name = 6;
+  string parent_id = 7;
+  string title = 8;
+  string description = 9;
+  // active | done | cancelled
+  string status = 10;
+  repeated KeyResult key_results = 11;
+  // Average of the key results, 0 to 1.
+  double progress = 12;
+  bool can_edit = 13;
+}
+
+message OkrOwner {
+  string id = 1;
+  string name = 2;
+}
+
+message OkrBoard {
+  repeated Objective objectives = 1;
+  // Where the caller may add objectives.
+  bool can_company = 2;
+  repeated OkrOwner departments = 3;
+  repeated OkrOwner employees = 4;
+}
+
+message SaveObjectiveRequest {
+  string id = 1;
+  string period = 2;
+  string level = 3;
+  string department_id = 4;
+  string employee_id = 5;
+  string parent_id = 6;
+  string title = 7;
+  string description = 8;
+  string status = 9;
+}
+
+message SaveKeyResultRequest {
+  string id = 1;
+  string objective_id = 2;
+  string title = 3;
+  string metric = 4;
+  double start_value = 5;
+  double target_value = 6;
+  string unit = 7;
+  int32 sort_order = 8;
+}
+
+message CheckInKeyResultRequest {
+  string id = 1;
+  double value = 2;
+  int32 confidence = 3;
+  string note = 4;
+}
+
+message OkrCheckin {
+  string id = 1;
+  double value = 2;
+  int32 confidence = 3;
+  string note = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message ListCheckinsResponse {
+  repeated OkrCheckin checkins = 1;
+}

@@ -35,6 +35,8 @@ const (
 	IntegrationKey_DATAFORSEO                  IntegrationKey = 3
 	IntegrationKey_APIFY                       IntegrationKey = 4
 	IntegrationKey_OPENROUTER                  IntegrationKey = 5
+	// Email. public_id is the From address, e.g. "Mixist <billing@mixist.id>".
+	IntegrationKey_RESEND IntegrationKey = 6
 )
 
 // Enum value maps for IntegrationKey.
@@ -46,6 +48,7 @@ var (
 		3: "DATAFORSEO",
 		4: "APIFY",
 		5: "OPENROUTER",
+		6: "RESEND",
 	}
 	IntegrationKey_value = map[string]int32{
 		"INTEGRATION_KEY_UNSPECIFIED": 0,
@@ -54,6 +57,7 @@ var (
 		"DATAFORSEO":                  3,
 		"APIFY":                       4,
 		"OPENROUTER":                  5,
+		"RESEND":                      6,
 	}
 )
 
@@ -1943,7 +1947,7 @@ const file_white_integrations_v1_integrations_proto_rawDesc = "" +
 	"configured\x18\x02 \x01(\bR\n" +
 	"configured\x12\x1b\n" +
 	"\tpublic_id\x18\x03 \x01(\tR\bpublicId\x12\x16\n" +
-	"\x06secret\x18\x04 \x01(\tR\x06secret*r\n" +
+	"\x06secret\x18\x04 \x01(\tR\x06secret*~\n" +
 	"\x0eIntegrationKey\x12\x1f\n" +
 	"\x1bINTEGRATION_KEY_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04META\x10\x01\x12\n" +
@@ -1953,7 +1957,9 @@ const file_white_integrations_v1_integrations_proto_rawDesc = "" +
 	"DATAFORSEO\x10\x03\x12\t\n" +
 	"\x05APIFY\x10\x04\x12\x0e\n" +
 	"\n" +
-	"OPENROUTER\x10\x052\x95\b\n" +
+	"OPENROUTER\x10\x05\x12\n" +
+	"\n" +
+	"\x06RESEND\x10\x062\x95\b\n" +
 	"\x11ConnectionService\x12\x9d\x01\n" +
 	"\x0fListConnections\x12-.white.integrations.v1.ListConnectionsRequest\x1a..white.integrations.v1.ListConnectionsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/v1/clients/{client_id}/connections\x12\x9f\x01\n" +
 	"\x14DisconnectConnection\x122.white.integrations.v1.DisconnectConnectionRequest\x1a\x16.google.protobuf.Empty\";\x82\xd3\xe4\x93\x025*3/v1/clients/{client_id}/connections/{connection_id}\x12\xa2\x01\n" +

@@ -29,6 +29,7 @@ type Services struct {
 	Schedules      *app.Schedules
 	Documents      *app.Documents
 	TaxSetup       *app.TaxSetup
+	Company        *app.CompanyProfile
 }
 
 func Register(s *grpc.Server, svc Services) {
@@ -48,6 +49,7 @@ func Register(s *grpc.Server, svc Services) {
 	financev1.RegisterProjectTagServiceServer(s, &projectTagServer{svc: svc})
 	financev1.RegisterAdvanceServiceServer(s, &advanceServer{svc: svc})
 	financev1.RegisterPeriodEndServiceServer(s, &periodEndServer{svc: svc})
+	financev1.RegisterCompanyServiceServer(s, &companyServer{svc: svc})
 }
 
 var empty = &emptypb.Empty{}

@@ -152,6 +152,16 @@ func (f *fakePublishing) GetPost(context.Context, string, string) (*app.PostStat
 
 // ─── fixture ─────────────────────────────────────────────────
 
+// shareGate unlocks slug "kopi" with token "ok".
+type shareGate struct{}
+
+func (shareGate) UnlockedClient(_ context.Context, slug, token string) (*app.ClientInfo, error) {
+	if slug == "kopi" && token == "ok" {
+		return &app.ClientInfo{ID: clientID, Slug: "kopi", Name: "Kopi Senja"}, nil
+	}
+	return nil, nil
+}
+
 type fixture struct {
 	store      *postgres.Store
 	plans      *app.Plans
@@ -161,6 +171,7 @@ type fixture struct {
 	reports    *app.Reports
 	dashboard  *app.Dashboard
 	scheduling *app.Scheduling
+	portal     *app.Portal
 	jobs       *app.Jobs
 	identity   *fakeIdentity
 	analytics  *fakeAnalytics
@@ -183,11 +194,11 @@ func setup(t *testing.T) *fixture {
 	deps := app.Deps{
 		Store: f.store, Files: storage.NewLocal(t.TempDir()), Identity: f.identity, Analytics: f.analytics, Publishing: f.publishing,
 		AI:       ai.NewSource(func(context.Context) (ai.Credentials, error) { return ai.Credentials{}, nil }, ai.Options{}),
-		Renderer: pdf.Renderer{}, Clock: clk,
+		Renderer: pdf.Renderer{}, Clock: clk, Share: shareGate{},
 	}
 	f.plans, f.items, f.designs, f.assets = app.NewPlans(deps), app.NewItems(deps), app.NewDesigns(deps), app.NewAssets(deps)
 	f.reports, f.scheduling, f.jobs = app.NewReports(deps), app.NewScheduling(deps), app.NewJobs(deps)
-	f.dashboard = app.NewDashboard(deps)
+	f.dashboard, f.portal = app.NewDashboard(deps), app.NewPortal(deps)
 	return f
 }
 
@@ -635,5 +646,45 @@ func TestIntegrationPublishOutcomeEvents(t *testing.T) {
 	must(0, f.scheduling.OnPostOutcome(ctx, events.PublishPostPayload{PostID: "post_ok", ClientID: clientID, Status: "PUBLISHED", At: at}))(t)
 	if n := strings.Count(strings.Join(f.identity.types(), ","), app.NotifItemPublished); n != 1 {
 		t.Fatalf("published notifications %d", n)
+	}
+}
+
+func TestIntegrationClientPortalReview(t *testing.T) {
+	f := setup(t)
+	ctx := context.Background()
+	plan := f.newPlan(t, "2026-11")
+	toReview := func() string {
+		it := f.newItem(t, plan.Plan.ID, domain.FormatFeed).Item
+		f.move(t, copyID, it.ID, domain.ItemCopywriting, "")
+		f.move(t, copyID, it.ID, domain.ItemReview, "")
+		return it.ID
+	}
+	first, second := toReview(), toReview()
+
+	code(t, errOf(f.portal.Review(ctx, "kopi", "salah")), apperr.NotFound)
+	list := must(f.portal.Review(ctx, "kopi", "ok"))(t)
+	if len(list) != 2 {
+		t.Fatalf("review list %d", len(list))
+	}
+	code(t, f.portal.Decide(ctx, "kopi", "ok", first, false, "Rina", ""), apperr.Validation)
+	code(t, f.portal.Decide(ctx, "kopi", "ok", first, true, " ", ""), apperr.Validation)
+	if err := f.portal.Decide(ctx, "kopi", "ok", first, true, "Rina", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.portal.Decide(ctx, "kopi", "ok", second, false, "Rina", "Ganti foto produk"); err != nil {
+		t.Fatal(err)
+	}
+	code(t, f.portal.Decide(ctx, "kopi", "ok", first, true, "Rina", ""), apperr.Conflict)
+
+	approved := must(f.items.Get(ctx, adminID, clientID, first))(t)
+	if approved.Item.Status != domain.ItemApproved || approved.Item.ApprovedAt == nil || approved.Item.ApprovedBy != nil {
+		t.Fatalf("approved %+v", approved.Item)
+	}
+	revised := must(f.items.Get(ctx, adminID, clientID, second))(t)
+	if revised.Item.Status != domain.ItemRevision || revised.Item.RevisionRound != 1 || len(revised.Comments) != 1 || !strings.Contains(revised.Comments[0].Body, "Klien (Rina)") {
+		t.Fatalf("revised %+v %+v", revised.Item, revised.Comments)
+	}
+	if len(must(f.portal.Review(ctx, "kopi", "ok"))(t)) != 0 {
+		t.Fatal("decided items still listed")
 	}
 }

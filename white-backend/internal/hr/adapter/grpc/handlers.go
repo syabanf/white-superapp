@@ -29,6 +29,9 @@ type Services struct {
 	Self          *app.SelfService
 	Reports       *app.Reports
 	Dashboard     *app.Dashboard
+	Assets        *app.Assets
+	Trainings     *app.Trainings
+	Timesheet     *app.Timesheet
 }
 
 func Register(s *grpc.Server, svc *Services) {
@@ -44,6 +47,9 @@ func Register(s *grpc.Server, svc *Services) {
 	hrv1.RegisterPayrollServiceServer(s, &payrollServer{s: svc})
 	hrv1.RegisterSelfServiceServiceServer(s, &selfServer{s: svc})
 	hrv1.RegisterHrReportServiceServer(s, &reportServer{s: svc})
+	hrv1.RegisterAssetServiceServer(s, &assetServer{s: svc})
+	hrv1.RegisterTrainingServiceServer(s, &trainingServer{s: svc})
+	hrv1.RegisterTimesheetServiceServer(s, &timesheetServer{s: svc})
 }
 
 var empty = &emptypb.Empty{}

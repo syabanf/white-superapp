@@ -57,6 +57,7 @@ var keyFromPB = map[integrationsv1.IntegrationKey]domain.IntegrationKey{
 	integrationsv1.IntegrationKey_DATAFORSEO: domain.KeyDataForSeo,
 	integrationsv1.IntegrationKey_APIFY:      domain.KeyApify,
 	integrationsv1.IntegrationKey_OPENROUTER: domain.KeyOpenRouter,
+	integrationsv1.IntegrationKey_RESEND:     domain.KeyResend,
 }
 
 func keyFrom(k integrationsv1.IntegrationKey) domain.IntegrationKey { return keyFromPB[k] }

@@ -171,7 +171,7 @@ func TestIntegrationCredentialRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(ov.Statuses) != 5 || ov.Statuses[1].Key != domain.KeyGoogle || ov.Statuses[1].Source != domain.SourceEnv || *ov.Statuses[1].SecretMasked != "env-••••alue" {
+	if len(ov.Statuses) != len(domain.IntegrationKeys) || ov.Statuses[1].Key != domain.KeyGoogle || ov.Statuses[1].Source != domain.SourceEnv || *ov.Statuses[1].SecretMasked != "env-••••alue" {
 		t.Fatalf("%+v", ov.Statuses[1])
 	}
 	if ov.Statuses[0].Source != domain.SourceNone || ov.Statuses[0].Configured {

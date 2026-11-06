@@ -2360,3 +2360,127 @@ message ReceiveWhatsAppResponse {
   int32 stored = 2;
   int32 skipped = 3;
 }
+
+// ─────────────────────────────────────────────────────────────
+// PortalService: the client side of the share page, and the
+// transfer proofs Finance checks
+// ─────────────────────────────────────────────────────────────
+
+service PortalService {
+  // Public. `unlock_token` is the share cookie; the page must be enabled and
+  // protected by a PIN. POST keeps the token out of URLs and logs.
+  rpc GetPortal(PortalRequest) returns (Portal) {
+    option (google.api.http) = {post: "/v1/public/sales/portal/{slug}:view" body: "*"};
+  }
+  // Public. PDF, PNG, JPG or WEBP up to 15 MB; Finance approves it before
+  // anything posts.
+  rpc SubmitPaymentProof(SubmitPaymentProofRequest) returns (PaymentProof) {
+    option (google.api.http) = {post: "/v1/public/sales/portal/{slug}/invoices/{invoice_id}/proofs" body: "*"};
+  }
+  // Internal: invoice PDF for the gateway's portal route.
+  rpc RenderPortalInvoicePdf(PortalInvoiceRequest) returns (File);
+  // Sales or finance writers.
+  rpc ListPaymentProofs(ListPaymentProofsRequest) returns (ListPaymentProofsResponse) {
+    option (google.api.http) = {get: "/v1/sales/payment-proofs"};
+  }
+  // Records the payment (published to Finance) and links it to the proof.
+  rpc ApprovePaymentProof(ApprovePaymentProofRequest) returns (PaymentProof) {
+    option (google.api.http) = {post: "/v1/sales/payment-proofs/{id}:approve" body: "*"};
+  }
+  rpc RejectPaymentProof(RejectPaymentProofRequest) returns (PaymentProof) {
+    option (google.api.http) = {post: "/v1/sales/payment-proofs/{id}:reject" body: "*"};
+  }
+  // Internal: proof bytes for the gateway.
+  rpc GetPaymentProofFile(IdRequest) returns (File);
+}
+
+message PortalRequest {
+  string slug = 1;
+  string unlock_token = 2;
+}
+
+message PortalInvoiceRequest {
+  string slug = 1;
+  string unlock_token = 2;
+  string invoice_id = 3;
+}
+
+message PortalContract {
+  string id = 1;
+  string contract_number = 2;
+  string title = 3;
+  // sent | signed | active | ended
+  string status = 4;
+  string start_date = 5;
+  string end_date = 6;
+  google.protobuf.Timestamp signed_at = 7;
+  // Opens /kontrak/{sign_token} to read or sign.
+  string sign_token = 8;
+}
+
+message Portal {
+  string client_id = 1;
+  string client_name = 2;
+  // Issued invoices, newest first.
+  repeated Invoice invoices = 3;
+  repeated PortalContract contracts = 4;
+  repeated PaymentProof proofs = 5;
+  // Where to transfer.
+  string bank_line = 6;
+}
+
+message SubmitPaymentProofRequest {
+  string slug = 1;
+  string unlock_token = 2;
+  string invoice_id = 3;
+  string amount = 4;
+  // YYYY-MM-DD
+  string paid_on = 5;
+  string payer_name = 6;
+  string note = 7;
+  string file_name = 8;
+  bytes data = 9;
+}
+
+message PaymentProof {
+  string id = 1;
+  string invoice_id = 2;
+  string invoice_number = 3;
+  string deal_id = 4;
+  string client_name = 5;
+  string amount = 6;
+  string paid_on = 7;
+  string payer_name = 8;
+  string note = 9;
+  string file_name = 10;
+  // PENDING | APPROVED | REJECTED
+  string status = 11;
+  string reject_reason = 12;
+  string payment_id = 13;
+  google.protobuf.Timestamp decided_at = 14;
+  google.protobuf.Timestamp created_at = 15;
+}
+
+message ListPaymentProofsRequest {
+  // Empty lists every status.
+  string status = 1;
+}
+
+message ListPaymentProofsResponse {
+  repeated PaymentProof proofs = 1;
+}
+
+message ApprovePaymentProofRequest {
+  string id = 1;
+  // Empty keeps what the client entered; set them to match the bank statement.
+  string amount = 2;
+  string paid_on = 3;
+  string bank_fee = 4;
+  string withheld = 5;
+  string withheld_tax_code = 6;
+}
+
+message RejectPaymentProofRequest {
+  string id = 1;
+  string reason = 2;
+}

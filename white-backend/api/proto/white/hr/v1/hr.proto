@@ -39,6 +39,26 @@ service EmployeeService {
   rpc GetEmployeeByUser(GetEmployeeByUserRequest) returns (Employee);
   // Internal. Attendance totals per employee for a month (KPI auto-collect).
   rpc GetAttendanceSummary(GetAttendanceSummaryRequest) returns (GetAttendanceSummaryResponse);
+  // Internal. Approved payroll cost per Finance project for a month, spread
+  // by approved timesheet hours. FAILED_PRECONDITION until payroll is approved.
+  rpc GetProjectCosts(GetProjectCostsRequest) returns (GetProjectCostsResponse);
+}
+
+message GetProjectCostsRequest {
+  // YYYY-MM
+  string month = 1;
+}
+
+message ProjectCost {
+  string project_id = 1;
+  string project_name = 2;
+  double hours = 3;
+  // Whole rupiah.
+  string cost = 4;
+}
+
+message GetProjectCostsResponse {
+  repeated ProjectCost costs = 1;
 }
 
 enum EmploymentStatus {
@@ -2298,4 +2318,258 @@ message HrisReport {
   int32 leave_pending_count = 19;
   double leave_total_days = 20;
   repeated LeaveDaysByType leave_by_type = 21;
+}
+
+// ─────────────────────────────────────────────────────────────
+// AssetService: company equipment lent to employees
+// ─────────────────────────────────────────────────────────────
+
+service AssetService {
+  // hr.read sees every asset; others see what they hold.
+  rpc ListAssets(ListAssetsRequest) returns (ListAssetsResponse) {
+    option (google.api.http) = {get: "/v1/hr/assets"};
+  }
+  rpc GetAsset(AssetRequest) returns (AssetDetail) {
+    option (google.api.http) = {get: "/v1/hr/assets/{id}"};
+  }
+  // hr.write. Empty id creates.
+  rpc SaveAsset(SaveAssetRequest) returns (Asset) {
+    option (google.api.http) = {post: "/v1/hr/assets" body: "*"};
+  }
+  rpc AssignAsset(AssignAssetRequest) returns (Asset) {
+    option (google.api.http) = {post: "/v1/hr/assets/{id}:assign" body: "*"};
+  }
+  rpc ReturnAsset(ReturnAssetRequest) returns (Asset) {
+    option (google.api.http) = {post: "/v1/hr/assets/{id}:return" body: "*"};
+  }
+}
+
+message Asset {
+  string id = 1;
+  string asset_code = 2;
+  string name = 3;
+  // laptop | phone | vehicle | furniture | other
+  string category = 4;
+  string serial_no = 5;
+  string purchase_date = 6;
+  string purchase_value = 7;
+  // available | assigned | repair | retired
+  string status = 8;
+  EmployeeRef holder = 9;
+  string notes = 10;
+}
+
+message AssetAssignment {
+  string id = 1;
+  EmployeeRef employee = 2;
+  string assigned_on = 3;
+  string returned_on = 4;
+  string condition_out = 5;
+  string condition_in = 6;
+}
+
+message AssetDetail {
+  Asset asset = 1;
+  repeated AssetAssignment history = 2;
+}
+
+message ListAssetsRequest {
+  string employee_id = 1;
+  string status = 2;
+  string search = 3;
+}
+
+message ListAssetsResponse {
+  repeated Asset assets = 1;
+}
+
+message AssetRequest {
+  string id = 1;
+}
+
+message SaveAssetRequest {
+  string id = 1;
+  string asset_code = 2;
+  string name = 3;
+  string category = 4;
+  string serial_no = 5;
+  string purchase_date = 6;
+  string purchase_value = 7;
+  string notes = 8;
+  // available | repair | retired; empty keeps the state.
+  string status = 9;
+}
+
+message AssignAssetRequest {
+  string id = 1;
+  string employee_id = 2;
+  string assigned_on = 3;
+  string condition = 4;
+}
+
+message ReturnAssetRequest {
+  string id = 1;
+  string returned_on = 2;
+  string condition = 3;
+}
+
+// ─────────────────────────────────────────────────────────────
+// TrainingService: courses and their participants
+// ─────────────────────────────────────────────────────────────
+
+service TrainingService {
+  // hr.read sees every training; others see the ones they joined.
+  rpc ListTrainings(ListTrainingsRequest) returns (ListTrainingsResponse) {
+    option (google.api.http) = {get: "/v1/hr/trainings"};
+  }
+  rpc GetTraining(TrainingRequest) returns (TrainingDetail) {
+    option (google.api.http) = {get: "/v1/hr/trainings/{id}"};
+  }
+  // hr.write. Empty id creates.
+  rpc SaveTraining(Training) returns (Training) {
+    option (google.api.http) = {post: "/v1/hr/trainings" body: "*"};
+  }
+  rpc DeleteTraining(TrainingRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/trainings/{id}"};
+  }
+  // Replaces the participant list; recorded results of people who stay are kept.
+  rpc SetTrainingParticipants(SetTrainingParticipantsRequest) returns (TrainingDetail) {
+    option (google.api.http) = {put: "/v1/hr/trainings/{id}/participants" body: "*"};
+  }
+  rpc RecordTrainingResult(RecordTrainingResultRequest) returns (TrainingDetail) {
+    option (google.api.http) = {post: "/v1/hr/trainings/{id}/participants/{employee_id}:result" body: "*"};
+  }
+}
+
+message Training {
+  string id = 1;
+  string title = 2;
+  string provider = 3;
+  string start_date = 4;
+  string end_date = 5;
+  string location = 6;
+  string cost = 7;
+  // planned | done | cancelled
+  string status = 8;
+  string notes = 9;
+  int32 participant_count = 10;
+}
+
+message TrainingParticipant {
+  EmployeeRef employee = 1;
+  // registered | attended | absent
+  string status = 2;
+  // Empty until scored.
+  string score = 3;
+  string certificate = 4;
+}
+
+message TrainingDetail {
+  Training training = 1;
+  repeated TrainingParticipant participants = 2;
+}
+
+message ListTrainingsRequest {
+  string status = 1;
+  int32 year = 2;
+}
+
+message ListTrainingsResponse {
+  repeated Training trainings = 1;
+}
+
+message TrainingRequest {
+  string id = 1;
+}
+
+message SetTrainingParticipantsRequest {
+  string id = 1;
+  repeated string employee_ids = 2;
+}
+
+message RecordTrainingResultRequest {
+  string id = 1;
+  string employee_id = 2;
+  string status = 3;
+  string score = 4;
+  string certificate = 5;
+}
+
+// ─────────────────────────────────────────────────────────────
+// TimesheetService: hours per project
+// ─────────────────────────────────────────────────────────────
+
+service TimesheetService {
+  // hr.read sees everyone (empty employee_id); others see their own.
+  rpc ListTimesheet(ListTimesheetRequest) returns (ListTimesheetResponse) {
+    option (google.api.http) = {get: "/v1/hr/timesheet"};
+  }
+  // self.service, own entries only. Empty id creates; an edit returns it to draft.
+  rpc SaveTimesheetEntry(SaveTimesheetEntryRequest) returns (TimesheetEntry) {
+    option (google.api.http) = {post: "/v1/hr/timesheet" body: "*"};
+  }
+  rpc DeleteTimesheetEntry(TimesheetEntryRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/hr/timesheet/{id}"};
+  }
+  // Sends the caller's draft and rejected entries in the range for approval.
+  rpc SubmitTimesheet(SubmitTimesheetRequest) returns (TimesheetCount) {
+    option (google.api.http) = {post: "/v1/hr/timesheet:submit" body: "*"};
+  }
+  // hr.approve; never one's own entries.
+  rpc DecideTimesheet(DecideTimesheetRequest) returns (TimesheetCount) {
+    option (google.api.http) = {post: "/v1/hr/timesheet:decide" body: "*"};
+  }
+}
+
+message TimesheetEntry {
+  string id = 1;
+  EmployeeRef employee = 2;
+  string work_date = 3;
+  // Finance project tag; empty is internal work.
+  string project_id = 4;
+  string project_name = 5;
+  string hours = 6;
+  string description = 7;
+  // draft | submitted | approved | rejected
+  string status = 8;
+  string reject_reason = 9;
+}
+
+message ListTimesheetRequest {
+  string employee_id = 1;
+  string status = 2;
+  string from = 3;
+  string to = 4;
+}
+
+message ListTimesheetResponse {
+  repeated TimesheetEntry entries = 1;
+}
+
+message SaveTimesheetEntryRequest {
+  string id = 1;
+  string work_date = 2;
+  string project_id = 3;
+  string project_name = 4;
+  string hours = 5;
+  string description = 6;
+}
+
+message TimesheetEntryRequest {
+  string id = 1;
+}
+
+message SubmitTimesheetRequest {
+  string from = 1;
+  string to = 2;
+}
+
+message DecideTimesheetRequest {
+  repeated string ids = 1;
+  bool approve = 2;
+  string reason = 3;
+}
+
+message TimesheetCount {
+  int32 count = 1;
 }

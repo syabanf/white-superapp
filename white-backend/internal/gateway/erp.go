@@ -60,6 +60,7 @@ func registerErp(ctx context.Context, mux *runtime.ServeMux, u *Upstreams) error
 			financev1.RegisterProjectTagServiceHandler,
 			financev1.RegisterAdvanceServiceHandler,
 			financev1.RegisterPeriodEndServiceHandler,
+			financev1.RegisterCompanyServiceHandler,
 		}},
 		{u.HR, []handlerReg{
 			hrv1.RegisterEmployeeServiceHandler,
@@ -74,6 +75,9 @@ func registerErp(ctx context.Context, mux *runtime.ServeMux, u *Upstreams) error
 			hrv1.RegisterPayrollServiceHandler,
 			hrv1.RegisterSelfServiceServiceHandler,
 			hrv1.RegisterHrReportServiceHandler,
+			hrv1.RegisterAssetServiceHandler,
+			hrv1.RegisterTrainingServiceHandler,
+			hrv1.RegisterTimesheetServiceHandler,
 		}},
 		{u.Sales, []handlerReg{
 			salesv1.RegisterLeadServiceHandler,
@@ -87,6 +91,7 @@ func registerErp(ctx context.Context, mux *runtime.ServeMux, u *Upstreams) error
 			salesv1.RegisterPitchDeckServiceHandler,
 			salesv1.RegisterOnboardingServiceHandler,
 			salesv1.RegisterChatServiceHandler,
+			salesv1.RegisterPortalServiceHandler,
 		}},
 		{u.Recruitment, []handlerReg{
 			recruitmentv1.RegisterJobOpeningServiceHandler,
@@ -102,9 +107,11 @@ func registerErp(ctx context.Context, mux *runtime.ServeMux, u *Upstreams) error
 			contentv1.RegisterDesignServiceHandler,
 			contentv1.RegisterAssetServiceHandler,
 			contentv1.RegisterReportServiceHandler,
+			contentv1.RegisterPortalServiceHandler,
 		}},
 		{u.Performance, []handlerReg{
 			performancev1.RegisterKpiServiceHandler,
+			performancev1.RegisterOkrServiceHandler,
 			performancev1.RegisterReviewServiceHandler,
 			performancev1.RegisterFeedbackServiceHandler,
 			performancev1.RegisterTaskServiceHandler,
@@ -146,6 +153,16 @@ func (b *BrowserRoutes) mountErpFiles(mux *http.ServeMux) {
 	}))
 	mux.HandleFunc("GET /api/public/sales/contracts/{token}/pdf", fileRoute(func(ctx context.Context, r *http.Request) (*salesv1.File, error) {
 		return salesv1.NewContractServiceClient(b.up.Sales).RenderContractPdf(ctx, &salesv1.RenderContractPdfRequest{Token: r.PathValue("token")})
+	}))
+	// The share cookie travels as a header so it stays out of URLs and logs.
+	mux.HandleFunc("GET /api/public/sales/portal/{slug}/invoices/{id}/pdf", fileRoute(func(ctx context.Context, r *http.Request) (*salesv1.File, error) {
+		return salesv1.NewPortalServiceClient(b.up.Sales).RenderPortalInvoicePdf(ctx, &salesv1.PortalInvoiceRequest{Slug: r.PathValue("slug"), InvoiceId: r.PathValue("id"), UnlockToken: r.Header.Get("X-Share-Token")})
+	}))
+	mux.HandleFunc("GET /api/public/content/portal/{slug}/files/{id}", fileRoute(func(ctx context.Context, r *http.Request) (*contentv1.FileBytes, error) {
+		return contentv1.NewPortalServiceClient(b.up.Content).GetPortalFile(ctx, &contentv1.PortalFileRequest{Slug: r.PathValue("slug"), FileId: r.PathValue("id"), UnlockToken: r.Header.Get("X-Share-Token")})
+	}))
+	mux.HandleFunc("GET /api/sales/payment-proofs/{id}/file", fileRoute(func(ctx context.Context, r *http.Request) (*salesv1.File, error) {
+		return salesv1.NewPortalServiceClient(b.up.Sales).GetPaymentProofFile(ctx, id(r))
 	}))
 	mux.HandleFunc("GET /api/sales/pitch-decks/{id}/file", fileRoute(func(ctx context.Context, r *http.Request) (*salesv1.File, error) {
 		return salesv1.NewPitchDeckServiceClient(b.up.Sales).GetPitchDeckFile(ctx, id(r))

@@ -85,6 +85,34 @@ type HrAnnouncementRead struct {
 	ReadAt         time.Time
 }
 
+type HrAsset struct {
+	ID            string
+	AssetCode     string
+	Name          string
+	Category      string
+	SerialNo      string
+	PurchaseDate  *time.Time
+	PurchaseValue string
+	Status        string
+	EmployeeID    *string
+	Notes         string
+	CreatedBy     *string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+type HrAssetAssignment struct {
+	ID           string
+	AssetID      string
+	EmployeeID   string
+	AssignedOn   time.Time
+	ReturnedOn   *time.Time
+	ConditionOut string
+	ConditionIn  string
+	CreatedBy    *string
+	CreatedAt    time.Time
+}
+
 type HrAttendance struct {
 	ID               string
 	EmployeeID       string
@@ -552,4 +580,43 @@ type HrShift struct {
 	UpdatedBy            *string
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
+}
+
+type HrTimesheetEntry struct {
+	ID           string
+	EmployeeID   string
+	WorkDate     time.Time
+	ProjectID    string
+	ProjectName  string
+	Hours        string
+	Description  string
+	Status       string
+	RejectReason string
+	DecidedBy    *string
+	DecidedAt    *time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+type HrTraining struct {
+	ID        string
+	Title     string
+	Provider  string
+	StartDate time.Time
+	EndDate   time.Time
+	Location  string
+	Cost      string
+	Status    string
+	Notes     string
+	CreatedBy *string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type HrTrainingParticipant struct {
+	TrainingID  string
+	EmployeeID  string
+	Status      string
+	Score       *string
+	Certificate string
 }

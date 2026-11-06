@@ -106,6 +106,7 @@ export const erpNav: { label: string; items: NavItem[] }[] = [
           { label: e.commercialDocs, href: "/erp/finance/documents" },
           { label: e.payables, href: "/erp/finance/payables" },
           { label: e.receivables, href: "/erp/finance/receivables" },
+          { label: e.paymentProofs, href: "/erp/finance/payment-proofs" },
           { label: e.financeReports, href: "/erp/finance/reports" },
           { label: e.fiscal, href: "/erp/finance/fiscal" },
           { label: e.taxSetup, href: "/erp/finance/tax-setup" },
@@ -131,6 +132,9 @@ export const erpNav: { label: string; items: NavItem[] }[] = [
           { label: e.overtime, href: "/erp/hr/overtime" },
           { label: e.contracts, href: "/erp/hr/contracts" },
           { label: e.announcements, href: "/erp/hr/announcements" },
+          { label: e.timesheet, href: "/erp/hr/timesheet" },
+          { label: e.assets, href: "/erp/hr/assets" },
+          { label: e.training, href: "/erp/hr/training" },
         ],
       },
       { label: e.payroll, href: "/erp/hr/payroll", icon: Banknote, perm: "hr.payroll" },
@@ -143,6 +147,7 @@ export const erpNav: { label: string; items: NavItem[] }[] = [
         perm: ["hr.read", "self.service"],
         children: [
           { label: e.tasks, href: "/erp/performance/tasks", perm: "hr.read" },
+          { label: e.okr, href: "/erp/performance/okr" },
           { label: e.kpi, href: "/erp/performance/kpi", perm: "hr.read" },
           { label: e.reviews, href: "/erp/performance/reviews", perm: "hr.read" },
           { label: e.feedback360, href: "/erp/performance/feedback", perm: "hr.read" },
@@ -190,6 +195,8 @@ export const erpNav: { label: string; items: NavItem[] }[] = [
           { label: e.myLeave, href: "/erp/me/leave" },
           { label: e.myOvertime, href: "/erp/me/overtime" },
           { label: e.myLoans, href: "/erp/me/loans" },
+          { label: e.myTimesheet, href: "/erp/me/timesheet" },
+          { label: e.myAssets, href: "/erp/me/assets" },
           { label: e.myReimburse, href: "/erp/me/reimbursements" },
           { label: e.reimburseApprovals, href: "/erp/finance/reimbursements" },
           { label: e.payslips, href: "/erp/me/payslips" },
@@ -283,6 +290,7 @@ export function clientNav(slug: string): NavItem[] {
 
 export const adminNav: NavItem[] = [
   { label: t.nav.setup, href: "/setup", icon: Plug, exact: true },
+  { label: t.nav.companyProfile, href: "/admin/company", icon: Building2 },
   { label: t.nav.users, href: "/admin/users", icon: Users },
   { label: t.nav.auditTrail, href: "/admin/audit", icon: ShieldCheck },
 ];

@@ -288,9 +288,9 @@ func (s *Documents) Delete(ctx context.Context, id string) error {
 }
 
 // stamp copies the letterhead when a document leaves draft.
-func (s *Documents) stamp(d *domain.Document) {
+func (s *Documents) stamp(ctx context.Context, d *domain.Document) {
 	if len(d.Letterhead) == 0 {
-		d.Letterhead, _ = json.Marshal(s.Company)
+		d.Letterhead, _ = json.Marshal(s.company(ctx))
 	}
 }
 
@@ -316,7 +316,7 @@ func (s *Documents) Act(ctx context.Context, p authn.Principal, id, action, reas
 		return nil, apperr.Field("vendor_id", "Pilih vendor sebelum mengajukan PO")
 	}
 	if d.Status == domain.DocDraft {
-		s.stamp(d)
+		s.stamp(ctx, d)
 	}
 	if action == domain.ActReopen {
 		d.Letterhead = nil
@@ -421,7 +421,7 @@ func (s *Documents) Issue(ctx context.Context, userID, id, accountID, dueDate st
 				return err
 			}
 		}
-		s.stamp(d)
+		s.stamp(ctx, d)
 		d.AccountID, d.LedgerInvoiceID, d.UpdatedBy = accountID, inv.ID, userID
 		if d.Kind == domain.DocPO {
 			d.Status = domain.DocConverted
@@ -442,7 +442,7 @@ func (s *Documents) PDF(ctx context.Context, id string) (string, []byte, error) 
 	if err != nil {
 		return "", nil, err
 	}
-	company := s.Company
+	company := s.company(ctx)
 	if len(d.Letterhead) > 0 {
 		if err := json.Unmarshal(d.Letterhead, &company); err != nil {
 			return "", nil, err

@@ -71,6 +71,10 @@ export const tm = {
     cancelTitle: "Batalkan pengajuan lembur?",
     declineReason: "Alasan menolak",
   },
+  assets: {
+    title: "Aset & pelatihan",
+    subtitle: "Peralatan kantor yang Anda pegang dan pelatihan yang Anda ikuti.",
+  },
   loans: {
     title: "Pinjaman saya",
     subtitle: "Ajukan kasbon atau pinjaman tanpa bunga dan pantau cicilannya.",

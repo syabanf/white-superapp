@@ -513,6 +513,23 @@ type SalesPayment struct {
 	DeletedAt *time.Time
 }
 
+type SalesPaymentProof struct {
+	ID           string
+	InvoiceID    string
+	Amount       string
+	PaidOn       time.Time
+	PayerName    string
+	Note         string
+	FileKey      string
+	FileName     string
+	Status       string
+	RejectReason string
+	PaymentID    *string
+	DecidedBy    *string
+	DecidedAt    *time.Time
+	CreatedAt    time.Time
+}
+
 type SalesPipeline struct {
 	ID        string
 	Code      string

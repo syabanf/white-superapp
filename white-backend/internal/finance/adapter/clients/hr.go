@@ -59,3 +59,16 @@ func (c *HR) Employee(ctx context.Context, id string) (*app.Employee, error) {
 	c.employees.put(id, e)
 	return e, nil
 }
+
+// ProjectCosts implements app.TimesheetCosts through hr's internal RPC.
+func (c *HR) ProjectCosts(ctx context.Context, month string) ([]app.ProjectCost, error) {
+	res, err := c.client.GetProjectCosts(ctx, &hrv1.GetProjectCostsRequest{Month: month})
+	if err != nil {
+		return nil, grpcx.FromStatus(err)
+	}
+	out := make([]app.ProjectCost, 0, len(res.GetCosts()))
+	for _, r := range res.GetCosts() {
+		out = append(out, app.ProjectCost{ProjectID: r.ProjectId, ProjectName: r.ProjectName, Hours: r.Hours, Cost: r.Cost})
+	}
+	return out, nil
+}

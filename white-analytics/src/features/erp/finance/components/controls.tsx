@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Ban, PackageCheck, Plus, Trash2, Undo2 } from "lucide-react";
+import { Ban, Clock, PackageCheck, Plus, Trash2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Fld, FormDialog, FormFooter, SimpleSelect } from "@/features/erp/sales/components/ui";
@@ -13,7 +13,9 @@ import { formatRupiah, parseMoney } from "@/features/erp/shared/money";
 import { Money } from "@/features/erp/shared/money-display";
 import { MoneyInput } from "@/features/erp/shared/money-input";
 import { DatePicker, toIsoDate } from "@/features/erp/shared/period-picker";
+import { toast } from "@/lib/toast";
 import {
+  allocateFromTimesheetAction,
   createProjectAllocationAction,
   deleteProjectAllocationAction,
   disposeAssetAction,
@@ -277,11 +279,45 @@ function AllocationForm({ tags, close }: { tags: ProjectTag[]; close: () => void
   );
 }
 
+function TimesheetAllocationForm({ close }: { close: () => void }) {
+  const [month, setMonth] = React.useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return toIsoDate(d).slice(0, 7);
+  });
+  const { pending, run } = useErpAction();
+  return (
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(() => allocateFromTimesheetAction(month), {
+          onOk: (d) => {
+            toast.success(s.fromTimesheetDone(d.allocations?.filter(Boolean).length ?? 0));
+            if (d.skipped?.length) toast.warning(s.fromTimesheetSkipped(d.skipped.join(", ")));
+            close();
+          },
+        });
+      }}
+    >
+      <Fld label={s.month} htmlFor="ts-month">
+        <Input id="ts-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} required />
+      </Fld>
+      <FormFooter onCancel={close} pending={pending} />
+    </form>
+  );
+}
+
 export function AllocationDialog({ tags }: { tags: ProjectTag[] }) {
   return (
-    <FormDialog title={s.allocTitle} description={s.allocHint} trigger={<Button size="sm"><Plus className="size-4" /> {s.allocNew}</Button>}>
-      {(close) => <AllocationForm tags={tags} close={close} />}
-    </FormDialog>
+    <span className="flex flex-wrap gap-2">
+      <FormDialog title={s.fromTimesheetTitle} description={s.fromTimesheetHint} trigger={<Button size="sm" variant="outline"><Clock className="size-4" /> {s.fromTimesheet}</Button>}>
+        {(close) => <TimesheetAllocationForm close={close} />}
+      </FormDialog>
+      <FormDialog title={s.allocTitle} description={s.allocHint} trigger={<Button size="sm"><Plus className="size-4" /> {s.allocNew}</Button>}>
+        {(close) => <AllocationForm tags={tags} close={close} />}
+      </FormDialog>
+    </span>
   );
 }
 

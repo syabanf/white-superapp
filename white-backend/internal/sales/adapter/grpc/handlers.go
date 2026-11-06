@@ -32,6 +32,7 @@ type Services struct {
 	Decks      *app.Decks
 	Onboarding *app.Onboarding
 	Chat       *app.Chat
+	Portal     *app.Portal
 }
 
 func Register(s *grpc.Server, svc Services) {
@@ -45,6 +46,7 @@ func Register(s *grpc.Server, svc Services) {
 	salesv1.RegisterContractServiceServer(s, &contractServer{svc: svc})
 	salesv1.RegisterPitchDeckServiceServer(s, &deckServer{svc: svc})
 	salesv1.RegisterOnboardingServiceServer(s, &onboardingServer{svc: svc})
+	salesv1.RegisterPortalServiceServer(s, &portalServer{svc: svc})
 	salesv1.RegisterChatServiceServer(s, &chatServer{svc: svc})
 }
 

@@ -1024,5 +1024,24 @@ export type AuditEntry = { id: string; at: string; actorName: string; action: st
 export type SalesReversal = { kind: "PAYMENT" | "INVOICE"; id: string; docNo: string; partyName: string; amount: string; reason: string; error: string };
 export type GoodsReceipt = { id: string; receiptNo: string; documentId: string; receiptDate: string; amount: string; notes: string; status: "POSTED" | "VOID"; voidReason: string };
 export type PoMatch = { documentId: string; number: string; partyName: string; title: string; ordered: string; received: string; billed: string; receipts?: GoodsReceipt[]; invoices?: { invoiceId: string; invoiceNo: string; status: string; subtotal: string }[] };
-export type ProjectAllocation = { id: string; tagId: string; tagName: string; clientName: string; month: string; kind: "PAYROLL" | "REIMBURSEMENT"; amount: string; notes: string };
+export type ProjectAllocation = { id: string; tagId: string; tagName: string; clientName: string; month: string; kind: "PAYROLL" | "REIMBURSEMENT"; amount: string; notes: string; source?: "MANUAL" | "TIMESHEET" };
 export type AdvanceRefund = { id: string; refundNo: string; refundDate: string; amount: string; cashAccountName: string; reason: string; status: "POSTED" | "VOID"; journalEntryId: string; voidReason: string };
+
+/** A transfer proof a client uploaded from the share portal (Sales owns it). */
+export type PaymentProof = {
+  id: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  dealId: string;
+  clientName: string;
+  amount: string;
+  paidOn: string;
+  payerName: string;
+  note: string;
+  fileName: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  rejectReason: string;
+  paymentId: string;
+  decidedAt?: string;
+  createdAt: string;
+};

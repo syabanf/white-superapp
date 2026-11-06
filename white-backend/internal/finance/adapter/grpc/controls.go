@@ -123,9 +123,21 @@ func (s *periodEndServer) ListProjectAllocations(ctx context.Context, r *finance
 func allocationsPB(rows []domain.ProjectAllocation) *financev1.ListProjectAllocationsResponse {
 	out := &financev1.ListProjectAllocationsResponse{}
 	for _, a := range rows {
-		out.Allocations = append(out.Allocations, &financev1.ProjectAllocation{Id: a.ID, TagId: a.TagID, TagName: a.TagName, ClientName: a.ClientName, Month: a.Month, Kind: a.Kind, Amount: a.Amount.String(), Notes: a.Notes})
+		out.Allocations = append(out.Allocations, &financev1.ProjectAllocation{Id: a.ID, TagId: a.TagID, TagName: a.TagName, ClientName: a.ClientName, Month: a.Month, Kind: a.Kind, Amount: a.Amount.String(), Notes: a.Notes, Source: a.Source})
 	}
 	return out
+}
+
+func (s *periodEndServer) AllocateFromTimesheet(ctx context.Context, r *financev1.AllocateFromTimesheetRequest) (*financev1.AllocateFromTimesheetResponse, error) {
+	p, err := approve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res, err := s.svc.ProjectTags.AllocateFromTimesheet(ctx, p.UserID, r.Month)
+	if err != nil {
+		return nil, err
+	}
+	return &financev1.AllocateFromTimesheetResponse{Allocations: allocationsPB(res.Allocations).Allocations, Skipped: res.Skipped}, nil
 }
 
 func (s *periodEndServer) CreateProjectAllocation(ctx context.Context, r *financev1.ProjectAllocation) (*financev1.ListProjectAllocationsResponse, error) {

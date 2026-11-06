@@ -186,6 +186,7 @@ type Store interface {
 	RecapStore
 	ImprovementStore
 	DashboardStore
+	OKRStore
 	// ClaimSend records (kind, subject, day); false when already sent.
 	ClaimSend(ctx context.Context, kind, subjectID, day string) (bool, error)
 	WithTx(ctx context.Context, fn func(tx Store) error) error

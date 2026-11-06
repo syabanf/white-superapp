@@ -449,7 +449,7 @@ func (q *Quotes) RenderPDF(ctx context.Context, id string) (string, []byte, erro
 	if deal == nil {
 		return "", nil, notFound(msgDealNotFound)
 	}
-	data, err := q.Renderer.QuotationPDF(*qt, *deal, q.ownerName(ctx, deal.OwnerUserID))
+	data, err := q.Renderer.QuotationPDF(q.company(ctx), *qt, *deal, q.ownerName(ctx, deal.OwnerUserID))
 	if err != nil {
 		return "", nil, err
 	}

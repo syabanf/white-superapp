@@ -2064,3 +2064,189 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "white/content/v1/content.proto",
 }
+
+const (
+	PortalService_GetContentReview_FullMethodName = "/white.content.v1.PortalService/GetContentReview"
+	PortalService_DecideContent_FullMethodName    = "/white.content.v1.PortalService/DecideContent"
+	PortalService_GetPortalFile_FullMethodName    = "/white.content.v1.PortalService/GetPortalFile"
+)
+
+// PortalServiceClient is the client API for PortalService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PortalServiceClient interface {
+	// Public. Items waiting for review; the share page must be enabled,
+	// protected by a PIN and unlocked (`unlock_token` is the share cookie).
+	GetContentReview(ctx context.Context, in *PortalRequest, opts ...grpc.CallOption) (*ContentReview, error)
+	// Public. Approve, or send back to revision with a note.
+	DecideContent(ctx context.Context, in *DecideContentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Internal: design file bytes for the gateway's portal route.
+	GetPortalFile(ctx context.Context, in *PortalFileRequest, opts ...grpc.CallOption) (*FileBytes, error)
+}
+
+type portalServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPortalServiceClient(cc grpc.ClientConnInterface) PortalServiceClient {
+	return &portalServiceClient{cc}
+}
+
+func (c *portalServiceClient) GetContentReview(ctx context.Context, in *PortalRequest, opts ...grpc.CallOption) (*ContentReview, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContentReview)
+	err := c.cc.Invoke(ctx, PortalService_GetContentReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) DecideContent(ctx context.Context, in *DecideContentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, PortalService_DecideContent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *portalServiceClient) GetPortalFile(ctx context.Context, in *PortalFileRequest, opts ...grpc.CallOption) (*FileBytes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FileBytes)
+	err := c.cc.Invoke(ctx, PortalService_GetPortalFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PortalServiceServer is the server API for PortalService service.
+// All implementations must embed UnimplementedPortalServiceServer
+// for forward compatibility.
+type PortalServiceServer interface {
+	// Public. Items waiting for review; the share page must be enabled,
+	// protected by a PIN and unlocked (`unlock_token` is the share cookie).
+	GetContentReview(context.Context, *PortalRequest) (*ContentReview, error)
+	// Public. Approve, or send back to revision with a note.
+	DecideContent(context.Context, *DecideContentRequest) (*emptypb.Empty, error)
+	// Internal: design file bytes for the gateway's portal route.
+	GetPortalFile(context.Context, *PortalFileRequest) (*FileBytes, error)
+	mustEmbedUnimplementedPortalServiceServer()
+}
+
+// UnimplementedPortalServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedPortalServiceServer struct{}
+
+func (UnimplementedPortalServiceServer) GetContentReview(context.Context, *PortalRequest) (*ContentReview, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetContentReview not implemented")
+}
+func (UnimplementedPortalServiceServer) DecideContent(context.Context, *DecideContentRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DecideContent not implemented")
+}
+func (UnimplementedPortalServiceServer) GetPortalFile(context.Context, *PortalFileRequest) (*FileBytes, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPortalFile not implemented")
+}
+func (UnimplementedPortalServiceServer) mustEmbedUnimplementedPortalServiceServer() {}
+func (UnimplementedPortalServiceServer) testEmbeddedByValue()                       {}
+
+// UnsafePortalServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PortalServiceServer will
+// result in compilation errors.
+type UnsafePortalServiceServer interface {
+	mustEmbedUnimplementedPortalServiceServer()
+}
+
+func RegisterPortalServiceServer(s grpc.ServiceRegistrar, srv PortalServiceServer) {
+	// If the following call panics, it indicates UnimplementedPortalServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&PortalService_ServiceDesc, srv)
+}
+
+func _PortalService_GetContentReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PortalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).GetContentReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_GetContentReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).GetContentReview(ctx, req.(*PortalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_DecideContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DecideContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).DecideContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_DecideContent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).DecideContent(ctx, req.(*DecideContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PortalService_GetPortalFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PortalFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortalServiceServer).GetPortalFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PortalService_GetPortalFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortalServiceServer).GetPortalFile(ctx, req.(*PortalFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PortalService_ServiceDesc is the grpc.ServiceDesc for PortalService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PortalService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "white.content.v1.PortalService",
+	HandlerType: (*PortalServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetContentReview",
+			Handler:    _PortalService_GetContentReview_Handler,
+		},
+		{
+			MethodName: "DecideContent",
+			Handler:    _PortalService_DecideContent_Handler,
+		},
+		{
+			MethodName: "GetPortalFile",
+			Handler:    _PortalService_GetPortalFile_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "white/content/v1/content.proto",
+}

@@ -2,11 +2,14 @@ package app
 
 import (
 	"context"
+	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/syabanf/white-superapp/white-backend/internal/identity/domain"
 	"github.com/syabanf/white-superapp/white-backend/pkg/apperr"
 	"github.com/syabanf/white-superapp/white-backend/pkg/ids"
+	"github.com/syabanf/white-superapp/white-backend/pkg/mail"
 )
 
 type Audience int
@@ -30,6 +33,11 @@ type NotifyInput struct {
 
 type Notifications struct {
 	store domain.Store
+	// Mail copies each notice to the recipient's inbox when set. AppURL turns
+	// a relative href into a link that works outside the app.
+	Mail   mail.Sender
+	AppURL string
+	Logger *slog.Logger
 }
 
 func NewNotifications(store domain.Store) *Notifications {
@@ -92,7 +100,43 @@ func (s *Notifications) Notify(ctx context.Context, in NotifyInput) (int32, erro
 	if len(rows) == 0 {
 		return 0, nil
 	}
-	return s.store.InsertNotifications(ctx, rows)
+	n, err := s.store.InsertNotifications(ctx, rows)
+	if err == nil {
+		s.email(ctx, rows, in)
+	}
+	return n, err
+}
+
+// email copies the notice to active recipients. A lookup failure only skips it.
+func (s *Notifications) email(ctx context.Context, rows []domain.Notification, in NotifyInput) {
+	if s.Mail == nil {
+		return
+	}
+	userIDs := make([]string, len(rows))
+	for i, r := range rows {
+		userIDs[i] = r.UserID
+	}
+	users, err := s.store.ListUsersByIDs(ctx, userIDs)
+	if err != nil {
+		if s.Logger != nil {
+			s.Logger.Warn("notify mail lookup failed", "err", err)
+		}
+		return
+	}
+	var to []string
+	for _, u := range users {
+		if u.IsActive {
+			to = append(to, u.Email)
+		}
+	}
+	text := in.Body
+	if in.Href != "" {
+		text = strings.TrimSpace(text + "\n\nBuka: " + strings.TrimRight(s.AppURL, "/") + in.Href)
+	}
+	// One message per person keeps addresses private from each other.
+	for _, addr := range to {
+		mail.SendLater(s.Mail, s.Logger, mail.Message{To: []string{addr}, Subject: in.Title, Text: text})
+	}
 }
 
 // Retention mirrors sync/policy.ts for the rows identity owns.

@@ -42,6 +42,17 @@ type HR interface {
 	Employee(ctx context.Context, id string) (*Employee, error)
 }
 
+// ProjectCost is payroll cost HR spread over a project by timesheet hours.
+type ProjectCost struct {
+	ProjectID, ProjectName, Cost string
+	Hours                        float64
+}
+
+// TimesheetCosts reads HR's per-project payroll cost for a month.
+type TimesheetCosts interface {
+	ProjectCosts(ctx context.Context, month string) ([]ProjectCost, error)
+}
+
 // NotifyInput is one in-app notification (identity NotificationService).
 type NotifyInput struct {
 	UserIDs []string
@@ -86,6 +97,7 @@ type Deps struct {
 	Store     domain.Store
 	Identity  Identity
 	HR        HR
+	Timesheet TimesheetCosts
 	Storage   Storage
 	Insights  InsightGenerator
 	Events    events.Publisher

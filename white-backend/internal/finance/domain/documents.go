@@ -93,6 +93,20 @@ type DocItem struct {
 // Company is the letterhead on a document.
 type Company struct {
 	LegalName, Address, Email, Phone, NPWP string
+	// Where clients transfer.
+	BankName, BankAccountNo, BankAccountName string
+}
+
+// BankLine is the transfer instruction printed on invoices and the client portal.
+func (c Company) BankLine() string {
+	if c.BankAccountNo == "" {
+		return "Hubungi kami untuk rekening pembayaran. Cantumkan nomor invoice pada berita transfer."
+	}
+	holder := c.BankAccountName
+	if holder == "" {
+		holder = c.LegalName
+	}
+	return "Transfer ke " + c.BankName + " " + c.BankAccountNo + " a.n. " + holder + ". Cantumkan nomor invoice pada berita transfer."
 }
 
 // Vendor is a supplier of goods or services.

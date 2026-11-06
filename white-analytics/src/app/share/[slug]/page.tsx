@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import { EyeOff, Megaphone, Search, SearchX, Share2 } from "lucide-react";
+import { CheckSquare, EyeOff, FileSignature, Megaphone, Receipt, Search, SearchX, Share2 } from "lucide-react";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { getShareContext } from "@/features/share/access";
 import { getShareAds, getShareSeo, getShareSocial } from "@/features/share/queries";
 import { SharePinForm } from "@/features/share/components/pin-form";
 import { ShareTabs, type ShareTabItem } from "@/features/share/components/share-tabs";
 import { ShareAdsSection, ShareSeoSection, ShareSocialSection } from "@/features/share/components/module-sections";
+import { PortalBilling, PortalContent, PortalContracts } from "@/features/share/components/portal-sections";
+import { loadPortal } from "@/features/share/portal";
+import { pt } from "@/features/share/strings";
 import { previousRange, rangeForPreset, type PresetKey } from "@/lib/dates";
 import { formatDateRange } from "@/lib/format";
 import { t } from "@/i18n/id";
@@ -40,7 +43,9 @@ export default async function SharePage(props: PageProps<"/share/[slug]">) {
   const previous = previousRange(range);
 
   const modules = client.shareModules;
-  const [social, seo, ads] = await Promise.all([
+  // Billing and approvals only on PIN-protected pages.
+  const [portal, social, seo, ads] = await Promise.all([
+    client.sharePinHash ? loadPortal(slug, client.id) : null,
     modules.includes("SOCIAL") ? getShareSocial(client.id, range, previous) : null,
     modules.includes("SEO") ? getShareSeo(client.id, range, previous) : null,
     modules.includes("ADS") ? getShareAds(client.id, range, previous, client.currency) : null,
@@ -55,6 +60,21 @@ export default async function SharePage(props: PageProps<"/share/[slug]">) {
   if (social) items.push({ key: "social", label: tabLabel(<Share2 className="size-3.5" />, t.nav.social), content: <ShareSocialSection data={social} /> });
   if (seo) items.push({ key: "seo", label: tabLabel(<Search className="size-3.5" />, t.nav.seo), content: <ShareSeoSection data={seo} /> });
   if (ads) items.push({ key: "ads", label: tabLabel(<Megaphone className="size-3.5" />, t.nav.ads), content: <ShareAdsSection data={ads} /> });
+  if (portal) {
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+    const blocked =
+      portal.status === "locked" ? (
+        <SharePinForm slug={slug} clientName={client.name} />
+      ) : portal.status === "offline" ? (
+        <EmptyState title={pt.offline} description={portal.message} />
+      ) : null;
+    const tab = (key: string, icon: React.ReactNode, label: string, content: React.ReactNode) =>
+      items.push({ key, label: tabLabel(icon, label), content: blocked ?? content });
+    const ok = portal.status === "ok" ? portal : null;
+    tab("billing", <Receipt className="size-3.5" />, pt.tabs.billing, ok && <PortalBilling slug={slug} data={ok.billing} today={today} />);
+    tab("contracts", <FileSignature className="size-3.5" />, pt.tabs.contracts, ok && <PortalContracts contracts={ok.billing.contracts} />);
+    tab("content", <CheckSquare className="size-3.5" />, pt.tabs.content, ok && <PortalContent slug={slug} items={ok.content} />);
+  }
 
   return (
     <>

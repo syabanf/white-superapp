@@ -7126,6 +7126,424 @@ func (x *ContentDashboard) GetPillars() []string {
 	return nil
 }
 
+type PortalRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Slug          string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	UnlockToken   string                 `protobuf:"bytes,2,opt,name=unlock_token,json=unlockToken,proto3" json:"unlock_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortalRequest) Reset() {
+	*x = PortalRequest{}
+	mi := &file_white_content_v1_content_proto_msgTypes[79]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortalRequest) ProtoMessage() {}
+
+func (x *PortalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_content_v1_content_proto_msgTypes[79]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortalRequest.ProtoReflect.Descriptor instead.
+func (*PortalRequest) Descriptor() ([]byte, []int) {
+	return file_white_content_v1_content_proto_rawDescGZIP(), []int{79}
+}
+
+func (x *PortalRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *PortalRequest) GetUnlockToken() string {
+	if x != nil {
+		return x.UnlockToken
+	}
+	return ""
+}
+
+type PortalFile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FileName      string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	MimeType      string                 `protobuf:"bytes,3,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortalFile) Reset() {
+	*x = PortalFile{}
+	mi := &file_white_content_v1_content_proto_msgTypes[80]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortalFile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortalFile) ProtoMessage() {}
+
+func (x *PortalFile) ProtoReflect() protoreflect.Message {
+	mi := &file_white_content_v1_content_proto_msgTypes[80]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortalFile.ProtoReflect.Descriptor instead.
+func (*PortalFile) Descriptor() ([]byte, []int) {
+	return file_white_content_v1_content_proto_rawDescGZIP(), []int{80}
+}
+
+func (x *PortalFile) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PortalFile) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *PortalFile) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
+}
+
+type PortalItem struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// YYYY-MM-DD
+	PlannedDate   string            `protobuf:"bytes,3,opt,name=planned_date,json=plannedDate,proto3" json:"planned_date,omitempty"`
+	Platform      v1.SocialPlatform `protobuf:"varint,4,opt,name=platform,proto3,enum=white.common.v1.SocialPlatform" json:"platform,omitempty"`
+	Format        ContentFormat     `protobuf:"varint,5,opt,name=format,proto3,enum=white.content.v1.ContentFormat" json:"format,omitempty"`
+	Hook          string            `protobuf:"bytes,6,opt,name=hook,proto3" json:"hook,omitempty"`
+	Caption       string            `protobuf:"bytes,7,opt,name=caption,proto3" json:"caption,omitempty"`
+	Hashtags      []string          `protobuf:"bytes,8,rep,name=hashtags,proto3" json:"hashtags,omitempty"`
+	RevisionRound int32             `protobuf:"varint,9,opt,name=revision_round,json=revisionRound,proto3" json:"revision_round,omitempty"`
+	Files         []*PortalFile     `protobuf:"bytes,10,rep,name=files,proto3" json:"files,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortalItem) Reset() {
+	*x = PortalItem{}
+	mi := &file_white_content_v1_content_proto_msgTypes[81]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortalItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortalItem) ProtoMessage() {}
+
+func (x *PortalItem) ProtoReflect() protoreflect.Message {
+	mi := &file_white_content_v1_content_proto_msgTypes[81]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortalItem.ProtoReflect.Descriptor instead.
+func (*PortalItem) Descriptor() ([]byte, []int) {
+	return file_white_content_v1_content_proto_rawDescGZIP(), []int{81}
+}
+
+func (x *PortalItem) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PortalItem) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PortalItem) GetPlannedDate() string {
+	if x != nil {
+		return x.PlannedDate
+	}
+	return ""
+}
+
+func (x *PortalItem) GetPlatform() v1.SocialPlatform {
+	if x != nil {
+		return x.Platform
+	}
+	return v1.SocialPlatform(0)
+}
+
+func (x *PortalItem) GetFormat() ContentFormat {
+	if x != nil {
+		return x.Format
+	}
+	return ContentFormat_CONTENT_FORMAT_UNSPECIFIED
+}
+
+func (x *PortalItem) GetHook() string {
+	if x != nil {
+		return x.Hook
+	}
+	return ""
+}
+
+func (x *PortalItem) GetCaption() string {
+	if x != nil {
+		return x.Caption
+	}
+	return ""
+}
+
+func (x *PortalItem) GetHashtags() []string {
+	if x != nil {
+		return x.Hashtags
+	}
+	return nil
+}
+
+func (x *PortalItem) GetRevisionRound() int32 {
+	if x != nil {
+		return x.RevisionRound
+	}
+	return 0
+}
+
+func (x *PortalItem) GetFiles() []*PortalFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+type ContentReview struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*PortalItem          `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContentReview) Reset() {
+	*x = ContentReview{}
+	mi := &file_white_content_v1_content_proto_msgTypes[82]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContentReview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContentReview) ProtoMessage() {}
+
+func (x *ContentReview) ProtoReflect() protoreflect.Message {
+	mi := &file_white_content_v1_content_proto_msgTypes[82]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContentReview.ProtoReflect.Descriptor instead.
+func (*ContentReview) Descriptor() ([]byte, []int) {
+	return file_white_content_v1_content_proto_rawDescGZIP(), []int{82}
+}
+
+func (x *ContentReview) GetItems() []*PortalItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type DecideContentRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Slug        string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	UnlockToken string                 `protobuf:"bytes,2,opt,name=unlock_token,json=unlockToken,proto3" json:"unlock_token,omitempty"`
+	ItemId      string                 `protobuf:"bytes,3,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	Approve     bool                   `protobuf:"varint,4,opt,name=approve,proto3" json:"approve,omitempty"`
+	SignerName  string                 `protobuf:"bytes,5,opt,name=signer_name,json=signerName,proto3" json:"signer_name,omitempty"`
+	// Required when sending back.
+	Note          string `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DecideContentRequest) Reset() {
+	*x = DecideContentRequest{}
+	mi := &file_white_content_v1_content_proto_msgTypes[83]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecideContentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecideContentRequest) ProtoMessage() {}
+
+func (x *DecideContentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_content_v1_content_proto_msgTypes[83]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DecideContentRequest.ProtoReflect.Descriptor instead.
+func (*DecideContentRequest) Descriptor() ([]byte, []int) {
+	return file_white_content_v1_content_proto_rawDescGZIP(), []int{83}
+}
+
+func (x *DecideContentRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *DecideContentRequest) GetUnlockToken() string {
+	if x != nil {
+		return x.UnlockToken
+	}
+	return ""
+}
+
+func (x *DecideContentRequest) GetItemId() string {
+	if x != nil {
+		return x.ItemId
+	}
+	return ""
+}
+
+func (x *DecideContentRequest) GetApprove() bool {
+	if x != nil {
+		return x.Approve
+	}
+	return false
+}
+
+func (x *DecideContentRequest) GetSignerName() string {
+	if x != nil {
+		return x.SignerName
+	}
+	return ""
+}
+
+func (x *DecideContentRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type PortalFileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Slug          string                 `protobuf:"bytes,1,opt,name=slug,proto3" json:"slug,omitempty"`
+	UnlockToken   string                 `protobuf:"bytes,2,opt,name=unlock_token,json=unlockToken,proto3" json:"unlock_token,omitempty"`
+	FileId        string                 `protobuf:"bytes,3,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PortalFileRequest) Reset() {
+	*x = PortalFileRequest{}
+	mi := &file_white_content_v1_content_proto_msgTypes[84]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PortalFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PortalFileRequest) ProtoMessage() {}
+
+func (x *PortalFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_content_v1_content_proto_msgTypes[84]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PortalFileRequest.ProtoReflect.Descriptor instead.
+func (*PortalFileRequest) Descriptor() ([]byte, []int) {
+	return file_white_content_v1_content_proto_rawDescGZIP(), []int{84}
+}
+
+func (x *PortalFileRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
+}
+
+func (x *PortalFileRequest) GetUnlockToken() string {
+	if x != nil {
+		return x.UnlockToken
+	}
+	return ""
+}
+
+func (x *PortalFileRequest) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
 var File_white_content_v1_content_proto protoreflect.FileDescriptor
 
 const file_white_content_v1_content_proto_rawDesc = "" +
@@ -7845,7 +8263,42 @@ const file_white_content_v1_content_proto_rawDesc = "" +
 	"\acompare\x18\x05 \x01(\tR\acompare\x12;\n" +
 	"\acurrent\x18\x06 \x01(\v2!.white.content.v1.DashboardWindowR\acurrent\x12=\n" +
 	"\bprevious\x18\a \x01(\v2!.white.content.v1.DashboardWindowR\bprevious\x12\x18\n" +
-	"\apillars\x18\b \x03(\tR\apillars*`\n" +
+	"\apillars\x18\b \x03(\tR\apillars\"F\n" +
+	"\rPortalRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12!\n" +
+	"\funlock_token\x18\x02 \x01(\tR\vunlockToken\"V\n" +
+	"\n" +
+	"PortalFile\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12\x1b\n" +
+	"\tmime_type\x18\x03 \x01(\tR\bmimeType\"\xf0\x02\n" +
+	"\n" +
+	"PortalItem\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12!\n" +
+	"\fplanned_date\x18\x03 \x01(\tR\vplannedDate\x12;\n" +
+	"\bplatform\x18\x04 \x01(\x0e2\x1f.white.common.v1.SocialPlatformR\bplatform\x127\n" +
+	"\x06format\x18\x05 \x01(\x0e2\x1f.white.content.v1.ContentFormatR\x06format\x12\x12\n" +
+	"\x04hook\x18\x06 \x01(\tR\x04hook\x12\x18\n" +
+	"\acaption\x18\a \x01(\tR\acaption\x12\x1a\n" +
+	"\bhashtags\x18\b \x03(\tR\bhashtags\x12%\n" +
+	"\x0erevision_round\x18\t \x01(\x05R\rrevisionRound\x122\n" +
+	"\x05files\x18\n" +
+	" \x03(\v2\x1c.white.content.v1.PortalFileR\x05files\"C\n" +
+	"\rContentReview\x122\n" +
+	"\x05items\x18\x01 \x03(\v2\x1c.white.content.v1.PortalItemR\x05items\"\xb5\x01\n" +
+	"\x14DecideContentRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12!\n" +
+	"\funlock_token\x18\x02 \x01(\tR\vunlockToken\x12\x17\n" +
+	"\aitem_id\x18\x03 \x01(\tR\x06itemId\x12\x18\n" +
+	"\aapprove\x18\x04 \x01(\bR\aapprove\x12\x1f\n" +
+	"\vsigner_name\x18\x05 \x01(\tR\n" +
+	"signerName\x12\x12\n" +
+	"\x04note\x18\x06 \x01(\tR\x04note\"c\n" +
+	"\x11PortalFileRequest\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12!\n" +
+	"\funlock_token\x18\x02 \x01(\tR\vunlockToken\x12\x17\n" +
+	"\afile_id\x18\x03 \x01(\tR\x06fileId*`\n" +
 	"\n" +
 	"PlanStatus\x12\x1b\n" +
 	"\x17PLAN_STATUS_UNSPECIFIED\x10\x00\x12\x0e\n" +
@@ -7950,7 +8403,11 @@ const file_white_content_v1_content_proto_rawDesc = "" +
 	"\x0eGenerateReport\x12'.white.content.v1.GenerateReportRequest\x1a\x1f.white.content.v1.ContentReport\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/v1/content/clients/{client_id}/reports\x12\x86\x01\n" +
 	"\tGetReport\x12\x1b.white.content.v1.ReportRef\x1a\x1f.white.content.v1.ContentReport\";\x82\xd3\xe4\x93\x025\x123/v1/content/clients/{client_id}/reports/{report_id}\x12\x8e\x01\n" +
 	"\x11DownloadReportPdf\x12\x1b.white.content.v1.ReportRef\x1a\x1b.white.content.v1.FileBytes\"?\x82\xd3\xe4\x93\x029\x127/v1/content/clients/{client_id}/reports/{report_id}/pdf\x12\x89\x01\n" +
-	"\fGetDashboard\x12\".white.content.v1.DashboardRequest\x1a\".white.content.v1.ContentDashboard\"1\x82\xd3\xe4\x93\x02+\x12)/v1/content/dashboard/clients/{client_id}BSZQgithub.com/syabanf/white-superapp/white-backend/gen/go/white/content/v1;contentv1b\x06proto3"
+	"\fGetDashboard\x12\".white.content.v1.DashboardRequest\x1a\".white.content.v1.ContentDashboard\"1\x82\xd3\xe4\x93\x02+\x12)/v1/content/dashboard/clients/{client_id}2\x83\x03\n" +
+	"\rPortalService\x12\x88\x01\n" +
+	"\x10GetContentReview\x12\x1f.white.content.v1.PortalRequest\x1a\x1f.white.content.v1.ContentReview\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/v1/public/content/portal/{slug}:review\x12\x93\x01\n" +
+	"\rDecideContent\x12&.white.content.v1.DecideContentRequest\x1a\x16.google.protobuf.Empty\"B\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/public/content/portal/{slug}/items/{item_id}:decide\x12Q\n" +
+	"\rGetPortalFile\x12#.white.content.v1.PortalFileRequest\x1a\x1b.white.content.v1.FileBytesBSZQgithub.com/syabanf/white-superapp/white-backend/gen/go/white/content/v1;contentv1b\x06proto3"
 
 var (
 	file_white_content_v1_content_proto_rawDescOnce sync.Once
@@ -7965,7 +8422,7 @@ func file_white_content_v1_content_proto_rawDescGZIP() []byte {
 }
 
 var file_white_content_v1_content_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_white_content_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 79)
+var file_white_content_v1_content_proto_msgTypes = make([]protoimpl.MessageInfo, 85)
 var file_white_content_v1_content_proto_goTypes = []any{
 	(PlanStatus)(0),                   // 0: white.content.v1.PlanStatus
 	(ContentFormat)(0),                // 1: white.content.v1.ContentFormat
@@ -8052,38 +8509,44 @@ var file_white_content_v1_content_proto_goTypes = []any{
 	(*DashboardAsset)(nil),            // 82: white.content.v1.DashboardAsset
 	(*DashboardWindow)(nil),           // 83: white.content.v1.DashboardWindow
 	(*ContentDashboard)(nil),          // 84: white.content.v1.ContentDashboard
-	(v1.SocialPlatform)(0),            // 85: white.common.v1.SocialPlatform
-	(*timestamppb.Timestamp)(nil),     // 86: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),             // 87: google.protobuf.Empty
+	(*PortalRequest)(nil),             // 85: white.content.v1.PortalRequest
+	(*PortalFile)(nil),                // 86: white.content.v1.PortalFile
+	(*PortalItem)(nil),                // 87: white.content.v1.PortalItem
+	(*ContentReview)(nil),             // 88: white.content.v1.ContentReview
+	(*DecideContentRequest)(nil),      // 89: white.content.v1.DecideContentRequest
+	(*PortalFileRequest)(nil),         // 90: white.content.v1.PortalFileRequest
+	(v1.SocialPlatform)(0),            // 91: white.common.v1.SocialPlatform
+	(*timestamppb.Timestamp)(nil),     // 92: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),             // 93: google.protobuf.Empty
 }
 var file_white_content_v1_content_proto_depIdxs = []int32{
-	85,  // 0: white.content.v1.PlatformFrequency.platform:type_name -> white.common.v1.SocialPlatform
+	91,  // 0: white.content.v1.PlatformFrequency.platform:type_name -> white.common.v1.SocialPlatform
 	10,  // 1: white.content.v1.PlanBrief.frequency:type_name -> white.content.v1.PlatformFrequency
 	0,   // 2: white.content.v1.Plan.status:type_name -> white.content.v1.PlanStatus
 	11,  // 3: white.content.v1.Plan.brief:type_name -> white.content.v1.PlanBrief
-	86,  // 4: white.content.v1.Plan.generated_at:type_name -> google.protobuf.Timestamp
-	86,  // 5: white.content.v1.Plan.submitted_at:type_name -> google.protobuf.Timestamp
-	86,  // 6: white.content.v1.Plan.approved_at:type_name -> google.protobuf.Timestamp
-	86,  // 7: white.content.v1.Plan.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 8: white.content.v1.Plan.updated_at:type_name -> google.protobuf.Timestamp
-	86,  // 9: white.content.v1.PlanComment.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 4: white.content.v1.Plan.generated_at:type_name -> google.protobuf.Timestamp
+	92,  // 5: white.content.v1.Plan.submitted_at:type_name -> google.protobuf.Timestamp
+	92,  // 6: white.content.v1.Plan.approved_at:type_name -> google.protobuf.Timestamp
+	92,  // 7: white.content.v1.Plan.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 8: white.content.v1.Plan.updated_at:type_name -> google.protobuf.Timestamp
+	92,  // 9: white.content.v1.PlanComment.created_at:type_name -> google.protobuf.Timestamp
 	12,  // 10: white.content.v1.PlanDetail.plan:type_name -> white.content.v1.Plan
 	22,  // 11: white.content.v1.PlanDetail.items:type_name -> white.content.v1.Item
 	13,  // 12: white.content.v1.PlanDetail.comments:type_name -> white.content.v1.PlanComment
 	12,  // 13: white.content.v1.ListPlansResponse.plans:type_name -> white.content.v1.Plan
 	11,  // 14: white.content.v1.CreatePlanRequest.brief:type_name -> white.content.v1.PlanBrief
 	11,  // 15: white.content.v1.UpdatePlanRequest.brief:type_name -> white.content.v1.PlanBrief
-	86,  // 16: white.content.v1.Item.publish_at:type_name -> google.protobuf.Timestamp
-	85,  // 17: white.content.v1.Item.platform:type_name -> white.common.v1.SocialPlatform
+	92,  // 16: white.content.v1.Item.publish_at:type_name -> google.protobuf.Timestamp
+	91,  // 17: white.content.v1.Item.platform:type_name -> white.common.v1.SocialPlatform
 	1,   // 18: white.content.v1.Item.format:type_name -> white.content.v1.ContentFormat
 	2,   // 19: white.content.v1.Item.status:type_name -> white.content.v1.ItemStatus
-	86,  // 20: white.content.v1.Item.published_at:type_name -> google.protobuf.Timestamp
-	86,  // 21: white.content.v1.Item.approved_at:type_name -> google.protobuf.Timestamp
-	86,  // 22: white.content.v1.Item.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 23: white.content.v1.Item.updated_at:type_name -> google.protobuf.Timestamp
-	86,  // 24: white.content.v1.CaptionRevision.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 25: white.content.v1.ItemComment.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 26: white.content.v1.ItemActivity.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 20: white.content.v1.Item.published_at:type_name -> google.protobuf.Timestamp
+	92,  // 21: white.content.v1.Item.approved_at:type_name -> google.protobuf.Timestamp
+	92,  // 22: white.content.v1.Item.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 23: white.content.v1.Item.updated_at:type_name -> google.protobuf.Timestamp
+	92,  // 24: white.content.v1.CaptionRevision.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 25: white.content.v1.ItemComment.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 26: white.content.v1.ItemActivity.created_at:type_name -> google.protobuf.Timestamp
 	22,  // 27: white.content.v1.ItemDetail.item:type_name -> white.content.v1.Item
 	23,  // 28: white.content.v1.ItemDetail.revisions:type_name -> white.content.v1.CaptionRevision
 	24,  // 29: white.content.v1.ItemDetail.comments:type_name -> white.content.v1.ItemComment
@@ -8092,21 +8555,21 @@ var file_white_content_v1_content_proto_depIdxs = []int32{
 	2,   // 32: white.content.v1.ItemDetail.allowed_moves:type_name -> white.content.v1.ItemStatus
 	2,   // 33: white.content.v1.ListItemsRequest.status:type_name -> white.content.v1.ItemStatus
 	22,  // 34: white.content.v1.ListItemsResponse.items:type_name -> white.content.v1.Item
-	86,  // 35: white.content.v1.ItemInput.publish_at:type_name -> google.protobuf.Timestamp
-	85,  // 36: white.content.v1.ItemInput.platform:type_name -> white.common.v1.SocialPlatform
+	92,  // 35: white.content.v1.ItemInput.publish_at:type_name -> google.protobuf.Timestamp
+	91,  // 36: white.content.v1.ItemInput.platform:type_name -> white.common.v1.SocialPlatform
 	1,   // 37: white.content.v1.ItemInput.format:type_name -> white.content.v1.ContentFormat
 	29,  // 38: white.content.v1.CreateItemRequest.item:type_name -> white.content.v1.ItemInput
 	29,  // 39: white.content.v1.UpdateItemRequest.item:type_name -> white.content.v1.ItemInput
 	2,   // 40: white.content.v1.MoveItemRequest.to:type_name -> white.content.v1.ItemStatus
-	86,  // 41: white.content.v1.ScheduleItemRequest.publish_at:type_name -> google.protobuf.Timestamp
+	92,  // 41: white.content.v1.ScheduleItemRequest.publish_at:type_name -> google.protobuf.Timestamp
 	1,   // 42: white.content.v1.SizePreset.format:type_name -> white.content.v1.ContentFormat
 	36,  // 43: white.content.v1.ListSizePresetsResponse.presets:type_name -> white.content.v1.SizePreset
 	3,   // 44: white.content.v1.DesignTask.status:type_name -> white.content.v1.DesignStatus
-	86,  // 45: white.content.v1.DesignTask.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 46: white.content.v1.DesignTask.updated_at:type_name -> google.protobuf.Timestamp
-	86,  // 47: white.content.v1.DesignFile.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 45: white.content.v1.DesignTask.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 46: white.content.v1.DesignTask.updated_at:type_name -> google.protobuf.Timestamp
+	92,  // 47: white.content.v1.DesignFile.created_at:type_name -> google.protobuf.Timestamp
 	4,   // 48: white.content.v1.DesignFeedback.decision:type_name -> white.content.v1.ReviewDecision
-	86,  // 49: white.content.v1.DesignFeedback.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 49: white.content.v1.DesignFeedback.created_at:type_name -> google.protobuf.Timestamp
 	38,  // 50: white.content.v1.DesignTaskDetail.task:type_name -> white.content.v1.DesignTask
 	39,  // 51: white.content.v1.DesignTaskDetail.files:type_name -> white.content.v1.DesignFile
 	40,  // 52: white.content.v1.DesignTaskDetail.feedback:type_name -> white.content.v1.DesignFeedback
@@ -8117,12 +8580,12 @@ var file_white_content_v1_content_proto_depIdxs = []int32{
 	3,   // 57: white.content.v1.UpdateDesignTaskRequest.status:type_name -> white.content.v1.DesignStatus
 	7,   // 58: white.content.v1.UploadDesignFilesRequest.files:type_name -> white.content.v1.UploadFile
 	4,   // 59: white.content.v1.ReviewDesignRequest.decision:type_name -> white.content.v1.ReviewDecision
-	86,  // 60: white.content.v1.AssetFolder.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 61: white.content.v1.AssetVersion.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 60: white.content.v1.AssetFolder.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 61: white.content.v1.AssetVersion.created_at:type_name -> google.protobuf.Timestamp
 	5,   // 62: white.content.v1.Asset.kind:type_name -> white.content.v1.AssetKind
 	52,  // 63: white.content.v1.Asset.current:type_name -> white.content.v1.AssetVersion
-	86,  // 64: white.content.v1.Asset.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 65: white.content.v1.Asset.updated_at:type_name -> google.protobuf.Timestamp
+	92,  // 64: white.content.v1.Asset.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 65: white.content.v1.Asset.updated_at:type_name -> google.protobuf.Timestamp
 	53,  // 66: white.content.v1.AssetDetail.asset:type_name -> white.content.v1.Asset
 	52,  // 67: white.content.v1.AssetDetail.versions:type_name -> white.content.v1.AssetVersion
 	51,  // 68: white.content.v1.ListAssetFoldersResponse.folders:type_name -> white.content.v1.AssetFolder
@@ -8132,22 +8595,22 @@ var file_white_content_v1_content_proto_depIdxs = []int32{
 	7,   // 72: white.content.v1.CreateAssetRequest.file:type_name -> white.content.v1.UploadFile
 	5,   // 73: white.content.v1.UpdateAssetRequest.kind:type_name -> white.content.v1.AssetKind
 	7,   // 74: white.content.v1.UploadAssetVersionRequest.file:type_name -> white.content.v1.UploadFile
-	85,  // 75: white.content.v1.ReportPost.platform:type_name -> white.common.v1.SocialPlatform
+	91,  // 75: white.content.v1.ReportPost.platform:type_name -> white.common.v1.SocialPlatform
 	1,   // 76: white.content.v1.ReportPost.format:type_name -> white.content.v1.ContentFormat
-	86,  // 77: white.content.v1.ReportPost.published_at:type_name -> google.protobuf.Timestamp
+	92,  // 77: white.content.v1.ReportPost.published_at:type_name -> google.protobuf.Timestamp
 	68,  // 78: white.content.v1.ContentReport.per_platform:type_name -> white.content.v1.ReportBreakdown
 	68,  // 79: white.content.v1.ContentReport.per_format:type_name -> white.content.v1.ReportBreakdown
 	69,  // 80: white.content.v1.ContentReport.posts:type_name -> white.content.v1.ReportPost
 	69,  // 81: white.content.v1.ContentReport.top:type_name -> white.content.v1.ReportPost
 	69,  // 82: white.content.v1.ContentReport.bottom:type_name -> white.content.v1.ReportPost
-	86,  // 83: white.content.v1.ContentReport.created_at:type_name -> google.protobuf.Timestamp
-	86,  // 84: white.content.v1.ContentReport.updated_at:type_name -> google.protobuf.Timestamp
+	92,  // 83: white.content.v1.ContentReport.created_at:type_name -> google.protobuf.Timestamp
+	92,  // 84: white.content.v1.ContentReport.updated_at:type_name -> google.protobuf.Timestamp
 	70,  // 85: white.content.v1.ListReportsResponse.reports:type_name -> white.content.v1.ContentReport
-	85,  // 86: white.content.v1.DashboardPost.platform:type_name -> white.common.v1.SocialPlatform
+	91,  // 86: white.content.v1.DashboardPost.platform:type_name -> white.common.v1.SocialPlatform
 	1,   // 87: white.content.v1.DashboardPost.format:type_name -> white.content.v1.ContentFormat
-	86,  // 88: white.content.v1.DashboardPost.published_at:type_name -> google.protobuf.Timestamp
+	92,  // 88: white.content.v1.DashboardPost.published_at:type_name -> google.protobuf.Timestamp
 	5,   // 89: white.content.v1.DashboardAsset.kind:type_name -> white.content.v1.AssetKind
-	86,  // 90: white.content.v1.DashboardAsset.last_uploaded_at:type_name -> google.protobuf.Timestamp
+	92,  // 90: white.content.v1.DashboardAsset.last_uploaded_at:type_name -> google.protobuf.Timestamp
 	73,  // 91: white.content.v1.DashboardWindow.kpis:type_name -> white.content.v1.DashboardKpis
 	74,  // 92: white.content.v1.DashboardWindow.buckets:type_name -> white.content.v1.DashboardBucket
 	75,  // 93: white.content.v1.DashboardWindow.funnel:type_name -> white.content.v1.DashboardCount
@@ -8167,99 +8630,109 @@ var file_white_content_v1_content_proto_depIdxs = []int32{
 	75,  // 107: white.content.v1.DashboardWindow.asset_uploads_by_kind:type_name -> white.content.v1.DashboardCount
 	83,  // 108: white.content.v1.ContentDashboard.current:type_name -> white.content.v1.DashboardWindow
 	83,  // 109: white.content.v1.ContentDashboard.previous:type_name -> white.content.v1.DashboardWindow
-	8,   // 110: white.content.v1.PlanService.ListPlans:input_type -> white.content.v1.ClientRequest
-	16,  // 111: white.content.v1.PlanService.CreatePlan:input_type -> white.content.v1.CreatePlanRequest
-	9,   // 112: white.content.v1.PlanService.GetPlan:input_type -> white.content.v1.PlanRef
-	17,  // 113: white.content.v1.PlanService.UpdatePlan:input_type -> white.content.v1.UpdatePlanRequest
-	9,   // 114: white.content.v1.PlanService.DeletePlan:input_type -> white.content.v1.PlanRef
-	18,  // 115: white.content.v1.PlanService.GeneratePlanDraft:input_type -> white.content.v1.GeneratePlanDraftRequest
-	9,   // 116: white.content.v1.PlanService.SubmitPlan:input_type -> white.content.v1.PlanRef
-	19,  // 117: white.content.v1.PlanService.ApprovePlan:input_type -> white.content.v1.PlanNoteRequest
-	19,  // 118: white.content.v1.PlanService.RequestPlanChanges:input_type -> white.content.v1.PlanNoteRequest
-	20,  // 119: white.content.v1.PlanService.AddPlanComment:input_type -> white.content.v1.AddPlanCommentRequest
-	27,  // 120: white.content.v1.ItemService.ListItems:input_type -> white.content.v1.ListItemsRequest
-	30,  // 121: white.content.v1.ItemService.CreateItem:input_type -> white.content.v1.CreateItemRequest
-	21,  // 122: white.content.v1.ItemService.GetItem:input_type -> white.content.v1.ItemRef
-	31,  // 123: white.content.v1.ItemService.UpdateItem:input_type -> white.content.v1.UpdateItemRequest
-	21,  // 124: white.content.v1.ItemService.DeleteItem:input_type -> white.content.v1.ItemRef
-	32,  // 125: white.content.v1.ItemService.MoveItem:input_type -> white.content.v1.MoveItemRequest
-	33,  // 126: white.content.v1.ItemService.ReviseCaption:input_type -> white.content.v1.ReviseCaptionRequest
-	34,  // 127: white.content.v1.ItemService.AddItemComment:input_type -> white.content.v1.AddItemCommentRequest
-	35,  // 128: white.content.v1.ItemService.ScheduleItem:input_type -> white.content.v1.ScheduleItemRequest
-	21,  // 129: white.content.v1.ItemService.SyncItemStatus:input_type -> white.content.v1.ItemRef
-	87,  // 130: white.content.v1.DesignService.ListSizePresets:input_type -> google.protobuf.Empty
-	42,  // 131: white.content.v1.DesignService.ListDesignTasks:input_type -> white.content.v1.ListDesignTasksRequest
-	46,  // 132: white.content.v1.DesignService.CreateDesignTask:input_type -> white.content.v1.CreateDesignTaskRequest
-	44,  // 133: white.content.v1.DesignService.GetDesignTask:input_type -> white.content.v1.DesignTaskRef
-	47,  // 134: white.content.v1.DesignService.UpdateDesignTask:input_type -> white.content.v1.UpdateDesignTaskRequest
-	48,  // 135: white.content.v1.DesignService.UploadDesignFiles:input_type -> white.content.v1.UploadDesignFilesRequest
-	49,  // 136: white.content.v1.DesignService.ReviewDesign:input_type -> white.content.v1.ReviewDesignRequest
-	50,  // 137: white.content.v1.DesignService.DownloadDesignFile:input_type -> white.content.v1.DesignFileRef
-	8,   // 138: white.content.v1.AssetService.ListAssetFolders:input_type -> white.content.v1.ClientRequest
-	56,  // 139: white.content.v1.AssetService.CreateAssetFolder:input_type -> white.content.v1.CreateAssetFolderRequest
-	57,  // 140: white.content.v1.AssetService.RenameAssetFolder:input_type -> white.content.v1.RenameAssetFolderRequest
-	58,  // 141: white.content.v1.AssetService.DeleteAssetFolder:input_type -> white.content.v1.AssetFolderRef
-	59,  // 142: white.content.v1.AssetService.SearchAssets:input_type -> white.content.v1.SearchAssetsRequest
-	61,  // 143: white.content.v1.AssetService.CreateAsset:input_type -> white.content.v1.CreateAssetRequest
-	62,  // 144: white.content.v1.AssetService.GetAsset:input_type -> white.content.v1.AssetRef
-	63,  // 145: white.content.v1.AssetService.UpdateAsset:input_type -> white.content.v1.UpdateAssetRequest
-	64,  // 146: white.content.v1.AssetService.UploadAssetVersion:input_type -> white.content.v1.UploadAssetVersionRequest
-	62,  // 147: white.content.v1.AssetService.DeleteAsset:input_type -> white.content.v1.AssetRef
-	65,  // 148: white.content.v1.AssetService.DownloadAsset:input_type -> white.content.v1.DownloadAssetRequest
-	8,   // 149: white.content.v1.ReportService.ListReports:input_type -> white.content.v1.ClientRequest
-	66,  // 150: white.content.v1.ReportService.GenerateReport:input_type -> white.content.v1.GenerateReportRequest
-	67,  // 151: white.content.v1.ReportService.GetReport:input_type -> white.content.v1.ReportRef
-	67,  // 152: white.content.v1.ReportService.DownloadReportPdf:input_type -> white.content.v1.ReportRef
-	72,  // 153: white.content.v1.ReportService.GetDashboard:input_type -> white.content.v1.DashboardRequest
-	15,  // 154: white.content.v1.PlanService.ListPlans:output_type -> white.content.v1.ListPlansResponse
-	14,  // 155: white.content.v1.PlanService.CreatePlan:output_type -> white.content.v1.PlanDetail
-	14,  // 156: white.content.v1.PlanService.GetPlan:output_type -> white.content.v1.PlanDetail
-	14,  // 157: white.content.v1.PlanService.UpdatePlan:output_type -> white.content.v1.PlanDetail
-	87,  // 158: white.content.v1.PlanService.DeletePlan:output_type -> google.protobuf.Empty
-	14,  // 159: white.content.v1.PlanService.GeneratePlanDraft:output_type -> white.content.v1.PlanDetail
-	14,  // 160: white.content.v1.PlanService.SubmitPlan:output_type -> white.content.v1.PlanDetail
-	14,  // 161: white.content.v1.PlanService.ApprovePlan:output_type -> white.content.v1.PlanDetail
-	14,  // 162: white.content.v1.PlanService.RequestPlanChanges:output_type -> white.content.v1.PlanDetail
-	13,  // 163: white.content.v1.PlanService.AddPlanComment:output_type -> white.content.v1.PlanComment
-	28,  // 164: white.content.v1.ItemService.ListItems:output_type -> white.content.v1.ListItemsResponse
-	26,  // 165: white.content.v1.ItemService.CreateItem:output_type -> white.content.v1.ItemDetail
-	26,  // 166: white.content.v1.ItemService.GetItem:output_type -> white.content.v1.ItemDetail
-	26,  // 167: white.content.v1.ItemService.UpdateItem:output_type -> white.content.v1.ItemDetail
-	87,  // 168: white.content.v1.ItemService.DeleteItem:output_type -> google.protobuf.Empty
-	26,  // 169: white.content.v1.ItemService.MoveItem:output_type -> white.content.v1.ItemDetail
-	26,  // 170: white.content.v1.ItemService.ReviseCaption:output_type -> white.content.v1.ItemDetail
-	24,  // 171: white.content.v1.ItemService.AddItemComment:output_type -> white.content.v1.ItemComment
-	26,  // 172: white.content.v1.ItemService.ScheduleItem:output_type -> white.content.v1.ItemDetail
-	26,  // 173: white.content.v1.ItemService.SyncItemStatus:output_type -> white.content.v1.ItemDetail
-	37,  // 174: white.content.v1.DesignService.ListSizePresets:output_type -> white.content.v1.ListSizePresetsResponse
-	43,  // 175: white.content.v1.DesignService.ListDesignTasks:output_type -> white.content.v1.ListDesignTasksResponse
-	41,  // 176: white.content.v1.DesignService.CreateDesignTask:output_type -> white.content.v1.DesignTaskDetail
-	41,  // 177: white.content.v1.DesignService.GetDesignTask:output_type -> white.content.v1.DesignTaskDetail
-	41,  // 178: white.content.v1.DesignService.UpdateDesignTask:output_type -> white.content.v1.DesignTaskDetail
-	41,  // 179: white.content.v1.DesignService.UploadDesignFiles:output_type -> white.content.v1.DesignTaskDetail
-	41,  // 180: white.content.v1.DesignService.ReviewDesign:output_type -> white.content.v1.DesignTaskDetail
-	6,   // 181: white.content.v1.DesignService.DownloadDesignFile:output_type -> white.content.v1.FileBytes
-	55,  // 182: white.content.v1.AssetService.ListAssetFolders:output_type -> white.content.v1.ListAssetFoldersResponse
-	51,  // 183: white.content.v1.AssetService.CreateAssetFolder:output_type -> white.content.v1.AssetFolder
-	51,  // 184: white.content.v1.AssetService.RenameAssetFolder:output_type -> white.content.v1.AssetFolder
-	87,  // 185: white.content.v1.AssetService.DeleteAssetFolder:output_type -> google.protobuf.Empty
-	60,  // 186: white.content.v1.AssetService.SearchAssets:output_type -> white.content.v1.SearchAssetsResponse
-	54,  // 187: white.content.v1.AssetService.CreateAsset:output_type -> white.content.v1.AssetDetail
-	54,  // 188: white.content.v1.AssetService.GetAsset:output_type -> white.content.v1.AssetDetail
-	54,  // 189: white.content.v1.AssetService.UpdateAsset:output_type -> white.content.v1.AssetDetail
-	54,  // 190: white.content.v1.AssetService.UploadAssetVersion:output_type -> white.content.v1.AssetDetail
-	87,  // 191: white.content.v1.AssetService.DeleteAsset:output_type -> google.protobuf.Empty
-	6,   // 192: white.content.v1.AssetService.DownloadAsset:output_type -> white.content.v1.FileBytes
-	71,  // 193: white.content.v1.ReportService.ListReports:output_type -> white.content.v1.ListReportsResponse
-	70,  // 194: white.content.v1.ReportService.GenerateReport:output_type -> white.content.v1.ContentReport
-	70,  // 195: white.content.v1.ReportService.GetReport:output_type -> white.content.v1.ContentReport
-	6,   // 196: white.content.v1.ReportService.DownloadReportPdf:output_type -> white.content.v1.FileBytes
-	84,  // 197: white.content.v1.ReportService.GetDashboard:output_type -> white.content.v1.ContentDashboard
-	154, // [154:198] is the sub-list for method output_type
-	110, // [110:154] is the sub-list for method input_type
-	110, // [110:110] is the sub-list for extension type_name
-	110, // [110:110] is the sub-list for extension extendee
-	0,   // [0:110] is the sub-list for field type_name
+	91,  // 110: white.content.v1.PortalItem.platform:type_name -> white.common.v1.SocialPlatform
+	1,   // 111: white.content.v1.PortalItem.format:type_name -> white.content.v1.ContentFormat
+	86,  // 112: white.content.v1.PortalItem.files:type_name -> white.content.v1.PortalFile
+	87,  // 113: white.content.v1.ContentReview.items:type_name -> white.content.v1.PortalItem
+	8,   // 114: white.content.v1.PlanService.ListPlans:input_type -> white.content.v1.ClientRequest
+	16,  // 115: white.content.v1.PlanService.CreatePlan:input_type -> white.content.v1.CreatePlanRequest
+	9,   // 116: white.content.v1.PlanService.GetPlan:input_type -> white.content.v1.PlanRef
+	17,  // 117: white.content.v1.PlanService.UpdatePlan:input_type -> white.content.v1.UpdatePlanRequest
+	9,   // 118: white.content.v1.PlanService.DeletePlan:input_type -> white.content.v1.PlanRef
+	18,  // 119: white.content.v1.PlanService.GeneratePlanDraft:input_type -> white.content.v1.GeneratePlanDraftRequest
+	9,   // 120: white.content.v1.PlanService.SubmitPlan:input_type -> white.content.v1.PlanRef
+	19,  // 121: white.content.v1.PlanService.ApprovePlan:input_type -> white.content.v1.PlanNoteRequest
+	19,  // 122: white.content.v1.PlanService.RequestPlanChanges:input_type -> white.content.v1.PlanNoteRequest
+	20,  // 123: white.content.v1.PlanService.AddPlanComment:input_type -> white.content.v1.AddPlanCommentRequest
+	27,  // 124: white.content.v1.ItemService.ListItems:input_type -> white.content.v1.ListItemsRequest
+	30,  // 125: white.content.v1.ItemService.CreateItem:input_type -> white.content.v1.CreateItemRequest
+	21,  // 126: white.content.v1.ItemService.GetItem:input_type -> white.content.v1.ItemRef
+	31,  // 127: white.content.v1.ItemService.UpdateItem:input_type -> white.content.v1.UpdateItemRequest
+	21,  // 128: white.content.v1.ItemService.DeleteItem:input_type -> white.content.v1.ItemRef
+	32,  // 129: white.content.v1.ItemService.MoveItem:input_type -> white.content.v1.MoveItemRequest
+	33,  // 130: white.content.v1.ItemService.ReviseCaption:input_type -> white.content.v1.ReviseCaptionRequest
+	34,  // 131: white.content.v1.ItemService.AddItemComment:input_type -> white.content.v1.AddItemCommentRequest
+	35,  // 132: white.content.v1.ItemService.ScheduleItem:input_type -> white.content.v1.ScheduleItemRequest
+	21,  // 133: white.content.v1.ItemService.SyncItemStatus:input_type -> white.content.v1.ItemRef
+	93,  // 134: white.content.v1.DesignService.ListSizePresets:input_type -> google.protobuf.Empty
+	42,  // 135: white.content.v1.DesignService.ListDesignTasks:input_type -> white.content.v1.ListDesignTasksRequest
+	46,  // 136: white.content.v1.DesignService.CreateDesignTask:input_type -> white.content.v1.CreateDesignTaskRequest
+	44,  // 137: white.content.v1.DesignService.GetDesignTask:input_type -> white.content.v1.DesignTaskRef
+	47,  // 138: white.content.v1.DesignService.UpdateDesignTask:input_type -> white.content.v1.UpdateDesignTaskRequest
+	48,  // 139: white.content.v1.DesignService.UploadDesignFiles:input_type -> white.content.v1.UploadDesignFilesRequest
+	49,  // 140: white.content.v1.DesignService.ReviewDesign:input_type -> white.content.v1.ReviewDesignRequest
+	50,  // 141: white.content.v1.DesignService.DownloadDesignFile:input_type -> white.content.v1.DesignFileRef
+	8,   // 142: white.content.v1.AssetService.ListAssetFolders:input_type -> white.content.v1.ClientRequest
+	56,  // 143: white.content.v1.AssetService.CreateAssetFolder:input_type -> white.content.v1.CreateAssetFolderRequest
+	57,  // 144: white.content.v1.AssetService.RenameAssetFolder:input_type -> white.content.v1.RenameAssetFolderRequest
+	58,  // 145: white.content.v1.AssetService.DeleteAssetFolder:input_type -> white.content.v1.AssetFolderRef
+	59,  // 146: white.content.v1.AssetService.SearchAssets:input_type -> white.content.v1.SearchAssetsRequest
+	61,  // 147: white.content.v1.AssetService.CreateAsset:input_type -> white.content.v1.CreateAssetRequest
+	62,  // 148: white.content.v1.AssetService.GetAsset:input_type -> white.content.v1.AssetRef
+	63,  // 149: white.content.v1.AssetService.UpdateAsset:input_type -> white.content.v1.UpdateAssetRequest
+	64,  // 150: white.content.v1.AssetService.UploadAssetVersion:input_type -> white.content.v1.UploadAssetVersionRequest
+	62,  // 151: white.content.v1.AssetService.DeleteAsset:input_type -> white.content.v1.AssetRef
+	65,  // 152: white.content.v1.AssetService.DownloadAsset:input_type -> white.content.v1.DownloadAssetRequest
+	8,   // 153: white.content.v1.ReportService.ListReports:input_type -> white.content.v1.ClientRequest
+	66,  // 154: white.content.v1.ReportService.GenerateReport:input_type -> white.content.v1.GenerateReportRequest
+	67,  // 155: white.content.v1.ReportService.GetReport:input_type -> white.content.v1.ReportRef
+	67,  // 156: white.content.v1.ReportService.DownloadReportPdf:input_type -> white.content.v1.ReportRef
+	72,  // 157: white.content.v1.ReportService.GetDashboard:input_type -> white.content.v1.DashboardRequest
+	85,  // 158: white.content.v1.PortalService.GetContentReview:input_type -> white.content.v1.PortalRequest
+	89,  // 159: white.content.v1.PortalService.DecideContent:input_type -> white.content.v1.DecideContentRequest
+	90,  // 160: white.content.v1.PortalService.GetPortalFile:input_type -> white.content.v1.PortalFileRequest
+	15,  // 161: white.content.v1.PlanService.ListPlans:output_type -> white.content.v1.ListPlansResponse
+	14,  // 162: white.content.v1.PlanService.CreatePlan:output_type -> white.content.v1.PlanDetail
+	14,  // 163: white.content.v1.PlanService.GetPlan:output_type -> white.content.v1.PlanDetail
+	14,  // 164: white.content.v1.PlanService.UpdatePlan:output_type -> white.content.v1.PlanDetail
+	93,  // 165: white.content.v1.PlanService.DeletePlan:output_type -> google.protobuf.Empty
+	14,  // 166: white.content.v1.PlanService.GeneratePlanDraft:output_type -> white.content.v1.PlanDetail
+	14,  // 167: white.content.v1.PlanService.SubmitPlan:output_type -> white.content.v1.PlanDetail
+	14,  // 168: white.content.v1.PlanService.ApprovePlan:output_type -> white.content.v1.PlanDetail
+	14,  // 169: white.content.v1.PlanService.RequestPlanChanges:output_type -> white.content.v1.PlanDetail
+	13,  // 170: white.content.v1.PlanService.AddPlanComment:output_type -> white.content.v1.PlanComment
+	28,  // 171: white.content.v1.ItemService.ListItems:output_type -> white.content.v1.ListItemsResponse
+	26,  // 172: white.content.v1.ItemService.CreateItem:output_type -> white.content.v1.ItemDetail
+	26,  // 173: white.content.v1.ItemService.GetItem:output_type -> white.content.v1.ItemDetail
+	26,  // 174: white.content.v1.ItemService.UpdateItem:output_type -> white.content.v1.ItemDetail
+	93,  // 175: white.content.v1.ItemService.DeleteItem:output_type -> google.protobuf.Empty
+	26,  // 176: white.content.v1.ItemService.MoveItem:output_type -> white.content.v1.ItemDetail
+	26,  // 177: white.content.v1.ItemService.ReviseCaption:output_type -> white.content.v1.ItemDetail
+	24,  // 178: white.content.v1.ItemService.AddItemComment:output_type -> white.content.v1.ItemComment
+	26,  // 179: white.content.v1.ItemService.ScheduleItem:output_type -> white.content.v1.ItemDetail
+	26,  // 180: white.content.v1.ItemService.SyncItemStatus:output_type -> white.content.v1.ItemDetail
+	37,  // 181: white.content.v1.DesignService.ListSizePresets:output_type -> white.content.v1.ListSizePresetsResponse
+	43,  // 182: white.content.v1.DesignService.ListDesignTasks:output_type -> white.content.v1.ListDesignTasksResponse
+	41,  // 183: white.content.v1.DesignService.CreateDesignTask:output_type -> white.content.v1.DesignTaskDetail
+	41,  // 184: white.content.v1.DesignService.GetDesignTask:output_type -> white.content.v1.DesignTaskDetail
+	41,  // 185: white.content.v1.DesignService.UpdateDesignTask:output_type -> white.content.v1.DesignTaskDetail
+	41,  // 186: white.content.v1.DesignService.UploadDesignFiles:output_type -> white.content.v1.DesignTaskDetail
+	41,  // 187: white.content.v1.DesignService.ReviewDesign:output_type -> white.content.v1.DesignTaskDetail
+	6,   // 188: white.content.v1.DesignService.DownloadDesignFile:output_type -> white.content.v1.FileBytes
+	55,  // 189: white.content.v1.AssetService.ListAssetFolders:output_type -> white.content.v1.ListAssetFoldersResponse
+	51,  // 190: white.content.v1.AssetService.CreateAssetFolder:output_type -> white.content.v1.AssetFolder
+	51,  // 191: white.content.v1.AssetService.RenameAssetFolder:output_type -> white.content.v1.AssetFolder
+	93,  // 192: white.content.v1.AssetService.DeleteAssetFolder:output_type -> google.protobuf.Empty
+	60,  // 193: white.content.v1.AssetService.SearchAssets:output_type -> white.content.v1.SearchAssetsResponse
+	54,  // 194: white.content.v1.AssetService.CreateAsset:output_type -> white.content.v1.AssetDetail
+	54,  // 195: white.content.v1.AssetService.GetAsset:output_type -> white.content.v1.AssetDetail
+	54,  // 196: white.content.v1.AssetService.UpdateAsset:output_type -> white.content.v1.AssetDetail
+	54,  // 197: white.content.v1.AssetService.UploadAssetVersion:output_type -> white.content.v1.AssetDetail
+	93,  // 198: white.content.v1.AssetService.DeleteAsset:output_type -> google.protobuf.Empty
+	6,   // 199: white.content.v1.AssetService.DownloadAsset:output_type -> white.content.v1.FileBytes
+	71,  // 200: white.content.v1.ReportService.ListReports:output_type -> white.content.v1.ListReportsResponse
+	70,  // 201: white.content.v1.ReportService.GenerateReport:output_type -> white.content.v1.ContentReport
+	70,  // 202: white.content.v1.ReportService.GetReport:output_type -> white.content.v1.ContentReport
+	6,   // 203: white.content.v1.ReportService.DownloadReportPdf:output_type -> white.content.v1.FileBytes
+	84,  // 204: white.content.v1.ReportService.GetDashboard:output_type -> white.content.v1.ContentDashboard
+	88,  // 205: white.content.v1.PortalService.GetContentReview:output_type -> white.content.v1.ContentReview
+	93,  // 206: white.content.v1.PortalService.DecideContent:output_type -> google.protobuf.Empty
+	6,   // 207: white.content.v1.PortalService.GetPortalFile:output_type -> white.content.v1.FileBytes
+	161, // [161:208] is the sub-list for method output_type
+	114, // [114:161] is the sub-list for method input_type
+	114, // [114:114] is the sub-list for extension type_name
+	114, // [114:114] is the sub-list for extension extendee
+	0,   // [0:114] is the sub-list for field type_name
 }
 
 func init() { file_white_content_v1_content_proto_init() }
@@ -8291,9 +8764,9 @@ func file_white_content_v1_content_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_content_v1_content_proto_rawDesc), len(file_white_content_v1_content_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   79,
+			NumMessages:   85,
 			NumExtensions: 0,
-			NumServices:   5,
+			NumServices:   6,
 		},
 		GoTypes:           file_white_content_v1_content_proto_goTypes,
 		DependencyIndexes: file_white_content_v1_content_proto_depIdxs,

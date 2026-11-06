@@ -292,18 +292,31 @@ SELECT x.document_id, i.id, i.invoice_no, i.party_name, i.status, i.subtotal
  ORDER BY i.invoice_date;
 
 -- name: ListProjectAllocations :many
-SELECT c.id, c.tag_id, t.name AS tag_name, t.client_name, c.month, c.kind, c.amount, c.notes, c.created_by
+SELECT c.id, c.tag_id, t.name AS tag_name, t.client_name, c.month, c.kind, c.amount, c.notes, c.created_by, c.source
   FROM finance.project_cost_allocations c
   JOIN finance.project_tags t ON t.id = c.tag_id
  WHERE c.month >= sqlc.arg(month_from)::text AND c.month <= sqlc.arg(month_to)::text
  ORDER BY c.month DESC, t.name;
 
 -- name: InsertProjectAllocation :exec
-INSERT INTO finance.project_cost_allocations (id, tag_id, month, kind, amount, notes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, sqlc.narg(by));
+INSERT INTO finance.project_cost_allocations (id, tag_id, month, kind, amount, notes, created_by, source)
+VALUES ($1, $2, $3, $4, $5, $6, sqlc.narg(by), $7);
+
+-- name: DeleteTimesheetAllocations :exec
+DELETE FROM finance.project_cost_allocations WHERE month = $1 AND source = 'TIMESHEET';
 
 -- name: DeleteProjectAllocation :exec
 DELETE FROM finance.project_cost_allocations WHERE id = $1;
 
 -- name: InsertInvoiceReminder :execrows
 INSERT INTO finance.invoice_reminders (invoice_id, stage) VALUES ($1, $2) ON CONFLICT DO NOTHING;
+
+-- name: GetCompanyProfile :one
+SELECT legal_name, address, email, phone, npwp, bank_name, bank_account_no, bank_account_name FROM finance.company_profile;
+
+-- name: UpsertCompanyProfile :exec
+INSERT INTO finance.company_profile (id, legal_name, address, email, phone, npwp, bank_name, bank_account_no, bank_account_name, updated_by)
+VALUES (true, $1, $2, $3, $4, $5, $6, $7, $8, sqlc.narg(by))
+ON CONFLICT (id) DO UPDATE SET legal_name = EXCLUDED.legal_name, address = EXCLUDED.address, email = EXCLUDED.email, phone = EXCLUDED.phone,
+    npwp = EXCLUDED.npwp, bank_name = EXCLUDED.bank_name, bank_account_no = EXCLUDED.bank_account_no,
+    bank_account_name = EXCLUDED.bank_account_name, updated_by = EXCLUDED.updated_by, updated_at = now();

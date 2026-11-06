@@ -27,6 +27,7 @@ WHERE d.deleted_at IS NULL
        OR d.title ILIKE '%' || sqlc.narg('search') || '%' OR coalesce(a.name, l.org_name, '') ILIKE '%' || sqlc.narg('search') || '%')
   AND (sqlc.narg('from_at')::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) >= sqlc.narg('from_at'))
   AND (sqlc.narg('to_at')::timestamptz IS NULL OR coalesce(i.sent_at, i.created_at) < sqlc.narg('to_at'))
+  AND (sqlc.narg('client')::text IS NULL OR EXISTS (SELECT 1 FROM sales.onboardings o WHERE o.deal_id = i.deal_id AND o.marketing_client_id = sqlc.narg('client')))
 ORDER BY i.created_at DESC, i.id
 LIMIT sqlc.arg('lim');
 
@@ -91,3 +92,33 @@ SELECT * FROM sales.invoice_followups WHERE id = $1;
 UPDATE sales.invoice_followups
 SET phone = $2, message = $3, status = $4, last_error = $5, approved_by = $6, approved_at = $7, sent_at = $8, message_id = $9
 WHERE id = $1;
+
+-- name: InsertPaymentProof :exec
+INSERT INTO sales.payment_proofs (id, invoice_id, amount, paid_on, payer_name, note, file_key, file_name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+
+-- name: GetPaymentProof :one
+SELECT sqlc.embed(pp), i.invoice_number, i.deal_id, coalesce(a.name, l.org_name, d.title)::text AS client_name
+FROM sales.payment_proofs pp
+JOIN sales.invoices i ON i.id = pp.invoice_id
+JOIN sales.deals d ON d.id = i.deal_id
+LEFT JOIN sales.leads l ON l.id = d.lead_id
+LEFT JOIN sales.accounts a ON a.id = d.account_id
+WHERE pp.id = $1;
+
+-- name: ListPaymentProofs :many
+SELECT sqlc.embed(pp), i.invoice_number, i.deal_id, coalesce(a.name, l.org_name, d.title)::text AS client_name
+FROM sales.payment_proofs pp
+JOIN sales.invoices i ON i.id = pp.invoice_id
+JOIN sales.deals d ON d.id = i.deal_id
+LEFT JOIN sales.leads l ON l.id = d.lead_id
+LEFT JOIN sales.accounts a ON a.id = d.account_id
+WHERE (sqlc.narg('status')::text IS NULL OR pp.status = sqlc.narg('status'))
+  AND (sqlc.narg('invoice_ids')::text[] IS NULL OR pp.invoice_id = ANY(sqlc.narg('invoice_ids')::text[]))
+ORDER BY pp.created_at DESC
+LIMIT sqlc.arg('lim');
+
+-- name: DecidePaymentProof :execrows
+UPDATE sales.payment_proofs
+SET status = $2, reject_reason = $3, payment_id = $4, decided_by = $5, decided_at = $6
+WHERE id = $1 AND status = 'PENDING';

@@ -11,13 +11,15 @@ export function ShareTabs({ items }: { items: ShareTabItem[] }) {
   if (items.length === 1) return <div>{items[0]!.content}</div>;
   return (
     <Tabs defaultValue={items[0]!.key}>
-      <TabsList className="mb-4">
-        {items.map((it) => (
-          <TabsTrigger key={it.key} value={it.key}>
-            {it.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="mb-4 max-w-full overflow-x-auto">
+        <TabsList>
+          {items.map((it) => (
+            <TabsTrigger key={it.key} value={it.key}>
+              {it.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
       {items.map((it) => (
         <TabsContent key={it.key} value={it.key}>
           {it.content}

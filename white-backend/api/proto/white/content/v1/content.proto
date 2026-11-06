@@ -1105,3 +1105,72 @@ message ContentDashboard {
   // Every pillar used by the client's items (filter options).
   repeated string pillars = 8;
 }
+
+// ─────────────────────────────────────────────────────────────
+// PortalService: clients approve content from the share page
+// ─────────────────────────────────────────────────────────────
+
+service PortalService {
+  // Public. Items waiting for review; the share page must be enabled,
+  // protected by a PIN and unlocked (`unlock_token` is the share cookie).
+  rpc GetContentReview(PortalRequest) returns (ContentReview) {
+    option (google.api.http) = {
+      post: "/v1/public/content/portal/{slug}:review"
+      body: "*"
+    };
+  }
+  // Public. Approve, or send back to revision with a note.
+  rpc DecideContent(DecideContentRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/public/content/portal/{slug}/items/{item_id}:decide"
+      body: "*"
+    };
+  }
+  // Internal: design file bytes for the gateway's portal route.
+  rpc GetPortalFile(PortalFileRequest) returns (FileBytes);
+}
+
+message PortalRequest {
+  string slug = 1;
+  string unlock_token = 2;
+}
+
+message PortalFile {
+  string id = 1;
+  string file_name = 2;
+  string mime_type = 3;
+}
+
+message PortalItem {
+  string id = 1;
+  string title = 2;
+  // YYYY-MM-DD
+  string planned_date = 3;
+  white.common.v1.SocialPlatform platform = 4;
+  ContentFormat format = 5;
+  string hook = 6;
+  string caption = 7;
+  repeated string hashtags = 8;
+  int32 revision_round = 9;
+  repeated PortalFile files = 10;
+}
+
+message ContentReview {
+  repeated PortalItem items = 1;
+}
+
+message DecideContentRequest {
+  string slug = 1;
+  string unlock_token = 2;
+  string item_id = 3;
+  bool approve = 4;
+  string signer_name = 5;
+  // Required when sending back.
+  string note = 6;
+}
+
+message PortalFileRequest {
+  string slug = 1;
+  string unlock_token = 2;
+  string file_id = 3;
+}

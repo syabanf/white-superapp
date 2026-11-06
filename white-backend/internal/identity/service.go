@@ -16,6 +16,8 @@ import (
 	"github.com/syabanf/white-superapp/white-backend/pkg/clock"
 	"github.com/syabanf/white-superapp/white-backend/pkg/config"
 	"github.com/syabanf/white-superapp/white-backend/pkg/events"
+	"github.com/syabanf/white-superapp/white-backend/pkg/grpcx"
+	"github.com/syabanf/white-superapp/white-backend/pkg/mail"
 	"google.golang.org/grpc"
 )
 
@@ -42,7 +44,7 @@ func Spec() pkgapp.Spec {
 	}
 }
 
-func register(_ context.Context, d pkgapp.Deps, s *grpc.Server) error {
+func register(ctx context.Context, d pkgapp.Deps, s *grpc.Server) error {
 	priv, err := authn.KeyPair(config.Env("JWT_PRIVATE_KEY", ""), config.Env("AUTH_SECRET", ""))
 	if err != nil {
 		return err
@@ -53,12 +55,21 @@ func register(_ context.Context, d pkgapp.Deps, s *grpc.Server) error {
 	store := postgres.NewStore(d.Pool)
 	clk := clock.Real{}
 	issuer := authn.NewIssuer(priv, config.EnvDuration("ACCESS_TOKEN_TTL", 15*time.Minute))
+	// Email credentials live in integrations (admin settings, env fallback).
+	integrations, err := grpcx.Dial(config.Env("INTEGRATIONS_ADDR", "localhost:9002"))
+	if err != nil {
+		return err
+	}
+	go func() { <-ctx.Done(); _ = integrations.Close() }()
+	notifications := app.NewNotifications(store)
+	notifications.Mail = mail.New(mail.FromIntegrations(integrations), d.Logger)
+	notifications.AppURL, notifications.Logger = config.Env("APP_BASE_URL", "http://localhost:3100"), d.Logger
 	grpcapi.Register(s, grpcapi.Services{
 		InternalSecret: config.Env("INTERNAL_API_SECRET", ""),
 		Auth:           app.NewAuth(store, issuer, clk),
 		Users:          app.NewUsers(store, d.Events),
 		Clients:        app.NewClients(store, d.Events),
-		Notifications:  app.NewNotifications(store),
+		Notifications:  notifications,
 		Share:          app.NewShare(store, config.Env("AUTH_SECRET", ""), clk),
 		Workspace:      app.NewWorkspace(store, clk),
 		Audit:          app.NewAudit(store),

@@ -23,10 +23,12 @@ type Services struct {
 	Recaps       *app.Recaps
 	Improvements *app.Improvements
 	Dashboard    *app.Dashboard
+	OKR          *app.OKR
 }
 
 func Register(s *grpc.Server, svc Services) {
 	pb.RegisterKpiServiceServer(s, &kpiServer{svc: svc})
+	pb.RegisterOkrServiceServer(s, &okrServer{svc: svc})
 	pb.RegisterReviewServiceServer(s, &reviewServer{svc: svc})
 	pb.RegisterFeedbackServiceServer(s, &feedbackServer{svc: svc})
 	pb.RegisterTaskServiceServer(s, &taskServer{svc: svc})

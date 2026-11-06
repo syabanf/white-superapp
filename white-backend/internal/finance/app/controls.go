@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -463,11 +464,70 @@ func (p *ProjectTags) CreateAllocation(ctx context.Context, userID string, a dom
 	if tag == nil {
 		return nil, apperr.Field("tag_id", "Proyek tidak ditemukan")
 	}
-	a.ID, a.CreatedBy, a.Notes = ids.New(), userID, trim(a.Notes)
+	a.ID, a.CreatedBy, a.Notes, a.Source = ids.New(), userID, trim(a.Notes), domain.AllocManual
 	if err := p.Store.InsertProjectAllocation(ctx, a); err != nil {
 		return nil, err
 	}
 	return p.Store.ListProjectAllocations(ctx, a.Month, a.Month)
+}
+
+// TimesheetAllocation is the outcome of AllocateFromTimesheet. Skipped names
+// projects HR reported that Finance does not have as a tag.
+type TimesheetAllocation struct {
+	Allocations []domain.ProjectAllocation
+	Skipped     []string
+}
+
+// AllocateFromTimesheet replaces the month's timesheet allocations with the
+// payroll cost HR spread over projects by approved hours. Manual
+// allocations are left alone.
+func (p *ProjectTags) AllocateFromTimesheet(ctx context.Context, userID, month string) (*TimesheetAllocation, error) {
+	if !taxPeriod.MatchString(month) {
+		return nil, apperr.Field("month", "Bulan harus berformat YYYY-MM")
+	}
+	if p.Timesheet == nil {
+		return nil, domain.Conflict("Layanan HR tidak tersambung")
+	}
+	costs, err := p.Timesheet.ProjectCosts(ctx, month)
+	if err != nil {
+		return nil, err
+	}
+	out := &TimesheetAllocation{}
+	var rows []domain.ProjectAllocation
+	for _, c := range costs {
+		amount, err := domain.ParseMoney(c.Cost)
+		if err != nil || amount <= 0 {
+			continue
+		}
+		tag, err := p.Store.GetProjectTag(ctx, c.ProjectID)
+		if err != nil {
+			return nil, err
+		}
+		if tag == nil {
+			out.Skipped = append(out.Skipped, c.ProjectName)
+			continue
+		}
+		rows = append(rows, domain.ProjectAllocation{ID: ids.New(), TagID: tag.ID, Month: month, Kind: domain.AllocPayroll, Amount: amount,
+			Notes: fmt.Sprintf("Dari timesheet: %s jam", strconv.FormatFloat(c.Hours, 'f', -1, 64)), CreatedBy: userID, Source: domain.AllocTimesheet})
+	}
+	err = p.Store.WithTx(ctx, func(tx domain.Store) error {
+		if err := tx.DeleteTimesheetAllocations(ctx, month); err != nil {
+			return err
+		}
+		for _, a := range rows {
+			if err := tx.InsertProjectAllocation(ctx, a); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if out.Allocations, err = p.Store.ListProjectAllocations(ctx, month, month); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (p *ProjectTags) DeleteAllocation(ctx context.Context, id string) error {

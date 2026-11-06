@@ -270,17 +270,24 @@ const listContracts = `-- name: ListContracts :many
 SELECT id, contract_number, template_id, quotation_id, deal_id, type, title, client_name, body, status, start_date, end_date, sign_token, sent_at, signed_at, signer_name, signer_ip, signer_user_agent, signature_png, activated_at, ended_at, cancelled_at, cancel_reason, created_by, updated_by, created_at, updated_at FROM sales.contracts
 WHERE ($1::text IS NULL OR deal_id = $1)
   AND ($2::text IS NULL OR status = $2)
-ORDER BY created_at DESC LIMIT $3
+  AND ($3::text IS NULL OR EXISTS (SELECT 1 FROM sales.onboardings o WHERE o.deal_id = contracts.deal_id AND o.marketing_client_id = $3))
+ORDER BY created_at DESC LIMIT $4
 `
 
 type ListContractsParams struct {
 	Deal   *string
 	Status *string
+	Client *string
 	Lim    int32
 }
 
 func (q *Queries) ListContracts(ctx context.Context, arg ListContractsParams) ([]SalesContract, error) {
-	rows, err := q.db.Query(ctx, listContracts, arg.Deal, arg.Status, arg.Lim)
+	rows, err := q.db.Query(ctx, listContracts,
+		arg.Deal,
+		arg.Status,
+		arg.Client,
+		arg.Lim,
+	)
 	if err != nil {
 		return nil, err
 	}

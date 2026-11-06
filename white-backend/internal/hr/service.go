@@ -83,6 +83,9 @@ func Wire(d pkgapp.Deps) (*grpcapi.Services, *clients.Identity, func(), error) {
 		Self:          app.NewSelfService(deps, leaves, announcements),
 		Reports:       app.NewReports(deps),
 		Dashboard:     app.NewDashboard(deps, leaves),
+		Assets:        app.NewAssets(deps),
+		Trainings:     app.NewTrainings(deps),
+		Timesheet:     app.NewTimesheet(deps),
 	}
 	return svc, identity, func() { _ = conn.Close() }, nil
 }

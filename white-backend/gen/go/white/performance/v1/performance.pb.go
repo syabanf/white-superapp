@@ -13569,6 +13569,838 @@ func (x *CloseRetroResponse) GetMessage() string {
 	return ""
 }
 
+type GetOkrBoardRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Period        string                 `protobuf:"bytes,1,opt,name=period,proto3" json:"period,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOkrBoardRequest) Reset() {
+	*x = GetOkrBoardRequest{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[163]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOkrBoardRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOkrBoardRequest) ProtoMessage() {}
+
+func (x *GetOkrBoardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[163]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOkrBoardRequest.ProtoReflect.Descriptor instead.
+func (*GetOkrBoardRequest) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{163}
+}
+
+func (x *GetOkrBoardRequest) GetPeriod() string {
+	if x != nil {
+		return x.Period
+	}
+	return ""
+}
+
+type KeyResult struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ObjectiveId string                 `protobuf:"bytes,2,opt,name=objective_id,json=objectiveId,proto3" json:"objective_id,omitempty"`
+	Title       string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	// number | percent | currency
+	Metric       string  `protobuf:"bytes,4,opt,name=metric,proto3" json:"metric,omitempty"`
+	StartValue   float64 `protobuf:"fixed64,5,opt,name=start_value,json=startValue,proto3" json:"start_value,omitempty"`
+	TargetValue  float64 `protobuf:"fixed64,6,opt,name=target_value,json=targetValue,proto3" json:"target_value,omitempty"`
+	CurrentValue float64 `protobuf:"fixed64,7,opt,name=current_value,json=currentValue,proto3" json:"current_value,omitempty"`
+	Unit         string  `protobuf:"bytes,8,opt,name=unit,proto3" json:"unit,omitempty"`
+	SortOrder    int32   `protobuf:"varint,9,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	// 0 to 1.
+	Progress float64 `protobuf:"fixed64,10,opt,name=progress,proto3" json:"progress,omitempty"`
+	// Last check-in, 1 to 10; 0 before any.
+	Confidence    int32 `protobuf:"varint,11,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KeyResult) Reset() {
+	*x = KeyResult{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[164]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KeyResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KeyResult) ProtoMessage() {}
+
+func (x *KeyResult) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[164]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KeyResult.ProtoReflect.Descriptor instead.
+func (*KeyResult) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{164}
+}
+
+func (x *KeyResult) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *KeyResult) GetObjectiveId() string {
+	if x != nil {
+		return x.ObjectiveId
+	}
+	return ""
+}
+
+func (x *KeyResult) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *KeyResult) GetMetric() string {
+	if x != nil {
+		return x.Metric
+	}
+	return ""
+}
+
+func (x *KeyResult) GetStartValue() float64 {
+	if x != nil {
+		return x.StartValue
+	}
+	return 0
+}
+
+func (x *KeyResult) GetTargetValue() float64 {
+	if x != nil {
+		return x.TargetValue
+	}
+	return 0
+}
+
+func (x *KeyResult) GetCurrentValue() float64 {
+	if x != nil {
+		return x.CurrentValue
+	}
+	return 0
+}
+
+func (x *KeyResult) GetUnit() string {
+	if x != nil {
+		return x.Unit
+	}
+	return ""
+}
+
+func (x *KeyResult) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *KeyResult) GetProgress() float64 {
+	if x != nil {
+		return x.Progress
+	}
+	return 0
+}
+
+func (x *KeyResult) GetConfidence() int32 {
+	if x != nil {
+		return x.Confidence
+	}
+	return 0
+}
+
+type Objective struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Id     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Period string                 `protobuf:"bytes,2,opt,name=period,proto3" json:"period,omitempty"`
+	// company | department | employee
+	Level        string `protobuf:"bytes,3,opt,name=level,proto3" json:"level,omitempty"`
+	DepartmentId string `protobuf:"bytes,4,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
+	EmployeeId   string `protobuf:"bytes,5,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	// Department or employee name.
+	OwnerName   string `protobuf:"bytes,6,opt,name=owner_name,json=ownerName,proto3" json:"owner_name,omitempty"`
+	ParentId    string `protobuf:"bytes,7,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Title       string `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
+	Description string `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
+	// active | done | cancelled
+	Status     string       `protobuf:"bytes,10,opt,name=status,proto3" json:"status,omitempty"`
+	KeyResults []*KeyResult `protobuf:"bytes,11,rep,name=key_results,json=keyResults,proto3" json:"key_results,omitempty"`
+	// Average of the key results, 0 to 1.
+	Progress      float64 `protobuf:"fixed64,12,opt,name=progress,proto3" json:"progress,omitempty"`
+	CanEdit       bool    `protobuf:"varint,13,opt,name=can_edit,json=canEdit,proto3" json:"can_edit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Objective) Reset() {
+	*x = Objective{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[165]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Objective) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Objective) ProtoMessage() {}
+
+func (x *Objective) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[165]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Objective.ProtoReflect.Descriptor instead.
+func (*Objective) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{165}
+}
+
+func (x *Objective) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Objective) GetPeriod() string {
+	if x != nil {
+		return x.Period
+	}
+	return ""
+}
+
+func (x *Objective) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *Objective) GetDepartmentId() string {
+	if x != nil {
+		return x.DepartmentId
+	}
+	return ""
+}
+
+func (x *Objective) GetEmployeeId() string {
+	if x != nil {
+		return x.EmployeeId
+	}
+	return ""
+}
+
+func (x *Objective) GetOwnerName() string {
+	if x != nil {
+		return x.OwnerName
+	}
+	return ""
+}
+
+func (x *Objective) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+func (x *Objective) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Objective) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Objective) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Objective) GetKeyResults() []*KeyResult {
+	if x != nil {
+		return x.KeyResults
+	}
+	return nil
+}
+
+func (x *Objective) GetProgress() float64 {
+	if x != nil {
+		return x.Progress
+	}
+	return 0
+}
+
+func (x *Objective) GetCanEdit() bool {
+	if x != nil {
+		return x.CanEdit
+	}
+	return false
+}
+
+type OkrOwner struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OkrOwner) Reset() {
+	*x = OkrOwner{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[166]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OkrOwner) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OkrOwner) ProtoMessage() {}
+
+func (x *OkrOwner) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[166]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OkrOwner.ProtoReflect.Descriptor instead.
+func (*OkrOwner) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{166}
+}
+
+func (x *OkrOwner) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OkrOwner) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type OkrBoard struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Objectives []*Objective           `protobuf:"bytes,1,rep,name=objectives,proto3" json:"objectives,omitempty"`
+	// Where the caller may add objectives.
+	CanCompany    bool        `protobuf:"varint,2,opt,name=can_company,json=canCompany,proto3" json:"can_company,omitempty"`
+	Departments   []*OkrOwner `protobuf:"bytes,3,rep,name=departments,proto3" json:"departments,omitempty"`
+	Employees     []*OkrOwner `protobuf:"bytes,4,rep,name=employees,proto3" json:"employees,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OkrBoard) Reset() {
+	*x = OkrBoard{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[167]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OkrBoard) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OkrBoard) ProtoMessage() {}
+
+func (x *OkrBoard) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[167]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OkrBoard.ProtoReflect.Descriptor instead.
+func (*OkrBoard) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{167}
+}
+
+func (x *OkrBoard) GetObjectives() []*Objective {
+	if x != nil {
+		return x.Objectives
+	}
+	return nil
+}
+
+func (x *OkrBoard) GetCanCompany() bool {
+	if x != nil {
+		return x.CanCompany
+	}
+	return false
+}
+
+func (x *OkrBoard) GetDepartments() []*OkrOwner {
+	if x != nil {
+		return x.Departments
+	}
+	return nil
+}
+
+func (x *OkrBoard) GetEmployees() []*OkrOwner {
+	if x != nil {
+		return x.Employees
+	}
+	return nil
+}
+
+type SaveObjectiveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Period        string                 `protobuf:"bytes,2,opt,name=period,proto3" json:"period,omitempty"`
+	Level         string                 `protobuf:"bytes,3,opt,name=level,proto3" json:"level,omitempty"`
+	DepartmentId  string                 `protobuf:"bytes,4,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
+	EmployeeId    string                 `protobuf:"bytes,5,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	ParentId      string                 `protobuf:"bytes,6,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Title         string                 `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
+	Description   string                 `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
+	Status        string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveObjectiveRequest) Reset() {
+	*x = SaveObjectiveRequest{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[168]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveObjectiveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveObjectiveRequest) ProtoMessage() {}
+
+func (x *SaveObjectiveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[168]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveObjectiveRequest.ProtoReflect.Descriptor instead.
+func (*SaveObjectiveRequest) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{168}
+}
+
+func (x *SaveObjectiveRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetPeriod() string {
+	if x != nil {
+		return x.Period
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetDepartmentId() string {
+	if x != nil {
+		return x.DepartmentId
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetEmployeeId() string {
+	if x != nil {
+		return x.EmployeeId
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *SaveObjectiveRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type SaveKeyResultRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ObjectiveId   string                 `protobuf:"bytes,2,opt,name=objective_id,json=objectiveId,proto3" json:"objective_id,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Metric        string                 `protobuf:"bytes,4,opt,name=metric,proto3" json:"metric,omitempty"`
+	StartValue    float64                `protobuf:"fixed64,5,opt,name=start_value,json=startValue,proto3" json:"start_value,omitempty"`
+	TargetValue   float64                `protobuf:"fixed64,6,opt,name=target_value,json=targetValue,proto3" json:"target_value,omitempty"`
+	Unit          string                 `protobuf:"bytes,7,opt,name=unit,proto3" json:"unit,omitempty"`
+	SortOrder     int32                  `protobuf:"varint,8,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveKeyResultRequest) Reset() {
+	*x = SaveKeyResultRequest{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[169]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveKeyResultRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveKeyResultRequest) ProtoMessage() {}
+
+func (x *SaveKeyResultRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[169]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveKeyResultRequest.ProtoReflect.Descriptor instead.
+func (*SaveKeyResultRequest) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{169}
+}
+
+func (x *SaveKeyResultRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SaveKeyResultRequest) GetObjectiveId() string {
+	if x != nil {
+		return x.ObjectiveId
+	}
+	return ""
+}
+
+func (x *SaveKeyResultRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SaveKeyResultRequest) GetMetric() string {
+	if x != nil {
+		return x.Metric
+	}
+	return ""
+}
+
+func (x *SaveKeyResultRequest) GetStartValue() float64 {
+	if x != nil {
+		return x.StartValue
+	}
+	return 0
+}
+
+func (x *SaveKeyResultRequest) GetTargetValue() float64 {
+	if x != nil {
+		return x.TargetValue
+	}
+	return 0
+}
+
+func (x *SaveKeyResultRequest) GetUnit() string {
+	if x != nil {
+		return x.Unit
+	}
+	return ""
+}
+
+func (x *SaveKeyResultRequest) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+type CheckInKeyResultRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Value         float64                `protobuf:"fixed64,2,opt,name=value,proto3" json:"value,omitempty"`
+	Confidence    int32                  `protobuf:"varint,3,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	Note          string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckInKeyResultRequest) Reset() {
+	*x = CheckInKeyResultRequest{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[170]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckInKeyResultRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckInKeyResultRequest) ProtoMessage() {}
+
+func (x *CheckInKeyResultRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[170]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckInKeyResultRequest.ProtoReflect.Descriptor instead.
+func (*CheckInKeyResultRequest) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{170}
+}
+
+func (x *CheckInKeyResultRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CheckInKeyResultRequest) GetValue() float64 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+func (x *CheckInKeyResultRequest) GetConfidence() int32 {
+	if x != nil {
+		return x.Confidence
+	}
+	return 0
+}
+
+func (x *CheckInKeyResultRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type OkrCheckin struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Value         float64                `protobuf:"fixed64,2,opt,name=value,proto3" json:"value,omitempty"`
+	Confidence    int32                  `protobuf:"varint,3,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	Note          string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OkrCheckin) Reset() {
+	*x = OkrCheckin{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[171]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OkrCheckin) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OkrCheckin) ProtoMessage() {}
+
+func (x *OkrCheckin) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[171]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OkrCheckin.ProtoReflect.Descriptor instead.
+func (*OkrCheckin) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{171}
+}
+
+func (x *OkrCheckin) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OkrCheckin) GetValue() float64 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+func (x *OkrCheckin) GetConfidence() int32 {
+	if x != nil {
+		return x.Confidence
+	}
+	return 0
+}
+
+func (x *OkrCheckin) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *OkrCheckin) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type ListCheckinsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Checkins      []*OkrCheckin          `protobuf:"bytes,1,rep,name=checkins,proto3" json:"checkins,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListCheckinsResponse) Reset() {
+	*x = ListCheckinsResponse{}
+	mi := &file_white_performance_v1_performance_proto_msgTypes[172]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCheckinsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCheckinsResponse) ProtoMessage() {}
+
+func (x *ListCheckinsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_white_performance_v1_performance_proto_msgTypes[172]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCheckinsResponse.ProtoReflect.Descriptor instead.
+func (*ListCheckinsResponse) Descriptor() ([]byte, []int) {
+	return file_white_performance_v1_performance_proto_rawDescGZIP(), []int{172}
+}
+
+func (x *ListCheckinsResponse) GetCheckins() []*OkrCheckin {
+	if x != nil {
+		return x.Checkins
+	}
+	return nil
+}
+
 type SaveDepartmentConfigRequest_Item struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IndicatorId   string                 `protobuf:"bytes,1,opt,name=indicator_id,json=indicatorId,proto3" json:"indicator_id,omitempty"`
@@ -13579,7 +14411,7 @@ type SaveDepartmentConfigRequest_Item struct {
 
 func (x *SaveDepartmentConfigRequest_Item) Reset() {
 	*x = SaveDepartmentConfigRequest_Item{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[163]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[173]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13591,7 +14423,7 @@ func (x *SaveDepartmentConfigRequest_Item) String() string {
 func (*SaveDepartmentConfigRequest_Item) ProtoMessage() {}
 
 func (x *SaveDepartmentConfigRequest_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[163]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[173]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13633,7 +14465,7 @@ type GetRecommendationsResponse_Item struct {
 
 func (x *GetRecommendationsResponse_Item) Reset() {
 	*x = GetRecommendationsResponse_Item{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[165]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[175]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13645,7 +14477,7 @@ func (x *GetRecommendationsResponse_Item) String() string {
 func (*GetRecommendationsResponse_Item) ProtoMessage() {}
 
 func (x *GetRecommendationsResponse_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[165]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[175]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13702,7 +14534,7 @@ type RealtimeKpiResponse_Row struct {
 
 func (x *RealtimeKpiResponse_Row) Reset() {
 	*x = RealtimeKpiResponse_Row{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[166]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[176]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13714,7 +14546,7 @@ func (x *RealtimeKpiResponse_Row) String() string {
 func (*RealtimeKpiResponse_Row) ProtoMessage() {}
 
 func (x *RealtimeKpiResponse_Row) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[166]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[176]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13778,7 +14610,7 @@ type CreateAssignmentsRequest_Item struct {
 
 func (x *CreateAssignmentsRequest_Item) Reset() {
 	*x = CreateAssignmentsRequest_Item{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[167]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[177]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13790,7 +14622,7 @@ func (x *CreateAssignmentsRequest_Item) String() string {
 func (*CreateAssignmentsRequest_Item) ProtoMessage() {}
 
 func (x *CreateAssignmentsRequest_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[167]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[177]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13845,7 +14677,7 @@ type SubmitResponsesRequest_Answer struct {
 
 func (x *SubmitResponsesRequest_Answer) Reset() {
 	*x = SubmitResponsesRequest_Answer{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[168]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[178]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13857,7 +14689,7 @@ func (x *SubmitResponsesRequest_Answer) String() string {
 func (*SubmitResponsesRequest_Answer) ProtoMessage() {}
 
 func (x *SubmitResponsesRequest_Answer) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[168]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[178]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13907,7 +14739,7 @@ type ListContributionsResponse_Item struct {
 
 func (x *ListContributionsResponse_Item) Reset() {
 	*x = ListContributionsResponse_Item{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[170]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[180]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13919,7 +14751,7 @@ func (x *ListContributionsResponse_Item) String() string {
 func (*ListContributionsResponse_Item) ProtoMessage() {}
 
 func (x *ListContributionsResponse_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[170]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[180]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13981,7 +14813,7 @@ type MonitorResponse_Assignee struct {
 
 func (x *MonitorResponse_Assignee) Reset() {
 	*x = MonitorResponse_Assignee{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[171]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[181]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13993,7 +14825,7 @@ func (x *MonitorResponse_Assignee) String() string {
 func (*MonitorResponse_Assignee) ProtoMessage() {}
 
 func (x *MonitorResponse_Assignee) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[171]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[181]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14042,7 +14874,7 @@ type MonitorResponse_DepartmentRow struct {
 
 func (x *MonitorResponse_DepartmentRow) Reset() {
 	*x = MonitorResponse_DepartmentRow{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[172]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[182]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14054,7 +14886,7 @@ func (x *MonitorResponse_DepartmentRow) String() string {
 func (*MonitorResponse_DepartmentRow) ProtoMessage() {}
 
 func (x *MonitorResponse_DepartmentRow) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[172]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[182]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14110,7 +14942,7 @@ type CreateTemplateRequest_Item struct {
 
 func (x *CreateTemplateRequest_Item) Reset() {
 	*x = CreateTemplateRequest_Item{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[173]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[183]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14122,7 +14954,7 @@ func (x *CreateTemplateRequest_Item) String() string {
 func (*CreateTemplateRequest_Item) ProtoMessage() {}
 
 func (x *CreateTemplateRequest_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[173]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[183]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14182,7 +15014,7 @@ type LogbookSummaryResponse_Row struct {
 
 func (x *LogbookSummaryResponse_Row) Reset() {
 	*x = LogbookSummaryResponse_Row{}
-	mi := &file_white_performance_v1_performance_proto_msgTypes[174]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[184]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14194,7 +15026,7 @@ func (x *LogbookSummaryResponse_Row) String() string {
 func (*LogbookSummaryResponse_Row) ProtoMessage() {}
 
 func (x *LogbookSummaryResponse_Row) ProtoReflect() protoreflect.Message {
-	mi := &file_white_performance_v1_performance_proto_msgTypes[174]
+	mi := &file_white_performance_v1_performance_proto_msgTypes[184]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15888,7 +16720,96 @@ const file_white_performance_v1_performance_proto_rawDesc = "" +
 	"\x12CloseRetroResponse\x121\n" +
 	"\x05retro\x18\x01 \x01(\v2\x1b.white.performance.v1.RetroR\x05retro\x12-\n" +
 	"\x12improvements_filed\x18\x02 \x01(\x05R\x11improvementsFiled\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\xc5\x19\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\",\n" +
+	"\x12GetOkrBoardRequest\x12\x16\n" +
+	"\x06period\x18\x01 \x01(\tR\x06period\"\xc4\x02\n" +
+	"\tKeyResult\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\fobjective_id\x18\x02 \x01(\tR\vobjectiveId\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06metric\x18\x04 \x01(\tR\x06metric\x12\x1f\n" +
+	"\vstart_value\x18\x05 \x01(\x01R\n" +
+	"startValue\x12!\n" +
+	"\ftarget_value\x18\x06 \x01(\x01R\vtargetValue\x12#\n" +
+	"\rcurrent_value\x18\a \x01(\x01R\fcurrentValue\x12\x12\n" +
+	"\x04unit\x18\b \x01(\tR\x04unit\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\t \x01(\x05R\tsortOrder\x12\x1a\n" +
+	"\bprogress\x18\n" +
+	" \x01(\x01R\bprogress\x12\x1e\n" +
+	"\n" +
+	"confidence\x18\v \x01(\x05R\n" +
+	"confidence\"\x94\x03\n" +
+	"\tObjective\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06period\x18\x02 \x01(\tR\x06period\x12\x14\n" +
+	"\x05level\x18\x03 \x01(\tR\x05level\x12#\n" +
+	"\rdepartment_id\x18\x04 \x01(\tR\fdepartmentId\x12\x1f\n" +
+	"\vemployee_id\x18\x05 \x01(\tR\n" +
+	"employeeId\x12\x1d\n" +
+	"\n" +
+	"owner_name\x18\x06 \x01(\tR\townerName\x12\x1b\n" +
+	"\tparent_id\x18\a \x01(\tR\bparentId\x12\x14\n" +
+	"\x05title\x18\b \x01(\tR\x05title\x12 \n" +
+	"\vdescription\x18\t \x01(\tR\vdescription\x12\x16\n" +
+	"\x06status\x18\n" +
+	" \x01(\tR\x06status\x12@\n" +
+	"\vkey_results\x18\v \x03(\v2\x1f.white.performance.v1.KeyResultR\n" +
+	"keyResults\x12\x1a\n" +
+	"\bprogress\x18\f \x01(\x01R\bprogress\x12\x19\n" +
+	"\bcan_edit\x18\r \x01(\bR\acanEdit\".\n" +
+	"\bOkrOwner\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\xec\x01\n" +
+	"\bOkrBoard\x12?\n" +
+	"\n" +
+	"objectives\x18\x01 \x03(\v2\x1f.white.performance.v1.ObjectiveR\n" +
+	"objectives\x12\x1f\n" +
+	"\vcan_company\x18\x02 \x01(\bR\n" +
+	"canCompany\x12@\n" +
+	"\vdepartments\x18\x03 \x03(\v2\x1e.white.performance.v1.OkrOwnerR\vdepartments\x12<\n" +
+	"\temployees\x18\x04 \x03(\v2\x1e.white.performance.v1.OkrOwnerR\temployees\"\x87\x02\n" +
+	"\x14SaveObjectiveRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06period\x18\x02 \x01(\tR\x06period\x12\x14\n" +
+	"\x05level\x18\x03 \x01(\tR\x05level\x12#\n" +
+	"\rdepartment_id\x18\x04 \x01(\tR\fdepartmentId\x12\x1f\n" +
+	"\vemployee_id\x18\x05 \x01(\tR\n" +
+	"employeeId\x12\x1b\n" +
+	"\tparent_id\x18\x06 \x01(\tR\bparentId\x12\x14\n" +
+	"\x05title\x18\a \x01(\tR\x05title\x12 \n" +
+	"\vdescription\x18\b \x01(\tR\vdescription\x12\x16\n" +
+	"\x06status\x18\t \x01(\tR\x06status\"\xee\x01\n" +
+	"\x14SaveKeyResultRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\fobjective_id\x18\x02 \x01(\tR\vobjectiveId\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06metric\x18\x04 \x01(\tR\x06metric\x12\x1f\n" +
+	"\vstart_value\x18\x05 \x01(\x01R\n" +
+	"startValue\x12!\n" +
+	"\ftarget_value\x18\x06 \x01(\x01R\vtargetValue\x12\x12\n" +
+	"\x04unit\x18\a \x01(\tR\x04unit\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\b \x01(\x05R\tsortOrder\"s\n" +
+	"\x17CheckInKeyResultRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value\x12\x1e\n" +
+	"\n" +
+	"confidence\x18\x03 \x01(\x05R\n" +
+	"confidence\x12\x12\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\"\xa1\x01\n" +
+	"\n" +
+	"OkrCheckin\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x01R\x05value\x12\x1e\n" +
+	"\n" +
+	"confidence\x18\x03 \x01(\x05R\n" +
+	"confidence\x12\x12\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\x129\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"T\n" +
+	"\x14ListCheckinsResponse\x12<\n" +
+	"\bcheckins\x18\x01 \x03(\v2 .white.performance.v1.OkrCheckinR\bcheckins2\xc5\x19\n" +
 	"\n" +
 	"KpiService\x12\x93\x01\n" +
 	"\x0eListIndicators\x12+.white.performance.v1.ListIndicatorsRequest\x1a,.white.performance.v1.ListIndicatorsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/v1/performance/kpi/indicators\x12|\n" +
@@ -15995,7 +16916,16 @@ const file_white_performance_v1_performance_proto_rawDesc = "" +
 	"\bGetRetro\x12\x1f.white.performance.v1.IdRequest\x1a\x1b.white.performance.v1.Retro\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/performance/retros/{id}\x12s\n" +
 	"\tSaveRetro\x12&.white.performance.v1.SaveRetroRequest\x1a\x1b.white.performance.v1.Retro\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/v1/performance/retros\x12\x85\x01\n" +
 	"\n" +
-	"CloseRetro\x12\x1f.white.performance.v1.IdRequest\x1a(.white.performance.v1.CloseRetroResponse\",\x82\xd3\xe4\x93\x02&:\x01*\"!/v1/performance/retros/{id}:closeB[ZYgithub.com/syabanf/white-superapp/white-backend/gen/go/white/performance/v1;performancev1b\x06proto3"
+	"CloseRetro\x12\x1f.white.performance.v1.IdRequest\x1a(.white.performance.v1.CloseRetroResponse\",\x82\xd3\xe4\x93\x02&:\x01*\"!/v1/performance/retros/{id}:close2\xdf\a\n" +
+	"\n" +
+	"OkrService\x12t\n" +
+	"\vGetOkrBoard\x12(.white.performance.v1.GetOkrBoardRequest\x1a\x1e.white.performance.v1.OkrBoard\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/performance/okr\x12\x87\x01\n" +
+	"\rSaveObjective\x12*.white.performance.v1.SaveObjectiveRequest\x1a\x1f.white.performance.v1.Objective\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/performance/okr/objectives\x12\x86\x01\n" +
+	"\x0fDeleteObjective\x12\x1f.white.performance.v1.IdRequest\x1a%.white.performance.v1.MessageResponse\"+\x82\xd3\xe4\x93\x02%*#/v1/performance/okr/objectives/{id}\x12\x88\x01\n" +
+	"\rSaveKeyResult\x12*.white.performance.v1.SaveKeyResultRequest\x1a\x1f.white.performance.v1.KeyResult\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/performance/okr/key-results\x12\x87\x01\n" +
+	"\x0fDeleteKeyResult\x12\x1f.white.performance.v1.IdRequest\x1a%.white.performance.v1.MessageResponse\",\x82\xd3\xe4\x93\x02&*$/v1/performance/okr/key-results/{id}\x12\x9c\x01\n" +
+	"\x10CheckInKeyResult\x12-.white.performance.v1.CheckInKeyResultRequest\x1a\x1f.white.performance.v1.KeyResult\"8\x82\xd3\xe4\x93\x022:\x01*\"-/v1/performance/okr/key-results/{id}:check-in\x12\x93\x01\n" +
+	"\fListCheckins\x12\x1f.white.performance.v1.IdRequest\x1a*.white.performance.v1.ListCheckinsResponse\"6\x82\xd3\xe4\x93\x020\x12./v1/performance/okr/key-results/{id}/check-insB[ZYgithub.com/syabanf/white-superapp/white-backend/gen/go/white/performance/v1;performancev1b\x06proto3"
 
 var (
 	file_white_performance_v1_performance_proto_rawDescOnce sync.Once
@@ -16009,7 +16939,7 @@ func file_white_performance_v1_performance_proto_rawDescGZIP() []byte {
 	return file_white_performance_v1_performance_proto_rawDescData
 }
 
-var file_white_performance_v1_performance_proto_msgTypes = make([]protoimpl.MessageInfo, 175)
+var file_white_performance_v1_performance_proto_msgTypes = make([]protoimpl.MessageInfo, 185)
 var file_white_performance_v1_performance_proto_goTypes = []any{
 	(*Department)(nil),                       // 0: white.performance.v1.Department
 	(*Person)(nil),                           // 1: white.performance.v1.Person
@@ -16174,40 +17104,50 @@ var file_white_performance_v1_performance_proto_goTypes = []any{
 	(*ListRetrosResponse)(nil),               // 160: white.performance.v1.ListRetrosResponse
 	(*SaveRetroRequest)(nil),                 // 161: white.performance.v1.SaveRetroRequest
 	(*CloseRetroResponse)(nil),               // 162: white.performance.v1.CloseRetroResponse
-	(*SaveDepartmentConfigRequest_Item)(nil), // 163: white.performance.v1.SaveDepartmentConfigRequest.Item
-	nil,                                      // 164: white.performance.v1.SnapshotSummary.CollectorsEntry
-	(*GetRecommendationsResponse_Item)(nil),  // 165: white.performance.v1.GetRecommendationsResponse.Item
-	(*RealtimeKpiResponse_Row)(nil),          // 166: white.performance.v1.RealtimeKpiResponse.Row
-	(*CreateAssignmentsRequest_Item)(nil),    // 167: white.performance.v1.CreateAssignmentsRequest.Item
-	(*SubmitResponsesRequest_Answer)(nil),    // 168: white.performance.v1.SubmitResponsesRequest.Answer
-	nil,                                      // 169: white.performance.v1.FeedbackSummary.ScoresEntry
-	(*ListContributionsResponse_Item)(nil),   // 170: white.performance.v1.ListContributionsResponse.Item
-	(*MonitorResponse_Assignee)(nil),         // 171: white.performance.v1.MonitorResponse.Assignee
-	(*MonitorResponse_DepartmentRow)(nil),    // 172: white.performance.v1.MonitorResponse.DepartmentRow
-	(*CreateTemplateRequest_Item)(nil),       // 173: white.performance.v1.CreateTemplateRequest.Item
-	(*LogbookSummaryResponse_Row)(nil),       // 174: white.performance.v1.LogbookSummaryResponse.Row
-	(*timestamppb.Timestamp)(nil),            // 175: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),                    // 176: google.protobuf.Empty
+	(*GetOkrBoardRequest)(nil),               // 163: white.performance.v1.GetOkrBoardRequest
+	(*KeyResult)(nil),                        // 164: white.performance.v1.KeyResult
+	(*Objective)(nil),                        // 165: white.performance.v1.Objective
+	(*OkrOwner)(nil),                         // 166: white.performance.v1.OkrOwner
+	(*OkrBoard)(nil),                         // 167: white.performance.v1.OkrBoard
+	(*SaveObjectiveRequest)(nil),             // 168: white.performance.v1.SaveObjectiveRequest
+	(*SaveKeyResultRequest)(nil),             // 169: white.performance.v1.SaveKeyResultRequest
+	(*CheckInKeyResultRequest)(nil),          // 170: white.performance.v1.CheckInKeyResultRequest
+	(*OkrCheckin)(nil),                       // 171: white.performance.v1.OkrCheckin
+	(*ListCheckinsResponse)(nil),             // 172: white.performance.v1.ListCheckinsResponse
+	(*SaveDepartmentConfigRequest_Item)(nil), // 173: white.performance.v1.SaveDepartmentConfigRequest.Item
+	nil,                                      // 174: white.performance.v1.SnapshotSummary.CollectorsEntry
+	(*GetRecommendationsResponse_Item)(nil),  // 175: white.performance.v1.GetRecommendationsResponse.Item
+	(*RealtimeKpiResponse_Row)(nil),          // 176: white.performance.v1.RealtimeKpiResponse.Row
+	(*CreateAssignmentsRequest_Item)(nil),    // 177: white.performance.v1.CreateAssignmentsRequest.Item
+	(*SubmitResponsesRequest_Answer)(nil),    // 178: white.performance.v1.SubmitResponsesRequest.Answer
+	nil,                                      // 179: white.performance.v1.FeedbackSummary.ScoresEntry
+	(*ListContributionsResponse_Item)(nil),   // 180: white.performance.v1.ListContributionsResponse.Item
+	(*MonitorResponse_Assignee)(nil),         // 181: white.performance.v1.MonitorResponse.Assignee
+	(*MonitorResponse_DepartmentRow)(nil),    // 182: white.performance.v1.MonitorResponse.DepartmentRow
+	(*CreateTemplateRequest_Item)(nil),       // 183: white.performance.v1.CreateTemplateRequest.Item
+	(*LogbookSummaryResponse_Row)(nil),       // 184: white.performance.v1.LogbookSummaryResponse.Row
+	(*timestamppb.Timestamp)(nil),            // 185: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                    // 186: google.protobuf.Empty
 }
 var file_white_performance_v1_performance_proto_depIdxs = []int32{
-	175, // 0: white.performance.v1.Indicator.updated_at:type_name -> google.protobuf.Timestamp
+	185, // 0: white.performance.v1.Indicator.updated_at:type_name -> google.protobuf.Timestamp
 	7,   // 1: white.performance.v1.ListIndicatorsResponse.indicators:type_name -> white.performance.v1.Indicator
-	175, // 2: white.performance.v1.DepartmentWeight.updated_at:type_name -> google.protobuf.Timestamp
+	185, // 2: white.performance.v1.DepartmentWeight.updated_at:type_name -> google.protobuf.Timestamp
 	0,   // 3: white.performance.v1.KpiConfig.departments:type_name -> white.performance.v1.Department
 	7,   // 4: white.performance.v1.KpiConfig.indicators:type_name -> white.performance.v1.Indicator
 	10,  // 5: white.performance.v1.KpiConfig.weights:type_name -> white.performance.v1.DepartmentWeight
-	163, // 6: white.performance.v1.SaveDepartmentConfigRequest.items:type_name -> white.performance.v1.SaveDepartmentConfigRequest.Item
+	173, // 6: white.performance.v1.SaveDepartmentConfigRequest.items:type_name -> white.performance.v1.SaveDepartmentConfigRequest.Item
 	13,  // 7: white.performance.v1.ListTargetsResponse.targets:type_name -> white.performance.v1.KpiTarget
-	164, // 8: white.performance.v1.SnapshotSummary.collectors:type_name -> white.performance.v1.SnapshotSummary.CollectorsEntry
+	174, // 8: white.performance.v1.SnapshotSummary.collectors:type_name -> white.performance.v1.SnapshotSummary.CollectorsEntry
 	16,  // 9: white.performance.v1.Scorecard.breakdown:type_name -> white.performance.v1.BreakdownRow
-	175, // 10: white.performance.v1.Scorecard.reviewed_at:type_name -> google.protobuf.Timestamp
-	175, // 11: white.performance.v1.Scorecard.updated_at:type_name -> google.protobuf.Timestamp
+	185, // 10: white.performance.v1.Scorecard.reviewed_at:type_name -> google.protobuf.Timestamp
+	185, // 11: white.performance.v1.Scorecard.updated_at:type_name -> google.protobuf.Timestamp
 	17,  // 12: white.performance.v1.ListScorecardsResponse.scorecards:type_name -> white.performance.v1.Scorecard
 	7,   // 13: white.performance.v1.ListScorecardsResponse.indicators:type_name -> white.performance.v1.Indicator
 	17,  // 14: white.performance.v1.ScorecardDetail.scorecard:type_name -> white.performance.v1.Scorecard
 	20,  // 15: white.performance.v1.ScorecardDetail.snapshots:type_name -> white.performance.v1.Snapshot
 	17,  // 16: white.performance.v1.ScorecardResponse.scorecard:type_name -> white.performance.v1.Scorecard
-	165, // 17: white.performance.v1.GetRecommendationsResponse.items:type_name -> white.performance.v1.GetRecommendationsResponse.Item
+	175, // 17: white.performance.v1.GetRecommendationsResponse.items:type_name -> white.performance.v1.GetRecommendationsResponse.Item
 	29,  // 18: white.performance.v1.DashboardContext.window:type_name -> white.performance.v1.DashboardWindow
 	0,   // 19: white.performance.v1.DashboardContext.departments:type_name -> white.performance.v1.Department
 	1,   // 20: white.performance.v1.DashboardContext.people:type_name -> white.performance.v1.Person
@@ -16275,40 +17215,40 @@ var file_white_performance_v1_performance_proto_depIdxs = []int32{
 	55,  // 82: white.performance.v1.DashboardImprovements.departments:type_name -> white.performance.v1.ImprovementDepartmentRow
 	57,  // 83: white.performance.v1.ListReviewCyclesResponse.cycles:type_name -> white.performance.v1.ReviewCycle
 	57,  // 84: white.performance.v1.ReviewCycleResponse.cycle:type_name -> white.performance.v1.ReviewCycle
-	175, // 85: white.performance.v1.Review.finalized_at:type_name -> google.protobuf.Timestamp
+	185, // 85: white.performance.v1.Review.finalized_at:type_name -> google.protobuf.Timestamp
 	61,  // 86: white.performance.v1.ListReviewsResponse.reviews:type_name -> white.performance.v1.Review
 	61,  // 87: white.performance.v1.ReviewDetail.review:type_name -> white.performance.v1.Review
 	64,  // 88: white.performance.v1.ReviewDetail.items:type_name -> white.performance.v1.ReviewItem
 	17,  // 89: white.performance.v1.ReviewDetail.kpi_months:type_name -> white.performance.v1.Scorecard
-	166, // 90: white.performance.v1.RealtimeKpiResponse.employees:type_name -> white.performance.v1.RealtimeKpiResponse.Row
+	176, // 90: white.performance.v1.RealtimeKpiResponse.employees:type_name -> white.performance.v1.RealtimeKpiResponse.Row
 	69,  // 91: white.performance.v1.FeedbackCategory.criteria:type_name -> white.performance.v1.FeedbackCriterion
 	70,  // 92: white.performance.v1.ListFeedbackCategoriesResponse.categories:type_name -> white.performance.v1.FeedbackCategory
-	175, // 93: white.performance.v1.FeedbackCycle.created_at:type_name -> google.protobuf.Timestamp
+	185, // 93: white.performance.v1.FeedbackCycle.created_at:type_name -> google.protobuf.Timestamp
 	72,  // 94: white.performance.v1.ListFeedbackCyclesResponse.cycles:type_name -> white.performance.v1.FeedbackCycle
-	167, // 95: white.performance.v1.CreateAssignmentsRequest.items:type_name -> white.performance.v1.CreateAssignmentsRequest.Item
-	175, // 96: white.performance.v1.Assignment.submitted_at:type_name -> google.protobuf.Timestamp
-	175, // 97: white.performance.v1.Assignment.last_reminder_at:type_name -> google.protobuf.Timestamp
+	177, // 95: white.performance.v1.CreateAssignmentsRequest.items:type_name -> white.performance.v1.CreateAssignmentsRequest.Item
+	185, // 96: white.performance.v1.Assignment.submitted_at:type_name -> google.protobuf.Timestamp
+	185, // 97: white.performance.v1.Assignment.last_reminder_at:type_name -> google.protobuf.Timestamp
 	78,  // 98: white.performance.v1.ListAssignmentsResponse.assignments:type_name -> white.performance.v1.Assignment
 	78,  // 99: white.performance.v1.AssignmentDetail.assignment:type_name -> white.performance.v1.Assignment
 	81,  // 100: white.performance.v1.AssignmentDetail.responses:type_name -> white.performance.v1.FeedbackResponse
 	70,  // 101: white.performance.v1.AssignmentDetail.categories:type_name -> white.performance.v1.FeedbackCategory
-	168, // 102: white.performance.v1.SubmitResponsesRequest.answers:type_name -> white.performance.v1.SubmitResponsesRequest.Answer
+	178, // 102: white.performance.v1.SubmitResponsesRequest.answers:type_name -> white.performance.v1.SubmitResponsesRequest.Answer
 	78,  // 103: white.performance.v1.DecideAssignmentResponse.assignment:type_name -> white.performance.v1.Assignment
-	169, // 104: white.performance.v1.FeedbackSummary.scores:type_name -> white.performance.v1.FeedbackSummary.ScoresEntry
-	175, // 105: white.performance.v1.FeedbackSummary.generated_at:type_name -> google.protobuf.Timestamp
+	179, // 104: white.performance.v1.FeedbackSummary.scores:type_name -> white.performance.v1.FeedbackSummary.ScoresEntry
+	185, // 105: white.performance.v1.FeedbackSummary.generated_at:type_name -> google.protobuf.Timestamp
 	88,  // 106: white.performance.v1.ListSummariesResponse.summaries:type_name -> white.performance.v1.FeedbackSummary
 	3,   // 107: white.performance.v1.TaskMeta.me:type_name -> white.performance.v1.Me
 	0,   // 108: white.performance.v1.TaskMeta.departments:type_name -> white.performance.v1.Department
 	1,   // 109: white.performance.v1.TaskMeta.members:type_name -> white.performance.v1.Person
 	93,  // 110: white.performance.v1.TaskMeta.indicators:type_name -> white.performance.v1.TaskIndicator
-	175, // 111: white.performance.v1.TaskItem.started_at:type_name -> google.protobuf.Timestamp
-	175, // 112: white.performance.v1.TaskItem.done_at:type_name -> google.protobuf.Timestamp
-	175, // 113: white.performance.v1.TaskItem.last_note_at:type_name -> google.protobuf.Timestamp
+	185, // 111: white.performance.v1.TaskItem.started_at:type_name -> google.protobuf.Timestamp
+	185, // 112: white.performance.v1.TaskItem.done_at:type_name -> google.protobuf.Timestamp
+	185, // 113: white.performance.v1.TaskItem.last_note_at:type_name -> google.protobuf.Timestamp
 	95,  // 114: white.performance.v1.ListTaskItemsResponse.items:type_name -> white.performance.v1.TaskItem
-	175, // 115: white.performance.v1.Subtask.checked_at:type_name -> google.protobuf.Timestamp
-	175, // 116: white.performance.v1.TaskUpdate.created_at:type_name -> google.protobuf.Timestamp
-	175, // 117: white.performance.v1.TaskAttachment.created_at:type_name -> google.protobuf.Timestamp
-	175, // 118: white.performance.v1.TaskContribution.recorded_at:type_name -> google.protobuf.Timestamp
+	185, // 115: white.performance.v1.Subtask.checked_at:type_name -> google.protobuf.Timestamp
+	185, // 116: white.performance.v1.TaskUpdate.created_at:type_name -> google.protobuf.Timestamp
+	185, // 117: white.performance.v1.TaskAttachment.created_at:type_name -> google.protobuf.Timestamp
+	185, // 118: white.performance.v1.TaskContribution.recorded_at:type_name -> google.protobuf.Timestamp
 	95,  // 119: white.performance.v1.TaskDetail.item:type_name -> white.performance.v1.TaskItem
 	100, // 120: white.performance.v1.TaskDetail.subtasks:type_name -> white.performance.v1.Subtask
 	101, // 121: white.performance.v1.TaskDetail.updates:type_name -> white.performance.v1.TaskUpdate
@@ -16316,236 +17256,256 @@ var file_white_performance_v1_performance_proto_depIdxs = []int32{
 	103, // 123: white.performance.v1.TaskDetail.contribution:type_name -> white.performance.v1.TaskContribution
 	95,  // 124: white.performance.v1.IndicatorTasks.tasks:type_name -> white.performance.v1.TaskItem
 	110, // 125: white.performance.v1.GetKpiTasksResponse.indicators:type_name -> white.performance.v1.IndicatorTasks
-	170, // 126: white.performance.v1.ListContributionsResponse.items:type_name -> white.performance.v1.ListContributionsResponse.Item
+	180, // 126: white.performance.v1.ListContributionsResponse.items:type_name -> white.performance.v1.ListContributionsResponse.Item
 	115, // 127: white.performance.v1.MonitorResponse.summary:type_name -> white.performance.v1.MonitorSummary
-	172, // 128: white.performance.v1.MonitorResponse.departments:type_name -> white.performance.v1.MonitorResponse.DepartmentRow
+	182, // 128: white.performance.v1.MonitorResponse.departments:type_name -> white.performance.v1.MonitorResponse.DepartmentRow
 	116, // 129: white.performance.v1.MonitorResponse.overdue:type_name -> white.performance.v1.MonitorRow
 	116, // 130: white.performance.v1.MonitorResponse.waiting_review:type_name -> white.performance.v1.MonitorRow
 	3,   // 131: white.performance.v1.LogbookMe.me:type_name -> white.performance.v1.Me
 	119, // 132: white.performance.v1.LogbookTemplate.items:type_name -> white.performance.v1.LogbookTemplateItem
-	175, // 133: white.performance.v1.LogbookTemplate.created_at:type_name -> google.protobuf.Timestamp
+	185, // 133: white.performance.v1.LogbookTemplate.created_at:type_name -> google.protobuf.Timestamp
 	120, // 134: white.performance.v1.ListTemplatesResponse.templates:type_name -> white.performance.v1.LogbookTemplate
-	173, // 135: white.performance.v1.CreateTemplateRequest.items:type_name -> white.performance.v1.CreateTemplateRequest.Item
+	183, // 135: white.performance.v1.CreateTemplateRequest.items:type_name -> white.performance.v1.CreateTemplateRequest.Item
 	123, // 136: white.performance.v1.UpdateTemplateRequest.input:type_name -> white.performance.v1.CreateTemplateRequest
-	175, // 137: white.performance.v1.LogbookEntryItem.checked_at:type_name -> google.protobuf.Timestamp
-	175, // 138: white.performance.v1.LogbookEntry.submitted_at:type_name -> google.protobuf.Timestamp
-	175, // 139: white.performance.v1.LogbookEntry.reviewed_at:type_name -> google.protobuf.Timestamp
+	185, // 137: white.performance.v1.LogbookEntryItem.checked_at:type_name -> google.protobuf.Timestamp
+	185, // 138: white.performance.v1.LogbookEntry.submitted_at:type_name -> google.protobuf.Timestamp
+	185, // 139: white.performance.v1.LogbookEntry.reviewed_at:type_name -> google.protobuf.Timestamp
 	126, // 140: white.performance.v1.LogbookEntry.items:type_name -> white.performance.v1.LogbookEntryItem
 	127, // 141: white.performance.v1.ListEntriesResponse.entries:type_name -> white.performance.v1.LogbookEntry
 	127, // 142: white.performance.v1.EntryResponse.entry:type_name -> white.performance.v1.LogbookEntry
-	174, // 143: white.performance.v1.LogbookSummaryResponse.departments:type_name -> white.performance.v1.LogbookSummaryResponse.Row
+	184, // 143: white.performance.v1.LogbookSummaryResponse.departments:type_name -> white.performance.v1.LogbookSummaryResponse.Row
 	137, // 144: white.performance.v1.RecapTask.subtasks:type_name -> white.performance.v1.RecapSubtask
 	138, // 145: white.performance.v1.DailyRecap.tasks:type_name -> white.performance.v1.RecapTask
 	139, // 146: white.performance.v1.DailyRecap.logbook:type_name -> white.performance.v1.RecapLogbook
-	175, // 147: white.performance.v1.DailyRecap.generated_at:type_name -> google.protobuf.Timestamp
+	185, // 147: white.performance.v1.DailyRecap.generated_at:type_name -> google.protobuf.Timestamp
 	140, // 148: white.performance.v1.ListDailyRecapsResponse.recaps:type_name -> white.performance.v1.DailyRecap
 	146, // 149: white.performance.v1.MonthlyRecap.metrics:type_name -> white.performance.v1.MonthlyMetrics
-	175, // 150: white.performance.v1.MonthlyRecap.generated_at:type_name -> google.protobuf.Timestamp
+	185, // 150: white.performance.v1.MonthlyRecap.generated_at:type_name -> google.protobuf.Timestamp
 	147, // 151: white.performance.v1.ListMonthlyRecapsResponse.recaps:type_name -> white.performance.v1.MonthlyRecap
 	147, // 152: white.performance.v1.RegenerateMonthlyRecapResponse.recap:type_name -> white.performance.v1.MonthlyRecap
-	175, // 153: white.performance.v1.Improvement.completed_at:type_name -> google.protobuf.Timestamp
-	175, // 154: white.performance.v1.Improvement.created_at:type_name -> google.protobuf.Timestamp
-	175, // 155: white.performance.v1.Improvement.updated_at:type_name -> google.protobuf.Timestamp
+	185, // 153: white.performance.v1.Improvement.completed_at:type_name -> google.protobuf.Timestamp
+	185, // 154: white.performance.v1.Improvement.created_at:type_name -> google.protobuf.Timestamp
+	185, // 155: white.performance.v1.Improvement.updated_at:type_name -> google.protobuf.Timestamp
 	152, // 156: white.performance.v1.ListImprovementsResponse.improvements:type_name -> white.performance.v1.Improvement
 	157, // 157: white.performance.v1.Retro.actions:type_name -> white.performance.v1.RetroAction
-	175, // 158: white.performance.v1.Retro.closed_at:type_name -> google.protobuf.Timestamp
-	175, // 159: white.performance.v1.Retro.updated_at:type_name -> google.protobuf.Timestamp
+	185, // 158: white.performance.v1.Retro.closed_at:type_name -> google.protobuf.Timestamp
+	185, // 159: white.performance.v1.Retro.updated_at:type_name -> google.protobuf.Timestamp
 	158, // 160: white.performance.v1.ListRetrosResponse.retros:type_name -> white.performance.v1.Retro
 	157, // 161: white.performance.v1.SaveRetroRequest.actions:type_name -> white.performance.v1.RetroAction
 	158, // 162: white.performance.v1.CloseRetroResponse.retro:type_name -> white.performance.v1.Retro
-	17,  // 163: white.performance.v1.RealtimeKpiResponse.Row.months:type_name -> white.performance.v1.Scorecard
-	115, // 164: white.performance.v1.MonitorResponse.Assignee.summary:type_name -> white.performance.v1.MonitorSummary
-	115, // 165: white.performance.v1.MonitorResponse.DepartmentRow.summary:type_name -> white.performance.v1.MonitorSummary
-	171, // 166: white.performance.v1.MonitorResponse.DepartmentRow.assignees:type_name -> white.performance.v1.MonitorResponse.Assignee
-	8,   // 167: white.performance.v1.KpiService.ListIndicators:input_type -> white.performance.v1.ListIndicatorsRequest
-	7,   // 168: white.performance.v1.KpiService.SaveIndicator:input_type -> white.performance.v1.Indicator
-	5,   // 169: white.performance.v1.KpiService.DeleteIndicator:input_type -> white.performance.v1.IdRequest
-	176, // 170: white.performance.v1.KpiService.GetKpiConfig:input_type -> google.protobuf.Empty
-	12,  // 171: white.performance.v1.KpiService.SaveDepartmentConfig:input_type -> white.performance.v1.SaveDepartmentConfigRequest
-	176, // 172: white.performance.v1.KpiService.ListTargets:input_type -> google.protobuf.Empty
-	13,  // 173: white.performance.v1.KpiService.CreateTarget:input_type -> white.performance.v1.KpiTarget
-	13,  // 174: white.performance.v1.KpiService.UpdateTarget:input_type -> white.performance.v1.KpiTarget
-	5,   // 175: white.performance.v1.KpiService.DeleteTarget:input_type -> white.performance.v1.IdRequest
-	6,   // 176: white.performance.v1.KpiService.RunSnapshot:input_type -> white.performance.v1.PeriodRequest
-	18,  // 177: white.performance.v1.KpiService.ListScorecards:input_type -> white.performance.v1.ListScorecardsRequest
-	5,   // 178: white.performance.v1.KpiService.GetScorecard:input_type -> white.performance.v1.IdRequest
-	22,  // 179: white.performance.v1.KpiService.SetScorecardStatus:input_type -> white.performance.v1.SetScorecardStatusRequest
-	24,  // 180: white.performance.v1.KpiService.SaveRubric:input_type -> white.performance.v1.SaveManualRequest
-	24,  // 181: white.performance.v1.KpiService.RecordManualActual:input_type -> white.performance.v1.SaveManualRequest
-	26,  // 182: white.performance.v1.KpiService.GetRecommendations:input_type -> white.performance.v1.GetRecommendationsRequest
-	28,  // 183: white.performance.v1.KpiService.GetDashboardContext:input_type -> white.performance.v1.DashboardRequest
-	28,  // 184: white.performance.v1.KpiService.GetDashboardSummary:input_type -> white.performance.v1.DashboardRequest
-	28,  // 185: white.performance.v1.KpiService.GetDashboardKpi:input_type -> white.performance.v1.DashboardRequest
-	28,  // 186: white.performance.v1.KpiService.GetDashboardTasks:input_type -> white.performance.v1.DashboardRequest
-	28,  // 187: white.performance.v1.KpiService.GetDashboardLogbook:input_type -> white.performance.v1.DashboardRequest
-	28,  // 188: white.performance.v1.KpiService.GetDashboardReviews:input_type -> white.performance.v1.DashboardRequest
-	28,  // 189: white.performance.v1.KpiService.GetDashboardImprovements:input_type -> white.performance.v1.DashboardRequest
-	176, // 190: white.performance.v1.ReviewService.ListReviewCycles:input_type -> google.protobuf.Empty
-	59,  // 191: white.performance.v1.ReviewService.OpenReviewCycle:input_type -> white.performance.v1.OpenReviewCycleRequest
-	5,   // 192: white.performance.v1.ReviewService.CloseReviewCycle:input_type -> white.performance.v1.IdRequest
-	62,  // 193: white.performance.v1.ReviewService.ListReviews:input_type -> white.performance.v1.ListReviewsRequest
-	5,   // 194: white.performance.v1.ReviewService.GetReview:input_type -> white.performance.v1.IdRequest
-	66,  // 195: white.performance.v1.ReviewService.ReviewAction:input_type -> white.performance.v1.ReviewActionRequest
-	67,  // 196: white.performance.v1.ReviewService.RealtimeKpi:input_type -> white.performance.v1.RealtimeKpiRequest
-	176, // 197: white.performance.v1.FeedbackService.ListFeedbackCategories:input_type -> google.protobuf.Empty
-	73,  // 198: white.performance.v1.FeedbackService.ListFeedbackCycles:input_type -> white.performance.v1.ListFeedbackCyclesRequest
-	5,   // 199: white.performance.v1.FeedbackService.GetFeedbackCycle:input_type -> white.performance.v1.IdRequest
-	72,  // 200: white.performance.v1.FeedbackService.SaveFeedbackCycle:input_type -> white.performance.v1.FeedbackCycle
-	5,   // 201: white.performance.v1.FeedbackService.DeleteFeedbackCycle:input_type -> white.performance.v1.IdRequest
-	75,  // 202: white.performance.v1.FeedbackService.CreateAssignments:input_type -> white.performance.v1.CreateAssignmentsRequest
-	76,  // 203: white.performance.v1.FeedbackService.AutoAssign:input_type -> white.performance.v1.AutoAssignRequest
-	79,  // 204: white.performance.v1.FeedbackService.ListAssignments:input_type -> white.performance.v1.ListAssignmentsRequest
-	176, // 205: white.performance.v1.FeedbackService.ListMyAssignments:input_type -> google.protobuf.Empty
-	5,   // 206: white.performance.v1.FeedbackService.GetAssignment:input_type -> white.performance.v1.IdRequest
-	83,  // 207: white.performance.v1.FeedbackService.SubmitResponses:input_type -> white.performance.v1.SubmitResponsesRequest
-	84,  // 208: white.performance.v1.FeedbackService.DecideAssignment:input_type -> white.performance.v1.DecideAssignmentRequest
-	5,   // 209: white.performance.v1.FeedbackService.DeleteAssignment:input_type -> white.performance.v1.IdRequest
-	86,  // 210: white.performance.v1.FeedbackService.GenerateSummaries:input_type -> white.performance.v1.GenerateSummariesRequest
-	89,  // 211: white.performance.v1.FeedbackService.ListSummaries:input_type -> white.performance.v1.ListSummariesRequest
-	91,  // 212: white.performance.v1.FeedbackService.UpdateSummary:input_type -> white.performance.v1.UpdateSummaryRequest
-	176, // 213: white.performance.v1.TaskService.GetTaskMeta:input_type -> google.protobuf.Empty
-	96,  // 214: white.performance.v1.TaskService.ListTaskItems:input_type -> white.performance.v1.ListTaskItemsRequest
-	98,  // 215: white.performance.v1.TaskService.CreateTask:input_type -> white.performance.v1.CreateTaskRequest
-	99,  // 216: white.performance.v1.TaskService.UpdateTask:input_type -> white.performance.v1.UpdateTaskRequest
-	5,   // 217: white.performance.v1.TaskService.DeactivateTask:input_type -> white.performance.v1.IdRequest
-	5,   // 218: white.performance.v1.TaskService.GetOccurrence:input_type -> white.performance.v1.IdRequest
-	105, // 219: white.performance.v1.TaskService.OccurrenceAction:input_type -> white.performance.v1.OccurrenceActionRequest
-	107, // 220: white.performance.v1.TaskService.AddAttachment:input_type -> white.performance.v1.AddAttachmentRequest
-	108, // 221: white.performance.v1.TaskService.GetAttachment:input_type -> white.performance.v1.AttachmentRequest
-	108, // 222: white.performance.v1.TaskService.DeleteAttachment:input_type -> white.performance.v1.AttachmentRequest
-	109, // 223: white.performance.v1.TaskService.GetKpiTasks:input_type -> white.performance.v1.GetKpiTasksRequest
-	112, // 224: white.performance.v1.TaskService.ListContributions:input_type -> white.performance.v1.ListContributionsRequest
-	114, // 225: white.performance.v1.TaskService.GetMonitor:input_type -> white.performance.v1.GetMonitorRequest
-	176, // 226: white.performance.v1.LogbookService.GetLogbookMe:input_type -> google.protobuf.Empty
-	121, // 227: white.performance.v1.LogbookService.ListTemplates:input_type -> white.performance.v1.ListTemplatesRequest
-	123, // 228: white.performance.v1.LogbookService.CreateTemplate:input_type -> white.performance.v1.CreateTemplateRequest
-	124, // 229: white.performance.v1.LogbookService.UpdateTemplate:input_type -> white.performance.v1.UpdateTemplateRequest
-	5,   // 230: white.performance.v1.LogbookService.DeleteTemplate:input_type -> white.performance.v1.IdRequest
-	128, // 231: white.performance.v1.LogbookService.ListEntries:input_type -> white.performance.v1.ListEntriesRequest
-	5,   // 232: white.performance.v1.LogbookService.GetEntry:input_type -> white.performance.v1.IdRequest
-	131, // 233: white.performance.v1.LogbookService.CreateEntry:input_type -> white.performance.v1.CreateEntryRequest
-	132, // 234: white.performance.v1.LogbookService.UpdateEntryItem:input_type -> white.performance.v1.UpdateEntryItemRequest
-	133, // 235: white.performance.v1.LogbookService.SubmitEntry:input_type -> white.performance.v1.SubmitEntryRequest
-	134, // 236: white.performance.v1.LogbookService.ReviewEntry:input_type -> white.performance.v1.ReviewEntryRequest
-	5,   // 237: white.performance.v1.LogbookService.DeleteEntry:input_type -> white.performance.v1.IdRequest
-	135, // 238: white.performance.v1.LogbookService.LogbookSummary:input_type -> white.performance.v1.LogbookSummaryRequest
-	141, // 239: white.performance.v1.RecapService.GetMyDailyRecap:input_type -> white.performance.v1.DailyRecapRequest
-	142, // 240: white.performance.v1.RecapService.UpdateMyDailyNotes:input_type -> white.performance.v1.UpdateDailyNotesRequest
-	141, // 241: white.performance.v1.RecapService.RegenerateMyDailyRecap:input_type -> white.performance.v1.DailyRecapRequest
-	143, // 242: white.performance.v1.RecapService.ListTeamDailyRecaps:input_type -> white.performance.v1.TeamDailyRecapsRequest
-	144, // 243: white.performance.v1.RecapService.ListDailyRecapHistory:input_type -> white.performance.v1.DailyRecapHistoryRequest
-	148, // 244: white.performance.v1.RecapService.ListMonthlyRecaps:input_type -> white.performance.v1.ListMonthlyRecapsRequest
-	5,   // 245: white.performance.v1.RecapService.GetMonthlyRecap:input_type -> white.performance.v1.IdRequest
-	150, // 246: white.performance.v1.RecapService.RegenerateMonthlyRecap:input_type -> white.performance.v1.RegenerateMonthlyRecapRequest
-	5,   // 247: white.performance.v1.RecapService.ExportMonthlyRecap:input_type -> white.performance.v1.IdRequest
-	153, // 248: white.performance.v1.ImprovementService.ListImprovements:input_type -> white.performance.v1.ListImprovementsRequest
-	5,   // 249: white.performance.v1.ImprovementService.GetImprovement:input_type -> white.performance.v1.IdRequest
-	155, // 250: white.performance.v1.ImprovementService.CreateImprovement:input_type -> white.performance.v1.ImprovementInput
-	155, // 251: white.performance.v1.ImprovementService.UpdateImprovement:input_type -> white.performance.v1.ImprovementInput
-	5,   // 252: white.performance.v1.ImprovementService.DeleteImprovement:input_type -> white.performance.v1.IdRequest
-	156, // 253: white.performance.v1.ImprovementService.AcceptSuggestion:input_type -> white.performance.v1.DecideSuggestionRequest
-	156, // 254: white.performance.v1.ImprovementService.DeclineSuggestion:input_type -> white.performance.v1.DecideSuggestionRequest
-	159, // 255: white.performance.v1.ImprovementService.ListRetros:input_type -> white.performance.v1.ListRetrosRequest
-	5,   // 256: white.performance.v1.ImprovementService.GetRetro:input_type -> white.performance.v1.IdRequest
-	161, // 257: white.performance.v1.ImprovementService.SaveRetro:input_type -> white.performance.v1.SaveRetroRequest
-	5,   // 258: white.performance.v1.ImprovementService.CloseRetro:input_type -> white.performance.v1.IdRequest
-	9,   // 259: white.performance.v1.KpiService.ListIndicators:output_type -> white.performance.v1.ListIndicatorsResponse
-	7,   // 260: white.performance.v1.KpiService.SaveIndicator:output_type -> white.performance.v1.Indicator
-	2,   // 261: white.performance.v1.KpiService.DeleteIndicator:output_type -> white.performance.v1.MessageResponse
-	11,  // 262: white.performance.v1.KpiService.GetKpiConfig:output_type -> white.performance.v1.KpiConfig
-	2,   // 263: white.performance.v1.KpiService.SaveDepartmentConfig:output_type -> white.performance.v1.MessageResponse
-	14,  // 264: white.performance.v1.KpiService.ListTargets:output_type -> white.performance.v1.ListTargetsResponse
-	13,  // 265: white.performance.v1.KpiService.CreateTarget:output_type -> white.performance.v1.KpiTarget
-	13,  // 266: white.performance.v1.KpiService.UpdateTarget:output_type -> white.performance.v1.KpiTarget
-	2,   // 267: white.performance.v1.KpiService.DeleteTarget:output_type -> white.performance.v1.MessageResponse
-	15,  // 268: white.performance.v1.KpiService.RunSnapshot:output_type -> white.performance.v1.SnapshotSummary
-	19,  // 269: white.performance.v1.KpiService.ListScorecards:output_type -> white.performance.v1.ListScorecardsResponse
-	21,  // 270: white.performance.v1.KpiService.GetScorecard:output_type -> white.performance.v1.ScorecardDetail
-	23,  // 271: white.performance.v1.KpiService.SetScorecardStatus:output_type -> white.performance.v1.ScorecardResponse
-	25,  // 272: white.performance.v1.KpiService.SaveRubric:output_type -> white.performance.v1.SaveManualResponse
-	25,  // 273: white.performance.v1.KpiService.RecordManualActual:output_type -> white.performance.v1.SaveManualResponse
-	27,  // 274: white.performance.v1.KpiService.GetRecommendations:output_type -> white.performance.v1.GetRecommendationsResponse
-	30,  // 275: white.performance.v1.KpiService.GetDashboardContext:output_type -> white.performance.v1.DashboardContext
-	35,  // 276: white.performance.v1.KpiService.GetDashboardSummary:output_type -> white.performance.v1.DashboardSummary
-	38,  // 277: white.performance.v1.KpiService.GetDashboardKpi:output_type -> white.performance.v1.DashboardKpi
-	42,  // 278: white.performance.v1.KpiService.GetDashboardTasks:output_type -> white.performance.v1.DashboardTasks
-	47,  // 279: white.performance.v1.KpiService.GetDashboardLogbook:output_type -> white.performance.v1.DashboardLogbook
-	52,  // 280: white.performance.v1.KpiService.GetDashboardReviews:output_type -> white.performance.v1.DashboardReviews
-	56,  // 281: white.performance.v1.KpiService.GetDashboardImprovements:output_type -> white.performance.v1.DashboardImprovements
-	58,  // 282: white.performance.v1.ReviewService.ListReviewCycles:output_type -> white.performance.v1.ListReviewCyclesResponse
-	60,  // 283: white.performance.v1.ReviewService.OpenReviewCycle:output_type -> white.performance.v1.ReviewCycleResponse
-	2,   // 284: white.performance.v1.ReviewService.CloseReviewCycle:output_type -> white.performance.v1.MessageResponse
-	63,  // 285: white.performance.v1.ReviewService.ListReviews:output_type -> white.performance.v1.ListReviewsResponse
-	65,  // 286: white.performance.v1.ReviewService.GetReview:output_type -> white.performance.v1.ReviewDetail
-	2,   // 287: white.performance.v1.ReviewService.ReviewAction:output_type -> white.performance.v1.MessageResponse
-	68,  // 288: white.performance.v1.ReviewService.RealtimeKpi:output_type -> white.performance.v1.RealtimeKpiResponse
-	71,  // 289: white.performance.v1.FeedbackService.ListFeedbackCategories:output_type -> white.performance.v1.ListFeedbackCategoriesResponse
-	74,  // 290: white.performance.v1.FeedbackService.ListFeedbackCycles:output_type -> white.performance.v1.ListFeedbackCyclesResponse
-	72,  // 291: white.performance.v1.FeedbackService.GetFeedbackCycle:output_type -> white.performance.v1.FeedbackCycle
-	72,  // 292: white.performance.v1.FeedbackService.SaveFeedbackCycle:output_type -> white.performance.v1.FeedbackCycle
-	2,   // 293: white.performance.v1.FeedbackService.DeleteFeedbackCycle:output_type -> white.performance.v1.MessageResponse
-	77,  // 294: white.performance.v1.FeedbackService.CreateAssignments:output_type -> white.performance.v1.CountResponse
-	77,  // 295: white.performance.v1.FeedbackService.AutoAssign:output_type -> white.performance.v1.CountResponse
-	80,  // 296: white.performance.v1.FeedbackService.ListAssignments:output_type -> white.performance.v1.ListAssignmentsResponse
-	80,  // 297: white.performance.v1.FeedbackService.ListMyAssignments:output_type -> white.performance.v1.ListAssignmentsResponse
-	82,  // 298: white.performance.v1.FeedbackService.GetAssignment:output_type -> white.performance.v1.AssignmentDetail
-	78,  // 299: white.performance.v1.FeedbackService.SubmitResponses:output_type -> white.performance.v1.Assignment
-	85,  // 300: white.performance.v1.FeedbackService.DecideAssignment:output_type -> white.performance.v1.DecideAssignmentResponse
-	2,   // 301: white.performance.v1.FeedbackService.DeleteAssignment:output_type -> white.performance.v1.MessageResponse
-	87,  // 302: white.performance.v1.FeedbackService.GenerateSummaries:output_type -> white.performance.v1.GenerateSummariesResponse
-	90,  // 303: white.performance.v1.FeedbackService.ListSummaries:output_type -> white.performance.v1.ListSummariesResponse
-	88,  // 304: white.performance.v1.FeedbackService.UpdateSummary:output_type -> white.performance.v1.FeedbackSummary
-	94,  // 305: white.performance.v1.TaskService.GetTaskMeta:output_type -> white.performance.v1.TaskMeta
-	97,  // 306: white.performance.v1.TaskService.ListTaskItems:output_type -> white.performance.v1.ListTaskItemsResponse
-	92,  // 307: white.performance.v1.TaskService.CreateTask:output_type -> white.performance.v1.IdResponse
-	2,   // 308: white.performance.v1.TaskService.UpdateTask:output_type -> white.performance.v1.MessageResponse
-	2,   // 309: white.performance.v1.TaskService.DeactivateTask:output_type -> white.performance.v1.MessageResponse
-	104, // 310: white.performance.v1.TaskService.GetOccurrence:output_type -> white.performance.v1.TaskDetail
-	106, // 311: white.performance.v1.TaskService.OccurrenceAction:output_type -> white.performance.v1.OccurrenceActionResponse
-	102, // 312: white.performance.v1.TaskService.AddAttachment:output_type -> white.performance.v1.TaskAttachment
-	4,   // 313: white.performance.v1.TaskService.GetAttachment:output_type -> white.performance.v1.FileContent
-	2,   // 314: white.performance.v1.TaskService.DeleteAttachment:output_type -> white.performance.v1.MessageResponse
-	111, // 315: white.performance.v1.TaskService.GetKpiTasks:output_type -> white.performance.v1.GetKpiTasksResponse
-	113, // 316: white.performance.v1.TaskService.ListContributions:output_type -> white.performance.v1.ListContributionsResponse
-	117, // 317: white.performance.v1.TaskService.GetMonitor:output_type -> white.performance.v1.MonitorResponse
-	118, // 318: white.performance.v1.LogbookService.GetLogbookMe:output_type -> white.performance.v1.LogbookMe
-	122, // 319: white.performance.v1.LogbookService.ListTemplates:output_type -> white.performance.v1.ListTemplatesResponse
-	120, // 320: white.performance.v1.LogbookService.CreateTemplate:output_type -> white.performance.v1.LogbookTemplate
-	120, // 321: white.performance.v1.LogbookService.UpdateTemplate:output_type -> white.performance.v1.LogbookTemplate
-	125, // 322: white.performance.v1.LogbookService.DeleteTemplate:output_type -> white.performance.v1.DeleteTemplateResponse
-	129, // 323: white.performance.v1.LogbookService.ListEntries:output_type -> white.performance.v1.ListEntriesResponse
-	130, // 324: white.performance.v1.LogbookService.GetEntry:output_type -> white.performance.v1.EntryResponse
-	127, // 325: white.performance.v1.LogbookService.CreateEntry:output_type -> white.performance.v1.LogbookEntry
-	127, // 326: white.performance.v1.LogbookService.UpdateEntryItem:output_type -> white.performance.v1.LogbookEntry
-	127, // 327: white.performance.v1.LogbookService.SubmitEntry:output_type -> white.performance.v1.LogbookEntry
-	127, // 328: white.performance.v1.LogbookService.ReviewEntry:output_type -> white.performance.v1.LogbookEntry
-	2,   // 329: white.performance.v1.LogbookService.DeleteEntry:output_type -> white.performance.v1.MessageResponse
-	136, // 330: white.performance.v1.LogbookService.LogbookSummary:output_type -> white.performance.v1.LogbookSummaryResponse
-	140, // 331: white.performance.v1.RecapService.GetMyDailyRecap:output_type -> white.performance.v1.DailyRecap
-	140, // 332: white.performance.v1.RecapService.UpdateMyDailyNotes:output_type -> white.performance.v1.DailyRecap
-	140, // 333: white.performance.v1.RecapService.RegenerateMyDailyRecap:output_type -> white.performance.v1.DailyRecap
-	145, // 334: white.performance.v1.RecapService.ListTeamDailyRecaps:output_type -> white.performance.v1.ListDailyRecapsResponse
-	145, // 335: white.performance.v1.RecapService.ListDailyRecapHistory:output_type -> white.performance.v1.ListDailyRecapsResponse
-	149, // 336: white.performance.v1.RecapService.ListMonthlyRecaps:output_type -> white.performance.v1.ListMonthlyRecapsResponse
-	147, // 337: white.performance.v1.RecapService.GetMonthlyRecap:output_type -> white.performance.v1.MonthlyRecap
-	151, // 338: white.performance.v1.RecapService.RegenerateMonthlyRecap:output_type -> white.performance.v1.RegenerateMonthlyRecapResponse
-	4,   // 339: white.performance.v1.RecapService.ExportMonthlyRecap:output_type -> white.performance.v1.FileContent
-	154, // 340: white.performance.v1.ImprovementService.ListImprovements:output_type -> white.performance.v1.ListImprovementsResponse
-	152, // 341: white.performance.v1.ImprovementService.GetImprovement:output_type -> white.performance.v1.Improvement
-	152, // 342: white.performance.v1.ImprovementService.CreateImprovement:output_type -> white.performance.v1.Improvement
-	152, // 343: white.performance.v1.ImprovementService.UpdateImprovement:output_type -> white.performance.v1.Improvement
-	2,   // 344: white.performance.v1.ImprovementService.DeleteImprovement:output_type -> white.performance.v1.MessageResponse
-	152, // 345: white.performance.v1.ImprovementService.AcceptSuggestion:output_type -> white.performance.v1.Improvement
-	152, // 346: white.performance.v1.ImprovementService.DeclineSuggestion:output_type -> white.performance.v1.Improvement
-	160, // 347: white.performance.v1.ImprovementService.ListRetros:output_type -> white.performance.v1.ListRetrosResponse
-	158, // 348: white.performance.v1.ImprovementService.GetRetro:output_type -> white.performance.v1.Retro
-	158, // 349: white.performance.v1.ImprovementService.SaveRetro:output_type -> white.performance.v1.Retro
-	162, // 350: white.performance.v1.ImprovementService.CloseRetro:output_type -> white.performance.v1.CloseRetroResponse
-	259, // [259:351] is the sub-list for method output_type
-	167, // [167:259] is the sub-list for method input_type
-	167, // [167:167] is the sub-list for extension type_name
-	167, // [167:167] is the sub-list for extension extendee
-	0,   // [0:167] is the sub-list for field type_name
+	164, // 163: white.performance.v1.Objective.key_results:type_name -> white.performance.v1.KeyResult
+	165, // 164: white.performance.v1.OkrBoard.objectives:type_name -> white.performance.v1.Objective
+	166, // 165: white.performance.v1.OkrBoard.departments:type_name -> white.performance.v1.OkrOwner
+	166, // 166: white.performance.v1.OkrBoard.employees:type_name -> white.performance.v1.OkrOwner
+	185, // 167: white.performance.v1.OkrCheckin.created_at:type_name -> google.protobuf.Timestamp
+	171, // 168: white.performance.v1.ListCheckinsResponse.checkins:type_name -> white.performance.v1.OkrCheckin
+	17,  // 169: white.performance.v1.RealtimeKpiResponse.Row.months:type_name -> white.performance.v1.Scorecard
+	115, // 170: white.performance.v1.MonitorResponse.Assignee.summary:type_name -> white.performance.v1.MonitorSummary
+	115, // 171: white.performance.v1.MonitorResponse.DepartmentRow.summary:type_name -> white.performance.v1.MonitorSummary
+	181, // 172: white.performance.v1.MonitorResponse.DepartmentRow.assignees:type_name -> white.performance.v1.MonitorResponse.Assignee
+	8,   // 173: white.performance.v1.KpiService.ListIndicators:input_type -> white.performance.v1.ListIndicatorsRequest
+	7,   // 174: white.performance.v1.KpiService.SaveIndicator:input_type -> white.performance.v1.Indicator
+	5,   // 175: white.performance.v1.KpiService.DeleteIndicator:input_type -> white.performance.v1.IdRequest
+	186, // 176: white.performance.v1.KpiService.GetKpiConfig:input_type -> google.protobuf.Empty
+	12,  // 177: white.performance.v1.KpiService.SaveDepartmentConfig:input_type -> white.performance.v1.SaveDepartmentConfigRequest
+	186, // 178: white.performance.v1.KpiService.ListTargets:input_type -> google.protobuf.Empty
+	13,  // 179: white.performance.v1.KpiService.CreateTarget:input_type -> white.performance.v1.KpiTarget
+	13,  // 180: white.performance.v1.KpiService.UpdateTarget:input_type -> white.performance.v1.KpiTarget
+	5,   // 181: white.performance.v1.KpiService.DeleteTarget:input_type -> white.performance.v1.IdRequest
+	6,   // 182: white.performance.v1.KpiService.RunSnapshot:input_type -> white.performance.v1.PeriodRequest
+	18,  // 183: white.performance.v1.KpiService.ListScorecards:input_type -> white.performance.v1.ListScorecardsRequest
+	5,   // 184: white.performance.v1.KpiService.GetScorecard:input_type -> white.performance.v1.IdRequest
+	22,  // 185: white.performance.v1.KpiService.SetScorecardStatus:input_type -> white.performance.v1.SetScorecardStatusRequest
+	24,  // 186: white.performance.v1.KpiService.SaveRubric:input_type -> white.performance.v1.SaveManualRequest
+	24,  // 187: white.performance.v1.KpiService.RecordManualActual:input_type -> white.performance.v1.SaveManualRequest
+	26,  // 188: white.performance.v1.KpiService.GetRecommendations:input_type -> white.performance.v1.GetRecommendationsRequest
+	28,  // 189: white.performance.v1.KpiService.GetDashboardContext:input_type -> white.performance.v1.DashboardRequest
+	28,  // 190: white.performance.v1.KpiService.GetDashboardSummary:input_type -> white.performance.v1.DashboardRequest
+	28,  // 191: white.performance.v1.KpiService.GetDashboardKpi:input_type -> white.performance.v1.DashboardRequest
+	28,  // 192: white.performance.v1.KpiService.GetDashboardTasks:input_type -> white.performance.v1.DashboardRequest
+	28,  // 193: white.performance.v1.KpiService.GetDashboardLogbook:input_type -> white.performance.v1.DashboardRequest
+	28,  // 194: white.performance.v1.KpiService.GetDashboardReviews:input_type -> white.performance.v1.DashboardRequest
+	28,  // 195: white.performance.v1.KpiService.GetDashboardImprovements:input_type -> white.performance.v1.DashboardRequest
+	186, // 196: white.performance.v1.ReviewService.ListReviewCycles:input_type -> google.protobuf.Empty
+	59,  // 197: white.performance.v1.ReviewService.OpenReviewCycle:input_type -> white.performance.v1.OpenReviewCycleRequest
+	5,   // 198: white.performance.v1.ReviewService.CloseReviewCycle:input_type -> white.performance.v1.IdRequest
+	62,  // 199: white.performance.v1.ReviewService.ListReviews:input_type -> white.performance.v1.ListReviewsRequest
+	5,   // 200: white.performance.v1.ReviewService.GetReview:input_type -> white.performance.v1.IdRequest
+	66,  // 201: white.performance.v1.ReviewService.ReviewAction:input_type -> white.performance.v1.ReviewActionRequest
+	67,  // 202: white.performance.v1.ReviewService.RealtimeKpi:input_type -> white.performance.v1.RealtimeKpiRequest
+	186, // 203: white.performance.v1.FeedbackService.ListFeedbackCategories:input_type -> google.protobuf.Empty
+	73,  // 204: white.performance.v1.FeedbackService.ListFeedbackCycles:input_type -> white.performance.v1.ListFeedbackCyclesRequest
+	5,   // 205: white.performance.v1.FeedbackService.GetFeedbackCycle:input_type -> white.performance.v1.IdRequest
+	72,  // 206: white.performance.v1.FeedbackService.SaveFeedbackCycle:input_type -> white.performance.v1.FeedbackCycle
+	5,   // 207: white.performance.v1.FeedbackService.DeleteFeedbackCycle:input_type -> white.performance.v1.IdRequest
+	75,  // 208: white.performance.v1.FeedbackService.CreateAssignments:input_type -> white.performance.v1.CreateAssignmentsRequest
+	76,  // 209: white.performance.v1.FeedbackService.AutoAssign:input_type -> white.performance.v1.AutoAssignRequest
+	79,  // 210: white.performance.v1.FeedbackService.ListAssignments:input_type -> white.performance.v1.ListAssignmentsRequest
+	186, // 211: white.performance.v1.FeedbackService.ListMyAssignments:input_type -> google.protobuf.Empty
+	5,   // 212: white.performance.v1.FeedbackService.GetAssignment:input_type -> white.performance.v1.IdRequest
+	83,  // 213: white.performance.v1.FeedbackService.SubmitResponses:input_type -> white.performance.v1.SubmitResponsesRequest
+	84,  // 214: white.performance.v1.FeedbackService.DecideAssignment:input_type -> white.performance.v1.DecideAssignmentRequest
+	5,   // 215: white.performance.v1.FeedbackService.DeleteAssignment:input_type -> white.performance.v1.IdRequest
+	86,  // 216: white.performance.v1.FeedbackService.GenerateSummaries:input_type -> white.performance.v1.GenerateSummariesRequest
+	89,  // 217: white.performance.v1.FeedbackService.ListSummaries:input_type -> white.performance.v1.ListSummariesRequest
+	91,  // 218: white.performance.v1.FeedbackService.UpdateSummary:input_type -> white.performance.v1.UpdateSummaryRequest
+	186, // 219: white.performance.v1.TaskService.GetTaskMeta:input_type -> google.protobuf.Empty
+	96,  // 220: white.performance.v1.TaskService.ListTaskItems:input_type -> white.performance.v1.ListTaskItemsRequest
+	98,  // 221: white.performance.v1.TaskService.CreateTask:input_type -> white.performance.v1.CreateTaskRequest
+	99,  // 222: white.performance.v1.TaskService.UpdateTask:input_type -> white.performance.v1.UpdateTaskRequest
+	5,   // 223: white.performance.v1.TaskService.DeactivateTask:input_type -> white.performance.v1.IdRequest
+	5,   // 224: white.performance.v1.TaskService.GetOccurrence:input_type -> white.performance.v1.IdRequest
+	105, // 225: white.performance.v1.TaskService.OccurrenceAction:input_type -> white.performance.v1.OccurrenceActionRequest
+	107, // 226: white.performance.v1.TaskService.AddAttachment:input_type -> white.performance.v1.AddAttachmentRequest
+	108, // 227: white.performance.v1.TaskService.GetAttachment:input_type -> white.performance.v1.AttachmentRequest
+	108, // 228: white.performance.v1.TaskService.DeleteAttachment:input_type -> white.performance.v1.AttachmentRequest
+	109, // 229: white.performance.v1.TaskService.GetKpiTasks:input_type -> white.performance.v1.GetKpiTasksRequest
+	112, // 230: white.performance.v1.TaskService.ListContributions:input_type -> white.performance.v1.ListContributionsRequest
+	114, // 231: white.performance.v1.TaskService.GetMonitor:input_type -> white.performance.v1.GetMonitorRequest
+	186, // 232: white.performance.v1.LogbookService.GetLogbookMe:input_type -> google.protobuf.Empty
+	121, // 233: white.performance.v1.LogbookService.ListTemplates:input_type -> white.performance.v1.ListTemplatesRequest
+	123, // 234: white.performance.v1.LogbookService.CreateTemplate:input_type -> white.performance.v1.CreateTemplateRequest
+	124, // 235: white.performance.v1.LogbookService.UpdateTemplate:input_type -> white.performance.v1.UpdateTemplateRequest
+	5,   // 236: white.performance.v1.LogbookService.DeleteTemplate:input_type -> white.performance.v1.IdRequest
+	128, // 237: white.performance.v1.LogbookService.ListEntries:input_type -> white.performance.v1.ListEntriesRequest
+	5,   // 238: white.performance.v1.LogbookService.GetEntry:input_type -> white.performance.v1.IdRequest
+	131, // 239: white.performance.v1.LogbookService.CreateEntry:input_type -> white.performance.v1.CreateEntryRequest
+	132, // 240: white.performance.v1.LogbookService.UpdateEntryItem:input_type -> white.performance.v1.UpdateEntryItemRequest
+	133, // 241: white.performance.v1.LogbookService.SubmitEntry:input_type -> white.performance.v1.SubmitEntryRequest
+	134, // 242: white.performance.v1.LogbookService.ReviewEntry:input_type -> white.performance.v1.ReviewEntryRequest
+	5,   // 243: white.performance.v1.LogbookService.DeleteEntry:input_type -> white.performance.v1.IdRequest
+	135, // 244: white.performance.v1.LogbookService.LogbookSummary:input_type -> white.performance.v1.LogbookSummaryRequest
+	141, // 245: white.performance.v1.RecapService.GetMyDailyRecap:input_type -> white.performance.v1.DailyRecapRequest
+	142, // 246: white.performance.v1.RecapService.UpdateMyDailyNotes:input_type -> white.performance.v1.UpdateDailyNotesRequest
+	141, // 247: white.performance.v1.RecapService.RegenerateMyDailyRecap:input_type -> white.performance.v1.DailyRecapRequest
+	143, // 248: white.performance.v1.RecapService.ListTeamDailyRecaps:input_type -> white.performance.v1.TeamDailyRecapsRequest
+	144, // 249: white.performance.v1.RecapService.ListDailyRecapHistory:input_type -> white.performance.v1.DailyRecapHistoryRequest
+	148, // 250: white.performance.v1.RecapService.ListMonthlyRecaps:input_type -> white.performance.v1.ListMonthlyRecapsRequest
+	5,   // 251: white.performance.v1.RecapService.GetMonthlyRecap:input_type -> white.performance.v1.IdRequest
+	150, // 252: white.performance.v1.RecapService.RegenerateMonthlyRecap:input_type -> white.performance.v1.RegenerateMonthlyRecapRequest
+	5,   // 253: white.performance.v1.RecapService.ExportMonthlyRecap:input_type -> white.performance.v1.IdRequest
+	153, // 254: white.performance.v1.ImprovementService.ListImprovements:input_type -> white.performance.v1.ListImprovementsRequest
+	5,   // 255: white.performance.v1.ImprovementService.GetImprovement:input_type -> white.performance.v1.IdRequest
+	155, // 256: white.performance.v1.ImprovementService.CreateImprovement:input_type -> white.performance.v1.ImprovementInput
+	155, // 257: white.performance.v1.ImprovementService.UpdateImprovement:input_type -> white.performance.v1.ImprovementInput
+	5,   // 258: white.performance.v1.ImprovementService.DeleteImprovement:input_type -> white.performance.v1.IdRequest
+	156, // 259: white.performance.v1.ImprovementService.AcceptSuggestion:input_type -> white.performance.v1.DecideSuggestionRequest
+	156, // 260: white.performance.v1.ImprovementService.DeclineSuggestion:input_type -> white.performance.v1.DecideSuggestionRequest
+	159, // 261: white.performance.v1.ImprovementService.ListRetros:input_type -> white.performance.v1.ListRetrosRequest
+	5,   // 262: white.performance.v1.ImprovementService.GetRetro:input_type -> white.performance.v1.IdRequest
+	161, // 263: white.performance.v1.ImprovementService.SaveRetro:input_type -> white.performance.v1.SaveRetroRequest
+	5,   // 264: white.performance.v1.ImprovementService.CloseRetro:input_type -> white.performance.v1.IdRequest
+	163, // 265: white.performance.v1.OkrService.GetOkrBoard:input_type -> white.performance.v1.GetOkrBoardRequest
+	168, // 266: white.performance.v1.OkrService.SaveObjective:input_type -> white.performance.v1.SaveObjectiveRequest
+	5,   // 267: white.performance.v1.OkrService.DeleteObjective:input_type -> white.performance.v1.IdRequest
+	169, // 268: white.performance.v1.OkrService.SaveKeyResult:input_type -> white.performance.v1.SaveKeyResultRequest
+	5,   // 269: white.performance.v1.OkrService.DeleteKeyResult:input_type -> white.performance.v1.IdRequest
+	170, // 270: white.performance.v1.OkrService.CheckInKeyResult:input_type -> white.performance.v1.CheckInKeyResultRequest
+	5,   // 271: white.performance.v1.OkrService.ListCheckins:input_type -> white.performance.v1.IdRequest
+	9,   // 272: white.performance.v1.KpiService.ListIndicators:output_type -> white.performance.v1.ListIndicatorsResponse
+	7,   // 273: white.performance.v1.KpiService.SaveIndicator:output_type -> white.performance.v1.Indicator
+	2,   // 274: white.performance.v1.KpiService.DeleteIndicator:output_type -> white.performance.v1.MessageResponse
+	11,  // 275: white.performance.v1.KpiService.GetKpiConfig:output_type -> white.performance.v1.KpiConfig
+	2,   // 276: white.performance.v1.KpiService.SaveDepartmentConfig:output_type -> white.performance.v1.MessageResponse
+	14,  // 277: white.performance.v1.KpiService.ListTargets:output_type -> white.performance.v1.ListTargetsResponse
+	13,  // 278: white.performance.v1.KpiService.CreateTarget:output_type -> white.performance.v1.KpiTarget
+	13,  // 279: white.performance.v1.KpiService.UpdateTarget:output_type -> white.performance.v1.KpiTarget
+	2,   // 280: white.performance.v1.KpiService.DeleteTarget:output_type -> white.performance.v1.MessageResponse
+	15,  // 281: white.performance.v1.KpiService.RunSnapshot:output_type -> white.performance.v1.SnapshotSummary
+	19,  // 282: white.performance.v1.KpiService.ListScorecards:output_type -> white.performance.v1.ListScorecardsResponse
+	21,  // 283: white.performance.v1.KpiService.GetScorecard:output_type -> white.performance.v1.ScorecardDetail
+	23,  // 284: white.performance.v1.KpiService.SetScorecardStatus:output_type -> white.performance.v1.ScorecardResponse
+	25,  // 285: white.performance.v1.KpiService.SaveRubric:output_type -> white.performance.v1.SaveManualResponse
+	25,  // 286: white.performance.v1.KpiService.RecordManualActual:output_type -> white.performance.v1.SaveManualResponse
+	27,  // 287: white.performance.v1.KpiService.GetRecommendations:output_type -> white.performance.v1.GetRecommendationsResponse
+	30,  // 288: white.performance.v1.KpiService.GetDashboardContext:output_type -> white.performance.v1.DashboardContext
+	35,  // 289: white.performance.v1.KpiService.GetDashboardSummary:output_type -> white.performance.v1.DashboardSummary
+	38,  // 290: white.performance.v1.KpiService.GetDashboardKpi:output_type -> white.performance.v1.DashboardKpi
+	42,  // 291: white.performance.v1.KpiService.GetDashboardTasks:output_type -> white.performance.v1.DashboardTasks
+	47,  // 292: white.performance.v1.KpiService.GetDashboardLogbook:output_type -> white.performance.v1.DashboardLogbook
+	52,  // 293: white.performance.v1.KpiService.GetDashboardReviews:output_type -> white.performance.v1.DashboardReviews
+	56,  // 294: white.performance.v1.KpiService.GetDashboardImprovements:output_type -> white.performance.v1.DashboardImprovements
+	58,  // 295: white.performance.v1.ReviewService.ListReviewCycles:output_type -> white.performance.v1.ListReviewCyclesResponse
+	60,  // 296: white.performance.v1.ReviewService.OpenReviewCycle:output_type -> white.performance.v1.ReviewCycleResponse
+	2,   // 297: white.performance.v1.ReviewService.CloseReviewCycle:output_type -> white.performance.v1.MessageResponse
+	63,  // 298: white.performance.v1.ReviewService.ListReviews:output_type -> white.performance.v1.ListReviewsResponse
+	65,  // 299: white.performance.v1.ReviewService.GetReview:output_type -> white.performance.v1.ReviewDetail
+	2,   // 300: white.performance.v1.ReviewService.ReviewAction:output_type -> white.performance.v1.MessageResponse
+	68,  // 301: white.performance.v1.ReviewService.RealtimeKpi:output_type -> white.performance.v1.RealtimeKpiResponse
+	71,  // 302: white.performance.v1.FeedbackService.ListFeedbackCategories:output_type -> white.performance.v1.ListFeedbackCategoriesResponse
+	74,  // 303: white.performance.v1.FeedbackService.ListFeedbackCycles:output_type -> white.performance.v1.ListFeedbackCyclesResponse
+	72,  // 304: white.performance.v1.FeedbackService.GetFeedbackCycle:output_type -> white.performance.v1.FeedbackCycle
+	72,  // 305: white.performance.v1.FeedbackService.SaveFeedbackCycle:output_type -> white.performance.v1.FeedbackCycle
+	2,   // 306: white.performance.v1.FeedbackService.DeleteFeedbackCycle:output_type -> white.performance.v1.MessageResponse
+	77,  // 307: white.performance.v1.FeedbackService.CreateAssignments:output_type -> white.performance.v1.CountResponse
+	77,  // 308: white.performance.v1.FeedbackService.AutoAssign:output_type -> white.performance.v1.CountResponse
+	80,  // 309: white.performance.v1.FeedbackService.ListAssignments:output_type -> white.performance.v1.ListAssignmentsResponse
+	80,  // 310: white.performance.v1.FeedbackService.ListMyAssignments:output_type -> white.performance.v1.ListAssignmentsResponse
+	82,  // 311: white.performance.v1.FeedbackService.GetAssignment:output_type -> white.performance.v1.AssignmentDetail
+	78,  // 312: white.performance.v1.FeedbackService.SubmitResponses:output_type -> white.performance.v1.Assignment
+	85,  // 313: white.performance.v1.FeedbackService.DecideAssignment:output_type -> white.performance.v1.DecideAssignmentResponse
+	2,   // 314: white.performance.v1.FeedbackService.DeleteAssignment:output_type -> white.performance.v1.MessageResponse
+	87,  // 315: white.performance.v1.FeedbackService.GenerateSummaries:output_type -> white.performance.v1.GenerateSummariesResponse
+	90,  // 316: white.performance.v1.FeedbackService.ListSummaries:output_type -> white.performance.v1.ListSummariesResponse
+	88,  // 317: white.performance.v1.FeedbackService.UpdateSummary:output_type -> white.performance.v1.FeedbackSummary
+	94,  // 318: white.performance.v1.TaskService.GetTaskMeta:output_type -> white.performance.v1.TaskMeta
+	97,  // 319: white.performance.v1.TaskService.ListTaskItems:output_type -> white.performance.v1.ListTaskItemsResponse
+	92,  // 320: white.performance.v1.TaskService.CreateTask:output_type -> white.performance.v1.IdResponse
+	2,   // 321: white.performance.v1.TaskService.UpdateTask:output_type -> white.performance.v1.MessageResponse
+	2,   // 322: white.performance.v1.TaskService.DeactivateTask:output_type -> white.performance.v1.MessageResponse
+	104, // 323: white.performance.v1.TaskService.GetOccurrence:output_type -> white.performance.v1.TaskDetail
+	106, // 324: white.performance.v1.TaskService.OccurrenceAction:output_type -> white.performance.v1.OccurrenceActionResponse
+	102, // 325: white.performance.v1.TaskService.AddAttachment:output_type -> white.performance.v1.TaskAttachment
+	4,   // 326: white.performance.v1.TaskService.GetAttachment:output_type -> white.performance.v1.FileContent
+	2,   // 327: white.performance.v1.TaskService.DeleteAttachment:output_type -> white.performance.v1.MessageResponse
+	111, // 328: white.performance.v1.TaskService.GetKpiTasks:output_type -> white.performance.v1.GetKpiTasksResponse
+	113, // 329: white.performance.v1.TaskService.ListContributions:output_type -> white.performance.v1.ListContributionsResponse
+	117, // 330: white.performance.v1.TaskService.GetMonitor:output_type -> white.performance.v1.MonitorResponse
+	118, // 331: white.performance.v1.LogbookService.GetLogbookMe:output_type -> white.performance.v1.LogbookMe
+	122, // 332: white.performance.v1.LogbookService.ListTemplates:output_type -> white.performance.v1.ListTemplatesResponse
+	120, // 333: white.performance.v1.LogbookService.CreateTemplate:output_type -> white.performance.v1.LogbookTemplate
+	120, // 334: white.performance.v1.LogbookService.UpdateTemplate:output_type -> white.performance.v1.LogbookTemplate
+	125, // 335: white.performance.v1.LogbookService.DeleteTemplate:output_type -> white.performance.v1.DeleteTemplateResponse
+	129, // 336: white.performance.v1.LogbookService.ListEntries:output_type -> white.performance.v1.ListEntriesResponse
+	130, // 337: white.performance.v1.LogbookService.GetEntry:output_type -> white.performance.v1.EntryResponse
+	127, // 338: white.performance.v1.LogbookService.CreateEntry:output_type -> white.performance.v1.LogbookEntry
+	127, // 339: white.performance.v1.LogbookService.UpdateEntryItem:output_type -> white.performance.v1.LogbookEntry
+	127, // 340: white.performance.v1.LogbookService.SubmitEntry:output_type -> white.performance.v1.LogbookEntry
+	127, // 341: white.performance.v1.LogbookService.ReviewEntry:output_type -> white.performance.v1.LogbookEntry
+	2,   // 342: white.performance.v1.LogbookService.DeleteEntry:output_type -> white.performance.v1.MessageResponse
+	136, // 343: white.performance.v1.LogbookService.LogbookSummary:output_type -> white.performance.v1.LogbookSummaryResponse
+	140, // 344: white.performance.v1.RecapService.GetMyDailyRecap:output_type -> white.performance.v1.DailyRecap
+	140, // 345: white.performance.v1.RecapService.UpdateMyDailyNotes:output_type -> white.performance.v1.DailyRecap
+	140, // 346: white.performance.v1.RecapService.RegenerateMyDailyRecap:output_type -> white.performance.v1.DailyRecap
+	145, // 347: white.performance.v1.RecapService.ListTeamDailyRecaps:output_type -> white.performance.v1.ListDailyRecapsResponse
+	145, // 348: white.performance.v1.RecapService.ListDailyRecapHistory:output_type -> white.performance.v1.ListDailyRecapsResponse
+	149, // 349: white.performance.v1.RecapService.ListMonthlyRecaps:output_type -> white.performance.v1.ListMonthlyRecapsResponse
+	147, // 350: white.performance.v1.RecapService.GetMonthlyRecap:output_type -> white.performance.v1.MonthlyRecap
+	151, // 351: white.performance.v1.RecapService.RegenerateMonthlyRecap:output_type -> white.performance.v1.RegenerateMonthlyRecapResponse
+	4,   // 352: white.performance.v1.RecapService.ExportMonthlyRecap:output_type -> white.performance.v1.FileContent
+	154, // 353: white.performance.v1.ImprovementService.ListImprovements:output_type -> white.performance.v1.ListImprovementsResponse
+	152, // 354: white.performance.v1.ImprovementService.GetImprovement:output_type -> white.performance.v1.Improvement
+	152, // 355: white.performance.v1.ImprovementService.CreateImprovement:output_type -> white.performance.v1.Improvement
+	152, // 356: white.performance.v1.ImprovementService.UpdateImprovement:output_type -> white.performance.v1.Improvement
+	2,   // 357: white.performance.v1.ImprovementService.DeleteImprovement:output_type -> white.performance.v1.MessageResponse
+	152, // 358: white.performance.v1.ImprovementService.AcceptSuggestion:output_type -> white.performance.v1.Improvement
+	152, // 359: white.performance.v1.ImprovementService.DeclineSuggestion:output_type -> white.performance.v1.Improvement
+	160, // 360: white.performance.v1.ImprovementService.ListRetros:output_type -> white.performance.v1.ListRetrosResponse
+	158, // 361: white.performance.v1.ImprovementService.GetRetro:output_type -> white.performance.v1.Retro
+	158, // 362: white.performance.v1.ImprovementService.SaveRetro:output_type -> white.performance.v1.Retro
+	162, // 363: white.performance.v1.ImprovementService.CloseRetro:output_type -> white.performance.v1.CloseRetroResponse
+	167, // 364: white.performance.v1.OkrService.GetOkrBoard:output_type -> white.performance.v1.OkrBoard
+	165, // 365: white.performance.v1.OkrService.SaveObjective:output_type -> white.performance.v1.Objective
+	2,   // 366: white.performance.v1.OkrService.DeleteObjective:output_type -> white.performance.v1.MessageResponse
+	164, // 367: white.performance.v1.OkrService.SaveKeyResult:output_type -> white.performance.v1.KeyResult
+	2,   // 368: white.performance.v1.OkrService.DeleteKeyResult:output_type -> white.performance.v1.MessageResponse
+	164, // 369: white.performance.v1.OkrService.CheckInKeyResult:output_type -> white.performance.v1.KeyResult
+	172, // 370: white.performance.v1.OkrService.ListCheckins:output_type -> white.performance.v1.ListCheckinsResponse
+	272, // [272:371] is the sub-list for method output_type
+	173, // [173:272] is the sub-list for method input_type
+	173, // [173:173] is the sub-list for extension type_name
+	173, // [173:173] is the sub-list for extension extendee
+	0,   // [0:173] is the sub-list for field type_name
 }
 
 func init() { file_white_performance_v1_performance_proto_init() }
@@ -16616,20 +17576,20 @@ func file_white_performance_v1_performance_proto_init() {
 	file_white_performance_v1_performance_proto_msgTypes[156].OneofWrappers = []any{}
 	file_white_performance_v1_performance_proto_msgTypes[157].OneofWrappers = []any{}
 	file_white_performance_v1_performance_proto_msgTypes[158].OneofWrappers = []any{}
-	file_white_performance_v1_performance_proto_msgTypes[166].OneofWrappers = []any{}
-	file_white_performance_v1_performance_proto_msgTypes[167].OneofWrappers = []any{}
-	file_white_performance_v1_performance_proto_msgTypes[168].OneofWrappers = []any{}
-	file_white_performance_v1_performance_proto_msgTypes[171].OneofWrappers = []any{}
-	file_white_performance_v1_performance_proto_msgTypes[173].OneofWrappers = []any{}
+	file_white_performance_v1_performance_proto_msgTypes[176].OneofWrappers = []any{}
+	file_white_performance_v1_performance_proto_msgTypes[177].OneofWrappers = []any{}
+	file_white_performance_v1_performance_proto_msgTypes[178].OneofWrappers = []any{}
+	file_white_performance_v1_performance_proto_msgTypes[181].OneofWrappers = []any{}
+	file_white_performance_v1_performance_proto_msgTypes[183].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_white_performance_v1_performance_proto_rawDesc), len(file_white_performance_v1_performance_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   175,
+			NumMessages:   185,
 			NumExtensions: 0,
-			NumServices:   7,
+			NumServices:   8,
 		},
 		GoTypes:           file_white_performance_v1_performance_proto_goTypes,
 		DependencyIndexes: file_white_performance_v1_performance_proto_depIdxs,
