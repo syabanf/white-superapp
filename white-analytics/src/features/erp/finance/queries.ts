@@ -2,6 +2,9 @@ import "server-only";
 import { gatewayFetch } from "@/lib/erp/gateway";
 import { qs } from "@/features/erp/shared/load";
 import type {
+  PoMatch,
+  ProjectAllocation,
+  SalesReversal,
   AuditEntry,
   Deferral,
   TaxPosition,
@@ -348,4 +351,16 @@ export async function getSeparateApprover() {
 
 export function listAuditTrail(q: Q) {
   return gatewayFetch<{ entries?: AuditEntry[]; total?: number }>(`${F}/audit-trail${qs(q)}`);
+}
+
+export async function listSalesReversals() {
+  return (await gatewayFetch<{ reversals?: SalesReversal[] }>(`${F}/sales-reversals`)).reversals ?? [];
+}
+
+export async function listPoMatches() {
+  return (await gatewayFetch<{ matches?: PoMatch[] }>(`${F}/po-matches`)).matches ?? [];
+}
+
+export async function listProjectAllocations(q: Q) {
+  return (await gatewayFetch<{ allocations?: ProjectAllocation[] }>(`${F}/project-allocations${qs(q)}`)).allocations ?? [];
 }

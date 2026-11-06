@@ -380,6 +380,9 @@ func (l *Ledgers) PostInvoice(ctx context.Context, kind, userID, id string) (*do
 	if err := checkSeparateApprover(ctx, l.Store, inv.CreatedBy, userID); err != nil {
 		return nil, "", err
 	}
+	if err := l.checkPOMatch(ctx, *inv); err != nil {
+		return nil, "", err
+	}
 	return l.postDraftInvoice(ctx, kind, userID, id, inv)
 }
 
@@ -630,6 +633,11 @@ func (l *Ledgers) insertPayment(ctx context.Context, tx domain.Store, kind, user
 		}
 		if inv.Status != domain.StatusPosted {
 			return p, nil, domain.Bad("Hanya invoice POSTED yang bisa dibayar")
+		}
+		if in.SalesPaymentID == "" {
+			if err := checkSeparateApprover(ctx, tx, inv.CreatedBy, userID); err != nil {
+				return p, nil, err
+			}
 		}
 		if inv.JournalEntryID == "" && in.SalesPaymentID == "" {
 			return p, nil, domain.Conflict("Tagihan " + inv.InvoiceNo + " belum berjurnal. Selesaikan dulu di log posting.")

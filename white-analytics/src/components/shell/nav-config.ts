@@ -100,6 +100,7 @@ export const erpNav: { label: string; items: NavItem[] }[] = [
           { label: e.reconciliation, href: "/erp/finance/reconciliation" },
           { label: e.schedules, href: "/erp/finance/schedules" },
           { label: e.purchasing, href: "/erp/finance/purchasing" },
+          { label: e.poMatching, href: "/erp/finance/po-matching" },
           { label: e.projects, href: "/erp/finance/projects" },
           { label: e.vendors, href: "/erp/finance/vendors" },
           { label: e.commercialDocs, href: "/erp/finance/documents" },

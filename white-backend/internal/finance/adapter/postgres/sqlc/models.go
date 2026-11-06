@@ -294,36 +294,60 @@ type FinanceFixedAsset struct {
 	CreatedBy         *string
 	UpdatedAt         time.Time
 	UpdatedBy         *string
+	DisposedOn        *time.Time
+	DisposalProceeds  domain.Money
+	DisposalEntryID   *string
+}
+
+type FinanceGoodsReceipt struct {
+	ID          string
+	ReceiptNo   string
+	DocumentID  string
+	ReceiptDate time.Time
+	Amount      domain.Money
+	Notes       string
+	Status      string
+	VoidReason  string
+	CreatedBy   *string
+	CreatedAt   time.Time
 }
 
 type FinanceInvoice struct {
-	ID             string
-	Kind           string
-	InvoiceNo      string
-	InvoiceDate    time.Time
-	DueDate        *time.Time
-	PartyName      string
-	Reference      string
-	AccountID      *string
-	Currency       string
-	Subtotal       domain.Money
-	TaxAmount      domain.Money
-	TotalAmount    domain.Money
-	Status         string
-	Description    string
-	SalesInvoiceID *string
-	ClientID       *string
-	DealID         *string
-	JournalEntryID *string
-	PostedAt       *time.Time
-	PostedBy       *string
-	CreatedAt      time.Time
-	CreatedBy      *string
-	UpdatedAt      time.Time
-	UpdatedBy      *string
-	DeletedAt      *time.Time
-	DeletedBy      *string
-	TagID          *string
+	ID                 string
+	Kind               string
+	InvoiceNo          string
+	InvoiceDate        time.Time
+	DueDate            *time.Time
+	PartyName          string
+	Reference          string
+	AccountID          *string
+	Currency           string
+	Subtotal           domain.Money
+	TaxAmount          domain.Money
+	TotalAmount        domain.Money
+	Status             string
+	Description        string
+	SalesInvoiceID     *string
+	ClientID           *string
+	DealID             *string
+	JournalEntryID     *string
+	PostedAt           *time.Time
+	PostedBy           *string
+	CreatedAt          time.Time
+	CreatedBy          *string
+	UpdatedAt          time.Time
+	UpdatedBy          *string
+	DeletedAt          *time.Time
+	DeletedBy          *string
+	TagID              *string
+	SalesCancelReason  string
+	SalesCancelSettled bool
+	SalesReversalError string
+}
+
+type FinanceInvoicePoLink struct {
+	InvoiceID  string
+	DocumentID string
 }
 
 type FinanceInvoicePosting struct {
@@ -343,6 +367,12 @@ type FinanceInvoicePosting struct {
 	ReportCode     string
 	CashBasis      bool
 	FinalAccountID *string
+}
+
+type FinanceInvoiceReminder struct {
+	InvoiceID string
+	Stage     int32
+	SentAt    time.Time
 }
 
 type FinanceJournalEntry struct {
@@ -420,29 +450,31 @@ type FinancePartyTaxProfile struct {
 }
 
 type FinancePayment struct {
-	ID              string
-	Kind            string
-	PaymentNo       string
-	PaymentDate     time.Time
-	Amount          domain.Money
-	Method          string
-	CashAccountID   *string
-	ReferenceNumber string
-	Notes           string
-	Status          string
-	PartyName       string
-	SalesPaymentID  *string
-	JournalEntryID  *string
-	VoidReason      string
-	VoidedAt        *time.Time
-	VoidedBy        *string
-	PostedAt        *time.Time
-	PostedBy        *string
-	CreatedAt       time.Time
-	CreatedBy       *string
-	UpdatedAt       time.Time
-	UpdatedBy       *string
-	DeletedAt       *time.Time
+	ID                 string
+	Kind               string
+	PaymentNo          string
+	PaymentDate        time.Time
+	Amount             domain.Money
+	Method             string
+	CashAccountID      *string
+	ReferenceNumber    string
+	Notes              string
+	Status             string
+	PartyName          string
+	SalesPaymentID     *string
+	JournalEntryID     *string
+	VoidReason         string
+	VoidedAt           *time.Time
+	VoidedBy           *string
+	PostedAt           *time.Time
+	PostedBy           *string
+	CreatedAt          time.Time
+	CreatedBy          *string
+	UpdatedAt          time.Time
+	UpdatedBy          *string
+	DeletedAt          *time.Time
+	SalesDeletedReason string
+	SalesReversalError string
 }
 
 type FinancePaymentAdjustment struct {
@@ -480,6 +512,17 @@ type FinancePostingLog struct {
 	Attempts      int32
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+}
+
+type FinanceProjectCostAllocation struct {
+	ID        string
+	TagID     string
+	Month     string
+	Kind      string
+	Amount    domain.Money
+	Notes     string
+	CreatedBy *string
+	CreatedAt time.Time
 }
 
 type FinanceProjectTag struct {

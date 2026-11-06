@@ -13,12 +13,14 @@ import { deleteJournalEntryAction, postJournalEntryAction } from "../actions";
 import type { JournalEntry } from "../types";
 import type { FinancePerms } from "../perms";
 import { fs } from "../strings";
+import { ReverseJournalButton } from "./controls";
 
 const j = fs.journals;
 
 export function JournalActions({ entry, perms }: { entry: JournalEntry; perms: FinancePerms }) {
   const router = useRouter();
   const { run } = useErpAction();
+  if (entry.status === "POSTED" && perms.canApprove && (entry.entryType === "MANUAL" || entry.sourceEventCode === "VAT_CLOSING")) return <ReverseJournalButton entryId={entry.id} />;
   if (entry.status !== "DRAFT" || !entry.canEdit) return null;
   return (
     <>

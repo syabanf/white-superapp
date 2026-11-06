@@ -154,6 +154,11 @@ func (l *Ledgers) CreateCreditNote(ctx context.Context, userID, invoiceID string
 	if inv == nil {
 		return nil, domain.NotFound("Tagihan tidak ditemukan")
 	}
+	if inv.SalesInvoiceID == "" {
+		if err := checkSeparateApprover(ctx, l.Store, inv.CreatedBy, userID); err != nil {
+			return nil, err
+		}
+	}
 	if inv.Status != domain.StatusPosted || inv.JournalEntryID == "" {
 		return nil, domain.Conflict("Credit note butuh tagihan yang sudah diposting dan punya jurnal")
 	}

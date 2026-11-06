@@ -20,6 +20,7 @@ export function byClient(rows: ProjectProfitRow[]): ProjectProfitRow[] {
       revenue: toMoneyString(parseMoney(seen?.revenue ?? "0") + parseMoney(row.revenue)),
       cost: toMoneyString(parseMoney(seen?.cost ?? "0") + parseMoney(row.cost)),
       profit: toMoneyString(parseMoney(seen?.profit ?? "0") + parseMoney(row.profit)),
+      allocated: toMoneyString(parseMoney(seen?.allocated ?? "0") + parseMoney(row.allocated ?? "0")),
     });
   }
   return [...merged.values()];
@@ -56,7 +57,10 @@ export function ProjectProfitView({ data, grouped }: { data: ProjectProfit; grou
                   <td className="py-2">{row.tagName || <span className="text-muted-foreground">{s.untagged}</span>}</td>
                   {grouped ? null : <td className="py-2 text-muted-foreground">{row.clientName || "–"}</td>}
                   <td className="py-2 text-right"><Money value={row.revenue} muteZero /></td>
-                  <td className="py-2 text-right"><Money value={row.cost} muteZero /></td>
+                  <td className="py-2 text-right">
+                    <Money value={row.cost} muteZero />
+                    {parseMoney(row.allocated ?? "0") !== 0 ? <span className="block text-xs text-muted-foreground">{s.allocatedPart} <Money value={row.allocated ?? "0"} signed /></span> : null}
+                  </td>
                   <td className="py-2 text-right"><Money value={row.profit} signed /></td>
                   <td className="py-2 text-right tabular">{margin(row)}</td>
                 </tr>

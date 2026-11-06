@@ -1359,7 +1359,7 @@ func TestSeparateApproverBlocksOwnDraft(t *testing.T) {
 	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "maker", app.InvoiceInput{InvoiceDate: today, PartyName: "PT Dua", Subtotal: rp(100), AccountID: h.id("4101001")})
 	h.ok(err)
 	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "maker", inv.ID)
-	h.wantErr(err, "Pembuat dokumen tidak boleh memposting dokumennya sendiri. Minta rekan lain memeriksanya.")
+	h.wantErr(err, "Pembuat dokumen tidak boleh memproses dokumennya sendiri. Minta rekan lain memeriksanya.")
 	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "checker", inv.ID)
 	h.ok(err)
 
@@ -1367,11 +1367,11 @@ func TestSeparateApproverBlocksOwnDraft(t *testing.T) {
 	e, err := journals.Create(h.ctx, "maker", app.EntryInput{EntryDate: today, Description: "Draft", Lines: []domain.Line{line(h.id("1102001"), domain.Debit, 10), line(h.id("8101001"), domain.Credit, 10)}})
 	h.ok(err)
 	_, err = journals.Post(h.ctx, "maker", e.ID)
-	h.wantErr(err, "Pembuat dokumen tidak boleh memposting dokumennya sendiri. Minta rekan lain memeriksanya.")
+	h.wantErr(err, "Pembuat dokumen tidak boleh memproses dokumennya sendiri. Minta rekan lain memeriksanya.")
 	_, err = journals.Post(h.ctx, "checker", e.ID)
 	h.ok(err)
 	_, err = journals.Create(h.ctx, "maker", app.EntryInput{EntryDate: today, Description: "Langsung", Post: true, Lines: []domain.Line{line(h.id("1102001"), domain.Debit, 10), line(h.id("8101001"), domain.Credit, 10)}})
-	h.wantErr(err, "Pembuat dokumen tidak boleh memposting dokumennya sendiri. Minta rekan lain memeriksanya.")
+	h.wantErr(err, "Pembuat dokumen tidak boleh memproses dokumennya sendiri. Minta rekan lain memeriksanya.")
 }
 
 func TestAuditTrailIsAppendOnly(t *testing.T) {
@@ -1391,4 +1391,198 @@ func TestAuditTrailIsAppendOnly(t *testing.T) {
 	if err := h.pool.QueryRow(h.ctx, "DELETE FROM finance.audit_trail RETURNING id").Scan(new(string)); err == nil || !strings.Contains(err.Error(), "audit trail tidak bisa diubah") {
 		t.Fatalf("delete must fail: %v", err)
 	}
+}
+
+func TestSalesReversalsWaitForAnOpenPeriod(t *testing.T) {
+	h := newHarness(t)
+	auto := app.NewAutoPost(h.deps)
+	inv, err := auto.SalesInvoiceIssued(h.ctx, domain.SalesInvoiceIssued{InvoiceID: "si-r", InvoiceNumber: "INV-R", CustomerName: "PT Balik", IssueDate: today, Subtotal: rp(1_000_000), TotalAmount: rp(1_000_000)})
+	h.ok(err)
+	_, err = auto.SalesPaymentRecorded(h.ctx, domain.SalesPaymentRecorded{PaymentID: "sp-r", InvoiceID: "si-r", Amount: rp(400_000), PaidOn: today, Method: "transfer"})
+	h.ok(err)
+	if err := auto.SalesPaymentDeleted(h.ctx, domain.SalesPaymentDeleted{PaymentID: "belum-ada"}); err == nil {
+		t.Fatal("an early delete must be redelivered")
+	}
+
+	// November has no open period, so the reversal waits and says why.
+	later := h.deps
+	later.Clock = clock.At("2026-11-05T03:00:00Z")
+	h.ok(app.NewAutoPost(later).SalesPaymentDeleted(h.ctx, domain.SalesPaymentDeleted{PaymentID: "sp-r"}))
+	pending, err := h.deps.Store.PendingSalesReversals(h.ctx)
+	h.ok(err)
+	if len(pending) != 1 || pending[0].Kind != "PAYMENT" || pending[0].Error == "" {
+		t.Fatalf("%+v", pending)
+	}
+
+	// The daily run finishes it once the period is open.
+	_, err = app.NewSchedules(h.deps).RunDue(h.ctx)
+	h.ok(err)
+	pending, err = h.deps.Store.PendingSalesReversals(h.ctx)
+	h.ok(err)
+	after, err := h.deps.Store.GetInvoice(h.ctx, inv.ID)
+	h.ok(err)
+	if len(pending) != 0 || after.Outstanding() != inv.TotalAmount {
+		t.Fatalf("%+v outstanding %s", pending, after.Outstanding())
+	}
+	// A repeat is harmless.
+	h.ok(auto.SalesPaymentDeleted(h.ctx, domain.SalesPaymentDeleted{PaymentID: "sp-r"}))
+
+	h.ok(auto.SalesInvoiceCancelled(h.ctx, domain.SalesInvoiceCancelled{InvoiceID: "si-r", Reason: "Salah terbit"}))
+	after, err = h.deps.Store.GetInvoice(h.ctx, inv.ID)
+	h.ok(err)
+	if after.Outstanding() != 0 {
+		t.Fatalf("cancelled invoice left %s", after.Outstanding())
+	}
+	pending, err = h.deps.Store.PendingSalesReversals(h.ctx)
+	h.ok(err)
+	if len(pending) != 0 {
+		t.Fatalf("%+v", pending)
+	}
+	h.ok(auto.SalesInvoiceCancelled(h.ctx, domain.SalesInvoiceCancelled{InvoiceID: "si-r", Reason: "Salah terbit"}))
+}
+
+func TestSalesExcessAdvanceVoidsWithItsPayment(t *testing.T) {
+	h := newHarness(t)
+	auto := app.NewAutoPost(h.deps)
+	_, err := auto.SalesInvoiceIssued(h.ctx, domain.SalesInvoiceIssued{InvoiceID: "si-e", InvoiceNumber: "INV-E", CustomerName: "PT Lebih", IssueDate: today, Subtotal: rp(100_000), TotalAmount: rp(100_000)})
+	h.ok(err)
+	_, err = auto.SalesPaymentRecorded(h.ctx, domain.SalesPaymentRecorded{PaymentID: "sp-e", InvoiceID: "si-e", Amount: rp(150_000), PaidOn: today, Method: "transfer"})
+	h.ok(err)
+	h.ok(auto.SalesPaymentDeleted(h.ctx, domain.SalesPaymentDeleted{PaymentID: "sp-e"}))
+	rows, err := app.NewLedgers(h.deps).ListAdvances(h.ctx, domain.KindAR)
+	h.ok(err)
+	if len(rows) != 1 || rows[0].Status != domain.StatusVoid {
+		t.Fatalf("%+v", rows)
+	}
+}
+
+func TestReverseJournal(t *testing.T) {
+	h := newHarness(t)
+	journals := app.NewJournals(h.deps)
+	bank, fee := h.id("1102001"), h.id("8101001")
+	e, err := journals.Create(h.ctx, "maker", app.EntryInput{EntryDate: today, Description: "Salah catat", Post: true, Lines: []domain.Line{line(fee, domain.Debit, 100), line(bank, domain.Credit, 100)}})
+	h.ok(err)
+	_, err = journals.Reverse(h.ctx, "boss", e.ID, today, "x")
+	h.wantErr(err, "Alasan minimal 5 karakter")
+	back, err := journals.Reverse(h.ctx, "boss", e.ID, today, "Salah akun")
+	h.ok(err)
+	if lineOn(back, fee).Side != domain.Credit || lineOn(back, bank).Side != domain.Debit {
+		t.Fatalf("%+v", back.Lines)
+	}
+	_, err = journals.Reverse(h.ctx, "boss", e.ID, today, "Salah akun")
+	h.wantErr(err, "Jurnal ini sudah dibalik oleh "+back.EntryNo)
+	_, err = journals.Reverse(h.ctx, "boss", back.ID, today, "Balik lagi")
+	h.wantErr(err, "Jurnal otomatis dibalik lewat dokumen sumbernya")
+}
+
+func TestDisposeAsset(t *testing.T) {
+	h := newHarness(t)
+	schedules := app.NewSchedules(h.deps)
+	a, err := schedules.CreateAsset(h.ctx, "u1", app.AssetInput{Name: "Kamera", AcquiredOn: "2026-10-01", Cost: rp(12_000_000), LifeMonths: 12, ExpenseAccountID: h.id("6301001"), AccumAccountID: h.id("1106001")})
+	h.ok(err)
+	in := app.DisposalInput{Date: today, AssetAccountID: h.id("1106001"), CashAccountID: h.id("1102001"), GainLossAccountID: h.id("8101001"), Reason: "Dijual", Proceeds: rp(10_000_000)}
+	out, err := schedules.DisposeAsset(h.ctx, "u1", a.ID, in)
+	h.ok(err)
+	if out.DisposedOn != today || out.IsActive {
+		t.Fatalf("%+v", out)
+	}
+	_, err = schedules.DisposeAsset(h.ctx, "u1", a.ID, in)
+	h.wantErr(err, "Aset ini sudah dilepas")
+	_, err = schedules.SetAssetActive(h.ctx, "u1", a.ID, true)
+	h.wantErr(err, "Aset yang sudah dilepas tidak bisa diaktifkan lagi")
+	lines := app.DisposalLines(domain.FixedAsset{Name: "x", AccumAccountID: "acc", Cost: rp(100), LifeMonths: 10, DepreciatedMonths: 5}, app.DisposalInput{AssetAccountID: "asset", CashAccountID: "cash", GainLossAccountID: "gl", Proceeds: rp(70)})
+	h.ok(domain.ValidateBalanced(lines))
+}
+
+func TestProjectAllocationKeepsTheTotal(t *testing.T) {
+	h := newHarness(t)
+	tags := app.NewProjectTags(h.deps)
+	tag, err := tags.Save(h.ctx, "u1", domain.ProjectTag{Name: "Retainer A", ClientName: "PT A", IsActive: true})
+	h.ok(err)
+	_, err = app.NewJournals(h.deps).Create(h.ctx, "u1", app.EntryInput{EntryDate: today, Description: "Gaji", Post: true, Lines: []domain.Line{line(h.id("6101001"), domain.Debit, 1_000), line(h.id("1102001"), domain.Credit, 1_000)}})
+	h.ok(err)
+	_, err = tags.CreateAllocation(h.ctx, "u1", domain.ProjectAllocation{TagID: tag.ID, Month: "2026-10", Kind: domain.AllocPayroll, Amount: rp(300)})
+	h.ok(err)
+	_, err = tags.CreateAllocation(h.ctx, "u1", domain.ProjectAllocation{TagID: tag.ID, Month: "bad", Kind: domain.AllocPayroll, Amount: rp(1)})
+	h.wantErr(err, "Bulan harus berformat YYYY-MM")
+	rows, _, _, err := tags.ProjectProfit(h.ctx, "2026-10-01", "2026-10-31", "")
+	h.ok(err)
+	var total, project domain.Money
+	for _, r := range rows {
+		total += r.Cost
+		if r.TagID == tag.ID {
+			project = r.Cost
+		}
+	}
+	if project != rp(300) || total != rp(1_000) {
+		t.Fatalf("project %s total %s %+v", project, total, rows)
+	}
+}
+
+func TestOverdueReminderOncePerStage(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	inv, err := l.CreateInvoice(h.ctx, domain.KindAR, "u1", app.InvoiceInput{InvoiceDate: "2026-10-01", DueDate: "2026-10-10", PartyName: "PT Telat", Subtotal: rp(100), AccountID: h.id("4101001")})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAR, "u1", inv.ID)
+	h.ok(err)
+	s := app.NewSchedules(h.deps)
+	_, err = s.RunDue(h.ctx)
+	h.ok(err)
+	if h.identity.last().Title != "Tagihan "+inv.InvoiceNo+" lewat 14 hari" {
+		t.Fatalf("%+v", h.identity.last())
+	}
+	sent := len(h.identity.sent)
+	_, err = s.RunDue(h.ctx)
+	h.ok(err)
+	if len(h.identity.sent) != sent {
+		t.Fatal("a stage reminds once")
+	}
+}
+
+func TestPOMatchStopsBillingBeyondDelivery(t *testing.T) {
+	h := newHarness(t)
+	l := app.NewLedgers(h.deps)
+	docs := app.NewDocuments(h.deps)
+	vendor, err := docs.SaveVendor(h.ctx, "u1", domain.Vendor{Name: "CV Kirim", IsActive: true})
+	h.ok(err)
+	po, err := docs.Create(h.ctx, "u1", domain.Document{Kind: domain.DocPO, Side: domain.SideSupplier, VendorID: vendor.ID, PartyName: "CV Kirim", Title: "Sewa alat", IssueDate: today, Items: []domain.DocItem{{Description: "Alat", Qty: rp(1), UnitPrice: rp(1_000)}}})
+	h.ok(err)
+	for _, act := range []string{domain.ActSubmit, domain.ActApprove} {
+		po, err = docs.Act(h.ctx, principal("boss", authn.PermFinanceApprove), po.ID, act, "")
+		h.ok(err)
+	}
+	inv, err := l.CreateInvoice(h.ctx, domain.KindAP, "u1", app.InvoiceInput{InvoiceDate: today, PartyName: "CV Kirim", Subtotal: rp(800)})
+	h.ok(err)
+	h.ok(l.MatchInvoiceToPO(h.ctx, inv.ID, po.ID))
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAP, "u1", inv.ID)
+	h.wantErr(err, "Nilai tagihan melebihi barang atau jasa yang sudah diterima pada purchase order ini")
+	_, err = l.ReceiveGoods(h.ctx, "u1", domain.GoodsReceipt{DocumentID: po.ID, Date: today, Amount: rp(2_000)})
+	h.wantErr(err, "Nilai melebihi sisa purchase order")
+	r, err := l.ReceiveGoods(h.ctx, "u1", domain.GoodsReceipt{DocumentID: po.ID, Date: today, Amount: rp(900)})
+	h.ok(err)
+	_, _, err = l.PostInvoice(h.ctx, domain.KindAP, "u1", inv.ID)
+	h.ok(err)
+	err = l.VoidGoodsReceipt(h.ctx, r.ID, "Salah catat")
+	h.wantErr(err, "Tagihan yang sudah diposting memakai penerimaan ini")
+	rows, err := l.ListPOMatches(h.ctx)
+	h.ok(err)
+	if len(rows) != 1 || rows[0].Received != rp(900) || rows[0].Billed != rp(800) {
+		t.Fatalf("%+v", rows)
+	}
+}
+
+func TestSeparateApproverCoversPaymentsToo(t *testing.T) {
+	h, l, inv := settlementHarness(t, domain.KindAR, "PT Dua")
+	h.ok(l.SetSeparateApprover(h.ctx, "boss", true))
+	const refused = "Pembuat dokumen tidak boleh memproses dokumennya sendiri. Minta rekan lain memeriksanya."
+	in := app.PaymentInput{PaymentDate: today, CashAccountID: h.id("1102001"), Allocations: []domain.Allocation{{InvoiceID: inv.ID, Amount: rp(100)}}}
+	_, err := l.CreatePayment(h.ctx, domain.KindAR, "u1", in)
+	h.wantErr(err, refused)
+	_, err = l.CreateCreditNote(h.ctx, "u1", inv.ID, app.CreditNoteInput{Date: today, Amount: rp(1), Reason: "Retur"})
+	h.wantErr(err, refused)
+	_, err = l.WriteOffInvoice(h.ctx, "u1", inv.ID, app.WriteOffInput{Date: today, ExpenseAccountID: h.id("8102001"), Reason: "Klien pailit"})
+	h.wantErr(err, refused)
+	_, err = l.CreatePayment(h.ctx, domain.KindAR, "kasir", in)
+	h.ok(err)
 }

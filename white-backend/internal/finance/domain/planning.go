@@ -12,6 +12,8 @@ type ProjectTag struct {
 type ProjectProfitRow struct {
 	TagID, TagName, ClientName string
 	Revenue, Cost              Money
+	// Allocated is the part of Cost a person assigned; the journals do not carry it.
+	Allocated Money
 }
 
 // SubledgerTotal sums one ledger's open invoices. Invoices still waiting for a

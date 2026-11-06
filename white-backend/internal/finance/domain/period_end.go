@@ -96,3 +96,66 @@ type AuditRepo interface {
 	InsertAuditEntry(ctx context.Context, e AuditEntry) error
 	ListAuditEntries(ctx context.Context, f AuditFilter) ([]AuditEntry, int, error)
 }
+
+// SalesReversal is a payment or invoice Sales removed that Finance has not reversed.
+type SalesReversal struct {
+	Kind, ID, DocNo, PartyName, Reason, Error string
+	Amount                                    Money
+}
+
+// SalesPaymentDeleted is the payload of white.sales.payment.deleted.
+type SalesPaymentDeleted struct {
+	PaymentID string `json:"paymentId"`
+	DeletedBy string `json:"deletedBy,omitempty"`
+}
+
+// SalesInvoiceCancelled is the payload of white.sales.invoice.cancelled, sent only
+// for an invoice Finance already booked.
+type SalesInvoiceCancelled struct {
+	InvoiceID   string `json:"invoiceId"`
+	Reason      string `json:"reason,omitempty"`
+	CancelledBy string `json:"cancelledBy,omitempty"`
+}
+
+// GoodsReceipt records what a vendor delivered against a purchase order, before tax.
+type GoodsReceipt struct {
+	ID, ReceiptNo, DocumentID, Date, Notes, Status, VoidReason, CreatedBy string
+	Amount                                                                Money
+}
+
+// POInvoice is an AP invoice matched to a purchase order.
+type POInvoice struct {
+	DocumentID, InvoiceID, InvoiceNo, PartyName, Status string
+	Subtotal                                            Money
+}
+
+// Kinds of cost allocated to a project.
+const (
+	AllocPayroll       = "PAYROLL"
+	AllocReimbursement = "REIMBURSEMENT"
+)
+
+// ProjectAllocation assigns payroll or reimbursement cost to a project for a month.
+type ProjectAllocation struct {
+	ID, TagID, TagName, ClientName, Month, Kind, Notes, CreatedBy string
+	Amount                                                        Money
+}
+
+// ControlRepo stores the links and records of the remaining ERP controls.
+type ControlRepo interface {
+	SetPaymentSalesReversal(ctx context.Context, id, reason, failure string) error
+	SetInvoiceSalesReversal(ctx context.Context, id, reason, failure string, settled bool) error
+	PendingSalesReversals(ctx context.Context) ([]SalesReversal, error)
+	DisposeFixedAsset(ctx context.Context, id, date, entryID, by string, proceeds Money) error
+	ListGoodsReceipts(ctx context.Context, documentID string) ([]GoodsReceipt, error)
+	GetGoodsReceipt(ctx context.Context, id string) (*GoodsReceipt, error)
+	InsertGoodsReceipt(ctx context.Context, r GoodsReceipt) error
+	VoidGoodsReceipt(ctx context.Context, id, reason string) error
+	SetInvoicePOLink(ctx context.Context, invoiceID, documentID string) error
+	InvoicePOLink(ctx context.Context, invoiceID string) (string, error)
+	POInvoices(ctx context.Context, documentID string) ([]POInvoice, error)
+	ListProjectAllocations(ctx context.Context, fromMonth, toMonth string) ([]ProjectAllocation, error)
+	InsertProjectAllocation(ctx context.Context, a ProjectAllocation) error
+	DeleteProjectAllocation(ctx context.Context, id string) error
+	InsertInvoiceReminder(ctx context.Context, invoiceID string, stage int) (bool, error)
+}

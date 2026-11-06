@@ -159,6 +159,8 @@ async function extendPublishing(now: Date): Promise<void> {
           ? src.status === "FAILED" ? "FAILED" : "PUBLISHED"
           : ["PUBLISHED", "SCHEDULED", "FAILED"].includes(src.status) ? "SCHEDULED" : src.status;
         const id = `${src.id}-d${k}`;
+        // A rescheduled or re-anchored copy keeps its id, so re-runs must skip it.
+        if (list.some((po) => po.id === id)) continue;
         await db.contentPost.create({
           data: {
             id,

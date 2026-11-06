@@ -65,7 +65,7 @@ func (s *projectTagServer) GetProjectProfit(ctx context.Context, r *financev1.Pr
 	for _, row := range rows {
 		revenue += row.Revenue
 		cost += row.Cost
-		out.Rows = append(out.Rows, &financev1.ProjectProfitRow{TagId: row.TagID, TagName: row.TagName, ClientName: row.ClientName, Revenue: row.Revenue.String(), Cost: row.Cost.String(), Profit: (row.Revenue - row.Cost).String()})
+		out.Rows = append(out.Rows, &financev1.ProjectProfitRow{TagId: row.TagID, TagName: row.TagName, ClientName: row.ClientName, Revenue: row.Revenue.String(), Cost: row.Cost.String(), Profit: (row.Revenue - row.Cost).String(), Allocated: row.Allocated.String()})
 	}
 	out.TotalRevenue, out.TotalCost, out.TotalProfit = revenue.String(), cost.String(), (revenue - cost).String()
 	return out, nil

@@ -178,10 +178,14 @@ func recurringPB(r *domain.RecurringJournal) *financev1.RecurringJournal {
 }
 
 func assetPB(a *domain.FixedAsset) *financev1.FixedAsset {
+	book := a.Cost - a.Accumulated()
+	if a.DisposedOn != "" {
+		book = 0
+	}
 	return &financev1.FixedAsset{Id: a.ID, Name: a.Name, AcquiredOn: a.AcquiredOn, Cost: a.Cost.String(), Salvage: a.Salvage.String(), LifeMonths: int32(a.LifeMonths),
-		MonthlyAmount: a.DepreciationFor(1).String(), DepreciatedMonths: int32(a.DepreciatedMonths), Accumulated: a.Accumulated().String(), BookValue: (a.Cost - a.Accumulated()).String(),
+		MonthlyAmount: a.DepreciationFor(1).String(), DepreciatedMonths: int32(a.DepreciatedMonths), Accumulated: a.Accumulated().String(), BookValue: book.String(),
 		ExpenseAccountId: a.ExpenseAccountID, ExpenseAccountName: a.ExpenseAccountName, AccumAccountId: a.AccumAccountID, AccumAccountName: a.AccumAccountName,
-		IsActive: a.IsActive, LastEntryId: a.LastEntryID, LastError: a.LastError}
+		IsActive: a.IsActive, LastEntryId: a.LastEntryID, LastError: a.LastError, DisposedOn: a.DisposedOn, DisposalProceeds: a.DisposalProceeds.String()}
 }
 
 func (s *scheduleServer) ListRecurringJournals(ctx context.Context, _ *emptypb.Empty) (*financev1.ListRecurringJournalsResponse, error) {

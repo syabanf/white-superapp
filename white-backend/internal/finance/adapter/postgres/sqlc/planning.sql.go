@@ -76,6 +76,15 @@ func (q *Queries) DeleteDeferral(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteInvoicePOLink = `-- name: DeleteInvoicePOLink :exec
+DELETE FROM finance.invoice_po_links WHERE invoice_id = $1
+`
+
+func (q *Queries) DeleteInvoicePOLink(ctx context.Context, invoiceID string) error {
+	_, err := q.db.Exec(ctx, deleteInvoicePOLink, invoiceID)
+	return err
+}
+
 const deletePostingLog = `-- name: DeletePostingLog :exec
 DELETE FROM finance.posting_logs WHERE event_code = $1 AND document_id = $2
 `
@@ -87,6 +96,15 @@ type DeletePostingLogParams struct {
 
 func (q *Queries) DeletePostingLog(ctx context.Context, arg DeletePostingLogParams) error {
 	_, err := q.db.Exec(ctx, deletePostingLog, arg.EventCode, arg.DocumentID)
+	return err
+}
+
+const deleteProjectAllocation = `-- name: DeleteProjectAllocation :exec
+DELETE FROM finance.project_cost_allocations WHERE id = $1
+`
+
+func (q *Queries) DeleteProjectAllocation(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteProjectAllocation, id)
 	return err
 }
 
@@ -105,6 +123,29 @@ DELETE FROM finance.recurring_invoices WHERE id = $1
 
 func (q *Queries) DeleteRecurringInvoice(ctx context.Context, id string) error {
 	_, err := q.db.Exec(ctx, deleteRecurringInvoice, id)
+	return err
+}
+
+const disposeFixedAsset = `-- name: DisposeFixedAsset :exec
+UPDATE finance.fixed_assets SET disposed_on = $2, disposal_proceeds = $3, disposal_entry_id = $4, is_active = false, updated_by = $5, updated_at = now() WHERE id = $1
+`
+
+type DisposeFixedAssetParams struct {
+	ID               string
+	DisposedOn       *time.Time
+	DisposalProceeds domain.Money
+	DisposalEntryID  *string
+	By               *string
+}
+
+func (q *Queries) DisposeFixedAsset(ctx context.Context, arg DisposeFixedAssetParams) error {
+	_, err := q.db.Exec(ctx, disposeFixedAsset,
+		arg.ID,
+		arg.DisposedOn,
+		arg.DisposalProceeds,
+		arg.DisposalEntryID,
+		arg.By,
+	)
 	return err
 }
 
@@ -404,6 +445,53 @@ func (q *Queries) InsertDeferral(ctx context.Context, arg InsertDeferralParams) 
 	return err
 }
 
+const insertGoodsReceipt = `-- name: InsertGoodsReceipt :exec
+INSERT INTO finance.goods_receipts (id, receipt_no, document_id, receipt_date, amount, notes, status, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+`
+
+type InsertGoodsReceiptParams struct {
+	ID          string
+	ReceiptNo   string
+	DocumentID  string
+	ReceiptDate time.Time
+	Amount      domain.Money
+	Notes       string
+	Status      string
+	By          *string
+}
+
+func (q *Queries) InsertGoodsReceipt(ctx context.Context, arg InsertGoodsReceiptParams) error {
+	_, err := q.db.Exec(ctx, insertGoodsReceipt,
+		arg.ID,
+		arg.ReceiptNo,
+		arg.DocumentID,
+		arg.ReceiptDate,
+		arg.Amount,
+		arg.Notes,
+		arg.Status,
+		arg.By,
+	)
+	return err
+}
+
+const insertInvoiceReminder = `-- name: InsertInvoiceReminder :execrows
+INSERT INTO finance.invoice_reminders (invoice_id, stage) VALUES ($1, $2) ON CONFLICT DO NOTHING
+`
+
+type InsertInvoiceReminderParams struct {
+	InvoiceID string
+	Stage     int32
+}
+
+func (q *Queries) InsertInvoiceReminder(ctx context.Context, arg InsertInvoiceReminderParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertInvoiceReminder, arg.InvoiceID, arg.Stage)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const insertPaymentAdjustment = `-- name: InsertPaymentAdjustment :exec
 INSERT INTO finance.payment_adjustments (id, payment_id, kind, account_id, tax_code, tax_name, tax_rate, report_code, tax_base, amount, memo, sort_order)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -438,6 +526,34 @@ func (q *Queries) InsertPaymentAdjustment(ctx context.Context, arg InsertPayment
 		arg.Amount,
 		arg.Memo,
 		arg.SortOrder,
+	)
+	return err
+}
+
+const insertProjectAllocation = `-- name: InsertProjectAllocation :exec
+INSERT INTO finance.project_cost_allocations (id, tag_id, month, kind, amount, notes, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertProjectAllocationParams struct {
+	ID     string
+	TagID  string
+	Month  string
+	Kind   string
+	Amount domain.Money
+	Notes  string
+	By     *string
+}
+
+func (q *Queries) InsertProjectAllocation(ctx context.Context, arg InsertProjectAllocationParams) error {
+	_, err := q.db.Exec(ctx, insertProjectAllocation,
+		arg.ID,
+		arg.TagID,
+		arg.Month,
+		arg.Kind,
+		arg.Amount,
+		arg.Notes,
+		arg.By,
 	)
 	return err
 }
@@ -492,6 +608,30 @@ func (q *Queries) InvoiceCredited(ctx context.Context, invoiceID string) (domain
 	var column_1 domain.Money
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const invoicePOLink = `-- name: InvoicePOLink :many
+SELECT document_id FROM finance.invoice_po_links WHERE invoice_id = $1
+`
+
+func (q *Queries) InvoicePOLink(ctx context.Context, invoiceID string) ([]string, error) {
+	rows, err := q.db.Query(ctx, invoicePOLink, invoiceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var document_id string
+		if err := rows.Scan(&document_id); err != nil {
+			return nil, err
+		}
+		items = append(items, document_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAdvanceRefunds = `-- name: ListAdvanceRefunds :many
@@ -784,6 +924,115 @@ func (q *Queries) ListDeferrals(ctx context.Context, arg ListDeferralsParams) ([
 	return items, nil
 }
 
+const listGoodsReceipts = `-- name: ListGoodsReceipts :many
+SELECT id, receipt_no, document_id, receipt_date, amount, notes, status, void_reason, created_by FROM finance.goods_receipts
+ WHERE ($1::text IS NULL OR id = $1)
+   AND ($2::text IS NULL OR document_id = $2)
+ ORDER BY receipt_date, receipt_no
+`
+
+type ListGoodsReceiptsParams struct {
+	ID         *string
+	DocumentID *string
+}
+
+type ListGoodsReceiptsRow struct {
+	ID          string
+	ReceiptNo   string
+	DocumentID  string
+	ReceiptDate time.Time
+	Amount      domain.Money
+	Notes       string
+	Status      string
+	VoidReason  string
+	CreatedBy   *string
+}
+
+func (q *Queries) ListGoodsReceipts(ctx context.Context, arg ListGoodsReceiptsParams) ([]ListGoodsReceiptsRow, error) {
+	rows, err := q.db.Query(ctx, listGoodsReceipts, arg.ID, arg.DocumentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListGoodsReceiptsRow{}
+	for rows.Next() {
+		var i ListGoodsReceiptsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ReceiptNo,
+			&i.DocumentID,
+			&i.ReceiptDate,
+			&i.Amount,
+			&i.Notes,
+			&i.Status,
+			&i.VoidReason,
+			&i.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProjectAllocations = `-- name: ListProjectAllocations :many
+SELECT c.id, c.tag_id, t.name AS tag_name, t.client_name, c.month, c.kind, c.amount, c.notes, c.created_by
+  FROM finance.project_cost_allocations c
+  JOIN finance.project_tags t ON t.id = c.tag_id
+ WHERE c.month >= $1::text AND c.month <= $2::text
+ ORDER BY c.month DESC, t.name
+`
+
+type ListProjectAllocationsParams struct {
+	MonthFrom string
+	MonthTo   string
+}
+
+type ListProjectAllocationsRow struct {
+	ID         string
+	TagID      string
+	TagName    string
+	ClientName string
+	Month      string
+	Kind       string
+	Amount     domain.Money
+	Notes      string
+	CreatedBy  *string
+}
+
+func (q *Queries) ListProjectAllocations(ctx context.Context, arg ListProjectAllocationsParams) ([]ListProjectAllocationsRow, error) {
+	rows, err := q.db.Query(ctx, listProjectAllocations, arg.MonthFrom, arg.MonthTo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListProjectAllocationsRow{}
+	for rows.Next() {
+		var i ListProjectAllocationsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TagID,
+			&i.TagName,
+			&i.ClientName,
+			&i.Month,
+			&i.Kind,
+			&i.Amount,
+			&i.Notes,
+			&i.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProjectTags = `-- name: ListProjectTags :many
 SELECT id, name, client_name, deal_id, is_active, notes, created_at, updated_at, updated_by FROM finance.project_tags
  WHERE (NOT $1::boolean OR is_active)
@@ -942,6 +1191,50 @@ func (q *Queries) LockAdvance(ctx context.Context, id string) error {
 	return err
 }
 
+const pOInvoices = `-- name: POInvoices :many
+SELECT x.document_id, i.id, i.invoice_no, i.party_name, i.status, i.subtotal
+  FROM finance.invoice_po_links x
+  JOIN finance.invoices i ON i.id = x.invoice_id
+ WHERE i.deleted_at IS NULL AND ($1::text IS NULL OR x.document_id = $1)
+ ORDER BY i.invoice_date
+`
+
+type POInvoicesRow struct {
+	DocumentID string
+	ID         string
+	InvoiceNo  string
+	PartyName  string
+	Status     string
+	Subtotal   domain.Money
+}
+
+func (q *Queries) POInvoices(ctx context.Context, documentID *string) ([]POInvoicesRow, error) {
+	rows, err := q.db.Query(ctx, pOInvoices, documentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []POInvoicesRow{}
+	for rows.Next() {
+		var i POInvoicesRow
+		if err := rows.Scan(
+			&i.DocumentID,
+			&i.ID,
+			&i.InvoiceNo,
+			&i.PartyName,
+			&i.Status,
+			&i.Subtotal,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const paymentAdjustments = `-- name: PaymentAdjustments :many
 SELECT x.payment_id, x.kind, x.account_id, a.name AS account_name, x.tax_code, x.tax_name, x.tax_rate, x.report_code, x.tax_base, x.amount, x.memo
   FROM finance.payment_adjustments x
@@ -1013,6 +1306,55 @@ func (q *Queries) PendingPostings(ctx context.Context, arg PendingPostingsParams
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const pendingSalesReversals = `-- name: PendingSalesReversals :many
+SELECT 'PAYMENT'::text AS kind, p.id, p.payment_no AS doc_no, p.party_name, p.amount, p.sales_deleted_reason AS reason, p.sales_reversal_error AS error
+  FROM finance.payments p
+ WHERE p.sales_deleted_reason <> '' AND p.status = 'POSTED' AND p.deleted_at IS NULL
+UNION ALL
+SELECT 'INVOICE'::text, i.id, i.invoice_no, i.party_name, i.total_amount, i.sales_cancel_reason, i.sales_reversal_error
+  FROM finance.invoices i
+ WHERE i.sales_cancel_reason <> '' AND NOT i.sales_cancel_settled AND i.deleted_at IS NULL
+ ORDER BY 3
+`
+
+type PendingSalesReversalsRow struct {
+	Kind      string
+	ID        string
+	DocNo     string
+	PartyName string
+	Amount    domain.Money
+	Reason    string
+	Error     string
+}
+
+func (q *Queries) PendingSalesReversals(ctx context.Context) ([]PendingSalesReversalsRow, error) {
+	rows, err := q.db.Query(ctx, pendingSalesReversals)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PendingSalesReversalsRow{}
+	for rows.Next() {
+		var i PendingSalesReversalsRow
+		if err := rows.Scan(
+			&i.Kind,
+			&i.ID,
+			&i.DocNo,
+			&i.PartyName,
+			&i.Amount,
+			&i.Reason,
+			&i.Error,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const projectProfit = `-- name: ProjectProfit :many
@@ -1122,6 +1464,57 @@ type SetDeferralActiveParams struct {
 
 func (q *Queries) SetDeferralActive(ctx context.Context, arg SetDeferralActiveParams) error {
 	_, err := q.db.Exec(ctx, setDeferralActive, arg.ID, arg.IsActive)
+	return err
+}
+
+const setInvoicePOLink = `-- name: SetInvoicePOLink :exec
+INSERT INTO finance.invoice_po_links (invoice_id, document_id) VALUES ($1, $2)
+ON CONFLICT (invoice_id) DO UPDATE SET document_id = EXCLUDED.document_id
+`
+
+type SetInvoicePOLinkParams struct {
+	InvoiceID  string
+	DocumentID string
+}
+
+func (q *Queries) SetInvoicePOLink(ctx context.Context, arg SetInvoicePOLinkParams) error {
+	_, err := q.db.Exec(ctx, setInvoicePOLink, arg.InvoiceID, arg.DocumentID)
+	return err
+}
+
+const setInvoiceSalesReversal = `-- name: SetInvoiceSalesReversal :exec
+UPDATE finance.invoices SET sales_cancel_reason = $2, sales_reversal_error = $3, sales_cancel_settled = $4 WHERE id = $1
+`
+
+type SetInvoiceSalesReversalParams struct {
+	ID                 string
+	SalesCancelReason  string
+	SalesReversalError string
+	SalesCancelSettled bool
+}
+
+func (q *Queries) SetInvoiceSalesReversal(ctx context.Context, arg SetInvoiceSalesReversalParams) error {
+	_, err := q.db.Exec(ctx, setInvoiceSalesReversal,
+		arg.ID,
+		arg.SalesCancelReason,
+		arg.SalesReversalError,
+		arg.SalesCancelSettled,
+	)
+	return err
+}
+
+const setPaymentSalesReversal = `-- name: SetPaymentSalesReversal :exec
+UPDATE finance.payments SET sales_deleted_reason = $2, sales_reversal_error = $3 WHERE id = $1
+`
+
+type SetPaymentSalesReversalParams struct {
+	ID                 string
+	SalesDeletedReason string
+	SalesReversalError string
+}
+
+func (q *Queries) SetPaymentSalesReversal(ctx context.Context, arg SetPaymentSalesReversalParams) error {
+	_, err := q.db.Exec(ctx, setPaymentSalesReversal, arg.ID, arg.SalesDeletedReason, arg.SalesReversalError)
 	return err
 }
 
@@ -1361,6 +1754,20 @@ type VoidAdvanceRefundParams struct {
 
 func (q *Queries) VoidAdvanceRefund(ctx context.Context, arg VoidAdvanceRefundParams) error {
 	_, err := q.db.Exec(ctx, voidAdvanceRefund, arg.ID, arg.VoidReason)
+	return err
+}
+
+const voidGoodsReceipt = `-- name: VoidGoodsReceipt :exec
+UPDATE finance.goods_receipts SET status = 'VOID', void_reason = $2 WHERE id = $1
+`
+
+type VoidGoodsReceiptParams struct {
+	ID         string
+	VoidReason string
+}
+
+func (q *Queries) VoidGoodsReceipt(ctx context.Context, arg VoidGoodsReceiptParams) error {
+	_, err := q.db.Exec(ctx, voidGoodsReceipt, arg.ID, arg.VoidReason)
 	return err
 }
 

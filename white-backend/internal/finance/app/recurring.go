@@ -211,6 +211,9 @@ func (s *Schedules) SetAssetActive(ctx context.Context, userID, id string, activ
 	if a == nil {
 		return nil, domain.NotFound("Aset tidak ditemukan")
 	}
+	if active && a.DisposedOn != "" {
+		return nil, domain.Conflict("Aset yang sudah dilepas tidak bisa diaktifkan lagi")
+	}
 	if err := s.Store.SetFixedAssetActive(ctx, id, active, userID); err != nil {
 		return nil, err
 	}
@@ -268,6 +271,10 @@ func (s *Schedules) RunDue(ctx context.Context) (RunResult, error) {
 	}
 	for _, d := range deferrals {
 		s.runDeferral(ctx, d, today, &res)
+	}
+	s.retrySalesReversals(ctx)
+	if err := s.remindOverdueInvoices(ctx); err != nil {
+		return res, err
 	}
 	return res, nil
 }

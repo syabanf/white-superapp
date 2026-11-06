@@ -425,7 +425,7 @@ func (q *Queries) ListBudgets(ctx context.Context, arg ListBudgetsParams) ([]Lis
 }
 
 const listFixedAssets = `-- name: ListFixedAssets :many
-SELECT f.id, f.name, f.acquired_on, f.cost, f.salvage, f.life_months, f.expense_account_id, f.accum_account_id, f.depreciated_months, f.is_active, f.last_entry_id, f.last_error, f.created_at, f.created_by, f.updated_at, f.updated_by, x.name AS expense_account_name, a.name AS accum_account_name
+SELECT f.id, f.name, f.acquired_on, f.cost, f.salvage, f.life_months, f.expense_account_id, f.accum_account_id, f.depreciated_months, f.is_active, f.last_entry_id, f.last_error, f.created_at, f.created_by, f.updated_at, f.updated_by, f.disposed_on, f.disposal_proceeds, f.disposal_entry_id, x.name AS expense_account_name, a.name AS accum_account_name
   FROM finance.fixed_assets f
   JOIN finance.accounts x ON x.id = f.expense_account_id
   JOIN finance.accounts a ON a.id = f.accum_account_id
@@ -456,6 +456,9 @@ type ListFixedAssetsRow struct {
 	CreatedBy          *string
 	UpdatedAt          time.Time
 	UpdatedBy          *string
+	DisposedOn         *time.Time
+	DisposalProceeds   domain.Money
+	DisposalEntryID    *string
 	ExpenseAccountName string
 	AccumAccountName   string
 }
@@ -486,6 +489,9 @@ func (q *Queries) ListFixedAssets(ctx context.Context, arg ListFixedAssetsParams
 			&i.CreatedBy,
 			&i.UpdatedAt,
 			&i.UpdatedBy,
+			&i.DisposedOn,
+			&i.DisposalProceeds,
+			&i.DisposalEntryID,
 			&i.ExpenseAccountName,
 			&i.AccumAccountName,
 		); err != nil {

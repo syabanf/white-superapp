@@ -691,6 +691,7 @@ type Store interface {
 	PlanningRepo
 	PeriodEndRepo
 	AuditRepo
+	ControlRepo
 	InsightRepo
 	AnalyticsRepo
 	WithTx(ctx context.Context, fn func(tx Store) error) error

@@ -808,6 +808,8 @@ export type RecurringJournal = {
 };
 
 export type FixedAsset = {
+  disposedOn?: string;
+  disposalProceeds?: string;
   id: string;
   name: string;
   acquiredOn: string;
@@ -966,7 +968,7 @@ export type TaxRegister = {
 };
 
 export type ProjectTag = { id: string; name: string; clientName: string; dealId: string; isActive: boolean; notes: string };
-export type ProjectProfitRow = { tagId: string; tagName: string; clientName: string; revenue: string; cost: string; profit: string };
+export type ProjectProfitRow = { tagId: string; tagName: string; clientName: string; revenue: string; cost: string; profit: string; allocated?: string };
 export type ProjectProfit = { dateFrom: string; dateTo: string; rows?: ProjectProfitRow[]; totalRevenue: string; totalCost: string; totalProfit: string };
 
 export type RecurringInvoice = {
@@ -1019,4 +1021,8 @@ export type Deferral = { id: string; kind: "REVENUE" | "EXPENSE"; name: string; 
 export type TaxPosition = { accountId: string; code: string; name: string; kind: "PAYABLE" | "PREPAID"; balance: string };
 export type TaxRemittance = { id: string; remitNo: string; period: string; remitDate: string; accountName: string; cashAccountName: string; amount: string; ntpn: string; notes: string; status: "POSTED" | "VOID"; journalEntryId: string; voidReason: string };
 export type AuditEntry = { id: string; at: string; actorName: string; action: string; docId: string; docNo: string; result: "OK" | "REFUSED"; message: string; request: string; response: string };
+export type SalesReversal = { kind: "PAYMENT" | "INVOICE"; id: string; docNo: string; partyName: string; amount: string; reason: string; error: string };
+export type GoodsReceipt = { id: string; receiptNo: string; documentId: string; receiptDate: string; amount: string; notes: string; status: "POSTED" | "VOID"; voidReason: string };
+export type PoMatch = { documentId: string; number: string; partyName: string; title: string; ordered: string; received: string; billed: string; receipts?: GoodsReceipt[]; invoices?: { invoiceId: string; invoiceNo: string; status: string; subtotal: string }[] };
+export type ProjectAllocation = { id: string; tagId: string; tagName: string; clientName: string; month: string; kind: "PAYROLL" | "REIMBURSEMENT"; amount: string; notes: string };
 export type AdvanceRefund = { id: string; refundNo: string; refundDate: string; amount: string; cashAccountName: string; reason: string; status: "POSTED" | "VOID"; journalEntryId: string; voidReason: string };

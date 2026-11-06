@@ -141,7 +141,7 @@ func register(ctx context.Context, d pkgapp.Deps, s *grpc.Server) error {
 
 // Subjects the worker consumes.
 var subjects = []string{
-	events.HRPayrollPaid, events.SalesInvoiceIssued, events.SalesPaymentRecorded,
+	events.HRPayrollPaid, events.SalesInvoiceIssued, events.SalesPaymentRecorded, events.SalesPaymentDeleted, events.SalesInvoiceCancelled,
 	events.ERPTickDaily, events.UserDeleted, events.IntegrationUpdated,
 }
 
@@ -223,6 +223,26 @@ func (h *Handler) handle(ctx context.Context, msg events.Message) error {
 		res, err := h.autoPost.SalesPaymentRecorded(ctx, p)
 		if err == nil && res != nil {
 			h.deps.AuditSystem(ctx, "SalesPaymentRecorded", res.Payment.ID, p, res.Note)
+		}
+		return err
+	case events.SalesPaymentDeleted:
+		var p domain.SalesPaymentDeleted
+		if err := decode(msg, &p); err != nil {
+			return err
+		}
+		err := h.autoPost.SalesPaymentDeleted(ctx, p)
+		if err == nil {
+			h.deps.AuditSystem(ctx, "SalesPaymentDeleted", p.PaymentID, p, "")
+		}
+		return err
+	case events.SalesInvoiceCancelled:
+		var p domain.SalesInvoiceCancelled
+		if err := decode(msg, &p); err != nil {
+			return err
+		}
+		err := h.autoPost.SalesInvoiceCancelled(ctx, p)
+		if err == nil {
+			h.deps.AuditSystem(ctx, "SalesInvoiceCancelled", p.InvoiceID, p, p.Reason)
 		}
 		return err
 	case events.ERPTickDaily:

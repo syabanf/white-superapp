@@ -5920,6 +5920,39 @@
         ]
       }
     },
+    "/v1/finance/ap/invoices/{invoiceId}:match-po": {
+      "post": {
+        "operationId": "PeriodEndService_MatchInvoiceToPo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PeriodEndServiceMatchInvoiceToPoBody"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
     "/v1/finance/ap/payable": {
       "get": {
         "operationId": "PayableService_ListApPayable",
@@ -8089,6 +8122,97 @@
         ]
       }
     },
+    "/v1/finance/fixed-assets/{id}:dispose": {
+      "post": {
+        "operationId": "PeriodEndService_DisposeFixedAsset",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FixedAsset"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PeriodEndServiceDisposeFixedAssetBody"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/goods-receipts": {
+      "post": {
+        "operationId": "PeriodEndService_ReceiveGoods",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GoodsReceipt"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GoodsReceipt"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/goods-receipts/{id}:void": {
+      "post": {
+        "operationId": "PeriodEndService_VoidGoodsReceipt",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PeriodEndServiceVoidGoodsReceiptBody"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
     "/v1/finance/invoices/{invoiceId}:credit-note": {
       "post": {
         "summary": "finance.approve. Reverses part or all of a posted invoice's journal and\nlowers what the party owes.",
@@ -8367,6 +8491,38 @@
         ]
       }
     },
+    "/v1/finance/journal-entries/{id}:reverse": {
+      "post": {
+        "operationId": "PeriodEndService_ReverseJournalEntry",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1JournalEntry"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PeriodEndServiceReverseJournalEntryBody"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
     "/v1/finance/journal-events": {
       "get": {
         "operationId": "AccountService_ListJournalEvents",
@@ -8621,6 +8777,22 @@
         ]
       }
     },
+    "/v1/finance/po-matches": {
+      "get": {
+        "operationId": "PeriodEndService_ListPoMatches",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPoMatchesResponse"
+            }
+          }
+        },
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
     "/v1/finance/posting-logs": {
       "get": {
         "summary": "Results of automatic posting from payroll, sales and reimbursements.",
@@ -8681,6 +8853,91 @@
         ],
         "tags": [
           "JournalService"
+        ]
+      }
+    },
+    "/v1/finance/project-allocations": {
+      "get": {
+        "operationId": "PeriodEndService_ListProjectAllocations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListProjectAllocationsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clientName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      },
+      "post": {
+        "operationId": "PeriodEndService_CreateProjectAllocation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListProjectAllocationsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ProjectAllocation"
+            }
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
+        ]
+      }
+    },
+    "/v1/finance/project-allocations/{id}": {
+      "delete": {
+        "operationId": "PeriodEndService_DeleteProjectAllocation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PeriodEndService"
         ]
       }
     },
@@ -10324,6 +10581,22 @@
         ],
         "tags": [
           "ReportService"
+        ]
+      }
+    },
+    "/v1/finance/sales-reversals": {
+      "get": {
+        "operationId": "PeriodEndService_ListSalesReversals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListSalesReversalsResponse"
+            }
+          }
+        },
+        "tags": [
+          "PeriodEndService"
         ]
       }
     },
@@ -25555,11 +25828,61 @@
         }
       }
     },
+    "PeriodEndServiceDisposeFixedAssetBody": {
+      "type": "object",
+      "properties": {
+        "disposalDate": {
+          "type": "string"
+        },
+        "assetAccountId": {
+          "type": "string"
+        },
+        "cashAccountId": {
+          "type": "string"
+        },
+        "gainLossAccountId": {
+          "type": "string"
+        },
+        "proceeds": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "PeriodEndServiceMatchInvoiceToPoBody": {
+      "type": "object",
+      "properties": {
+        "documentId": {
+          "type": "string"
+        }
+      }
+    },
+    "PeriodEndServiceReverseJournalEntryBody": {
+      "type": "object",
+      "properties": {
+        "reversalDate": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
     "PeriodEndServiceSetDeferralActiveBody": {
       "type": "object",
       "properties": {
         "active": {
           "type": "boolean"
+        }
+      }
+    },
+    "PeriodEndServiceVoidGoodsReceiptBody": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
         }
       }
     },
@@ -35864,6 +36187,12 @@
         },
         "lastError": {
           "type": "string"
+        },
+        "disposedOn": {
+          "type": "string"
+        },
+        "disposalProceeds": {
+          "type": "string"
         }
       }
     },
@@ -36429,6 +36758,35 @@
         },
         "hasFinal": {
           "type": "boolean"
+        }
+      }
+    },
+    "v1GoodsReceipt": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "receiptNo": {
+          "type": "string"
+        },
+        "documentId": {
+          "type": "string"
+        },
+        "receiptDate": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "voidReason": {
+          "type": "string"
         }
       }
     },
@@ -40939,6 +41297,18 @@
         }
       }
     },
+    "v1ListPoMatchesResponse": {
+      "type": "object",
+      "properties": {
+        "matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PoMatch"
+          }
+        }
+      }
+    },
     "v1ListPoliciesResponse": {
       "type": "object",
       "properties": {
@@ -41015,6 +41385,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1ProctorEvent"
+          }
+        }
+      }
+    },
+    "v1ListProjectAllocationsResponse": {
+      "type": "object",
+      "properties": {
+        "allocations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProjectAllocation"
           }
         }
       }
@@ -41165,6 +41547,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1Salary"
+          }
+        }
+      }
+    },
+    "v1ListSalesReversalsResponse": {
+      "type": "object",
+      "properties": {
+        "reversals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SalesReversal"
           }
         }
       }
@@ -44803,6 +45197,63 @@
         }
       }
     },
+    "v1PoInvoice": {
+      "type": "object",
+      "properties": {
+        "invoiceId": {
+          "type": "string"
+        },
+        "invoiceNo": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "subtotal": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PoMatch": {
+      "type": "object",
+      "properties": {
+        "documentId": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "ordered": {
+          "type": "string"
+        },
+        "received": {
+          "type": "string"
+        },
+        "billed": {
+          "type": "string"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1GoodsReceipt"
+          }
+        },
+        "invoices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PoInvoice"
+          }
+        }
+      }
+    },
     "v1PortalActionResponse": {
       "type": "object",
       "properties": {
@@ -45421,6 +45872,35 @@
         }
       }
     },
+    "v1ProjectAllocation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "tagId": {
+          "type": "string"
+        },
+        "tagName": {
+          "type": "string"
+        },
+        "clientName": {
+          "type": "string"
+        },
+        "month": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
     "v1ProjectProfit": {
       "type": "object",
       "properties": {
@@ -45469,6 +45949,10 @@
         },
         "profit": {
           "type": "string"
+        },
+        "allocated": {
+          "type": "string",
+          "description": "The part of cost a person assigned, negative on the untagged row."
         }
       }
     },
@@ -48283,6 +48767,32 @@
         "confirmedSalary": {
           "type": "string",
           "format": "int64"
+        }
+      }
+    },
+    "v1SalesReversal": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "docNo": {
+          "type": "string"
+        },
+        "partyName": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
         }
       }
     },

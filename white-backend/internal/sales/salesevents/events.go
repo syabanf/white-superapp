@@ -48,6 +48,21 @@ type PaymentRecorded struct {
 	WithheldTaxCode string `json:"withheldTaxCode,omitempty"`
 }
 
+// PaymentDeleted is published on events.SalesPaymentDeleted for a payment recorded
+// against an invoice. It matches finance/domain.SalesPaymentDeleted.
+type PaymentDeleted struct {
+	PaymentID string `json:"paymentId"`
+	DeletedBy string `json:"deletedBy,omitempty"`
+}
+
+// InvoiceCancelled is published on events.SalesInvoiceCancelled for an invoice already
+// issued to finance. It matches finance/domain.SalesInvoiceCancelled.
+type InvoiceCancelled struct {
+	InvoiceID   string `json:"invoiceId"`
+	Reason      string `json:"reason,omitempty"`
+	CancelledBy string `json:"cancelledBy,omitempty"`
+}
+
 // DealWon is published on events.SalesDealWon when a deal enters a won
 // stage. Sales starts the client onboarding from it.
 type DealWon struct {

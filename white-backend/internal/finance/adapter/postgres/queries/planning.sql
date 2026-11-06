@@ -241,3 +241,69 @@ SELECT count(*)::int
    AND (sqlc.narg(result)::text IS NULL OR result = sqlc.narg(result))
    AND (sqlc.narg(date_from)::date IS NULL OR at >= sqlc.narg(date_from)::date)
    AND (sqlc.narg(date_to)::date IS NULL OR at < sqlc.narg(date_to)::date + 1);
+
+-- name: SetPaymentSalesReversal :exec
+UPDATE finance.payments SET sales_deleted_reason = $2, sales_reversal_error = $3 WHERE id = $1;
+
+-- name: SetInvoiceSalesReversal :exec
+UPDATE finance.invoices SET sales_cancel_reason = $2, sales_reversal_error = $3, sales_cancel_settled = $4 WHERE id = $1;
+
+-- name: PendingSalesReversals :many
+SELECT 'PAYMENT'::text AS kind, p.id, p.payment_no AS doc_no, p.party_name, p.amount, p.sales_deleted_reason AS reason, p.sales_reversal_error AS error
+  FROM finance.payments p
+ WHERE p.sales_deleted_reason <> '' AND p.status = 'POSTED' AND p.deleted_at IS NULL
+UNION ALL
+SELECT 'INVOICE'::text, i.id, i.invoice_no, i.party_name, i.total_amount, i.sales_cancel_reason, i.sales_reversal_error
+  FROM finance.invoices i
+ WHERE i.sales_cancel_reason <> '' AND NOT i.sales_cancel_settled AND i.deleted_at IS NULL
+ ORDER BY 3;
+
+-- name: DisposeFixedAsset :exec
+UPDATE finance.fixed_assets SET disposed_on = $2, disposal_proceeds = $3, disposal_entry_id = $4, is_active = false, updated_by = sqlc.narg(by), updated_at = now() WHERE id = $1;
+
+-- name: ListGoodsReceipts :many
+SELECT id, receipt_no, document_id, receipt_date, amount, notes, status, void_reason, created_by FROM finance.goods_receipts
+ WHERE (sqlc.narg(id)::text IS NULL OR id = sqlc.narg(id))
+   AND (sqlc.narg(document_id)::text IS NULL OR document_id = sqlc.narg(document_id))
+ ORDER BY receipt_date, receipt_no;
+
+-- name: InsertGoodsReceipt :exec
+INSERT INTO finance.goods_receipts (id, receipt_no, document_id, receipt_date, amount, notes, status, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, sqlc.narg(by));
+
+-- name: VoidGoodsReceipt :exec
+UPDATE finance.goods_receipts SET status = 'VOID', void_reason = $2 WHERE id = $1;
+
+-- name: SetInvoicePOLink :exec
+INSERT INTO finance.invoice_po_links (invoice_id, document_id) VALUES ($1, $2)
+ON CONFLICT (invoice_id) DO UPDATE SET document_id = EXCLUDED.document_id;
+
+-- name: DeleteInvoicePOLink :exec
+DELETE FROM finance.invoice_po_links WHERE invoice_id = $1;
+
+-- name: InvoicePOLink :many
+SELECT document_id FROM finance.invoice_po_links WHERE invoice_id = $1;
+
+-- name: POInvoices :many
+SELECT x.document_id, i.id, i.invoice_no, i.party_name, i.status, i.subtotal
+  FROM finance.invoice_po_links x
+  JOIN finance.invoices i ON i.id = x.invoice_id
+ WHERE i.deleted_at IS NULL AND (sqlc.narg(document_id)::text IS NULL OR x.document_id = sqlc.narg(document_id))
+ ORDER BY i.invoice_date;
+
+-- name: ListProjectAllocations :many
+SELECT c.id, c.tag_id, t.name AS tag_name, t.client_name, c.month, c.kind, c.amount, c.notes, c.created_by
+  FROM finance.project_cost_allocations c
+  JOIN finance.project_tags t ON t.id = c.tag_id
+ WHERE c.month >= sqlc.arg(month_from)::text AND c.month <= sqlc.arg(month_to)::text
+ ORDER BY c.month DESC, t.name;
+
+-- name: InsertProjectAllocation :exec
+INSERT INTO finance.project_cost_allocations (id, tag_id, month, kind, amount, notes, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, sqlc.narg(by));
+
+-- name: DeleteProjectAllocation :exec
+DELETE FROM finance.project_cost_allocations WHERE id = $1;
+
+-- name: InsertInvoiceReminder :execrows
+INSERT INTO finance.invoice_reminders (invoice_id, stage) VALUES ($1, $2) ON CONFLICT DO NOTHING;

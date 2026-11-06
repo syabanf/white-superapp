@@ -904,3 +904,47 @@ export async function writeOffInvoiceAction(invoiceId: string, input: { writeOff
   revalidatePath(pagePath("AR"));
   return res;
 }
+
+export async function reverseJournalAction(entryId: string, reason: string) {
+  const res = await runGateway(() => gatewayFetch(`${F}/journal-entries/${id(entryId)}:reverse`, json("POST", { reason })));
+  revalidatePath("/erp/finance/journals", "layout");
+  return res;
+}
+
+export async function disposeAssetAction(assetId: string, input: { disposalDate: string; assetAccountId: string; cashAccountId: string; gainLossAccountId: string; proceeds: string; reason: string }) {
+  return scheduleAction<FixedAsset>(`fixed-assets/${id(assetId)}:dispose`, "POST", input);
+}
+
+const poPath = "/erp/finance/po-matching";
+
+export async function receiveGoodsAction(input: { documentId: string; receiptDate: string; amount: string; notes: string }) {
+  const res = await runGateway(() => gatewayFetch(`${F}/goods-receipts`, json("POST", input)));
+  revalidatePath(poPath);
+  return res;
+}
+
+export async function voidGoodsReceiptAction(receiptId: string, reason: string) {
+  const res = await runGateway(() => gatewayFetch(`${F}/goods-receipts/${id(receiptId)}:void`, json("POST", { reason })));
+  revalidatePath(poPath);
+  return res;
+}
+
+export async function matchInvoiceToPoAction(invoiceId: string, documentId: string) {
+  const res = await runGateway(() => gatewayFetch(`${F}/ap/invoices/${id(invoiceId)}:match-po`, json("POST", { documentId })));
+  revalidatePath(poPath);
+  return res;
+}
+
+const projectsPath = "/erp/finance/projects";
+
+export async function createProjectAllocationAction(input: { tagId: string; month: string; kind: string; amount: string; notes: string }) {
+  const res = await runGateway(() => gatewayFetch(`${F}/project-allocations`, json("POST", input)));
+  revalidatePath(projectsPath);
+  return res;
+}
+
+export async function deleteProjectAllocationAction(allocationId: string) {
+  const res = await runGateway(() => gatewayFetch(`${F}/project-allocations/${id(allocationId)}`, json("DELETE")));
+  revalidatePath(projectsPath);
+  return res;
+}

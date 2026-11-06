@@ -30,6 +30,7 @@ import {
   type RecurringValues,
 } from "../actions";
 import { fs } from "../strings";
+import { DisposeAssetDialog } from "./controls";
 import type { FixedAsset, PostableAccount, ProjectTag, RecurringJournal } from "../types";
 import { AccountPicker } from "./account-picker";
 import { TagPicker } from "./tag-picker";
@@ -160,15 +161,21 @@ export function AssetsTable({ rows, accounts, canApprove }: { rows: FixedAsset[]
             id: "actions",
             header: "",
             enableSorting: false,
-            cell: ({ row }: { row: { original: FixedAsset } }) => (
-              <ToggleDelete
-                edit={<AssetDialog accounts={accounts} asset={row.original} />}
-                active={row.original.isActive}
-                onToggle={() => setAssetActiveAction(row.original.id, !row.original.isActive)}
-                canDelete={row.original.depreciatedMonths === 0}
-                onDelete={() => deleteAssetAction(row.original.id)}
-              />
-            ),
+            cell: ({ row }: { row: { original: FixedAsset } }) =>
+              row.original.disposedOn ? (
+                <span className="text-xs text-muted-foreground">{fs.controls.disposedOn} {formatDate(row.original.disposedOn)}</span>
+              ) : (
+                <span className="flex items-center justify-end gap-0.5">
+                  <DisposeAssetDialog asset={row.original} accounts={accounts} />
+                  <ToggleDelete
+                    edit={<AssetDialog accounts={accounts} asset={row.original} />}
+                    active={row.original.isActive}
+                    onToggle={() => setAssetActiveAction(row.original.id, !row.original.isActive)}
+                    canDelete={row.original.depreciatedMonths === 0}
+                    onDelete={() => deleteAssetAction(row.original.id)}
+                  />
+                </span>
+              ),
           } satisfies ColumnDef<FixedAsset, unknown>,
         ]
       : []),

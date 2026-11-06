@@ -202,6 +202,7 @@ export const t = {
     reconciliation: "Rekonsiliasi",
     taxSetup: "Master pajak & biaya",
     periodEnd: "Tutup buku",
+    poMatching: "Pencocokan PO",
     auditTrail: "Audit trail",
     purchasing: "Pengadaan",
     projects: "Proyek",

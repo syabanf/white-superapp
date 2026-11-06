@@ -77,5 +77,12 @@ func (p *ProjectTags) ProjectProfit(ctx context.Context, from, to, clientName st
 		return nil, "", "", err
 	}
 	rows, err := p.Store.ProjectProfit(ctx, from, to, trim(clientName))
-	return rows, from, to, err
+	if err != nil {
+		return nil, "", "", err
+	}
+	allocations, err := p.Store.ListProjectAllocations(ctx, from[:7], to[:7])
+	if err != nil {
+		return nil, "", "", err
+	}
+	return applyAllocations(rows, allocations, trim(clientName)), from, to, nil
 }

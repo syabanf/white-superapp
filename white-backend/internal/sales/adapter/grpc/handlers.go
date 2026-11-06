@@ -1010,10 +1010,11 @@ func (s *billingServer) RecordPayment(ctx context.Context, r *salesv1.RecordPaym
 }
 
 func (s *billingServer) DeletePayment(ctx context.Context, r *salesv1.IdRequest) (*emptypb.Empty, error) {
-	if _, err := writer(ctx); err != nil {
+	a, err := writer(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return empty(), s.svc.Billing.DeletePayment(ctx, r.Id)
+	return empty(), s.svc.Billing.DeletePayment(ctx, a, r.Id)
 }
 
 // ─── insights ────────────────────────────────────────────────

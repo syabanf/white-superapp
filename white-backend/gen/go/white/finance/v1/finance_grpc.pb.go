@@ -7062,20 +7062,30 @@ var ProjectTagService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	PeriodEndService_ListDeferrals_FullMethodName      = "/white.finance.v1.PeriodEndService/ListDeferrals"
-	PeriodEndService_CreateDeferral_FullMethodName     = "/white.finance.v1.PeriodEndService/CreateDeferral"
-	PeriodEndService_SetDeferralActive_FullMethodName  = "/white.finance.v1.PeriodEndService/SetDeferralActive"
-	PeriodEndService_DeleteDeferral_FullMethodName     = "/white.finance.v1.PeriodEndService/DeleteDeferral"
-	PeriodEndService_WriteOffInvoice_FullMethodName    = "/white.finance.v1.PeriodEndService/WriteOffInvoice"
-	PeriodEndService_ListTaxPositions_FullMethodName   = "/white.finance.v1.PeriodEndService/ListTaxPositions"
-	PeriodEndService_ListTaxRemittances_FullMethodName = "/white.finance.v1.PeriodEndService/ListTaxRemittances"
-	PeriodEndService_RemitTax_FullMethodName           = "/white.finance.v1.PeriodEndService/RemitTax"
-	PeriodEndService_VoidTaxRemittance_FullMethodName  = "/white.finance.v1.PeriodEndService/VoidTaxRemittance"
-	PeriodEndService_CloseVat_FullMethodName           = "/white.finance.v1.PeriodEndService/CloseVat"
-	PeriodEndService_ListAuditTrail_FullMethodName     = "/white.finance.v1.PeriodEndService/ListAuditTrail"
-	PeriodEndService_ExportAuditTrail_FullMethodName   = "/white.finance.v1.PeriodEndService/ExportAuditTrail"
-	PeriodEndService_GetControlSettings_FullMethodName = "/white.finance.v1.PeriodEndService/GetControlSettings"
-	PeriodEndService_SetControlSettings_FullMethodName = "/white.finance.v1.PeriodEndService/SetControlSettings"
+	PeriodEndService_ListDeferrals_FullMethodName           = "/white.finance.v1.PeriodEndService/ListDeferrals"
+	PeriodEndService_CreateDeferral_FullMethodName          = "/white.finance.v1.PeriodEndService/CreateDeferral"
+	PeriodEndService_SetDeferralActive_FullMethodName       = "/white.finance.v1.PeriodEndService/SetDeferralActive"
+	PeriodEndService_DeleteDeferral_FullMethodName          = "/white.finance.v1.PeriodEndService/DeleteDeferral"
+	PeriodEndService_WriteOffInvoice_FullMethodName         = "/white.finance.v1.PeriodEndService/WriteOffInvoice"
+	PeriodEndService_ListTaxPositions_FullMethodName        = "/white.finance.v1.PeriodEndService/ListTaxPositions"
+	PeriodEndService_ListTaxRemittances_FullMethodName      = "/white.finance.v1.PeriodEndService/ListTaxRemittances"
+	PeriodEndService_RemitTax_FullMethodName                = "/white.finance.v1.PeriodEndService/RemitTax"
+	PeriodEndService_VoidTaxRemittance_FullMethodName       = "/white.finance.v1.PeriodEndService/VoidTaxRemittance"
+	PeriodEndService_CloseVat_FullMethodName                = "/white.finance.v1.PeriodEndService/CloseVat"
+	PeriodEndService_ListAuditTrail_FullMethodName          = "/white.finance.v1.PeriodEndService/ListAuditTrail"
+	PeriodEndService_ExportAuditTrail_FullMethodName        = "/white.finance.v1.PeriodEndService/ExportAuditTrail"
+	PeriodEndService_ListSalesReversals_FullMethodName      = "/white.finance.v1.PeriodEndService/ListSalesReversals"
+	PeriodEndService_ReverseJournalEntry_FullMethodName     = "/white.finance.v1.PeriodEndService/ReverseJournalEntry"
+	PeriodEndService_DisposeFixedAsset_FullMethodName       = "/white.finance.v1.PeriodEndService/DisposeFixedAsset"
+	PeriodEndService_ListPoMatches_FullMethodName           = "/white.finance.v1.PeriodEndService/ListPoMatches"
+	PeriodEndService_ReceiveGoods_FullMethodName            = "/white.finance.v1.PeriodEndService/ReceiveGoods"
+	PeriodEndService_VoidGoodsReceipt_FullMethodName        = "/white.finance.v1.PeriodEndService/VoidGoodsReceipt"
+	PeriodEndService_MatchInvoiceToPo_FullMethodName        = "/white.finance.v1.PeriodEndService/MatchInvoiceToPo"
+	PeriodEndService_ListProjectAllocations_FullMethodName  = "/white.finance.v1.PeriodEndService/ListProjectAllocations"
+	PeriodEndService_CreateProjectAllocation_FullMethodName = "/white.finance.v1.PeriodEndService/CreateProjectAllocation"
+	PeriodEndService_DeleteProjectAllocation_FullMethodName = "/white.finance.v1.PeriodEndService/DeleteProjectAllocation"
+	PeriodEndService_GetControlSettings_FullMethodName      = "/white.finance.v1.PeriodEndService/GetControlSettings"
+	PeriodEndService_SetControlSettings_FullMethodName      = "/white.finance.v1.PeriodEndService/SetControlSettings"
 )
 
 // PeriodEndServiceClient is the client API for PeriodEndService service.
@@ -7097,6 +7107,16 @@ type PeriodEndServiceClient interface {
 	CloseVat(ctx context.Context, in *CloseVatRequest, opts ...grpc.CallOption) (*VatClosing, error)
 	ListAuditTrail(ctx context.Context, in *ListAuditTrailRequest, opts ...grpc.CallOption) (*ListAuditTrailResponse, error)
 	ExportAuditTrail(ctx context.Context, in *ListAuditTrailRequest, opts ...grpc.CallOption) (*TaxExportFile, error)
+	ListSalesReversals(ctx context.Context, in *ListSalesReversalsRequest, opts ...grpc.CallOption) (*ListSalesReversalsResponse, error)
+	ReverseJournalEntry(ctx context.Context, in *ReverseJournalRequest, opts ...grpc.CallOption) (*JournalEntry, error)
+	DisposeFixedAsset(ctx context.Context, in *DisposeAssetRequest, opts ...grpc.CallOption) (*FixedAsset, error)
+	ListPoMatches(ctx context.Context, in *ListPoMatchesRequest, opts ...grpc.CallOption) (*ListPoMatchesResponse, error)
+	ReceiveGoods(ctx context.Context, in *GoodsReceipt, opts ...grpc.CallOption) (*GoodsReceipt, error)
+	VoidGoodsReceipt(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	MatchInvoiceToPo(ctx context.Context, in *MatchInvoiceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListProjectAllocations(ctx context.Context, in *ProjectProfitRequest, opts ...grpc.CallOption) (*ListProjectAllocationsResponse, error)
+	CreateProjectAllocation(ctx context.Context, in *ProjectAllocation, opts ...grpc.CallOption) (*ListProjectAllocationsResponse, error)
+	DeleteProjectAllocation(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetControlSettings(ctx context.Context, in *ControlSettingsRequest, opts ...grpc.CallOption) (*ControlSettings, error)
 	SetControlSettings(ctx context.Context, in *ControlSettings, opts ...grpc.CallOption) (*ControlSettings, error)
 }
@@ -7229,6 +7249,106 @@ func (c *periodEndServiceClient) ExportAuditTrail(ctx context.Context, in *ListA
 	return out, nil
 }
 
+func (c *periodEndServiceClient) ListSalesReversals(ctx context.Context, in *ListSalesReversalsRequest, opts ...grpc.CallOption) (*ListSalesReversalsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSalesReversalsResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_ListSalesReversals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ReverseJournalEntry(ctx context.Context, in *ReverseJournalRequest, opts ...grpc.CallOption) (*JournalEntry, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(JournalEntry)
+	err := c.cc.Invoke(ctx, PeriodEndService_ReverseJournalEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) DisposeFixedAsset(ctx context.Context, in *DisposeAssetRequest, opts ...grpc.CallOption) (*FixedAsset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FixedAsset)
+	err := c.cc.Invoke(ctx, PeriodEndService_DisposeFixedAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ListPoMatches(ctx context.Context, in *ListPoMatchesRequest, opts ...grpc.CallOption) (*ListPoMatchesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPoMatchesResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_ListPoMatches_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ReceiveGoods(ctx context.Context, in *GoodsReceipt, opts ...grpc.CallOption) (*GoodsReceipt, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GoodsReceipt)
+	err := c.cc.Invoke(ctx, PeriodEndService_ReceiveGoods_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) VoidGoodsReceipt(ctx context.Context, in *VoidAdvanceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, PeriodEndService_VoidGoodsReceipt_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) MatchInvoiceToPo(ctx context.Context, in *MatchInvoiceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, PeriodEndService_MatchInvoiceToPo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) ListProjectAllocations(ctx context.Context, in *ProjectProfitRequest, opts ...grpc.CallOption) (*ListProjectAllocationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListProjectAllocationsResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_ListProjectAllocations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) CreateProjectAllocation(ctx context.Context, in *ProjectAllocation, opts ...grpc.CallOption) (*ListProjectAllocationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListProjectAllocationsResponse)
+	err := c.cc.Invoke(ctx, PeriodEndService_CreateProjectAllocation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *periodEndServiceClient) DeleteProjectAllocation(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, PeriodEndService_DeleteProjectAllocation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *periodEndServiceClient) GetControlSettings(ctx context.Context, in *ControlSettingsRequest, opts ...grpc.CallOption) (*ControlSettings, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ControlSettings)
@@ -7268,6 +7388,16 @@ type PeriodEndServiceServer interface {
 	CloseVat(context.Context, *CloseVatRequest) (*VatClosing, error)
 	ListAuditTrail(context.Context, *ListAuditTrailRequest) (*ListAuditTrailResponse, error)
 	ExportAuditTrail(context.Context, *ListAuditTrailRequest) (*TaxExportFile, error)
+	ListSalesReversals(context.Context, *ListSalesReversalsRequest) (*ListSalesReversalsResponse, error)
+	ReverseJournalEntry(context.Context, *ReverseJournalRequest) (*JournalEntry, error)
+	DisposeFixedAsset(context.Context, *DisposeAssetRequest) (*FixedAsset, error)
+	ListPoMatches(context.Context, *ListPoMatchesRequest) (*ListPoMatchesResponse, error)
+	ReceiveGoods(context.Context, *GoodsReceipt) (*GoodsReceipt, error)
+	VoidGoodsReceipt(context.Context, *VoidAdvanceRequest) (*emptypb.Empty, error)
+	MatchInvoiceToPo(context.Context, *MatchInvoiceRequest) (*emptypb.Empty, error)
+	ListProjectAllocations(context.Context, *ProjectProfitRequest) (*ListProjectAllocationsResponse, error)
+	CreateProjectAllocation(context.Context, *ProjectAllocation) (*ListProjectAllocationsResponse, error)
+	DeleteProjectAllocation(context.Context, *IdRequest) (*emptypb.Empty, error)
 	GetControlSettings(context.Context, *ControlSettingsRequest) (*ControlSettings, error)
 	SetControlSettings(context.Context, *ControlSettings) (*ControlSettings, error)
 	mustEmbedUnimplementedPeriodEndServiceServer()
@@ -7315,6 +7445,36 @@ func (UnimplementedPeriodEndServiceServer) ListAuditTrail(context.Context, *List
 }
 func (UnimplementedPeriodEndServiceServer) ExportAuditTrail(context.Context, *ListAuditTrailRequest) (*TaxExportFile, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExportAuditTrail not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ListSalesReversals(context.Context, *ListSalesReversalsRequest) (*ListSalesReversalsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSalesReversals not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ReverseJournalEntry(context.Context, *ReverseJournalRequest) (*JournalEntry, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReverseJournalEntry not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) DisposeFixedAsset(context.Context, *DisposeAssetRequest) (*FixedAsset, error) {
+	return nil, status.Error(codes.Unimplemented, "method DisposeFixedAsset not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ListPoMatches(context.Context, *ListPoMatchesRequest) (*ListPoMatchesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPoMatches not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ReceiveGoods(context.Context, *GoodsReceipt) (*GoodsReceipt, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReceiveGoods not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) VoidGoodsReceipt(context.Context, *VoidAdvanceRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method VoidGoodsReceipt not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) MatchInvoiceToPo(context.Context, *MatchInvoiceRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method MatchInvoiceToPo not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) ListProjectAllocations(context.Context, *ProjectProfitRequest) (*ListProjectAllocationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListProjectAllocations not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) CreateProjectAllocation(context.Context, *ProjectAllocation) (*ListProjectAllocationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateProjectAllocation not implemented")
+}
+func (UnimplementedPeriodEndServiceServer) DeleteProjectAllocation(context.Context, *IdRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteProjectAllocation not implemented")
 }
 func (UnimplementedPeriodEndServiceServer) GetControlSettings(context.Context, *ControlSettingsRequest) (*ControlSettings, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetControlSettings not implemented")
@@ -7559,6 +7719,186 @@ func _PeriodEndService_ExportAuditTrail_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PeriodEndService_ListSalesReversals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSalesReversalsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ListSalesReversals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ListSalesReversals_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ListSalesReversals(ctx, req.(*ListSalesReversalsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ReverseJournalEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReverseJournalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ReverseJournalEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ReverseJournalEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ReverseJournalEntry(ctx, req.(*ReverseJournalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_DisposeFixedAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisposeAssetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).DisposeFixedAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_DisposeFixedAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).DisposeFixedAsset(ctx, req.(*DisposeAssetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ListPoMatches_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPoMatchesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ListPoMatches(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ListPoMatches_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ListPoMatches(ctx, req.(*ListPoMatchesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ReceiveGoods_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GoodsReceipt)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ReceiveGoods(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ReceiveGoods_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ReceiveGoods(ctx, req.(*GoodsReceipt))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_VoidGoodsReceipt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoidAdvanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).VoidGoodsReceipt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_VoidGoodsReceipt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).VoidGoodsReceipt(ctx, req.(*VoidAdvanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_MatchInvoiceToPo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MatchInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).MatchInvoiceToPo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_MatchInvoiceToPo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).MatchInvoiceToPo(ctx, req.(*MatchInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_ListProjectAllocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProjectProfitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).ListProjectAllocations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_ListProjectAllocations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).ListProjectAllocations(ctx, req.(*ProjectProfitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_CreateProjectAllocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProjectAllocation)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).CreateProjectAllocation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_CreateProjectAllocation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).CreateProjectAllocation(ctx, req.(*ProjectAllocation))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PeriodEndService_DeleteProjectAllocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeriodEndServiceServer).DeleteProjectAllocation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PeriodEndService_DeleteProjectAllocation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeriodEndServiceServer).DeleteProjectAllocation(ctx, req.(*IdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PeriodEndService_GetControlSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ControlSettingsRequest)
 	if err := dec(in); err != nil {
@@ -7649,6 +7989,46 @@ var PeriodEndService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ExportAuditTrail",
 			Handler:    _PeriodEndService_ExportAuditTrail_Handler,
+		},
+		{
+			MethodName: "ListSalesReversals",
+			Handler:    _PeriodEndService_ListSalesReversals_Handler,
+		},
+		{
+			MethodName: "ReverseJournalEntry",
+			Handler:    _PeriodEndService_ReverseJournalEntry_Handler,
+		},
+		{
+			MethodName: "DisposeFixedAsset",
+			Handler:    _PeriodEndService_DisposeFixedAsset_Handler,
+		},
+		{
+			MethodName: "ListPoMatches",
+			Handler:    _PeriodEndService_ListPoMatches_Handler,
+		},
+		{
+			MethodName: "ReceiveGoods",
+			Handler:    _PeriodEndService_ReceiveGoods_Handler,
+		},
+		{
+			MethodName: "VoidGoodsReceipt",
+			Handler:    _PeriodEndService_VoidGoodsReceipt_Handler,
+		},
+		{
+			MethodName: "MatchInvoiceToPo",
+			Handler:    _PeriodEndService_MatchInvoiceToPo_Handler,
+		},
+		{
+			MethodName: "ListProjectAllocations",
+			Handler:    _PeriodEndService_ListProjectAllocations_Handler,
+		},
+		{
+			MethodName: "CreateProjectAllocation",
+			Handler:    _PeriodEndService_CreateProjectAllocation_Handler,
+		},
+		{
+			MethodName: "DeleteProjectAllocation",
+			Handler:    _PeriodEndService_DeleteProjectAllocation_Handler,
 		},
 		{
 			MethodName: "GetControlSettings",

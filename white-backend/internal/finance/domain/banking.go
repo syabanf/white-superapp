@@ -453,7 +453,8 @@ type FixedAsset struct {
 	ID, Name, AcquiredOn, ExpenseAccountID, AccumAccountID string
 	ExpenseAccountName, AccumAccountName                   string
 	LastEntryID, LastError                                 string
-	Cost, Salvage                                          Money
+	DisposedOn                                             string
+	Cost, Salvage, DisposalProceeds                        Money
 	LifeMonths, DepreciatedMonths                          int
 	IsActive                                               bool
 	CreatedBy, UpdatedBy                                   string

@@ -267,6 +267,13 @@ func TestQuotationContractOnboardingFlow(t *testing.T) {
 	if pay.InvoiceID != first.ID || pay.Amount != first.Amount.String() {
 		t.Fatalf("payment event %+v", pay)
 	}
+	reversible := must(e.svc.Billing.RecordPayment(ctx, salesActor, app.PaymentInput{DealID: deal.ID, InvoiceID: first.ID, Amount: "1", Method: "transfer"}))
+	if err := e.svc.Billing.DeletePayment(ctx, salesActor, reversible.ID); err != nil {
+		t.Fatal(err)
+	}
+	if gone := e.rec.events[events.SalesPaymentDeleted][0].(salesevents.PaymentDeleted); gone.PaymentID != reversible.ID {
+		t.Fatalf("payment deleted event %+v", gone)
+	}
 	if got := must(e.svc.Billing.GetInvoice(ctx, first.ID)); got.InvoiceNumber != first.InvoiceNumber || got.PaidTotal != first.Amount {
 		t.Fatalf("get invoice %+v", got)
 	}

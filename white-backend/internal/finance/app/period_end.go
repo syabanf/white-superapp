@@ -21,14 +21,15 @@ const (
 
 // ─── Separation of duties ───────────────────────────────────
 
-// checkSeparateApprover refuses a person posting their own draft while the company
+// checkSeparateApprover refuses a person posting, paying, crediting or writing off
+// their own document while the company
 // requires a second person.
 func checkSeparateApprover(ctx context.Context, s domain.Store, createdBy, userID string) error {
 	on, err := s.SeparateApprover(ctx)
 	if err != nil || !on || createdBy == "" || createdBy != userID {
 		return err
 	}
-	return domain.Conflict("Pembuat dokumen tidak boleh memposting dokumennya sendiri. Minta rekan lain memeriksanya.")
+	return domain.Conflict("Pembuat dokumen tidak boleh memproses dokumennya sendiri. Minta rekan lain memeriksanya.")
 }
 
 func (l *Ledgers) SeparateApprover(ctx context.Context) (bool, error) {
@@ -72,6 +73,9 @@ func (l *Ledgers) WriteOffInvoice(ctx context.Context, userID, invoiceID string,
 	}
 	if inv == nil || inv.Kind != domain.KindAR {
 		return nil, domain.NotFound("Tagihan piutang tidak ditemukan")
+	}
+	if err := checkSeparateApprover(ctx, l.Store, inv.CreatedBy, userID); err != nil {
+		return nil, err
 	}
 	if inv.Status != domain.StatusPosted || inv.JournalEntryID == "" {
 		return nil, domain.Conflict("Write-off butuh tagihan yang sudah diposting dan punya jurnal")

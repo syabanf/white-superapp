@@ -46,6 +46,8 @@ const (
 	HRPayrollPaid            = "white.hr.payroll.paid"
 	SalesInvoiceIssued       = "white.sales.invoice.issued"
 	SalesPaymentRecorded     = "white.sales.payment.recorded"
+	SalesPaymentDeleted      = "white.sales.payment.deleted"
+	SalesInvoiceCancelled    = "white.sales.invoice.cancelled"
 	SalesDealWon             = "white.sales.deal.won"
 	FinanceReimbursementPaid = "white.finance.reimbursement.paid"
 	// Payload: recruitment domain.CandidateHiredPayload.

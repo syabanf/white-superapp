@@ -2193,6 +2193,36 @@ service PeriodEndService {
   rpc ExportAuditTrail(ListAuditTrailRequest) returns (TaxExportFile) {
     option (google.api.http) = {get: "/v1/finance/reports/audit-trail-export"};
   }
+  rpc ListSalesReversals(ListSalesReversalsRequest) returns (ListSalesReversalsResponse) {
+    option (google.api.http) = {get: "/v1/finance/sales-reversals"};
+  }
+  rpc ReverseJournalEntry(ReverseJournalRequest) returns (JournalEntry) {
+    option (google.api.http) = {post: "/v1/finance/journal-entries/{id}:reverse" body: "*"};
+  }
+  rpc DisposeFixedAsset(DisposeAssetRequest) returns (FixedAsset) {
+    option (google.api.http) = {post: "/v1/finance/fixed-assets/{id}:dispose" body: "*"};
+  }
+  rpc ListPoMatches(ListPoMatchesRequest) returns (ListPoMatchesResponse) {
+    option (google.api.http) = {get: "/v1/finance/po-matches"};
+  }
+  rpc ReceiveGoods(GoodsReceipt) returns (GoodsReceipt) {
+    option (google.api.http) = {post: "/v1/finance/goods-receipts" body: "*"};
+  }
+  rpc VoidGoodsReceipt(VoidAdvanceRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {post: "/v1/finance/goods-receipts/{id}:void" body: "*"};
+  }
+  rpc MatchInvoiceToPo(MatchInvoiceRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {post: "/v1/finance/ap/invoices/{invoice_id}:match-po" body: "*"};
+  }
+  rpc ListProjectAllocations(ProjectProfitRequest) returns (ListProjectAllocationsResponse) {
+    option (google.api.http) = {get: "/v1/finance/project-allocations"};
+  }
+  rpc CreateProjectAllocation(ProjectAllocation) returns (ListProjectAllocationsResponse) {
+    option (google.api.http) = {post: "/v1/finance/project-allocations" body: "*"};
+  }
+  rpc DeleteProjectAllocation(IdRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1/finance/project-allocations/{id}"};
+  }
   rpc GetControlSettings(ControlSettingsRequest) returns (ControlSettings) {
     option (google.api.http) = {get: "/v1/finance/control-settings"};
   }
@@ -2505,6 +2535,8 @@ message FixedAsset {
   bool is_active = 15;
   string last_entry_id = 16;
   string last_error = 17;
+  string disposed_on = 18;
+  string disposal_proceeds = 19;
 }
 message FixedAssetInput {
   string name = 1;
@@ -2922,6 +2954,8 @@ message ProjectProfitRow {
   string revenue = 4;
   string cost = 5;
   string profit = 6;
+  // The part of cost a person assigned, negative on the untagged row.
+  string allocated = 7;
 }
 message ProjectProfit {
   string date_from = 1;
@@ -3194,4 +3228,80 @@ message ListAuditTrailRequest {
 message ListAuditTrailResponse {
   repeated AuditEntry entries = 1;
   int32 total = 2;
+}
+
+message SalesReversal {
+  string kind = 1;
+  string id = 2;
+  string doc_no = 3;
+  string party_name = 4;
+  string amount = 5;
+  string reason = 6;
+  string error = 7;
+}
+message ListSalesReversalsRequest {}
+message ListSalesReversalsResponse {
+  repeated SalesReversal reversals = 1;
+}
+message ReverseJournalRequest {
+  string id = 1;
+  string reversal_date = 2;
+  string reason = 3;
+}
+message DisposeAssetRequest {
+  string id = 1;
+  string disposal_date = 2;
+  string asset_account_id = 3;
+  string cash_account_id = 4;
+  string gain_loss_account_id = 5;
+  string proceeds = 6;
+  string reason = 7;
+}
+message GoodsReceipt {
+  string id = 1;
+  string receipt_no = 2;
+  string document_id = 3;
+  string receipt_date = 4;
+  string amount = 5;
+  string notes = 6;
+  string status = 7;
+  string void_reason = 8;
+}
+message PoInvoice {
+  string invoice_id = 1;
+  string invoice_no = 2;
+  string status = 3;
+  string subtotal = 4;
+}
+message PoMatch {
+  string document_id = 1;
+  string number = 2;
+  string party_name = 3;
+  string title = 4;
+  string ordered = 5;
+  string received = 6;
+  string billed = 7;
+  repeated GoodsReceipt receipts = 8;
+  repeated PoInvoice invoices = 9;
+}
+message ListPoMatchesRequest {}
+message ListPoMatchesResponse {
+  repeated PoMatch matches = 1;
+}
+message MatchInvoiceRequest {
+  string invoice_id = 1;
+  string document_id = 2;
+}
+message ProjectAllocation {
+  string id = 1;
+  string tag_id = 2;
+  string tag_name = 3;
+  string client_name = 4;
+  string month = 5;
+  string kind = 6;
+  string amount = 7;
+  string notes = 8;
+}
+message ListProjectAllocationsResponse {
+  repeated ProjectAllocation allocations = 1;
 }

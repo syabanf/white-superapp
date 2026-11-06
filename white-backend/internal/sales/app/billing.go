@@ -275,10 +275,17 @@ func (b *Billing) CancelInvoice(ctx context.Context, actor Actor, id, reason str
 		return nil, conflict("Invoice yang sudah ada pembayarannya tidak bisa dibatalkan")
 	}
 	now := b.now()
+	booked := inv.Status != InvoiceSubmitted
 	inv.Status, inv.CancelledAt, inv.CancelledBy, inv.CancelReason = InvoiceCancelled, &now, actor.ref(), domain.TrimmedOrNil(reason)
 	inv.UpdatedBy, inv.UpdatedAt = actor.ref(), now
 	if err := b.Store.SaveInvoice(ctx, inv); err != nil {
 		return nil, err
+	}
+	// Finance booked it when it was issued, so finance has to take it back out.
+	if booked {
+		if err := b.publish(ctx, events.SalesInvoiceCancelled, salesevents.InvoiceCancelled{InvoiceID: inv.ID, Reason: reason, CancelledBy: actor.UserID}); err != nil {
+			return nil, err
+		}
 	}
 	return b.Store.GetInvoice(ctx, id)
 }
@@ -535,9 +542,9 @@ func parseSettlement(in PaymentInput, amount domain.Money, errs map[string]strin
 	return bankFee, withheld
 }
 
-// DeletePayment voids a payment. Finance has no receipt reversal event
-// yet, so nothing is published.
-func (b *Billing) DeletePayment(ctx context.Context, id string) error {
+// DeletePayment voids a payment and, for one recorded against an invoice, tells
+// finance to reverse its receipt.
+func (b *Billing) DeletePayment(ctx context.Context, actor Actor, id string) error {
 	p, err := b.Store.GetPayment(ctx, id)
 	if err != nil {
 		return err
@@ -545,7 +552,13 @@ func (b *Billing) DeletePayment(ctx context.Context, id string) error {
 	if p == nil {
 		return notFound("Pembayaran tidak ditemukan")
 	}
-	return b.Store.DeletePayment(ctx, id, b.now())
+	if err := b.Store.DeletePayment(ctx, id, b.now()); err != nil {
+		return err
+	}
+	if p.InvoiceID == nil {
+		return nil
+	}
+	return b.publish(ctx, events.SalesPaymentDeleted, salesevents.PaymentDeleted{PaymentID: p.ID, DeletedBy: actor.UserID})
 }
 
 // ─── follow-ups ────────────────────────────────

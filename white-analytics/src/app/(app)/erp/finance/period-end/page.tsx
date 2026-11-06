@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { requireErp } from "@/features/erp/access";
 import { ControlsCard, DeferralDialog, DeferralsTable, PositionsTable, RemittancesTable, TaxActions } from "@/features/erp/finance/components/period-end";
+import { SalesReversalsTable } from "@/features/erp/finance/components/controls";
 import { financePerms } from "@/features/erp/finance/perms";
-import { getSeparateApprover, listDeferrals, listPostableAccounts, listTaxPositions, listTaxRemittances } from "@/features/erp/finance/queries";
+import { getSeparateApprover, listDeferrals, listPostableAccounts, listSalesReversals, listTaxPositions, listTaxRemittances } from "@/features/erp/finance/queries";
 import { fs } from "@/features/erp/finance/strings";
 import { OfflineNotice } from "@/features/erp/offline-notice";
 import { load, sp1 } from "@/features/erp/shared/load";
@@ -24,8 +25,9 @@ export default async function PeriodEndPage(props: PageProps<"/erp/finance/perio
   const tabs = <UrlTabs label={s.title} tabs={[{ value: "deferrals", label: s.tabDeferrals }, { value: "tax", label: s.tabTax }, { value: "controls", label: s.tabControls }]} />;
 
   if (tab === "controls") {
-    const res = await load(getSeparateApprover);
-    return <>{header()}{tabs}{res.error ? <ErpLoadError error={res.error} /> : <ControlsCard separateApprover={res.data} canApprove={canApprove} />}</>;
+    const res = await load(() => Promise.all([getSeparateApprover(), listSalesReversals()]));
+    if (res.error) return <>{header()}{tabs}<ErpLoadError error={res.error} /></>;
+    return <>{header()}{tabs}<ControlsCard separateApprover={res.data[0]} canApprove={canApprove} /><SalesReversalsTable rows={res.data[1]} /></>;
   }
 
   if (tab === "tax") {

@@ -1269,7 +1269,7 @@ func (s *Store) DeleteRecurringJournal(ctx context.Context, id string) error {
 func toFixedAsset(r sqlc.ListFixedAssetsRow) domain.FixedAsset {
 	return domain.FixedAsset{ID: r.ID, Name: r.Name, AcquiredOn: ds(r.AcquiredOn), Cost: r.Cost, Salvage: r.Salvage, LifeMonths: int(r.LifeMonths),
 		ExpenseAccountID: r.ExpenseAccountID, AccumAccountID: r.AccumAccountID, ExpenseAccountName: r.ExpenseAccountName, AccumAccountName: r.AccumAccountName,
-		DepreciatedMonths: int(r.DepreciatedMonths), IsActive: r.IsActive, LastEntryID: str(r.LastEntryID), LastError: r.LastError, CreatedBy: str(r.CreatedBy), UpdatedBy: str(r.UpdatedBy)}
+		DepreciatedMonths: int(r.DepreciatedMonths), IsActive: r.IsActive, LastEntryID: str(r.LastEntryID), LastError: r.LastError, CreatedBy: str(r.CreatedBy), UpdatedBy: str(r.UpdatedBy), DisposedOn: dsp(r.DisposedOn), DisposalProceeds: r.DisposalProceeds}
 }
 
 func (s *Store) ListFixedAssets(ctx context.Context, activeOnly bool) ([]domain.FixedAsset, error) {
